@@ -1,0 +1,159 @@
+@import "tailwindcss";
+
+:root {
+  --background: #ffffff;
+  --foreground: #171717;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #0a0a0a;
+    --foreground: #ededed;
+  }
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+/* Custom Quill Editor Styles for Dark Mode */
+.shop-quill-editor {
+    border: 1px solid #27272a !important; /* zinc-800 */
+    border-radius: 1.25rem !important;
+    overflow: hidden;
+    background-color: #09090b !important; /* zinc-950 */
+}
+
+.shop-quill-editor .ql-toolbar {
+    background-color: #18181b !important; /* zinc-900 */
+    border: none !important;
+    border-bottom: 1px solid #27272a !important;
+    padding: 12px 16px !important;
+}
+
+.shop-quill-editor .ql-toolbar button,
+.shop-quill-editor .ql-toolbar .ql-picker {
+    color: #d4d4d8 !important; /* zinc-300 - more visible */
+}
+
+.shop-quill-editor .ql-toolbar button:hover,
+.shop-quill-editor .ql-toolbar .ql-picker:hover,
+.shop-quill-editor .ql-toolbar button.ql-active,
+.shop-quill-editor .ql-toolbar .ql-picker.ql-active {
+    color: #10b981 !important; /* emerald-500 */
+}
+
+.shop-quill-editor .ql-toolbar .ql-stroke {
+    stroke: #d4d4d8 !important;
+}
+
+.shop-quill-editor .ql-toolbar button:hover .ql-stroke,
+.shop-quill-editor .ql-toolbar button.ql-active .ql-stroke {
+    stroke: #10b981 !important;
+}
+
+.shop-quill-editor .ql-toolbar .ql-fill {
+    fill: #d4d4d8 !important;
+}
+
+.shop-quill-editor .ql-toolbar button:hover .ql-fill,
+.shop-quill-editor .ql-toolbar button.ql-active .ql-fill {
+    fill: #10b981 !important;
+}
+
+.shop-quill-editor .ql-container {
+    border: none !important;
+    color: #ffffff !important;
+    font-family: inherit;
+}
+
+.shop-quill-editor .ql-editor {
+    min-height: 180px;
+    font-size: 0.95rem;
+    line-height: 1.7;
+    padding: 20px !important;
+}
+
+.shop-quill-editor .ql-editor.ql-blank::before {
+    color: #52525b !important; /* zinc-600 - more visible placeholder */
+    font-style: normal;
+    left: 20px !important;
+    right: 20px !important;
+}
+
+.shop-quill-editor .ql-picker-options {
+    background-color: #18181b !important;
+    border: 1px solid #27272a !important;
+    border-radius: 0.75rem;
+    padding: 8px !important;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5);
+}
+
+.shop-quill-editor .ql-picker-item {
+    color: #a1a1aa !important;
+}
+
+.shop-quill-editor .ql-picker-item:hover {
+    color: #10b981 !important;
+}
+
+/* ======================================
+   Rich Text Content Display (dangerouslySetInnerHTML)
+   Fixes Tailwind CSS reset that hides list markers
+   ====================================== */
+.description-content ul {
+    list-style-type: disc;
+    list-style-position: inside;
+    padding-left: 0.25rem;
+    margin-bottom: 0.75rem;
+}
+
+.description-content ol {
+    list-style-type: decimal;
+    list-style-position: inside;
+    padding-left: 0.25rem;
+    margin-bottom: 0.75rem;
+}
+
+.description-content li {
+    display: list-item;
+    margin-bottom: 0.35rem;
+}
+
+.description-content li > p {
+    display: inline;
+}
+
+/* ======================================
+   Quill Editor List Styles (inside editor)
+   ====================================== */
+.shop-quill-editor .ql-editor ul,
+.ql-editor ul {
+    list-style-type: disc;
+    list-style-position: inside;
+    padding-left: 0.25rem;
+    margin-bottom: 0.75rem;
+}
+
+.shop-quill-editor .ql-editor ol,
+.ql-editor ol {
+    list-style-type: decimal;
+    list-style-position: inside;
+    padding-left: 0.25rem;
+    margin-bottom: 0.75rem;
+}
+
+.shop-quill-editor .ql-editor li,
+.ql-editor li {
+    display: list-item;
+    margin-bottom: 0.35rem;
+}

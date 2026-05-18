@@ -1,0 +1,706 @@
+"use client";
+
+import {
+    Tag, Trash2, Edit, Eye, Search, Plus, CheckCircle2, ChevronRight, ShoppingBag, AlertCircle, XCircle, Truck, ScrollText
+} from "lucide-react";
+import { useState, useEffect } from "react";
+import Link from "next/link";
+import ActionModal from "@/components/ActionModal";
+import { io } from "socket.io-client";
+
+export default function DaftarJualanPage() {
+    const [listings, setListings] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [searchQuery, setSearchQuery] = useState("");
+    const [filterType, setFilterType] = useState("all");
+    const [filterStatus, setFilterStatus] = useState("all");
+    const [currentPage, setCurrentPage] = useState(1);
+    const itemsPerPage = 8;
+
+    // Unified Action Modal State
+    const [actionModal, setActionModal] = useState({
+        isOpen: false,
+        type: 'info',
+        title: '',
+        message: '',
+        confirmText: '',
+        onConfirm: null,
+        isLoading: false,
+        id: null
+    });
+
+    useEffect(() => {
+        fetchMyListings();
+
+        const userRaw = localStorage.getItem("user");
+        if (userRaw) {
+            const userData = JSON.parse(userRaw);
+            const socket = io(process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000");
+
+            socket.on("connect", () => {
+                console.log("[Socket] Connected to server");
+                socket.emit("join_user", userData.id);
+            });
+
+            socket.on("listing_status_updated", (data) => {
+                console.log("[Socket] Received listing_status_updated:", data);
+                setListings((prevListings) =>
+                    prevListings.map((item) =>
+                        item.id === data.id
+                            ? { ...item, status: data.status, rejection_reason: data.rejection_reason }
+                            : item
+                    )
+                );
+            });
+
+            socket.on("listing_deleted", (data) => {
+                 console.log("[Socket] Received listing_deleted:", data);
+                 setListings((prevListings) => prevListings.filter((item) => item.id !== data.id));
+            });
+
+            return () => {
+                socket.disconnect();
+            };
+        }
+    }, []);
+
+    const fetchMyListings = async () => {
+        try {
+            const userRaw = localStorage.getItem("user");
+            if (!userRaw) return;
+            const userData = JSON.parse(userRaw);
+
+            const shopRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/shops/user/${userData.id}`);
+            const shopData = await shopRes.json();
+
+            if (shopRes.ok && shopData.data) {
+                const listingsRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/listings/shop/${shopData.data.id}?all=true`);
+                const listingsData = await listingsRes.json();
+
+                if (listingsRes.ok) {
+                    setListings(listingsData.data || []);
+                }
+            }
+        } catch (err) {
+            console.error("Error fetching listings:", err);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const openDeleteModal = (item) => {
+        setActionModal({
+            isOpen: true,
+            type: 'danger',
+            title: 'Hapus Iklan Produk',
+            message: `Apakah Anda yakin ingin menghapus iklan "${item.name}" secara PERMANEN? Tindakan ini akan menghapus data iklan dari toko Anda dan tidak dapat dibatalkan.`,
+            confirmText: 'Ya, Hapus Permanen',
+            onConfirm: () => processDelete(item.id)
+        });
+    };
+
+    const processDelete = async (id) => {
+        setActionModal(prev => ({ ...prev, isLoading: true }));
+        try {
+            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/listings/${id}`, {
+                method: "DELETE"
+            });
+            if (res.ok) {
+                setListings(listings.filter(item => item.id !== id));
+                setActionModal({
+                    isOpen: true,
+                    type: 'success',
+                    title: 'Berhasil Dihapus',
+                    message: 'Iklan produk telah berhasil dihapus secara permanen dari sistem.',
+                    confirmText: 'Oke',
+                    onConfirm: () => setActionModal({ isOpen: false })
+                });
+            }
+        } catch (err) {
+            console.error("Error deleting listing:", err);
+            setActionModal({
+                isOpen: true,
+                type: 'danger',
+                title: 'Gagal Menghapus',
+                message: 'Terjadi kesalahan teknis saat mencoba menghapus iklan.',
+                confirmText: 'Tutup',
+                onConfirm: () => setActionModal({ isOpen: false })
+            });
+        }
+    };
+
+    const handleDismissCancellation = async (orderId, listingId) => {
+        if (!orderId) return;
+        try {
+            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/orders/${encodeURIComponent(orderId)}/dismiss-cancellation`, {
+                method: 'PUT'
+            });
+            if (res.ok) {
+                const result = await res.json();
+                // Update local state to remove the cancelled mark from this listing
+                // Also sync the stock if returned
+                setListings(prev => prev.map(item =>
+                    item.id === listingId
+                        ? {
+                            ...item,
+                            latestCancelledOrderId: null,
+                            stock: result.currentStock !== null ? result.currentStock : item.stock
+                        }
+                        : item
+                ));
+            }
+        } catch (err) {
+            console.error("Error dismissing cancellation:", err);
+        }
+    };
+
+    const getEffectiveStatus = (item) => {
+        if (item.isVirtual) return 'cancelled_order';
+        let status = item.status?.toLowerCase() || 'active';
+        if (status === 'active' && item.stock <= 0) return 'sold';
+        return status;
+    };
+
+    const filteredListings = listings.flatMap(item => {
+        const matchesSearch = item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            item.species.toLowerCase().includes(searchQuery.toLowerCase());
+        const matchesType = filterType === "all" || item.type === filterType;
+
+        const effectiveStatus = getEffectiveStatus(item);
+        const matchesStatus = filterStatus === "all" || effectiveStatus === filterStatus;
+
+        const rows = [];
+
+        if (matchesSearch && matchesType && matchesStatus) {
+            rows.push({ ...item, isVirtual: false, displayStatus: effectiveStatus });
+        }
+
+        // 2. If it has a cancelled order, add it as a separate VIRTUAL row
+        if (item.latestCancelledOrderId && (filterStatus === 'all' || filterStatus === 'rejected')) {
+            rows.push({
+                ...item,
+                id: `cancelled-${item.latestCancelledOrderId}`,
+                realListingId: item.id,
+                internalOrderId: item.latestCancelledInternalId,
+                isVirtual: true,
+                virtualType: 'cancelled',
+                invoiceId: item.latestCancelledOrderId,
+                quantity: item.latestCancelledQuantity,
+                buyerName: item.latestCancelledBuyer,
+                displayStatus: 'cancelled_order'
+            });
+        }
+
+        return rows;
+    });
+
+    const totalPages = Math.max(1, Math.ceil(filteredListings.length / itemsPerPage));
+    const paginatedListings = filteredListings.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+
+    const goToPage = (page) => {
+        if (page < 1 || page > totalPages) return;
+        setCurrentPage(page);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    };
+
+    const handleFilterChange = (type) => {
+        setFilterType(type);
+        setCurrentPage(1);
+    };
+
+    const handleSearchChange = (value) => {
+        setSearchQuery(value);
+        setCurrentPage(1);
+    };
+
+    const getStatusStyles = (status) => {
+        switch (status) {
+            case 'active':
+                return "bg-blue-500/10 text-blue-400 border-blue-500/20";
+            case 'rejected':
+            case 'cancelled':
+            case 'cancelled_order':
+                return "bg-red-500/10 text-red-400 border-red-500/20";
+            case 'pending':
+                return "bg-amber-500/10 text-amber-400 border-amber-500/20";
+            case 'sold':
+                return "bg-emerald-500/10 text-emerald-400 border-emerald-500/20";
+            default:
+                return "bg-zinc-500/10 text-zinc-500 border-zinc-500/20";
+        }
+    };
+
+    const getStatusLabel = (status) => {
+        switch (status) {
+            case 'active': return 'Aktif';
+            case 'pending': return 'Pending';
+            case 'sold': return 'Terjual';
+            case 'rejected': return 'Ditolak Admin';
+            case 'cancelled': return 'Batal Sistem';
+            case 'cancelled_order': return 'Transaksi Batal';
+            default: return status || 'Aktif';
+        }
+    };
+
+    const formatPrice = (price) => {
+        return new Intl.NumberFormat("id-ID", {
+            style: "currency",
+            currency: "IDR",
+            minimumFractionDigits: 0
+        }).format(price || 0);
+    };
+
+    if (loading) {
+        return (
+            <div className="flex flex-col items-center justify-center min-h-[400px] gap-4">
+                <div className="w-12 h-12 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin"></div>
+                <p className="text-zinc-500 font-bold animate-pulse">Memuat data jualan anda...</p>
+            </div>
+        );
+    }
+
+    return (
+        <div className="p-2 md:p-6 space-y-6 animate-in fade-in duration-500">
+            {/* Header */}
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+                <div>
+                    <h1 className="text-3xl font-black text-white flex items-center gap-3">
+                        <Tag className="text-emerald-500" />
+                        Daftar Produk Toko
+                    </h1>
+                    <p className="text-zinc-500 text-sm mt-1">Kelola semua iklan jualan dan lelang reptil Anda.</p>
+                </div>
+
+                <Link
+                    href="/user/toko/jual-produk"
+                    className="bg-emerald-500 hover:bg-emerald-400 text-zinc-950 font-black px-6 py-4 rounded-2xl flex items-center gap-2 transition-all shadow-lg shadow-emerald-500/10 active:scale-95 group w-fit"
+                >
+                    <Plus size={20} className="group-hover:rotate-90 transition-transform" />
+                    Tambah Produk Baru
+                </Link>
+            </div>
+
+            {/* Filters */}
+            <div className="bg-zinc-900 border border-zinc-800 p-2 rounded-[2rem] flex flex-col md:flex-row gap-2 items-center shadow-xl">
+                <div className="relative flex-1 w-full">
+                    <Search className="absolute left-6 top-1/2 -translate-y-1/2 text-zinc-500" size={18} />
+                    <input
+                        type="text"
+                        placeholder="Cari nama reptil atau spesies..."
+                        className="w-full bg-zinc-950 border border-transparent rounded-[1.5rem] pl-14 pr-6 py-4 text-sm text-white focus:border-emerald-500 transition-all outline-none"
+                        value={searchQuery}
+                        onChange={(e) => handleSearchChange(e.target.value)}
+                    />
+                </div>
+                <div className="flex flex-col md:flex-row gap-2 w-full md:w-auto">
+                    <div className="hidden md:flex bg-zinc-950 border border-zinc-800 rounded-[1.5rem] p-1.5 shadow-inner">
+                        {[
+                            { id: 'all', label: 'Tipe: Semua' },
+                            { id: 'sell', label: 'Jual' },
+                            { id: 'auction', label: 'Lelang' }
+                        ].map(type => (
+                            <button
+                                key={type.id}
+                                onClick={() => handleFilterChange(type.id)}
+                                className={`px-6 py-2.5 rounded-xl text-xs font-black transition-all ${filterType === type.id ? "bg-zinc-800 text-white shadow-lg" : "text-zinc-500 hover:text-white"}`}
+                            >
+                                {type.label}
+                            </button>
+                        ))}
+                    </div>
+
+                    <div className="hidden md:flex bg-zinc-950 border border-zinc-800 rounded-[1.5rem] p-1.5 shadow-inner">
+                        {[
+                            { id: 'all', label: 'Status: Semua' },
+                            { id: 'active', label: 'Aktif' },
+                            { id: 'pending', label: 'Pending' },
+                            { id: 'sold', label: 'Terjual' },
+                            { id: 'rejected', label: 'Dibatalkan' }
+                        ].map(status => (
+                            <button
+                                key={status.id}
+                                onClick={() => { setFilterStatus(status.id); setCurrentPage(1); }}
+                                className={`px-6 py-2.5 rounded-xl text-xs font-black transition-all whitespace-nowrap ${filterStatus === status.id ? "bg-zinc-800 text-white shadow-lg" : "text-zinc-500 hover:text-white"}`}
+                            >
+                                {status.label}
+                            </button>
+                        ))}
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-2 md:hidden">
+                        <select
+                            value={filterType}
+                            onChange={(e) => handleFilterChange(e.target.value)}
+                            className="bg-zinc-950 border border-zinc-800 text-white text-xs font-black px-4 py-4 rounded-2xl outline-none appearance-none"
+                        >
+                            <option value="all">Tipe: Semua</option>
+                            <option value="sell">Jual</option>
+                            <option value="auction">Lelang</option>
+                        </select>
+                        <select
+                            value={filterStatus}
+                            onChange={(e) => { setFilterStatus(e.target.value); setCurrentPage(1); }}
+                            className="bg-zinc-950 border border-zinc-800 text-white text-xs font-black px-4 py-4 rounded-2xl outline-none appearance-none"
+                        >
+                            <option value="all">Status: Semua</option>
+                            <option value="active">Aktif</option>
+                            <option value="pending">Pending</option>
+                            <option value="sold">Terjual</option>
+                            <option value="rejected">Dibatalkan</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            {/* Table View (Desktop) */}
+            <div className="hidden md:block bg-zinc-900 border border-zinc-800 rounded-[2.5rem] overflow-hidden shadow-2xl">
+                <div className="overflow-x-auto">
+                    <table className="w-full text-left border-collapse">
+                        <thead>
+                            <tr className="border-b border-zinc-800 bg-zinc-950/50">
+                                <th className="p-6 text-[10px] font-black text-zinc-300 uppercase tracking-[0.2em]">No.</th>
+                                <th className="p-6 text-[10px] font-black text-zinc-300 uppercase tracking-[0.2em]">Produk</th>
+                                <th className="p-6 text-[10px] font-black text-zinc-300 uppercase tracking-[0.2em]">Tanggal</th>
+                                <th className="p-6 text-[10px] font-black text-zinc-300 uppercase tracking-[0.2em]">Harga / Bid</th>
+                                {/* <th className="p-6 text-[10px] font-black text-zinc-300 uppercase tracking-[0.2em]">Nomor Invoice</th> */}
+                                <th className="p-6 text-[10px] font-black text-zinc-300 uppercase tracking-[0.2em]">Stok</th>
+                                <th className="p-6 text-[10px] font-black text-zinc-300 uppercase tracking-[0.2em]">Status</th>
+                                <th className="p-6 text-[10px] font-black text-zinc-300 uppercase tracking-[0.2em] text-center">Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody className="divide-y divide-zinc-800/50">
+                            {paginatedListings.length > 0 ? (
+                                paginatedListings.map((item, index) => {
+                                    const globalIndex = (currentPage - 1) * itemsPerPage + index;
+                                    return (
+                                        <tr
+                                            key={item.id}
+                                            className={`transition-colors group ${item.isVirtual ? 'bg-red-500/5 hover:bg-red-500/10' : 'hover:bg-zinc-800/30'}`}
+                                        >
+                                            <td className="p-6 text-xs font-bold text-zinc-600">
+                                                {item.isVirtual ? "-" : globalIndex + 1}
+                                            </td>
+                                            <td className="p-6">
+                                                <div className="flex items-center gap-4">
+                                                    <div className="w-14 h-14 rounded-2xl bg-zinc-950 border border-zinc-800 overflow-hidden shrink-0 shadow-inner group-hover:border-zinc-700 transition-all">
+                                                        <img
+                                                            src={item.images && item.images[0] ? item.images[0] : "https://placehold.co/400x400/18181b/52525b?text=No+Image"}
+                                                            alt={item.name}
+                                                            className="w-full h-full object-cover"
+                                                        />
+                                                    </div>
+                                                    <div>
+                                                        <p className="text-xs font-black text-white line-clamp-1">
+                                                            {item.isVirtual && <span className="text-red-500 mr-1">[BATAL]</span>}
+                                                            {item.name}
+                                                        </p>
+                                                        <div className="flex items-center gap-2 mt-0.5">
+                                                            <p className="text-[10px] font-bold text-emerald-500 uppercase tracking-widest">{item.species}</p>
+                                                            {item.product_id && (
+                                                                <>
+                                                                    <span className="text-zinc-700 text-[10px]">•</span>
+                                                                    <p className="text-[10px] font-mono font-black text-zinc-400">{item.product_id}</p>
+                                                                </>
+                                                            )}
+                                                        </div>
+                                                        {item.isVirtual && (
+                                                            <p className="text-[10px] text-red-400 mt-1 font-bold">Pembeli: {item.buyerName || "User"}</p>
+                                                        )}
+                                                        {!item.isVirtual && (
+                                                            <div className="flex items-center gap-2 mt-1">
+                                                                <span className={`px-2 py-0.5 rounded text-[8px] font-black uppercase tracking-tighter border ${item.type === 'sell' ? 'bg-blue-500/10 text-blue-400 border-blue-500/20' : 'bg-amber-500/10 text-amber-400 border-amber-500/20'}`}>
+                                                                    {item.type === 'sell' ? 'Jual' : 'Lelang'}
+                                                                </span>
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td className="p-6">
+                                                <p className="text-xs font-bold text-zinc-400">
+                                                    {new Date(item.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}
+                                                </p>
+                                                <p className="text-[10px] text-zinc-600 font-bold uppercase tracking-tighter mt-0.5">
+                                                    {new Date(item.created_at).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })} WIB
+                                                </p>
+                                            </td>
+                                            <td className="p-6">
+                                                <p className="text-sm font-black text-white">
+                                                    {formatPrice(item.type === "sell" ? item.price : (item.current_bid || item.start_bid))}
+                                                </p>
+                                            </td>
+                                            <td className="p-6 text-center">
+                                                <div className="flex flex-col items-center">
+                                                    <span className={`text-sm font-black ${item.isVirtual ? 'text-red-500' : 'text-white'}`}>{item.isVirtual ? item.quantity : (item.stock || 0)}</span>
+                                                    {item.isVirtual && <span className="text-[8px] text-red-400 font-bold uppercase">Batal</span>}
+                                                </div>
+                                            </td>
+                                            <td className="p-6">
+                                                <span className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest border shadow-sm w-fit ${getStatusStyles(item.displayStatus)}`}>
+                                                    {getStatusLabel(item.displayStatus)}
+                                                </span>
+                                            </td>
+                                            <td className="p-6">
+                                                <div className="flex items-center justify-center gap-2">
+                                                    {item.isVirtual ? (
+                                                        <button
+                                                            onClick={(e) => {
+                                                                e.preventDefault();
+                                                                e.stopPropagation();
+                                                                setActionModal({
+                                                                    isOpen: true,
+                                                                    type: 'danger',
+                                                                    title: 'Hapus Riwayat Pembatalan',
+                                                                    message: `Apakah Anda yakin ingin menghapus catatan pembatalan untuk invoice ${item.invoiceId}? Catatan ini hanya riwayat visual. Stok barang (${item.quantity} ekor) SUDAH dikembalikan secara otomatis ke inventaris saat pembatalan terjadi. Menghapus baris ini tidak akan mengubah stok lagi.`,
+                                                                    confirmText: 'Ya, Bersihkan Tampilan',
+                                                                    onConfirm: () => {
+                                                                        handleDismissCancellation(item.internalOrderId || item.invoiceId, item.realListingId);
+                                                                        setActionModal({ isOpen: false });
+                                                                    }
+                                                                });
+                                                            }}
+                                                            className="flex items-center gap-2 px-3 py-2 bg-zinc-800 hover:bg-red-500/20 text-red-500 rounded-xl transition-all border border-zinc-700 hover:border-red-500/30 font-bold text-[10px] uppercase tracking-wider"
+                                                        >
+                                                            <Trash2 size={14} /> Bersihkan Riwayat
+                                                        </button>
+                                                    ) : (
+                                                        <>
+                                                            <Link
+                                                                href={`/user/toko/daftar-produk/detail/${item.id}`}
+                                                                className="w-10 h-10 bg-zinc-800 text-white hover:bg-emerald-500 hover:text-zinc-950 rounded-xl flex items-center justify-center transition-all shadow-lg active:scale-90"
+                                                                title="Detail Iklan"
+                                                            >
+                                                                <Eye size={18} />
+                                                            </Link>
+                                                            {item.displayStatus !== 'sold' && (
+                                                                <>
+                                                                    <Link
+                                                                        href={`/user/toko/jual-produk/edit/${item.id}`}
+                                                                        className="w-10 h-10 bg-zinc-800 text-white hover:bg-amber-500 hover:text-zinc-950 rounded-xl flex items-center justify-center transition-all shadow-lg active:scale-90"
+                                                                        title="Edit Iklan"
+                                                                    >
+                                                                        <Edit size={18} />
+                                                                    </Link>
+                                                                    <button
+                                                                        onClick={() => openDeleteModal(item)}
+                                                                        className="w-10 h-10 bg-zinc-800 text-white hover:bg-red-500 hover:text-white rounded-xl flex items-center justify-center transition-all shadow-lg active:scale-90"
+                                                                        title="Hapus Iklan"
+                                                                    >
+                                                                        <Trash2 size={18} />
+                                                                    </button>
+                                                                </>
+                                                            )}
+                                                        </>
+                                                    )}
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    );
+                                })
+                            ) : (
+                                <tr>
+                                    <td colSpan="8" className="p-20 text-center">
+                                        <div className="flex flex-col items-center gap-4">
+                                            <div className="w-16 h-16 bg-zinc-800/50 rounded-full flex items-center justify-center text-zinc-600">
+                                                <Tag size={32} />
+                                            </div>
+                                            <div>
+                                                <p className="text-lg font-black text-white">Belum ada iklan</p>
+                                                <p className="text-zinc-500 text-sm italic">- Belum ada data untuk ditampilkan -</p>
+                                            </div>
+                                        </div>
+                                    </td>
+                                </tr>
+                            )}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            {/* Card View (Mobile) */}
+            <div className="md:hidden space-y-4">
+                {paginatedListings.length > 0 ? (
+                    paginatedListings.map((item, index) => (
+                        <div key={item.id} className={`border rounded-[2rem] overflow-hidden shadow-xl animate-in slide-in-from-bottom-4 duration-300 ${item.isVirtual ? 'bg-red-900/10 border-red-500/20' : 'bg-zinc-900 border-zinc-800'}`} style={{ animationDelay: `${index * 50}ms` }}>
+                            {/* Card Header */}
+                            <div className="px-5 py-3 border-b border-zinc-800 bg-zinc-950/30 flex items-center justify-between">
+                                <div className="flex items-center gap-2">
+                                    <span className="w-5 h-5 bg-zinc-800 rounded flex items-center justify-center text-[10px] font-black text-zinc-500">{item.isVirtual ? "-" : index + 1}</span>
+                                    <span className={`px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest border ${getStatusStyles(item.displayStatus)}`}>
+                                        {getStatusLabel(item.displayStatus)}
+                                    </span>
+                                </div>
+                                {!item.isVirtual && (
+                                    <span className={`px-2 py-0.5 rounded text-[8px] font-black uppercase tracking-tighter border ${item.type === 'sell' ? 'bg-blue-500/10 text-blue-400 border-blue-500/20' : 'bg-amber-500/10 text-amber-400 border-amber-500/20'}`}>
+                                        {item.type === 'sell' ? 'Jual' : 'Lelang'}
+                                    </span>
+                                )}
+                            </div>
+
+                            {/* Card Body */}
+                            <div className="p-5 space-y-4">
+                                <div className="flex gap-4">
+                                    <div className="w-16 h-16 rounded-2xl bg-zinc-950 border border-zinc-800 overflow-hidden shrink-0 shadow-inner">
+                                        <img
+                                            src={item.images && item.images[0] ? item.images[0] : "https://placehold.co/400x400/18181b/52525b?text=No+Image"}
+                                            alt={item.name}
+                                            className="w-full h-full object-cover"
+                                        />
+                                    </div>
+                                    <div className="flex-1 min-w-0">
+                                        <h3 className="text-sm font-black text-white line-clamp-1 mb-0.5">
+                                            {item.isVirtual && <span className="text-red-500">[BATAL] </span>}
+                                            {item.name}
+                                        </h3>
+                                        <div className="flex items-center gap-2 mb-2">
+                                            <p className="text-[10px] font-bold text-emerald-500 uppercase tracking-widest">{item.species}</p>
+                                            {item.product_id && (
+                                                <p className="text-[9px] font-mono font-black text-zinc-500 bg-zinc-950 px-1.5 py-0.5 rounded border border-zinc-800">{item.product_id}</p>
+                                            )}
+                                        </div>
+                                        <div className="flex items-center justify-between">
+                                            <span className="text-xs font-black text-white">{formatPrice(item.type === "sell" ? item.price : (item.current_bid || item.start_bid))}</span>
+                                            <span className={`text-[10px] font-bold italic ${item.isVirtual ? 'text-red-400' : 'text-zinc-500'}`}>
+                                                {item.isVirtual ? `Batal: ${item.quantity}` : `Stok: ${item.stock || 0}`}
+                                            </span>
+                                        </div>
+                                        {item.isVirtual && (
+                                            <p className="text-[10px] text-red-500 mt-1 font-bold">Oleh: {item.buyerName || "User"}</p>
+                                        )}
+                                    </div>
+                                </div>
+
+                                <div className="grid grid-cols-2 gap-3 pt-1">
+                                    <div className="p-3 bg-zinc-950/40 border border-zinc-800/50 rounded-xl col-span-2">
+                                        <p className="text-[8px] font-black text-zinc-500 uppercase tracking-widest mb-1 flex items-center gap-1">
+                                            <ScrollText size={10} className={item.displayStatus === 'sold' || item.displayStatus === 'cancelled_order' ? "text-emerald-500" : "text-zinc-500"} />
+                                            {item.displayStatus === 'cancelled_order' ? "Invoice Batal" : "Nomor Invoice"}
+                                        </p>
+                                        {item.isVirtual ? (
+                                            <p className="text-[10px] font-black text-red-400 font-mono">{item.invoiceId}</p>
+                                        ) : item.status?.toLowerCase() === 'sold' ? (
+                                            <p className="text-[10px] font-black text-white font-mono">{item.latestOrderId || "-"}</p>
+                                        ) : (
+                                            <p className="text-[10px] font-bold text-zinc-600 italic">Belum Terjual</p>
+                                        )}
+                                    </div>
+                                </div>
+
+                                <div className={`grid gap-2 pt-2 ${item.displayStatus === 'sold' ? 'grid-cols-1' : 'grid-cols-3'}`}>
+                                    {item.isVirtual ? (
+                                        <button
+                                            onClick={(e) => {
+                                                e.preventDefault();
+                                                e.stopPropagation();
+                                                setActionModal({
+                                                    isOpen: true,
+                                                    type: 'danger',
+                                                    title: 'Hapus Riwayat Pembatalan',
+                                                    message: `Hapus catatan pembatalan invoice ${item.invoiceId}? Stok (${item.quantity} ekor) SUDAH otomatis kembali ke inventaris saat pembatalan terjadi. Aksi ini hanya untuk membersihkan dashboard Anda.`,
+                                                    confirmText: 'Ya, Hapus Catatan',
+                                                    onConfirm: () => {
+                                                        handleDismissCancellation(item.internalOrderId || item.invoiceId, item.realListingId);
+                                                        setActionModal({ isOpen: false });
+                                                    }
+                                                });
+                                            }}
+                                            className="col-span-3 flex items-center justify-center gap-2 py-3 bg-red-500/10 hover:bg-red-500/20 text-red-500 rounded-xl transition-all border border-red-500/30 font-black text-[10px] uppercase tracking-widest"
+                                        >
+                                            <Trash2 size={14} /> Bersihkan Riwayat Batal
+                                        </button>
+                                    ) : (
+                                        <>
+                                            <Link
+                                                href={`/user/toko/daftar-produk/detail/${item.id}`}
+                                                className="flex items-center justify-center gap-1.5 py-3 bg-zinc-800 hover:bg-emerald-500 text-zinc-400 hover:text-zinc-950 rounded-xl transition-all border border-zinc-700 hover:border-emerald-500"
+                                            >
+                                                <Eye size={14} />
+                                                <span className="text-[9px] font-black uppercase tracking-widest">Detail</span>
+                                            </Link>
+                                            {item.displayStatus !== 'sold' && (
+                                                <>
+                                                    <Link
+                                                        href={`/user/toko/jual-produk/edit/${item.id}`}
+                                                        className="flex items-center justify-center gap-1.5 py-3 bg-zinc-800 hover:bg-amber-500 text-zinc-400 hover:text-zinc-950 rounded-xl transition-all border border-zinc-700 hover:border-amber-500"
+                                                    >
+                                                        <Edit size={14} />
+                                                        <span className="text-[9px] font-black uppercase tracking-widest">Edit</span>
+                                                    </Link>
+                                                    <button
+                                                        onClick={() => openDeleteModal(item)}
+                                                        className="flex items-center justify-center gap-1.5 py-3 bg-zinc-800 hover:bg-red-500 text-zinc-400 hover:text-white rounded-xl transition-all border border-zinc-700 hover:border-red-500"
+                                                    >
+                                                        <Trash2 size={14} />
+                                                        <span className="text-[9px] font-black uppercase tracking-widest">Hapus</span>
+                                                    </button>
+                                                </>
+                                            )}
+                                        </>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+                    ))
+                ) : (
+                    <div className="py-16 flex flex-col items-center text-center space-y-4 bg-zinc-900/40 border border-dashed border-zinc-800 rounded-[2.5rem]">
+                        <div className="w-16 h-16 bg-zinc-900 rounded-2xl flex items-center justify-center text-zinc-700">
+                            <Tag size={32} />
+                        </div>
+                        <div>
+                            <p className="text-sm font-black text-white">Belum ada iklan</p>
+                            <p className="text-xs text-zinc-500 italic mt-1">Data jualan Anda akan muncul di sini</p>
+                        </div>
+                    </div>
+                )}
+            </div>
+
+            {/* Pagination Controls */}
+            {filteredListings.length > 0 && (
+                <div className="flex flex-col items-center gap-4 mt-4">
+                    <div className="inline-flex items-center rounded-full border border-zinc-800 bg-zinc-950 text-sm shadow-sm overflow-hidden">
+                        <button
+                            onClick={() => goToPage(currentPage - 1)}
+                            disabled={currentPage === 1}
+                            className="px-4 py-2 text-zinc-400 disabled:text-zinc-700 disabled:cursor-not-allowed hover:bg-zinc-900 transition-colors"
+                        >
+                            Previous
+                        </button>
+                        <div className="hidden sm:flex items-center gap-1 px-2">
+                            {Array.from({ length: totalPages }, (_, idx) => idx + 1).map(page => (
+                                <button
+                                    key={page}
+                                    onClick={() => goToPage(page)}
+                                    className={`px-3 py-2 rounded-full transition-all ${currentPage === page ? 'bg-emerald-500 text-zinc-950 font-black' : 'text-zinc-400 hover:bg-zinc-900'}`}
+                                >
+                                    {page}
+                                </button>
+                            ))}
+                        </div>
+                        <button
+                            onClick={() => goToPage(currentPage + 1)}
+                            disabled={currentPage === totalPages}
+                            className="px-4 py-2 text-zinc-400 disabled:text-zinc-700 disabled:cursor-not-allowed hover:bg-zinc-900 transition-colors"
+                        >
+                            Next
+                        </button>
+                    </div>
+                    <p className="text-[11px] text-zinc-500">
+                        Halaman {currentPage} dari {totalPages} — {filteredListings.length} entri ditemukan
+                    </p>
+                </div>
+            )}
+
+            {/* Standardized Action Modal */}
+            <ActionModal
+                isOpen={actionModal.isOpen}
+                onClose={() => setActionModal({ ...actionModal, isOpen: false })}
+                onConfirm={actionModal.onConfirm}
+                isLoading={actionModal.isLoading}
+                type={actionModal.type}
+                title={actionModal.title}
+                message={actionModal.message}
+                confirmText={actionModal.confirmText}
+            />
+        </div>
+    );
+}

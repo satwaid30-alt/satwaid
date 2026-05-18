@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <style>
+        body { font-family: 'Calibri', 'Arial', sans-serif; line-height: 1.6; color: #333; max-width: 800px; margin: 0 auto; padding: 40px; }
+        h1 { color: #10b981; text-align: center; border-bottom: 2px solid #10b981; padding-bottom: 10px; margin-bottom: 30px; }
+        h2 { color: #059669; border-left: 5px solid #10b981; padding-left: 15px; margin-top: 40px; }
+        h3 { color: #047857; margin-top: 25px; }
+        p, li { font-size: 11pt; }
+        .tips { background: #ecfdf5; border: 1px solid #d1fae5; padding: 15px; border-radius: 8px; margin: 20px 0; }
+        .badge { background: #10b981; color: white; padding: 2px 8px; border-radius: 4px; font-weight: bold; font-size: 0.8em; }
+        table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+        th, td { border: 1px solid #ddd; padding: 12px; text-align: left; }
+        th { background-color: #f9fafb; }
+    </style>
+</head>
+<body>
+    <h1>MANUAL BOOK: PANDUAN PENGGUNA SATWA iD</h1>
+    <p style="text-align: center; font-style: italic;">Platform Marketplace & Komunitas Satwa Terpercaya di Indonesia</p>
+
+    <h2>1. PENDAHULUAN</h2>
+    <p>Satwa iD adalah platform marketplace dan komunitas yang dirancang khusus untuk pecinta hewan (khususnya reptil dan eksotis). Platform ini memungkinkan pengguna untuk melakukan jual beli melalui sistem <strong>Jual Langsung</strong> maupun <strong>Lelang</strong>, serta berinteraksi melalui forum diskusi komunitas.</p>
+
+    <h2>2. AKUN DAN PROFIL</h2>
+    <h3>2.1 Registrasi & Login</h3>
+    <ul>
+        <li>Klik tombol <strong>"Masuk"</strong> di pojok kanan atas Navbar.</li>
+        <li>Jika belum punya akun, pilih <strong>"Daftar"</strong> dan lengkapi data diri (Username, Email, No. WA, dan Password).</li>
+        <li>Gunakan email dan password yang terdaftar untuk masuk ke aplikasi.</li>
+    </ul>
+
+    <h3>2.2 Dashboard Profil</h3>
+    <ul>
+        <li>Klik foto profil Anda untuk masuk ke dashboard.</li>
+        <li>Di sini Anda dapat melihat status pesanan, riwayat lelang, notifikasi, dan pengaturan akun.</li>
+        <li><strong>Update Profil:</strong> Pastikan alamat pengiriman Anda sudah lengkap untuk memudahkan proses transaksi.</li>
+    </ul>
+
+    <h2>3. ETALASE SATWA (MARKETPLACE)</h2>
+    <p>Halaman ini adalah pusat pencarian produk dan hewan.</p>
+    <ul>
+        <li><strong>Pencarian:</strong> Gunakan bar pencarian untuk mencari nama hewan atau nama toko secara spesifik.</li>
+        <li><strong>Filter Kategori:</strong> Gunakan menu pilihan (dropdown) untuk menyaring produk berdasarkan spesies (Reptil, Mamalia, Ikan, dll).</li>
+        <li><strong>Navigasi Halaman:</strong> Gunakan tombol halaman di bagian bawah untuk melihat lebih banyak produk.</li>
+    </ul>
+
+    <h2>4. PROSES TRANSAKSI (PEMBELIAN)</h2>
+    <h3>4.1 Pembelian Langsung</h3>
+    <ol>
+        <li>Pilih produk yang ingin dibeli.</li>
+        <li>Periksa detail deskripsi, foto, dan lokasi toko.</li>
+        <li>Klik <strong>"Beli Sekarang"</strong>.</li>
+        <li>Pada halaman ringkasan, periksa biaya produk dan biaya administrasi.</li>
+        <li>Klik <strong>"Konfirmasi Pembelian"</strong>.</li>
+        <li>Unggah bukti transfer pembayaran agar penjual dapat memproses pesanan.</li>
+    </ol>
+
+    <h3>4.2 Mengikuti Lelang (Bidding)</h3>
+    <ol>
+        <li>Pilih produk dengan label <span class="badge">LELANG</span>.</li>
+        <li>Masukkan nominal penawaran sesuai dengan kelipatan (next bid) yang ditentukan.</li>
+        <li>Klik <strong>"Place Bid"</strong>.</li>
+        <li>Jika Anda menang saat waktu habis, segera selesaikan pembayaran di menu <strong>"Riwayat Lelang"</strong>.</li>
+    </ol>
+
+    <h2>5. FITUR PENJUALAN (SELLER)</h2>
+    <h3>5.1 Mengelola Toko</h3>
+    <ol>
+        <li>Masuk ke menu <strong>"Toko Saya"</strong>.</li>
+        <li>Lengkapi profil toko (Nama, Logo, Lokasi Kota) untuk meningkatkan kepercayaan pembeli.</li>
+    </ol>
+
+    <h3>5.2 Menjual Produk</h3>
+    <ol>
+        <li>Klik <strong>"Tambah Produk"</strong>.</li>
+        <li>Unggah foto berkualitas tinggi.</li>
+        <li>Isi Nama, Kategori, dan Spesies.</li>
+        <li>Pilih Mode: <strong>"Jual Langsung"</strong> atau <strong>"Lelang"</strong>.</li>
+        <li>Isi harga (atau harga awal untuk lelang) dan deskripsi lengkap.</li>
+        <li>Klik <strong>"Posting"</strong>.</li>
+    </ol>
+
+    <h2>6. KOMUNITAS (FORUM DISKUSI)</h2>
+    <ul>
+        <li><strong>Melihat Diskusi:</strong> Jelajahi berbagai topik diskusi berdasarkan kategori minat.</li>
+        <li><strong>Membuat Topik:</strong> Klik <strong>"Buat Diskusi Baru"</strong> untuk bertanya atau membagikan info mengenai perawatan satwa Anda.</li>
+        <li><strong>Berinteraksi:</strong> Klik pada judul diskusi untuk membaca detail dan memberikan komentar atau balasan.</li>
+    </ul>
+
+    <div class="tips">
+        <strong>TIPS KEAMANAN TRANSAKSI:</strong>
+        <ul>
+            <li>Selalu periksa rating bintang toko sebelum membeli.</li>
+            <li>Gunakan sistem pembayaran resmi yang disediakan di platform.</li>
+            <li><strong>Video Unboxing:</strong> Selalu rekam video saat membuka paket hewan sebagai bukti sah jika ingin melakukan klaim garansi.</li>
+        </ul>
+    </div>
+
+    <p style="text-align: center; color: #999; font-size: 0.8em; margin-top: 50px;">&copy; 2024 Satwa iD - Manual Book v1.0</p>
+</body>
+</html>
