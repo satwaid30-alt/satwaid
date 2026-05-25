@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { User, Mail, Phone, MapPin, CreditCard, Edit2, Save, Plus, Trash2, Camera, X, Check } from "lucide-react";
 import Link from "next/link";
 import ActionModal from "@/components/ActionModal";
+import { getApiUrl } from "@/app/utils/api";
 
 export default function PengaturanProfilPage() {
     const [user, setUser] = useState({
@@ -62,7 +63,7 @@ export default function PengaturanProfilPage() {
             // Fetch data terbaru dari API jika ada ID
             if (parsed.id) {
                 try {
-                    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/users/${parsed.id}`);
+                    const res = await fetch(`${getApiUrl()}/users/${parsed.id}`);
                     if (res.ok) {
                         const result = await res.json();
                         const fresh = result.data;
@@ -155,12 +156,26 @@ export default function PengaturanProfilPage() {
         const file = e.target.files[0];
         if (!file) return;
 
+        // Validasi ukuran file (maksimal 500 KB)
+        const MAX_FILE_SIZE = 500 * 1024;
+        if (file.size > MAX_FILE_SIZE) {
+            setModalConfig({
+                isOpen: true,
+                type: 'warning',
+                title: 'Ukuran File Terlalu Besar',
+                message: 'Ukuran foto profil maksimal adalah 500 KB. Silakan pilih file yang lebih kecil.',
+                onConfirm: null
+            });
+            e.target.value = "";
+            return;
+        }
+
         setIsLoading(true);
         const formData = new FormData();
         formData.append("image", file);
 
         try {
-            const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/upload`, {
+            const response = await fetch(`${getApiUrl()}/upload`, {
                 method: "POST",
                 body: formData
             });
@@ -203,7 +218,7 @@ export default function PengaturanProfilPage() {
     const executeSave = async () => {
         setModalConfig(prev => ({ ...prev, isLoading: true }));
         try {
-            const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/users/profile/${userId}`, {
+            const response = await fetch(`${getApiUrl()}/users/profile/${userId}`, {
                 method: "PUT",
                 headers: {
                     "Content-Type": "application/json",
@@ -316,18 +331,18 @@ export default function PengaturanProfilPage() {
             </div>
 
             <form onSubmit={handleSave}>
-                <div className="bg-zinc-900 border border-zinc-800 rounded-3xl p-6 md:p-8 shadow-xl">
+                <div className="bg-zinc-900 border border-zinc-800 rounded-3xl p-6 md:p-8">
                     {/* Profile Picture Section */}
                     <div className="flex flex-col md:flex-row items-center gap-6 mb-10 pb-10 border-b border-zinc-800">
                         <div className="relative group w-24 h-24">
                             {user.avatar_url ? (
                                 <img
-                                    src={`${process.env.NEXT_PUBLIC_API_URL}${user.avatar_url}`}
+                                    src={user.avatar_url.startsWith('http') ? user.avatar_url : `${getApiUrl()}${user.avatar_url}`}
                                     alt="Profile"
-                                    className="w-24 h-24 rounded-full object-cover shadow-[0_0_20px_rgba(16,185,129,0.3)]"
+                                    className="w-24 h-24 rounded-full object-cover"
                                 />
                             ) : (
-                                <div className="w-24 h-24 bg-emerald-500 rounded-full flex items-center justify-center text-white font-bold text-3xl shadow-[0_0_20px_rgba(16,185,129,0.3)]">
+                                <div className="w-24 h-24 bg-emerald-500 rounded-full flex items-center justify-center text-white font-bold text-3xl">
                                     {user.username ? user.username.charAt(0).toUpperCase() : "U"}
                                 </div>
                             )}
@@ -340,7 +355,7 @@ export default function PengaturanProfilPage() {
                         </div>
                         <div className="text-center md:text-left">
                             <h3 className="text-xl font-bold text-white mb-1">Foto Profil</h3>
-                            <p className="text-zinc-400 text-sm mb-3">Ditampilkan pada halaman profil dan postingan Anda.</p>
+                            <p className="text-zinc-400 text-sm mb-3">Ditampilkan pada halaman profil dan postingan Anda (Maks. 500 KB).</p>
                             {isEditMode && (
                                 <label className="inline-flex items-center gap-2 px-4 py-2 bg-zinc-800 hover:bg-zinc-700 text-white text-sm font-semibold rounded-lg transition-colors cursor-pointer">
                                     <Camera size={16} />
@@ -409,9 +424,9 @@ export default function PengaturanProfilPage() {
                                             name="phone"
                                             value={user.phone}
                                             onChange={handleChange}
-                                            disabled={true}
+                                            disabled={!isEditMode}
                                             placeholder="08xxxxxxxxxx"
-                                            className="w-full bg-zinc-950 border border-zinc-800 text-zinc-500 rounded-xl px-4 py-3 pl-12 cursor-not-allowed opacity-70"
+                                            className={inputClass("pl-12")}
                                         />
                                     </div>
                                 </div>
@@ -431,10 +446,10 @@ export default function PengaturanProfilPage() {
                                         name="address"
                                         value={user.address}
                                         onChange={handleChange}
-                                        disabled={true}
+                                        disabled={!isEditMode}
                                         rows={3}
-                                        placeholder=""
-                                        className="w-full bg-zinc-950 border border-zinc-800 text-zinc-500 rounded-xl px-4 py-3 resize-none transition-all opacity-70 cursor-not-allowed"
+                                        placeholder={isEditMode ? "Nama Jalan, Gedung, No. Rumah, RT/RW, Patokan" : ""}
+                                        className={inputClass("resize-none")}
                                     />
                                 </div>
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -445,13 +460,18 @@ export default function PengaturanProfilPage() {
                                                 type="text"
                                                 name="province"
                                                 value={user.province}
-                                                disabled={true}
-                                                placeholder=""
-                                                className="w-full bg-zinc-950 border border-zinc-800 text-zinc-500 rounded-xl px-4 py-3 opacity-70 cursor-not-allowed"
+                                                onChange={(e) => {
+                                                    setProvinceSearch(e.target.value);
+                                                    setUser({ ...user, province: e.target.value });
+                                                }}
+                                                onFocus={() => setShowProvinceDropdown(true)}
+                                                disabled={!isEditMode}
+                                                placeholder={isEditMode ? "Pilih atau cari provinsi" : ""}
+                                                className={inputClass()}
                                                 autoComplete="off"
                                             />
                                             {isEditMode && showProvinceDropdown && (
-                                                <div className="absolute z-50 w-full mt-2 bg-zinc-900 border border-zinc-700 rounded-xl shadow-2xl max-h-60 overflow-y-auto custom-scrollbar">
+                                                <div className="absolute z-50 w-full mt-2 bg-zinc-900 border border-zinc-700 rounded-xl max-h-60 overflow-y-auto custom-scrollbar">
                                                     {provinces
                                                         .filter(p => p.name.toLowerCase().includes((provinceSearch || "").toLowerCase()))
                                                         .map(p => (
@@ -487,13 +507,18 @@ export default function PengaturanProfilPage() {
                                                 type="text"
                                                 name="city"
                                                 value={user.city}
-                                                disabled={true}
-                                                placeholder=""
-                                                className="w-full bg-zinc-950 border border-zinc-800 text-zinc-500 rounded-xl px-4 py-3 opacity-70 cursor-not-allowed"
+                                                onChange={(e) => {
+                                                    setCitySearch(e.target.value);
+                                                    setUser({ ...user, city: e.target.value });
+                                                }}
+                                                onFocus={() => setShowCityDropdown(true)}
+                                                disabled={!isEditMode || !user.province}
+                                                placeholder={isEditMode ? (user.province ? "Pilih atau cari kota/kabupaten" : "Pilih provinsi terlebih dahulu") : ""}
+                                                className={inputClass()}
                                                 autoComplete="off"
                                             />
                                             {isEditMode && showCityDropdown && cities.length > 0 && (
-                                                <div className="absolute z-50 w-full mt-2 bg-zinc-900 border border-zinc-700 rounded-xl shadow-2xl max-h-60 overflow-y-auto custom-scrollbar">
+                                                <div className="absolute z-50 w-full mt-2 bg-zinc-900 border border-zinc-700 rounded-xl max-h-60 overflow-y-auto custom-scrollbar">
                                                     {cities
                                                         .filter(c => c.name.toLowerCase().includes((citySearch || "").toLowerCase()))
                                                         .map(c => (
@@ -545,8 +570,10 @@ export default function PengaturanProfilPage() {
                                         <select
                                             value={user.bankAccounts[0]?.bankName || ""}
                                             onChange={(e) => handleBankAccountChange("bankName", e.target.value)}
-                                            disabled={true}
-                                            className="w-full bg-zinc-900/50 border border-zinc-800 text-zinc-500 rounded-xl px-4 py-3 text-sm transition-all font-medium appearance-none opacity-70 cursor-not-allowed"
+                                            disabled={!isEditMode}
+                                            className={isEditMode 
+                                                ? "w-full bg-zinc-950 border border-zinc-700 text-white rounded-xl px-4 py-3 text-sm transition-all font-medium" 
+                                                : "w-full bg-zinc-900/50 border border-zinc-800 text-zinc-500 rounded-xl px-4 py-3 text-sm transition-all font-medium appearance-none opacity-70 cursor-not-allowed"}
                                         >
                                             <option value="" disabled>Pilih Bank</option>
                                             <option value="BCA">BCA (Bank Central Asia)</option>
@@ -563,9 +590,11 @@ export default function PengaturanProfilPage() {
                                             type="text"
                                             value={user.bankAccounts[0]?.accountNumber || ""}
                                             onChange={(e) => handleBankAccountChange("accountNumber", e.target.value)}
-                                            disabled={true}
-                                            placeholder="-"
-                                            className="w-full bg-zinc-900/50 border border-zinc-800 text-zinc-500 rounded-xl px-4 py-3 text-sm transition-all font-medium opacity-70 cursor-not-allowed"
+                                            disabled={!isEditMode}
+                                            placeholder={isEditMode ? "Masukkan nomor rekening" : "-"}
+                                            className={isEditMode 
+                                                ? "w-full bg-zinc-950 border border-zinc-700 text-white rounded-xl px-4 py-3 text-sm transition-all font-medium" 
+                                                : "w-full bg-zinc-900/50 border border-zinc-800 text-zinc-500 rounded-xl px-4 py-3 text-sm transition-all font-medium opacity-70 cursor-not-allowed"}
                                         />
                                     </div>
 
@@ -576,9 +605,11 @@ export default function PengaturanProfilPage() {
                                             type="text"
                                             value={user.bankAccounts[0]?.accountName || ""}
                                             onChange={(e) => handleBankAccountChange("accountName", e.target.value)}
-                                            disabled={true}
-                                            placeholder="-"
-                                            className="w-full bg-zinc-900/50 border border-zinc-800 text-zinc-500 rounded-xl px-4 py-3 text-sm transition-all font-medium opacity-70 cursor-not-allowed"
+                                            disabled={!isEditMode}
+                                            placeholder={isEditMode ? "Nama pemilik rekening" : "-"}
+                                            className={isEditMode 
+                                                ? "w-full bg-zinc-950 border border-zinc-700 text-white rounded-xl px-4 py-3 text-sm transition-all font-medium" 
+                                                : "w-full bg-zinc-900/50 border border-zinc-800 text-zinc-500 rounded-xl px-4 py-3 text-sm transition-all font-medium opacity-70 cursor-not-allowed"}
                                         />
                                     </div>
                                 </div>
@@ -603,7 +634,7 @@ export default function PengaturanProfilPage() {
                                     <button
                                         type="submit"
                                         disabled={isLoading}
-                                        className={`flex items-center gap-2 px-8 py-3.5 bg-emerald-500 hover:bg-emerald-400 text-zinc-950 font-bold rounded-xl transition-all shadow-lg shadow-emerald-500/20 ${isLoading ? "opacity-70 cursor-not-allowed" : ""}`}
+                                        className={`flex items-center gap-2 px-8 py-3.5 bg-emerald-500 hover:bg-emerald-400 text-zinc-950 font-bold rounded-xl transition-all ${isLoading ? "opacity-70 cursor-not-allowed" : ""}`}
                                     >
                                         {isLoading ? (
                                             <svg className="animate-spin h-5 w-5 text-current" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -622,7 +653,7 @@ export default function PengaturanProfilPage() {
                                 <button
                                     type="button"
                                     onClick={() => setIsEditMode(true)}
-                                    className="flex items-center gap-2 px-8 py-3.5 bg-emerald-500 hover:bg-emerald-400 text-zinc-950 font-black rounded-xl transition-all shadow-lg shadow-emerald-500/20"
+                                    className="flex items-center gap-2 px-8 py-3.5 bg-emerald-500 hover:bg-emerald-400 text-zinc-950 font-black rounded-xl transition-all"
                                 >
                                     <Edit2 size={18} />
                                     Edit Profil
@@ -640,12 +671,12 @@ export default function PengaturanProfilPage() {
                         className="absolute inset-0 bg-zinc-950/90 backdrop-blur-xl animate-in fade-in duration-700"
                         onClick={() => setShowSettingsModal(false)}
                     ></div>
-                    <div className="bg-zinc-900 border border-zinc-800 w-full max-w-lg rounded-[3rem] relative z-10 overflow-hidden shadow-[0_0_50px_rgba(16,185,129,0.15)] animate-in zoom-in-95 slide-in-from-bottom-8 duration-500">
+                    <div className="bg-zinc-900 border border-zinc-800 w-full max-w-lg rounded-[3rem] relative z-10 overflow-hidden animate-in zoom-in-95 slide-in-from-bottom-8 duration-500">
                         <div className="p-10 lg:p-12 space-y-8 text-center relative">
                             {/* Decorative element */}
                             <div className="absolute top-0 left-1/2 -translate-x-1/2 w-40 h-1 bg-emerald-500 rounded-full blur-sm opacity-50" />
 
-                            <div className="w-24 h-24 bg-emerald-500/10 text-emerald-500 rounded-[2.5rem] flex items-center justify-center mx-auto mb-6 border border-emerald-500/20 shadow-inner group">
+                            <div className="w-24 h-24 bg-emerald-500/10 text-emerald-500 rounded-[2.5rem] flex items-center justify-center mx-auto mb-6 border border-emerald-500/20 group">
                                 <User size={48} className="group-hover:scale-110 transition-transform duration-500" />
                             </div>
 
@@ -667,7 +698,7 @@ export default function PengaturanProfilPage() {
                                         setShowSettingsModal(false);
                                         window.scrollTo({ top: 0, behavior: 'smooth' });
                                     }}
-                                    className="w-full py-5 bg-emerald-500 hover:bg-emerald-400 text-zinc-950 font-black rounded-2xl transition-all shadow-xl shadow-emerald-500/25 active:scale-95 flex items-center justify-center gap-3 text-lg"
+                                    className="w-full py-5 bg-emerald-500 hover:bg-emerald-400 text-zinc-950 font-black rounded-2xl transition-all active:scale-95 flex items-center justify-center gap-3 text-lg"
                                 >
                                     <Edit2 size={20} /> Mulai Edit Profil
                                 </button>

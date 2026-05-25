@@ -16,6 +16,23 @@ const generateOrderId = () => {
     return `INV/${dateStr}/RH/${uid.rnd()}`;
 };
 
+const emitOrderUpdated = (req, order) => {
+    if (!order) return;
+    const io = req.app.get('socketio');
+    if (io) {
+        const roomName = `order_${order.id}`;
+        const room = io.sockets.adapter.rooms.get(roomName);
+        const numClients = room ? room.size : 0;
+        console.log(`[Socket Broadcast] Emitting order_updated for order ${order.id} to room ${roomName} (Active clients: ${numClients})`);
+        io.to(roomName).emit('order_updated', {
+            order_id: order.id,
+            status: order.status
+        });
+    } else {
+        console.warn(`[Socket Broadcast Warning] io instance not found in req.app for order ${order.id}`);
+    }
+};
+
 const OrdersController = {
 
     // GET /orders - Admin: ambil semua pesanan
@@ -31,12 +48,19 @@ const OrdersController = {
                     {
                         model: models.shops,
                         as: 'shop',
-                        attributes: ['id', 'name', 'city', 'address', 'logo_url', 'whatsapp']
+                        attributes: ['id', 'name', 'city', 'address', 'logo_url', 'whatsapp'],
+                        include: [
+                            {
+                                model: models.users,
+                                as: 'owner',
+                                attributes: ['id', 'name', 'email', 'bank_accounts', 'phone']
+                            }
+                        ]
                     },
                     {
                         model: models.users,
                         as: 'user',
-                        attributes: ['id', 'username', 'email', 'phone', 'avatar_url']
+                        attributes: ['id', 'username', 'email', 'phone', 'avatar_url', 'city', 'province']
                     }
                 ],
                 order: [['created_at', 'DESC']]
@@ -142,7 +166,7 @@ const OrdersController = {
                     {
                         model: models.users,
                         as: 'user',
-                        attributes: ['id', 'username', 'email', 'phone']
+                        attributes: ['id', 'username', 'name', 'email', 'phone', 'city', 'province']
                     }
                 ],
                 order: [['created_at', 'DESC']]
@@ -169,7 +193,7 @@ const OrdersController = {
                     {
                         model: models.users,
                         as: 'user',
-                        attributes: ['id', 'username', 'email', 'phone']
+                        attributes: ['id', 'username', 'email', 'phone', 'city', 'province']
                     }
                 ],
                 order: [['created_at', 'DESC']]
@@ -200,12 +224,19 @@ const OrdersController = {
                     {
                         model: models.shops,
                         as: 'shop',
-                        attributes: ['id', 'name', 'city', 'address', 'logo_url', 'whatsapp']
+                        attributes: ['id', 'name', 'city', 'address', 'logo_url', 'whatsapp'],
+                        include: [
+                            {
+                                model: models.users,
+                                as: 'owner',
+                                attributes: ['id', 'name', 'email', 'bank_accounts', 'phone']
+                            }
+                        ]
                     },
                     {
                         model: models.users,
                         as: 'user',
-                        attributes: ['id', 'username', 'email', 'phone', 'avatar_url']
+                        attributes: ['id', 'username', 'email', 'phone', 'avatar_url', 'city', 'province']
                     }
                 ]
             });
@@ -266,7 +297,45 @@ const OrdersController = {
             }
 
             const orderId = generateOrderId();
-            const productPrice = listing.price || listing.start_bid || 0;
+
+            // Resolve product price:
+            // - BIN purchase (is_bin: true): always charge the bin_price
+            // - Normal auction checkout (ended auction, winner pays their bid): use highest bid amount
+            // - Regular product: use listing price
+            let productPrice;
+            const isBIN = req.body.is_bin === true;
+            if (listing.type === 'auction') {
+                if (isBIN) {
+                    // BIN purchase — must have a bin_price
+                    if (!listing.bin_price) {
+                        await transaction.rollback();
+                        return res.status(400).json({ message: 'Harga BIN tidak tersedia untuk produk lelang ini.' });
+                    }
+                    productPrice = Number(listing.bin_price);
+                } else {
+                    // Normal ended-auction checkout: must be the highest bidder (winner)
+                    const highestBid = await models.bids.findOne({
+                        where: { listing_id },
+                        order: [['bid_amount', 'DESC']],
+                        transaction
+                    });
+
+                    if (!highestBid) {
+                        await transaction.rollback();
+                        return res.status(400).json({ message: 'Lelang ini tidak memiliki penawaran, tidak dapat memproses transaksi.' });
+                    }
+
+                    if (highestBid.user_id !== user_id) {
+                        await transaction.rollback();
+                        return res.status(403).json({ message: 'Hanya pemenang lelang (penawar tertinggi) yang dapat memproses transaksi ini.' });
+                    }
+
+                    productPrice = Number(highestBid.bid_amount);
+                }
+            } else {
+                productPrice = Number(listing.price) || 0;
+            }
+
             const subtotal = productPrice * requestedQty;
             const totalPrice = subtotal + ADMIN_FEE;
 
@@ -282,12 +351,17 @@ const OrdersController = {
                 status: 'pending_shipping_info'
             }, { transaction });
 
-            // Kurangi stok produk
+            // Kurangi stok produk & update status lelang jika bertipe lelang
             const newStock = listing.stock - requestedQty;
-            await listing.update({
+            const updateFields = {
                 stock: newStock,
                 updated_at: new Date()
-            }, { transaction });
+            };
+            if (listing.type === 'auction') {
+                updateFields.end_date = new Date();
+                updateFields.status = 'ended';
+            }
+            await listing.update(updateFields, { transaction });
 
             // Sinkronisasi Keranjang (Cart)
             if (newStock <= 0) {
@@ -312,6 +386,7 @@ const OrdersController = {
             // Emit Notification to Seller
             const io = req.app.get('socketio');
             if (io) {
+                io.to('admin_room').emit('order_updated_admin', { order_id: orderId, status: 'pending_shipping_info' });
                 const shop = await models.shops.findByPk(listing.shop_id);
                 if (shop) {
                     const buyer = await models.users.findByPk(user_id);
@@ -334,6 +409,21 @@ const OrdersController = {
                         message: `Pesanan "${listing.name}" berhasil dibuat. Silakan tunggu informasi pengiriman.`,
                         link: `/user/pesanan`,
                         time: new Date()
+                    });
+                }
+
+                // If this was a BIN purchase, notify all users in the auction room that auction ended
+                if (isBIN && listing.type === 'auction') {
+                    const buyer = await models.users.findByPk(user_id);
+                    const buyerName = buyer?.name || buyer?.username || 'Seseorang';
+                    io.to(`auction_${listing_id}`).emit('auction_ended', {
+                        listing_id: listing.id,
+                        ended_at: new Date().toISOString(),
+                        reason: 'bin_purchase',
+                        buyer_name: buyerName,
+                        winner_id: user_id,
+                        order_uuid: order.id,
+                        order_id: order.order_id
                     });
                 }
             }
@@ -370,9 +460,12 @@ const OrdersController = {
                 updated_at: new Date()
             });
 
+            emitOrderUpdated(req, order);
+
             // Emit to Seller
             const io = req.app.get('socketio');
             if (io) {
+                io.to('admin_room').emit('order_updated_admin', { order_id: order.order_id, status: order.status });
                 const shop = await models.shops.findByPk(order.shop_id);
                 if (shop) {
                     io.to(`user_${shop.user_id}`).emit('new_notification', {
@@ -432,9 +525,12 @@ const OrdersController = {
                 updated_at: new Date()
             });
 
+            emitOrderUpdated(req, order);
+
             // Emit to Buyer
             const io = req.app.get('socketio');
             if (io) {
+                io.to('admin_room').emit('order_updated_admin', { order_id: order.order_id, status: order.status });
                 io.to(`user_${order.user_id}`).emit('new_notification', {
                     type: 'order_buyer',
                     title: 'Biaya Pengiriman Tersedia',
@@ -482,9 +578,12 @@ const OrdersController = {
                 updated_at: new Date()
             });
 
+            emitOrderUpdated(req, order);
+
             // Emit to Seller
             const io = req.app.get('socketio');
             if (io) {
+                io.to('admin_room').emit('order_updated_admin', { order_id: order.order_id, status: order.status });
                 const shop = await models.shops.findByPk(order.shop_id);
                 if (shop) {
                     io.to(`user_${shop.user_id}`).emit('new_notification', {
@@ -530,9 +629,12 @@ const OrdersController = {
                 updated_at: new Date()
             });
 
+            emitOrderUpdated(req, order);
+
             // Emit to both Buyer and Seller
             const io = req.app.get('socketio');
             if (io) {
+                io.to('admin_room').emit('order_updated_admin', { order_id: order.order_id, status: order.status });
                 // Emit to Buyer
                 io.to(`user_${order.user_id}`).emit('new_notification', {
                     type: 'order_buyer',
@@ -582,9 +684,12 @@ const OrdersController = {
                 updated_at: new Date()
             });
 
+            emitOrderUpdated(req, order);
+
             // Emit to Buyer
             const io = req.app.get('socketio');
             if (io) {
+                io.to('admin_room').emit('order_updated_admin', { order_id: order.order_id, status: order.status });
                 io.to(`user_${order.user_id}`).emit('new_notification', {
                     type: 'order_buyer',
                     title: 'Pesanan Dikirim',
@@ -664,6 +769,8 @@ const OrdersController = {
                 updated_at: new Date()
             });
 
+            emitOrderUpdated(req, order);
+
             // Fetch shop to get seller's user_id
             const shop = await models.shops.findByPk(order.shop_id);
             if (shop) {
@@ -682,6 +789,7 @@ const OrdersController = {
 
                     const io = req.app.get('socketio');
                     if (io) {
+                        io.to('admin_room').emit('order_updated_admin', { order_id: order.order_id, status: order.status });
                         io.to(`user_${shop.user_id}`).emit('new_notification', {
                             id: newNotif.id,
                             type: 'order_completed',
@@ -733,16 +841,22 @@ const OrdersController = {
                 updated_at: new Date()
             });
 
+            emitOrderUpdated(req, order);
+
+            const shop = await models.shops.findByPk(order.shop_id);
             const io = req.app.get('socketio');
             if (io) {
+                io.to('admin_room').emit('order_updated_admin', { order_id: order.order_id, status: order.status });
                 // Emit to seller
-                io.to(`user_${order.shop_id}`).emit('new_notification', {
-                    type: 'order_seller',
-                    title: 'Pesanan Dikomplain',
-                    message: `Pembeli mengajukan komplain untuk pesanan ${order.order_id}.`,
-                    link: `/user/toko/dashboard`,
-                    time: new Date()
-                });
+                if (shop) {
+                    io.to(`user_${shop.user_id}`).emit('new_notification', {
+                        type: 'order_seller',
+                        title: 'Pesanan Dikomplain',
+                        message: `Pembeli mengajukan komplain untuk pesanan ${order.order_id}.`,
+                        link: `/user/toko/dashboard`,
+                        time: new Date()
+                    });
+                }
 
                 // Emit to buyer
                 io.to(`user_${order.user_id}`).emit('new_notification', {
@@ -785,6 +899,8 @@ const OrdersController = {
                 updated_at: new Date()
             });
 
+            emitOrderUpdated(req, order);
+
             // Emit to Seller
             const shop = await models.shops.findByPk(order.shop_id);
             if (shop) {
@@ -803,6 +919,7 @@ const OrdersController = {
 
                     const io = req.app.get('socketio');
                     if (io) {
+                        io.to('admin_room').emit('order_updated_admin', { order_id: order.order_id, status: order.status });
                         io.to(`user_${shop.user_id}`).emit('new_notification', {
                             id: newNotif.id,
                             type: 'order_completed',
@@ -849,6 +966,8 @@ const OrdersController = {
                 updated_at: new Date()
             });
 
+            emitOrderUpdated(req, order);
+
             return res.status(200).json({
                 message: 'Pembayaran direset, silakan upload ulang bukti bayar',
                 data: order
@@ -894,9 +1013,12 @@ const OrdersController = {
                 updated_at: new Date()
             });
 
+            emitOrderUpdated(req, order);
+
             // Emit Notification to Buyer
             const io = req.app.get('socketio');
             if (io) {
+                io.to('admin_room').emit('order_updated_admin', { order_id: order.order_id, status: order.status });
                 io.to(`user_${order.user_id}`).emit('new_notification', {
                     type: 'order_buyer',
                     title: 'Pesanan Dibatalkan',
@@ -906,13 +1028,16 @@ const OrdersController = {
                 });
 
                 // Emit to seller
-                io.to(`user_${order.shop_id}`).emit('new_notification', {
-                    type: 'order_seller',
-                    title: 'Pesanan Dibatalkan',
-                    message: `Pesanan ${order.order_id} telah dibatalkan.`,
-                    link: `/user/toko/dashboard`,
-                    time: new Date()
-                });
+                const shop = await models.shops.findByPk(order.shop_id);
+                if (shop) {
+                    io.to(`user_${shop.user_id}`).emit('new_notification', {
+                        type: 'order_seller',
+                        title: 'Pesanan Dibatalkan',
+                        message: `Pesanan ${order.order_id} telah dibatalkan.`,
+                        link: `/user/toko/dashboard`,
+                        time: new Date()
+                    });
+                }
             }
 
             return res.status(200).json({
@@ -966,6 +1091,8 @@ const OrdersController = {
                 updated_at: new Date()
             });
 
+            emitOrderUpdated(req, order);
+
             // Emit Notification to Admin (if needed)
             const io = req.app.get('socketio');
             if (io) {
@@ -986,6 +1113,68 @@ const OrdersController = {
             });
         } catch (err) {
             console.error('requestDisbursement error:', err);
+            return res.status(500).json({ message: err.message, detail: err });
+        }
+    },
+
+    // POST /orders/bulk-request-disbursement - Seller mengajukan pencairan dana sekaligus
+    bulkRequestDisbursement: async (req, res) => {
+        try {
+            const { order_ids } = req.body;
+
+            if (!order_ids || !Array.isArray(order_ids) || order_ids.length === 0) {
+                return res.status(400).json({ message: 'Daftar ID pesanan tidak boleh kosong' });
+            }
+
+            const { Op } = require('sequelize');
+            const orders = await models.orders.findAll({
+                where: {
+                    id: order_ids,
+                    status: 'completed'
+                }
+            });
+
+            if (orders.length === 0) {
+                return res.status(400).json({ message: 'Tidak ada pesanan berstatus selesai yang valid untuk dicairkan' });
+            }
+
+            // Update status untuk semua pesanan terpilih
+            await models.orders.update({
+                status: 'disbursement_requested',
+                disbursement_requested_at: new Date(),
+                updated_at: new Date()
+            }, {
+                where: {
+                    id: orders.map(o => o.id)
+                }
+            });
+
+            // Emit notifications
+            const io = req.app.get('socketio');
+            if (io) {
+                // Emit event to admin page for real-time update
+                io.to('admin_room').emit('order_updated_admin', { status: 'disbursement_requested' });
+
+                for (const order of orders) {
+                    order.status = 'disbursement_requested';
+                    emitOrderUpdated(req, order);
+
+                    io.emit('admin_notification', {
+                        type: 'disbursement_request',
+                        title: 'Pengajuan Pencairan Baru',
+                        message: `Seller mengajukan pencairan untuk pesanan ${order.order_id}`,
+                        link: '/admin/keuangan',
+                        time: new Date()
+                    });
+                }
+            }
+
+            return res.status(200).json({
+                message: `${orders.length} pesanan berhasil diajukan pencairannya sekaligus`,
+                count: orders.length
+            });
+        } catch (err) {
+            console.error('bulkRequestDisbursement error:', err);
             return res.status(500).json({ message: err.message, detail: err });
         }
     },
@@ -1014,9 +1203,12 @@ const OrdersController = {
                 updated_at: new Date()
             });
 
+            emitOrderUpdated(req, order);
+
             // Emit Notification to Seller
             const io = req.app.get('socketio');
             if (io) {
+                io.to('admin_room').emit('order_updated_admin', { order_id: order.order_id, status: order.status });
                 const shop = await models.shops.findByPk(order.shop_id);
                 if (shop) {
                     // 1. Save to Database
@@ -1051,6 +1243,85 @@ const OrdersController = {
         }
     },
 
+    // POST /orders/bulk-disburse - Admin upload bukti transfer dan cairkan banyak pesanan sekaligus
+    bulkDisburseOrders: async (req, res) => {
+        try {
+            const { order_ids, disbursement_proof, disbursement_notes, additional_fee } = req.body;
+
+            if (!order_ids || !Array.isArray(order_ids) || order_ids.length === 0) {
+                return res.status(400).json({ message: 'Daftar ID pesanan tidak boleh kosong' });
+            }
+
+            const { Op } = require('sequelize');
+            const orders = await models.orders.findAll({
+                where: {
+                    id: order_ids,
+                    status: ['completed', 'disbursement_requested']
+                }
+            });
+
+            if (orders.length === 0) {
+                return res.status(400).json({ message: 'Tidak ada pesanan valid untuk dicairkan' });
+            }
+
+            // Update status ke 'disbursed' untuk semua pesanan terpilih
+            await models.orders.update({
+                status: 'disbursed',
+                disbursement_proof: disbursement_proof || null,
+                disbursement_notes: disbursement_notes || null,
+                additional_fee: parseInt(additional_fee) || 0,
+                disbursed_at: new Date(),
+                updated_at: new Date()
+            }, {
+                where: {
+                    id: orders.map(o => o.id)
+                }
+            });
+
+            // Emit Notifications
+            const io = req.app.get('socketio');
+            if (io) {
+                io.to('admin_room').emit('order_updated_admin', { status: 'disbursed' });
+
+                for (const order of orders) {
+                    order.status = 'disbursed';
+                    emitOrderUpdated(req, order);
+
+                    const shop = await models.shops.findByPk(order.shop_id);
+                    if (shop) {
+                        // 1. Save to Database
+                        await models.notifications.create({
+                            user_id: shop.user_id,
+                            type: 'disbursement',
+                            title: 'Dana Dicairkan',
+                            message: `Dana untuk pesanan ${order.order_id} telah dicairkan. Silakan cek riwayat transaksi.`,
+                            link: '/user/toko/pengajuan-keuangan',
+                            is_read: false,
+                            created_at: new Date()
+                        });
+
+                        // 2. Emit Real-time Socket
+                        io.to(`user_${shop.user_id}`).emit('new_notification', {
+                            type: 'disbursement',
+                            title: 'Dana Dicairkan',
+                            message: `Dana untuk pesanan ${order.order_id} telah dicairkan. Silakan cek riwayat transaksi.`,
+                            link: '/user/toko/pengajuan-keuangan',
+                            time: new Date()
+                        });
+                    }
+                }
+            }
+
+            return res.status(200).json({
+                message: `${orders.length} pesanan berhasil dicairkan sekaligus`,
+                count: orders.length
+            });
+        } catch (err) {
+            console.error('bulkDisburseOrders error:', err);
+            return res.status(500).json({ message: err.message, detail: err });
+        }
+    },
+
     dismissCancellation: async (req, res) => {
         try {
             const { order_id } = req.params;
@@ -1071,6 +1342,8 @@ const OrdersController = {
                 status: 'cancelled_dismissed',
                 updated_at: new Date()
             });
+
+            emitOrderUpdated(req, order);
 
             // Fetch current stock to return to frontend for sync
             let currentStock = null;

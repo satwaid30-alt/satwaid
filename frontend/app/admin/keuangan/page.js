@@ -19,6 +19,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import ActionModal from "@/components/ActionModal";
+import { getApiUrl, getSocketUrl, getImageUrl } from "@/app/utils/api";
 
 export default function KeuanganAdminPage() {
     const [shops, setShops] = useState([]);
@@ -38,11 +39,11 @@ export default function KeuanganAdminPage() {
         setIsLoading(true);
         try {
             // Fetch all shops
-            const shopsRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/shops`);
+            const shopsRes = await fetch(`${getApiUrl()}/shops`);
             const shopsResult = await shopsRes.json();
-            
+
             // Fetch all orders to calculate financial stats per shop
-            const ordersRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/orders`);
+            const ordersRes = await fetch(`${getApiUrl()}/orders`);
             const ordersResult = await ordersRes.json();
 
             if (shopsRes.ok) {
@@ -64,10 +65,16 @@ export default function KeuanganAdminPage() {
         // Setup Socket.io for Real-time Admin Finance Notifications
         let socket;
         try {
-            socket = io(process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000");
-            
+            const token = typeof window !== 'undefined' ? localStorage.getItem("token") : null;
+            socket = io(getSocketUrl(), {
+                auth: {
+                    token: token ? `Bearer ${token}` : null
+                }
+            });
+
             socket.on("connect", () => {
                 console.log("[Socket] Admin Finance Connected");
+                socket.emit("join_admin");
             });
 
             socket.on("admin_notification", (data) => {
@@ -75,7 +82,7 @@ export default function KeuanganAdminPage() {
                 if (data.type === "disbursement_request") {
                     // Trigger a re-fetch of data to show the new request in the notification table instantly
                     fetchData();
-                    
+
                     setActionModal({
                         isOpen: true,
                         type: 'info',
@@ -83,6 +90,18 @@ export default function KeuanganAdminPage() {
                         message: data.message || 'Ada pengajuan pencairan dana baru dari seller.',
                         onConfirm: () => setActionModal(prev => ({ ...prev, isOpen: false }))
                     });
+                }
+            });
+
+            socket.on("order_updated_admin", (data) => {
+                console.log("[Socket] Received order update admin event:", data);
+                fetchData();
+            });
+
+            socket.on("new_notification", (data) => {
+                console.log("[Socket] Received general notification event:", data);
+                if (data.type === "disbursement" || data.type === "disbursement_request") {
+                    fetchData();
                 }
             });
         } catch (e) {
@@ -102,43 +121,30 @@ export default function KeuanganAdminPage() {
         }).format(price || 0);
     };
 
-    const getImageUrl = (path) => {
-        if (!path) return null;
-        let finalPath = path;
-        try {
-            if (typeof path === 'string' && (path.startsWith('[') || path.startsWith('{'))) {
-                const parsed = JSON.parse(path);
-                finalPath = Array.isArray(parsed) ? parsed[0] : parsed;
-            } else if (Array.isArray(path)) {
-                finalPath = path[0];
-            }
-        } catch (e) { }
-        if (!finalPath) return null;
-        if (typeof finalPath !== 'string') return null;
-        if (finalPath.startsWith('http') || finalPath.startsWith('data:')) return finalPath;
-        const baseUrl = process.env.NEXT_PUBLIC_API_URL || "";
-        const formattedPath = finalPath.startsWith('/') ? finalPath : `/${finalPath}`;
-        return `${baseUrl}${formattedPath}`;
-    };
+    // Removed local getImageUrl function in favor of central helper from @/app/utils/api
 
     // Global Stats Calculations
     const totalDisbursed = orders.filter(o => o.disbursed_at || o.disbursement_proof).reduce((acc, curr) => {
-        const total = (Number(curr.price || 0) * Number(curr.quantity || 1)) + 
-                      Number(curr.shipping_cost || 0) + 
-                      Number(curr.packing_cost || 0) - 
-                      Number(curr.additional_fee || 0);
+        const total = (Number(curr.price || 0) * Number(curr.quantity || 1)) +
+            Number(curr.shipping_cost || 0) +
+            Number(curr.packing_cost || 0);
         return acc + total;
     }, 0);
 
     const totalPending = orders.filter(o => !o.disbursed_at && !o.disbursement_proof && (o.status === 'completed' || o.status === 'disbursement_requested')).reduce((acc, curr) => {
-        const total = (Number(curr.price || 0) * Number(curr.quantity || 1)) + 
-                      Number(curr.shipping_cost || 0) + 
-                      Number(curr.packing_cost || 0) - 
-                      Number(curr.additional_fee || 0);
+        const total = (Number(curr.price || 0) * Number(curr.quantity || 1)) +
+            Number(curr.shipping_cost || 0) +
+            Number(curr.packing_cost || 0);
         return acc + total;
     }, 0);
 
     const pendingDisbursements = orders.filter(o => o.status === 'disbursement_requested' && !o.disbursed_at && !o.disbursement_proof);
+
+    const untransferredOrders = orders.filter(o => 
+        !o.disbursed_at && 
+        !o.disbursement_proof && 
+        ['completed', 'disbursement_requested'].includes(o.status)
+    );
 
     // Filter Shops based on search query
     const filteredShops = shops.filter(shop => {
@@ -233,10 +239,24 @@ export default function KeuanganAdminPage() {
                             </thead>
                             <tbody className="divide-y divide-zinc-800/40">
                                 {pendingDisbursements.map((req, index) => {
-                                    const total = (Number(req.price || 0) * Number(req.quantity || 1)) + 
-                                                  Number(req.shipping_cost || 0) + 
-                                                  Number(req.packing_cost || 0) - 
-                                                  Number(req.additional_fee || 0);
+                                    const total = (Number(req.price || 0) * Number(req.quantity || 1)) +
+                                        Number(req.shipping_cost || 0) +
+                                        Number(req.packing_cost || 0);
+
+                                    const owner = req.shop?.owner;
+                                    let bankAccounts = owner?.bank_accounts;
+                                    if (typeof bankAccounts === 'string') {
+                                        try {
+                                            bankAccounts = JSON.parse(bankAccounts);
+                                        } catch (e) {
+                                            bankAccounts = null;
+                                        }
+                                    }
+                                    const primaryBank = (Array.isArray(bankAccounts) && bankAccounts.length > 0) ? bankAccounts[0] : null;
+                                    const sBankName = primaryBank ? (primaryBank.bank_name || primaryBank.bankName || "-") : (req.shop?.bank_name || "-");
+                                    const sBankAccount = primaryBank ? (primaryBank.account_number || primaryBank.accountNumber || primaryBank.bank_account || "-") : (req.shop?.bank_account || "-");
+                                    const sBankHolder = primaryBank ? (primaryBank.account_name || primaryBank.accountName || primaryBank.bank_holder || owner?.name || "-") : (req.shop?.bank_holder || owner?.name || "-");
+
                                     return (
                                         <tr key={req.id} className="hover:bg-zinc-800/20 transition-colors border-b border-zinc-800/40">
                                             <td className="px-6 py-5 text-center text-xs font-bold text-zinc-500 font-mono">{index + 1}</td>
@@ -247,9 +267,9 @@ export default function KeuanganAdminPage() {
                                             </td>
                                             <td className="px-6 py-5">
                                                 <div className="text-xs">
-                                                    <p className="font-black text-zinc-300 uppercase">{req.bank_name || req.shop?.bank_name || "-"}</p>
-                                                    <p className="text-[10px] text-zinc-500 font-bold font-mono">{req.bank_account || req.shop?.bank_account || "-"}</p>
-                                                    <p className="text-[9px] text-zinc-500 font-bold uppercase tracking-tight">an. {req.bank_holder || req.shop?.bank_holder || "-"}</p>
+                                                    <p className="font-black text-zinc-300 uppercase">{sBankName}</p>
+                                                    <p className="text-[10px] text-zinc-500 font-bold font-mono">{sBankAccount}</p>
+                                                    <p className="text-[9px] text-zinc-500 font-bold uppercase tracking-tight">an. {sBankHolder}</p>
                                                 </div>
                                             </td>
                                             <td className="px-6 py-5 font-black text-emerald-500 text-sm">{formatPrice(total)}</td>
@@ -271,6 +291,114 @@ export default function KeuanganAdminPage() {
                     </div>
                 </div>
             )}
+
+            {/* Table Belum Transfer */}
+            <div className="bg-zinc-900 border border-zinc-800 rounded-[2.5rem] p-8 space-y-6">
+                <div className="flex items-center justify-between border-b border-zinc-800 pb-4">
+                    <div className="flex items-center gap-3">
+                        <div className="w-12 h-12 bg-amber-500/10 rounded-2xl flex items-center justify-center text-amber-500 border border-amber-500/20">
+                            <Clock size={24} />
+                        </div>
+                        <div>
+                            <h2 className="text-xl font-black text-white uppercase tracking-tight">Transaksi Belum Ditransfer</h2>
+                            <p className="text-zinc-500 text-xs font-medium">Transaksi yang sudah selesai tetapi dana escrow belum dicairkan ke toko penjual</p>
+                        </div>
+                    </div>
+                    {untransferredOrders.length > 0 && (
+                        <span className="px-3 py-1 bg-amber-500/10 text-amber-500 border border-amber-500/20 text-[10px] font-black rounded-full uppercase tracking-widest animate-pulse">
+                            {untransferredOrders.length} Transaksi
+                        </span>
+                    )}
+                </div>
+
+                <div className="overflow-x-auto">
+                    {untransferredOrders.length > 0 ? (
+                        <table className="w-full text-left">
+                            <thead>
+                                <tr className="bg-zinc-950/30 border-b border-zinc-800">
+                                    <th className="px-6 py-4 text-[9px] font-black text-zinc-500 uppercase tracking-widest text-center">No</th>
+                                    <th className="px-6 py-4 text-[9px] font-black text-zinc-500 uppercase tracking-widest">Toko Seller</th>
+                                    <th className="px-6 py-4 text-[9px] font-black text-zinc-500 uppercase tracking-widest">Invoice ID</th>
+                                    <th className="px-6 py-4 text-[9px] font-black text-zinc-500 uppercase tracking-widest">Status Dana</th>
+                                    <th className="px-6 py-4 text-[9px] font-black text-zinc-500 uppercase tracking-widest">Rekening Tujuan</th>
+                                    <th className="px-6 py-4 text-[9px] font-black text-zinc-500 uppercase tracking-widest">Jumlah Bersih</th>
+                                    <th className="px-6 py-4 text-[9px] font-black text-zinc-500 uppercase tracking-widest text-center">Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y divide-zinc-800/40">
+                                {untransferredOrders.map((req, index) => {
+                                    const total = (Number(req.price || 0) * Number(req.quantity || 1)) +
+                                        Number(req.shipping_cost || 0) +
+                                        Number(req.packing_cost || 0) -
+                                        Number(req.additional_fee || 0);
+
+                                    const owner = req.shop?.owner;
+                                    let bankAccounts = owner?.bank_accounts;
+                                    if (typeof bankAccounts === 'string') {
+                                        try {
+                                            bankAccounts = JSON.parse(bankAccounts);
+                                        } catch (e) {
+                                            bankAccounts = null;
+                                        }
+                                    }
+                                    const primaryBank = (Array.isArray(bankAccounts) && bankAccounts.length > 0) ? bankAccounts[0] : null;
+                                    const sBankName = primaryBank ? (primaryBank.bank_name || primaryBank.bankName || "-") : (req.shop?.bank_name || "-");
+                                    const sBankAccount = primaryBank ? (primaryBank.account_number || primaryBank.accountNumber || primaryBank.bank_account || "-") : (req.shop?.bank_account || "-");
+                                    const sBankHolder = primaryBank ? (primaryBank.account_name || primaryBank.accountName || primaryBank.bank_holder || owner?.name || "-") : (req.shop?.bank_holder || owner?.name || "-");
+
+                                    return (
+                                        <tr key={req.id} className="hover:bg-zinc-800/20 transition-colors border-b border-zinc-800/40">
+                                            <td className="px-6 py-5 text-center text-xs font-bold text-zinc-500 font-mono">{index + 1}</td>
+                                            <td className="px-6 py-5">
+                                                <div className="font-black text-white text-sm">{req.shop?.name || "Toko dihapus"}</div>
+                                                <div className="text-[10px] text-zinc-500 font-medium">Owner: {owner?.name || "-"}</div>
+                                            </td>
+                                            <td className="px-6 py-5 font-mono text-xs text-amber-500 font-bold">{req.order_id}</td>
+                                            <td className="px-6 py-5">
+                                                {req.status === 'disbursement_requested' ? (
+                                                    <span className="px-2.5 py-0.5 bg-red-500/10 text-red-400 border border-red-500/20 text-[9px] font-black rounded-lg uppercase tracking-wider animate-pulse">
+                                                        Diajukan Tarik
+                                                    </span>
+                                                ) : (
+                                                    <span className="px-2.5 py-0.5 bg-zinc-800 text-zinc-400 border border-zinc-700 text-[9px] font-black rounded-lg uppercase tracking-wider">
+                                                        Selesai (Belum Tarik)
+                                                    </span>
+                                                )}
+                                            </td>
+                                            <td className="px-6 py-5">
+                                                <div className="text-xs">
+                                                    <p className="font-black text-zinc-300 uppercase">{sBankName}</p>
+                                                    <p className="text-[10px] text-zinc-500 font-bold font-mono">{sBankAccount}</p>
+                                                    <p className="text-[9px] text-zinc-500 font-bold uppercase tracking-tight">an. {sBankHolder}</p>
+                                                </div>
+                                            </td>
+                                            <td className="px-6 py-5 font-black text-emerald-500 text-sm">{formatPrice(total)}</td>
+                                            <td className="px-6 py-5">
+                                                <div className="flex justify-center">
+                                                    <Link
+                                                        href={`/admin/keuangan/upload/${req.id}`}
+                                                        className="px-4 py-2 bg-emerald-500 hover:bg-emerald-400 text-zinc-950 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all flex items-center gap-1.5 shadow-xl shadow-emerald-500/10 active:scale-95"
+                                                    >
+                                                        <ArrowUpRight size={12} /> Transfer Sekarang
+                                                    </Link>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    );
+                                })}
+                            </tbody>
+                        </table>
+                    ) : (
+                        <div className="py-16 text-center space-y-4 bg-zinc-950/20 border border-dashed border-zinc-800 rounded-3xl">
+                            <CheckCircle2 size={40} className="text-zinc-700 mx-auto" />
+                            <div className="space-y-1">
+                                <p className="text-white font-black uppercase tracking-widest text-sm">Semua Beres!</p>
+                                <p className="text-zinc-500 text-xs font-medium">Tidak ada transaksi selesai yang menunggak untuk ditransfer.</p>
+                            </div>
+                        </div>
+                    )}
+                </div>
+            </div>
 
             {/* Search Filter */}
             <div className="bg-zinc-900 border border-zinc-800 rounded-[2rem] p-3 flex items-center">
@@ -295,9 +423,10 @@ export default function KeuanganAdminPage() {
                                 <th className="px-6 py-5 text-[10px] font-black text-zinc-500 uppercase tracking-widest text-center">No</th>
                                 <th className="px-8 py-5 text-[10px] font-black text-zinc-500 uppercase tracking-widest">Toko / Seller</th>
                                 <th className="px-8 py-5 text-[10px] font-black text-zinc-500 uppercase tracking-widest">Kontak Owner</th>
-                                <th className="px-8 py-5 text-[10px] font-black text-zinc-500 uppercase tracking-widest text-center">Total Iklan</th>
+                                <th className="px-8 py-5 text-[10px] font-black text-zinc-500 uppercase tracking-widest text-center">Total Produk</th>
                                 <th className="px-8 py-5 text-[10px] font-black text-zinc-500 uppercase tracking-widest text-center">Pesanan Selesai</th>
-                                <th className="px-8 py-5 text-[10px] font-black text-zinc-500 uppercase tracking-widest">Dana Sudah Cair</th>
+                                <th className="px-8 py-5 text-[10px] font-black text-zinc-500 uppercase tracking-widest">Dana Ditransfer</th>
+                                <th className="px-8 py-5 text-[10px] font-black text-zinc-500 uppercase tracking-widest">Belum Transfer</th>
                                 <th className="px-8 py-5 text-[10px] font-black text-zinc-500 uppercase tracking-widest">Total Pendapatan</th>
                                 <th className="px-8 py-5 text-[10px] font-black text-zinc-500 uppercase tracking-widest text-center">Aksi</th>
                             </tr>
@@ -306,39 +435,39 @@ export default function KeuanganAdminPage() {
                             {isLoading ? (
                                 [1, 2, 3].map(i => (
                                     <tr key={i} className="animate-pulse">
-                                        <td colSpan={8} className="px-8 py-6 h-24 bg-zinc-900/50"></td>
+                                        <td colSpan={9} className="px-8 py-6 h-24 bg-zinc-900/50"></td>
                                     </tr>
                                 ))
                             ) : filteredShops.length > 0 ? (
                                 filteredShops.map((shop, index) => {
                                     // Filter orders specifically belonging to this shop
                                     const shopOrders = orders.filter(o => o.shop_id === shop.id || o.shop?.id === shop.id);
-                                    
+
                                     // Total completed orders count
-                                    const completedCount = shopOrders.filter(o => 
-                                        ['completed', 'disbursement_requested'].includes(o.status) || 
+                                    const completedCount = shopOrders.filter(o =>
+                                        ['completed', 'disbursement_requested'].includes(o.status) ||
                                         !!(o.disbursed_at || o.disbursement_proof)
                                     ).length;
 
                                     // Total disbursed amount for this shop
                                     const shopDisbursed = shopOrders.filter(o => o.disbursed_at || o.disbursement_proof).reduce((acc, curr) => {
-                                        const total = (Number(curr.price || 0) * Number(curr.quantity || 1)) + 
-                                                      Number(curr.shipping_cost || 0) + 
-                                                      Number(curr.packing_cost || 0) - 
-                                                      Number(curr.additional_fee || 0);
+                                        const total = (Number(curr.price || 0) * Number(curr.quantity || 1)) +
+                                            Number(curr.shipping_cost || 0) +
+                                            Number(curr.packing_cost || 0) -
+                                            Number(curr.additional_fee || 0);
                                         return acc + total;
                                     }, 0);
 
                                     // Total pending disbursement amount for this shop
-                                    const shopPending = shopOrders.filter(o => 
-                                        !o.disbursed_at && 
-                                        !o.disbursement_proof && 
+                                    const shopPending = shopOrders.filter(o =>
+                                        !o.disbursed_at &&
+                                        !o.disbursement_proof &&
                                         (o.status === 'completed' || o.status === 'disbursement_requested')
                                     ).reduce((acc, curr) => {
-                                        const total = (Number(curr.price || 0) * Number(curr.quantity || 1)) + 
-                                                      Number(curr.shipping_cost || 0) + 
-                                                      Number(curr.packing_cost || 0) - 
-                                                      Number(curr.additional_fee || 0);
+                                        const total = (Number(curr.price || 0) * Number(curr.quantity || 1)) +
+                                            Number(curr.shipping_cost || 0) +
+                                            Number(curr.packing_cost || 0) -
+                                            Number(curr.additional_fee || 0);
                                         return acc + total;
                                     }, 0);
 
@@ -398,6 +527,11 @@ export default function KeuanganAdminPage() {
                                                 </span>
                                             </td>
                                             <td className="px-8 py-6">
+                                                <span className="text-sm font-black text-amber-500">
+                                                    {formatPrice(shopPending)}
+                                                </span>
+                                            </td>
+                                            <td className="px-8 py-6">
                                                 <span className="text-sm font-black text-white">
                                                     {formatPrice(shopDisbursed + shopPending)}
                                                 </span>
@@ -419,7 +553,7 @@ export default function KeuanganAdminPage() {
                                 })
                             ) : (
                                 <tr>
-                                    <td colSpan={8} className="px-8 py-20 text-center">
+                                    <td colSpan={9} className="px-8 py-20 text-center">
                                         <div className="flex flex-col items-center gap-4">
                                             <div className="w-16 h-16 bg-zinc-800 rounded-full flex items-center justify-center text-zinc-700 shadow-inner">
                                                 <Store size={32} />

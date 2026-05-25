@@ -10,6 +10,7 @@ import {
     ArrowUpRight,
     Users2
 } from "lucide-react";
+import { getApiUrl, getLogoUrl } from "@/app/utils/api";
 
 export default function AdminDashboard() {
     const [user, setUser] = useState(null);
@@ -33,7 +34,7 @@ export default function AdminDashboard() {
 
     const fetchStats = async () => {
         try {
-            const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+            const apiUrl = getApiUrl();
             const response = await fetch(`${apiUrl}/admin/stats`);
             if (!response.ok) throw new Error("Gagal mengambil data dari server");
             const data = await response.json();
@@ -207,7 +208,7 @@ export default function AdminDashboard() {
                                                 <td className="px-4 py-5 flex items-center gap-3">
                                                     <div className="w-10 h-10 rounded-xl overflow-hidden bg-zinc-800 border border-zinc-700 p-0.5 group-hover:border-emerald-500/50 transition-colors">
                                                         {shop.logo_url ? (
-                                                            <img src={shop.logo_url} className="w-full h-full object-cover" alt={shop.name} />
+                                                            <img src={getLogoUrl(shop.logo_url)} className="w-full h-full object-cover" alt={shop.name} />
                                                         ) : (
                                                             <div className="w-full h-full flex items-center justify-center bg-emerald-500/10 text-emerald-500 font-black text-[10px]">
                                                                 {shop.name.substring(0, 2).toUpperCase()}

@@ -98,21 +98,6 @@ exports.validate = (method) => {
                 param('idRegistration', 'idRegistration harus ada').notEmpty().isUUID().withMessage('harus UUID'),
             ]
         }
-        case 'create_species': {
-            return [
-                body('slug', 'slug harus ada').notEmpty(),
-                body('name', 'name harus ada').notEmpty(),
-                body('category', 'category harus ada').notEmpty(),
-            ]
-        }
-        case 'update_species': {
-            return [
-                param('id', 'id harus ada').notEmpty(),
-
-                body('slug', 'slug harus ada').optional().notEmpty(),
-                body('name', 'name harus ada').optional().notEmpty(),
-            ]
-        }
     }
 }
 

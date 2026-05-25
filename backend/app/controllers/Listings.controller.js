@@ -18,6 +18,8 @@ const ListingsController = {
                 images,
                 start_bid,
                 multiple,
+                bin_price,
+                start_date,
                 end_date,
                 user_id,
                 is_free_shipping,
@@ -63,6 +65,8 @@ const ListingsController = {
                 images,
                 start_bid: start_bid ? parseInt(start_bid.toString().replace(/\D/g, '')) : null,
                 multiple: multiple ? parseInt(multiple.toString().replace(/\D/g, '')) : null,
+                bin_price: bin_price ? parseInt(bin_price.toString().replace(/\D/g, '')) : null,
+                start_date: start_date || null,
                 end_date: end_date || null,
                 status: 'pending',
                 is_free_shipping: is_free_shipping || false,
@@ -114,6 +118,14 @@ const ListingsController = {
                     include: [
                         [
                             Sequelize.literal(`(
+                                SELECT COALESCE(MAX(bid_amount), "listings"."start_bid")
+                                FROM bids
+                                WHERE bids.listing_id = "listings"."id"
+                            )`),
+                            'current_bid'
+                        ],
+                        [
+                            Sequelize.literal(`(
                                 SELECT order_id
                                 FROM orders
                                 WHERE orders.listing_id = "listings"."id"
@@ -122,6 +134,7 @@ const ListingsController = {
                             )`),
                             'latestOrderId'
                         ],
+
                         [
                             Sequelize.literal(`(
                                 SELECT order_id
@@ -166,6 +179,24 @@ const ListingsController = {
                                 LIMIT 1
                             )`),
                             'latestCancelledInternalId'
+                        ],
+                        [
+                            Sequelize.literal(`(
+                                SELECT id
+                                FROM orders
+                                WHERE orders.listing_id = "listings"."id"
+                                ORDER BY created_at DESC
+                                LIMIT 1
+                            )`),
+                            'latestOrderUuid'
+                        ],
+                        [
+                            Sequelize.literal(`(
+                                SELECT COUNT(*)
+                                FROM bids
+                                WHERE bids.listing_id = "listings"."id"
+                            )`),
+                            'bid_count'
                         ],
                         [
                             Sequelize.literal(`(
@@ -232,6 +263,14 @@ const ListingsController = {
                     include: [
                         [
                             Sequelize.literal(`(
+                                SELECT COALESCE(MAX(bid_amount), "listings"."start_bid")
+                                FROM bids
+                                WHERE bids.listing_id = "listings"."id"
+                            )`),
+                            'current_bid'
+                        ],
+                        [
+                            Sequelize.literal(`(
                                 SELECT order_id
                                 FROM orders
                                 WHERE orders.listing_id = "listings"."id"
@@ -240,6 +279,7 @@ const ListingsController = {
                             )`),
                             'latestOrderId'
                         ],
+
                         [
                             Sequelize.literal(`(
                                 SELECT order_id
@@ -284,6 +324,24 @@ const ListingsController = {
                                 LIMIT 1
                             )`),
                             'latestCancelledInternalId'
+                        ],
+                        [
+                            Sequelize.literal(`(
+                                SELECT id
+                                FROM orders
+                                WHERE orders.listing_id = "listings"."id"
+                                ORDER BY created_at DESC
+                                LIMIT 1
+                            )`),
+                            'latestOrderUuid'
+                        ],
+                        [
+                            Sequelize.literal(`(
+                                SELECT COUNT(*)
+                                FROM bids
+                                WHERE bids.listing_id = "listings"."id"
+                            )`),
+                            'bid_count'
                         ],
                         [
                             Sequelize.literal(`(
@@ -337,9 +395,193 @@ const ListingsController = {
                 return res.status(404).json({ message: "Produk tidak ditemukan atau format ID tidak valid" });
             }
 
+            // Auto-finalize ended active auction
+            const checkListing = await models.listings.findByPk(id);
+            if (checkListing && checkListing.type === 'auction' && checkListing.status === 'active') {
+                const now = new Date();
+                if (checkListing.end_date && new Date(checkListing.end_date) <= now) {
+                    const transaction = await sequelize.transaction();
+                    try {
+                        const listing = await models.listings.findByPk(id, {
+                            transaction,
+                            lock: transaction.LOCK.UPDATE
+                        });
+
+                        if (listing && listing.status === 'active') {
+                            const shop = await models.shops.findByPk(listing.shop_id, { transaction });
+                            const sellerUserId = shop ? shop.user_id : null;
+
+                            const highestBid = await models.bids.findOne({
+                                where: { listing_id: id },
+                                order: [['bid_amount', 'DESC']],
+                                transaction
+                            });
+
+                            let winnerId = null;
+                            let createdOrderUuid = null;
+                            let createdOrderId = null;
+                            let finalPrice = null;
+                            let winnerNotifData = null;
+                            let sellerNotifData = null;
+
+                            if (highestBid) {
+                                winnerId = highestBid.user_id;
+                                finalPrice = Number(highestBid.bid_amount);
+
+                                const existingOrder = await models.orders.findOne({
+                                    where: { listing_id: id },
+                                    transaction
+                                });
+
+                                if (!existingOrder) {
+                                    const ShortUniqueId = require('short-unique-id');
+                                    const uid = new ShortUniqueId({ length: 6, dictionary: 'number' });
+                                    const dateStr = now.getFullYear().toString() +
+                                        String(now.getMonth() + 1).padStart(2, '0') +
+                                        String(now.getDate()).padStart(2, '0');
+                                    const orderId = `INV/${dateStr}/RH/${uid.rnd()}`;
+                                    const ADMIN_FEE = 5000;
+
+                                    const productPrice = Number(highestBid.bid_amount);
+                                    const totalPrice = productPrice + ADMIN_FEE;
+
+                                    const newOrder = await models.orders.create({
+                                        order_id: orderId,
+                                        user_id: highestBid.user_id,
+                                        listing_id: id,
+                                        shop_id: listing.shop_id,
+                                        quantity: 1,
+                                        price: productPrice,
+                                        admin_fee: ADMIN_FEE,
+                                        total_price: totalPrice,
+                                        status: 'pending_shipping_info'
+                                    }, { transaction });
+
+                                    createdOrderId = orderId;
+                                    createdOrderUuid = newOrder.id;
+
+                                    await listing.update({
+                                        status: 'ended',
+                                        stock: 0,
+                                        updated_at: new Date()
+                                    }, { transaction });
+                                } else {
+                                    createdOrderId = existingOrder.order_id;
+                                    createdOrderUuid = existingOrder.id;
+
+                                    await listing.update({
+                                        status: 'ended',
+                                        updated_at: new Date()
+                                    }, { transaction });
+                                }
+
+                                const formattedBid = new Intl.NumberFormat("id-ID", {
+                                    style: "currency",
+                                    currency: "IDR",
+                                    minimumFractionDigits: 0,
+                                }).format(finalPrice);
+
+                                // Winner Notif
+                                winnerNotifData = await models.notifications.create({
+                                    user_id: winnerId,
+                                    type: 'order_buyer',
+                                    title: 'Anda Memenangkan Lelang!',
+                                    message: `Selamat! Anda memenangkan lelang untuk "${listing.name}" seharga ${formattedBid}. Silakan lengkapi data pengiriman untuk memproses transaksi.`,
+                                    link: `/user/pesanan/transaksi/${createdOrderUuid}`,
+                                    created_at: new Date()
+                                }, { transaction });
+
+                                // Seller Notif
+                                if (sellerUserId) {
+                                    sellerNotifData = await models.notifications.create({
+                                        user_id: sellerUserId,
+                                        type: 'order_seller',
+                                        title: 'Lelang Selesai - Ada Pemenang',
+                                        message: `Lelang Anda untuk "${listing.name}" telah berakhir. Pemenang telah ditentukan seharga ${formattedBid}. Menunggu pembeli melengkapi alamat.`,
+                                        link: `/user/toko/pesanan-masuk/detail/${createdOrderUuid}`,
+                                        created_at: new Date()
+                                    }, { transaction });
+                                }
+                            } else {
+                                await listing.update({
+                                    status: 'ended',
+                                    updated_at: new Date()
+                                }, { transaction });
+
+                                // Seller Notif (no bids)
+                                if (sellerUserId) {
+                                    sellerNotifData = await models.notifications.create({
+                                        user_id: sellerUserId,
+                                        type: 'order_seller',
+                                        title: 'Lelang Berakhir Tanpa Penawaran',
+                                        message: `Lelang Anda untuk "${listing.name}" telah berakhir tanpa adanya penawaran.`,
+                                        link: '/user/toko/daftar-produk',
+                                        created_at: new Date()
+                                    }, { transaction });
+                                }
+                            }
+
+                            await transaction.commit();
+
+                            // Emit Socket.IO Events
+                            const io = req.app.get('socketio');
+                            if (io) {
+                                io.to(`auction_${listing.id}`).emit('auction_ended', {
+                                    listing_id: listing.id,
+                                    order_id: createdOrderId,
+                                    order_uuid: createdOrderUuid,
+                                    winner_id: winnerId,
+                                    ended_at: new Date().toISOString()
+                                });
+
+                                io.emit('listing_status_updated', {
+                                    listing_id: listing.id,
+                                    status: 'ended'
+                                });
+
+                                if (winnerId && winnerNotifData) {
+                                    io.to(`user_${winnerId}`).emit('new_notification', {
+                                        id: winnerNotifData.id,
+                                        type: winnerNotifData.type,
+                                        title: winnerNotifData.title,
+                                        message: winnerNotifData.message,
+                                        link: winnerNotifData.link,
+                                        time: winnerNotifData.created_at
+                                    });
+                                }
+
+                                if (sellerUserId && sellerNotifData) {
+                                    io.to(`user_${sellerUserId}`).emit('new_notification', {
+                                        id: sellerNotifData.id,
+                                        type: sellerNotifData.type,
+                                        title: sellerNotifData.title,
+                                        message: sellerNotifData.message,
+                                        link: sellerNotifData.link,
+                                        time: sellerNotifData.created_at
+                                    });
+                                }
+                            }
+                        } else {
+                            await transaction.rollback();
+                        }
+                    } catch (err) {
+                        await transaction.rollback();
+                        console.error("Error auto-finalizing auction in getListingById:", err);
+                    }
+                }
+            }
+
             const data = await models.listings.findByPk(id, {
                 attributes: {
                     include: [
+                        [
+                            Sequelize.literal(`(
+                                SELECT COALESCE(MAX(bid_amount), "listings"."start_bid")
+                                FROM bids
+                                WHERE bids.listing_id = "listings"."id"
+                            )`),
+                            'current_bid'
+                        ],
                         [
                             Sequelize.literal(`(
                                 SELECT order_id
@@ -349,9 +591,51 @@ const ListingsController = {
                                 LIMIT 1
                             )`),
                             'latestOrderId'
+                        ],
+                        [
+                            Sequelize.literal(`(
+                                SELECT id
+                                FROM orders
+                                WHERE orders.listing_id = "listings"."id"
+                                ORDER BY created_at DESC
+                                LIMIT 1
+                            )`),
+                            'latestOrderUuid'
+                        ],
+                        [
+                            Sequelize.literal(`(
+                                SELECT user_id
+                                FROM orders
+                                WHERE orders.listing_id = "listings"."id"
+                                ORDER BY created_at DESC
+                                LIMIT 1
+                            )`),
+                            'latestOrderUserId'
+                        ],
+                        [
+                            Sequelize.literal(`(
+                                SELECT u.name
+                                FROM orders o
+                                JOIN users u ON o.user_id = u.id
+                                WHERE o.listing_id = "listings"."id"
+                                ORDER BY o.created_at DESC
+                                LIMIT 1
+                            )`),
+                            'latestOrderBuyerName'
+                        ],
+                        [
+                            Sequelize.literal(`(
+                                SELECT price
+                                FROM orders
+                                WHERE orders.listing_id = "listings"."id"
+                                ORDER BY created_at DESC
+                                LIMIT 1
+                            )`),
+                            'latestOrderPrice'
                         ]
                     ]
                 },
+
                 include: [{
                     model: models.shops,
                     as: 'shop',
@@ -385,7 +669,7 @@ const ListingsController = {
     updateListing: async (req, res) => {
         try {
             const { id } = req.params;
-            const {
+             const {
                 name,
                 species,
                 price,
@@ -395,6 +679,8 @@ const ListingsController = {
                 images,
                 start_bid,
                 multiple,
+                bin_price,
+                start_date,
                 end_date,
                 status,
                 is_free_shipping,
@@ -402,39 +688,41 @@ const ListingsController = {
                 shipping_type,
                 stock
             } = req.body;
-
-            const listing = await models.listings.findByPk(id, {
-                include: [{ model: models.shops, as: 'shop' }]
-            });
-            if (!listing) return res.status(404).json({ message: "Iklan tidak ditemukan" });
-
-            // Check if shop is suspended (only if it's a seller update, i.e. content is changed)
-            const contentFields = ['name', 'species', 'price', 'sex', 'description', 'shipping_description', 'images', 'start_bid', 'multiple', 'end_date', 'is_free_shipping', 'is_free_packing', 'shipping_type'];
-            const isContentUpdated = contentFields.some(field => req.body[field] !== undefined);
-
-            if (isContentUpdated && listing.shop?.status?.toLowerCase() === 'suspended') {
-                return res.status(403).json({ message: "Toko Anda sedang ditangguhkan (suspended). Anda tidak dapat mengubah iklan." });
-            }
-
-            if (isContentUpdated && listing.shop?.status?.toLowerCase() === 'pending') {
-                return res.status(403).json({ message: "Toko Anda belum diverifikasi oleh admin. Silakan tunggu hingga toko diaktifkan untuk melakukan perubahan." });
-            }
-
-            const updateData = {};
-            if (name !== undefined) updateData.name = name;
-            if (species !== undefined) updateData.species = species;
-            if (price !== undefined) updateData.price = price ? parseInt(price.toString().replace(/\D/g, '')) : null;
-            if (sex !== undefined) updateData.sex = sex;
-            if (description !== undefined) updateData.description = description;
-            if (shipping_description !== undefined) updateData.shipping_description = shipping_description;
-            if (images !== undefined) updateData.images = images;
-            if (start_bid !== undefined) updateData.start_bid = start_bid ? parseInt(start_bid.toString().replace(/\D/g, '')) : null;
-            if (multiple !== undefined) updateData.multiple = multiple ? parseInt(multiple.toString().replace(/\D/g, '')) : null;
-            if (end_date !== undefined) updateData.end_date = end_date;
-            if (is_free_shipping !== undefined) updateData.is_free_shipping = is_free_shipping;
-            if (is_free_packing !== undefined) updateData.is_free_packing = is_free_packing;
-            if (shipping_type !== undefined) updateData.shipping_type = shipping_type;
-            if (stock !== undefined) updateData.stock = stock ? parseInt(stock) : 1;
+ 
+             const listing = await models.listings.findByPk(id, {
+                 include: [{ model: models.shops, as: 'shop' }]
+             });
+             if (!listing) return res.status(404).json({ message: "Iklan tidak ditemukan" });
+ 
+             // Check if shop is suspended (only if it's a seller update, i.e. content is changed)
+             const contentFields = ['name', 'species', 'price', 'sex', 'description', 'shipping_description', 'images', 'start_bid', 'multiple', 'bin_price', 'start_date', 'end_date', 'is_free_shipping', 'is_free_packing', 'shipping_type'];
+             const isContentUpdated = contentFields.some(field => req.body[field] !== undefined);
+ 
+             if (isContentUpdated && listing.shop?.status?.toLowerCase() === 'suspended') {
+                 return res.status(403).json({ message: "Toko Anda sedang ditangguhkan (suspended). Anda tidak dapat mengubah iklan." });
+             }
+ 
+             if (isContentUpdated && listing.shop?.status?.toLowerCase() === 'pending') {
+                 return res.status(403).json({ message: "Toko Anda belum diverifikasi oleh admin. Silakan tunggu hingga toko diaktifkan untuk melakukan perubahan." });
+             }
+ 
+             const updateData = {};
+             if (name !== undefined) updateData.name = name;
+             if (species !== undefined) updateData.species = species;
+             if (price !== undefined) updateData.price = price ? parseInt(price.toString().replace(/\D/g, '')) : null;
+             if (sex !== undefined) updateData.sex = sex;
+             if (description !== undefined) updateData.description = description;
+             if (shipping_description !== undefined) updateData.shipping_description = shipping_description;
+             if (images !== undefined) updateData.images = images;
+             if (start_bid !== undefined) updateData.start_bid = start_bid ? parseInt(start_bid.toString().replace(/\D/g, '')) : null;
+             if (multiple !== undefined) updateData.multiple = multiple ? parseInt(multiple.toString().replace(/\D/g, '')) : null;
+             if (bin_price !== undefined) updateData.bin_price = bin_price ? parseInt(bin_price.toString().replace(/\D/g, '')) : null;
+             if (start_date !== undefined) updateData.start_date = start_date;
+             if (end_date !== undefined) updateData.end_date = end_date;
+             if (is_free_shipping !== undefined) updateData.is_free_shipping = is_free_shipping;
+             if (is_free_packing !== undefined) updateData.is_free_packing = is_free_packing;
+             if (shipping_type !== undefined) updateData.shipping_type = shipping_type;
+             if (stock !== undefined) updateData.stock = stock ? parseInt(stock) : 1;
 
             // Logic for status:
             // If content is updated, force status to 'pending' for re-verification
@@ -489,6 +777,18 @@ const ListingsController = {
 
                         // Emit to Admin Room for Real-time Dashboard Update
                         io.to('admin_room').emit('listing_updated_admin', listing);
+
+                        // Broadcast to General Public (Homepage / Stores)
+                        if (status === 'active') {
+                            console.log(`[Socket] Broadcasting new_listing_published globally for listing ${listing.id}`);
+                            io.emit('new_listing_published', listing);
+                        } else {
+                            console.log(`[Socket] Broadcasting listing_status_updated globally for listing ${listing.id}`);
+                            io.emit('listing_status_updated', {
+                                id: listing.id,
+                                status: listing.status
+                            });
+                        }
                     }
                 } catch (notifErr) {
                     console.error("Failed to create moderation notification:", notifErr);
@@ -518,27 +818,43 @@ const ListingsController = {
                 // If there are orders, we cannot hard delete due to foreign key constraint
                 // So we do a "Soft Delete" by changing the status
                 await listing.update({ status: 'deleted' });
-                
+
                 const io = req.app.get('socketio');
                 if (io) {
                     io.to(`user_${listing.user_id}`).emit('listing_deleted', { id });
                     io.to('admin_room').emit('listing_deleted_admin', { id });
+                    io.emit('listing_deleted', { id });
                 }
 
                 return res.status(200).json({ message: "Iklan berhasil diarsipkan (soft delete) karena memiliki data transaksi" });
             }
 
+            // For auction listings, delete associated bids first to avoid FK constraint error
+            if (listing.type === 'auction') {
+                await models.bids.destroy({ where: { listing_id: id } });
+            }
+
+            // Also clean up any carts and chats referencing this listing
+            if (models.carts) {
+                await models.carts.destroy({ where: { listing_id: id } });
+            }
+            if (models.chats) {
+                await models.chats.destroy({ where: { listing_id: id } });
+            }
+
             // If no orders, we can safely delete
             await listing.destroy();
-            
+
             const io = req.app.get('socketio');
             if (io) {
                 io.to(`user_${listing.user_id}`).emit('listing_deleted', { id });
                 io.to('admin_room').emit('listing_deleted_admin', { id });
+                io.emit('listing_deleted', { id });
             }
 
             return res.status(200).json({ message: "Iklan berhasil dihapus secara permanen" });
         } catch (err) {
+            console.error("Error deleting listing:", err);
             return res.status(500).json({ message: err.message });
         }
     }

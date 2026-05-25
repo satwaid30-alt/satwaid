@@ -3,6 +3,8 @@
 import { useState, useEffect, use } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { io } from "socket.io-client";
+import { getApiUrl, getSocketUrl } from "@/app/utils/api";
 import {
     MapPin,
     Truck,
@@ -15,7 +17,8 @@ import {
     Upload,
     FileText,
     Info,
-    Check
+    Check,
+    Eye
 } from "lucide-react";
 import OrderStepper from "@/components/OrderStepper";
 import ActionModal from "@/components/ActionModal";
@@ -35,29 +38,61 @@ export default function ShippingConfirmationPage({ params }) {
         message: "",
         onConfirm: null
     });
-    
+
     const [form, setForm] = useState({
         tracking_number: "",
         shipping_proof: ""
     });
 
     const [uploading, setUploading] = useState(false);
+    const [isPreviewOpen, setIsPreviewOpen] = useState(false);
 
     useEffect(() => {
         fetchOrderDetail();
+
+        // Setup Socket.io for Real-time Updates
+        const userStr = localStorage.getItem("user");
+        let socket;
+        if (userStr) {
+            try {
+                const userData = JSON.parse(userStr);
+                const token = typeof window !== 'undefined' ? localStorage.getItem("token") : null;
+                socket = io(getSocketUrl(), {
+                    auth: {
+                        token: token ? `Bearer ${token}` : null
+                    }
+                });
+                socket.emit("join_user", userData.id);
+
+                socket.on("new_notification", () => {
+                    fetchOrderDetail(); // Auto-refresh when status changes
+                });
+            } catch (e) {
+                console.error("Socket connection error in pengiriman", e);
+            }
+        }
+
+        return () => {
+            if (socket) socket.disconnect();
+        };
     }, [id]);
 
     const fetchOrderDetail = async () => {
         try {
-            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/orders/${id}`);
+            const res = await fetch(`${getApiUrl()}/orders/${id}`);
             const result = await res.json();
             if (res.ok && result.data) {
-                setOrder(result.data);
-                if (result.data.tracking_number) {
-                    setForm(prev => ({ ...prev, tracking_number: result.data.tracking_number }));
+                const orderData = result.data;
+                if (!["waiting_shipment", "payment_verified"].includes(orderData.status)) {
+                    router.replace(`/user/toko/pesanan-masuk/detail/${id}`);
+                    return;
                 }
-                if (result.data.shipping_proof) {
-                    setForm(prev => ({ ...prev, shipping_proof: result.data.shipping_proof }));
+                setOrder(orderData);
+                if (orderData.tracking_number) {
+                    setForm(prev => ({ ...prev, tracking_number: orderData.tracking_number }));
+                }
+                if (orderData.shipping_proof) {
+                    setForm(prev => ({ ...prev, shipping_proof: orderData.shipping_proof }));
                 }
             } else {
                 setModalConfig({
@@ -102,7 +137,7 @@ export default function ShippingConfirmationPage({ params }) {
         formData.append("image", file);
 
         try {
-            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/upload`, {
+            const res = await fetch(`${getApiUrl()}/upload`, {
                 method: "POST",
                 body: formData
             });
@@ -122,7 +157,7 @@ export default function ShippingConfirmationPage({ params }) {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        
+
         if (!form.tracking_number) {
             setModalConfig({
                 isOpen: true,
@@ -145,7 +180,7 @@ export default function ShippingConfirmationPage({ params }) {
 
         setIsSubmitting(true);
         try {
-            const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/orders/${id}/ship-order`, {
+            const response = await fetch(`${getApiUrl()}/orders/${id}/ship-order`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(form)
@@ -157,7 +192,7 @@ export default function ShippingConfirmationPage({ params }) {
                     type: "success",
                     title: "Pengiriman Terkirim!",
                     message: "Informasi pengiriman berhasil disimpan. Pembeli akan segera menerima notifikasi nomor resi Anda.",
-                    onConfirm: () => router.push("/user/toko/pesanan-masuk")
+                    onConfirm: () => router.replace("/user/toko/pesanan-masuk")
                 });
             } else {
                 const result = await response.json();
@@ -227,7 +262,7 @@ export default function ShippingConfirmationPage({ params }) {
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
                 {/* LEFT: Shipping Form */}
                 <div className="lg:col-span-7 space-y-8">
-                    <div className="bg-zinc-900 border border-zinc-800 rounded-[2rem] lg:rounded-[3rem] p-6 lg:p-10 shadow-2xl relative overflow-hidden">
+                    <div className="bg-zinc-900 border border-zinc-800 rounded-[2rem] lg:rounded-[3rem] p-6 lg:p-10 relative overflow-hidden">
                         <div className="space-y-8">
                             <div className="flex items-center gap-4">
                                 <div className="w-12 h-12 bg-blue-500/10 text-blue-500 rounded-2xl flex items-center justify-center border border-blue-500/20">
@@ -267,24 +302,37 @@ export default function ShippingConfirmationPage({ params }) {
                                     <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest ml-1 flex items-center gap-2">
                                         <Camera size={12} /> Bukti Foto Pengiriman <span className="text-red-500">*</span>
                                     </label>
-                                    
+
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                        <div 
+                                        <div
                                             className={`relative aspect-video rounded-[2rem] border-2 border-dashed transition-all overflow-hidden flex flex-col items-center justify-center gap-4 group cursor-pointer
                                                 ${form.shipping_proof ? 'border-emerald-500/50 bg-emerald-500/5' : 'border-zinc-800 bg-zinc-950 hover:border-blue-500/50 hover:bg-blue-500/5'}`}
                                         >
                                             {form.shipping_proof ? (
                                                 <>
-                                                    <img 
-                                                        src={`${process.env.NEXT_PUBLIC_API_URL}${form.shipping_proof}`}
-                                                        className="absolute inset-0 w-full h-full object-cover opacity-60 group-hover:opacity-40 transition-opacity" 
+                                                    <img
+                                                        src={`${getApiUrl()}${form.shipping_proof}`}
+                                                        className="absolute inset-0 w-full h-full object-cover opacity-60 group-hover:opacity-40 transition-opacity"
                                                         alt="Bukti Pengiriman"
                                                     />
-                                                    <div className="relative z-10 flex flex-col items-center gap-2">
-                                                        <div className="w-12 h-12 bg-emerald-500 text-zinc-950 rounded-full flex items-center justify-center shadow-lg">
+                                                    <div className="relative z-20 flex flex-col items-center gap-2.5">
+                                                        <div className="w-12 h-12 bg-emerald-500 text-zinc-950 rounded-full flex items-center justify-center">
                                                             <Check size={24} />
                                                         </div>
-                                                        <span className="text-[10px] font-black text-white uppercase tracking-widest bg-zinc-950/80 px-3 py-1 rounded-full">Ganti Foto</span>
+                                                        <div className="flex gap-2">
+                                                            <button
+                                                                type="button"
+                                                                onClick={(e) => {
+                                                                    e.stopPropagation();
+                                                                    e.preventDefault();
+                                                                    setIsPreviewOpen(true);
+                                                                }}
+                                                                className="flex items-center gap-1.5 text-[10px] font-black text-zinc-950 uppercase tracking-widest bg-blue-500 hover:bg-blue-400 px-3 py-1.5 rounded-full transition-all"
+                                                            >
+                                                                <Eye size={12} /> Review Foto
+                                                            </button>
+                                                            <span className="text-[10px] font-black text-white uppercase tracking-widest bg-zinc-950/80 px-3 py-1.5 rounded-full">Ganti Foto</span>
+                                                        </div>
                                                     </div>
                                                 </>
                                             ) : (
@@ -302,9 +350,9 @@ export default function ShippingConfirmationPage({ params }) {
                                                     </div>
                                                 </>
                                             )}
-                                            <input 
-                                                type="file" 
-                                                className="absolute inset-0 opacity-0 cursor-pointer" 
+                                            <input
+                                                type="file"
+                                                className="absolute inset-0 opacity-0 cursor-pointer"
                                                 accept="image/*"
                                                 onChange={handleFileUpload}
                                                 disabled={uploading}
@@ -344,7 +392,7 @@ export default function ShippingConfirmationPage({ params }) {
                                     <button
                                         type="submit"
                                         disabled={isSubmitting || uploading}
-                                        className="flex-[2] py-5 bg-blue-500 hover:bg-blue-400 text-zinc-950 font-black rounded-2xl transition-all shadow-xl shadow-blue-500/20 disabled:opacity-50 flex items-center justify-center gap-3 active:scale-95 text-sm uppercase tracking-widest"
+                                        className="flex-[2] py-5 bg-blue-500 hover:bg-blue-400 text-zinc-950 font-black rounded-2xl transition-all disabled:opacity-50 flex items-center justify-center gap-3 active:scale-95 text-sm uppercase tracking-widest"
                                     >
                                         {isSubmitting ? (
                                             <>
@@ -368,7 +416,7 @@ export default function ShippingConfirmationPage({ params }) {
 
                 {/* RIGHT: Product Summary */}
                 <div className="lg:col-span-5 space-y-8 lg:sticky lg:top-24">
-                    <div className="bg-zinc-900 border border-zinc-800 rounded-[2rem] lg:rounded-[3rem] p-6 lg:p-8 shadow-2xl space-y-8">
+                    <div className="bg-zinc-900 border border-zinc-800 rounded-[2rem] lg:rounded-[3rem] p-6 lg:p-8 space-y-8">
                         <h3 className="text-[10px] font-black text-zinc-500 uppercase tracking-widest flex items-center gap-2">
                             <ShoppingBag size={16} className="text-blue-500" /> Ringkasan Pesanan
                         </h3>
@@ -410,7 +458,7 @@ export default function ShippingConfirmationPage({ params }) {
                     </div>
 
                     {/* Alamat Pengiriman Recap */}
-                    <div className="bg-zinc-900 border border-zinc-800 rounded-[2rem] lg:rounded-[3rem] p-6 lg:p-8 shadow-2xl space-y-6">
+                    <div className="bg-zinc-900 border border-zinc-800 rounded-[2rem] lg:rounded-[3rem] p-6 lg:p-8 space-y-6">
                         <h3 className="text-[10px] font-black text-zinc-500 uppercase tracking-widest flex items-center gap-2">
                             <MapPin size={16} className="text-blue-500" /> Alamat Tujuan Pengiriman
                         </h3>
@@ -444,6 +492,36 @@ export default function ShippingConfirmationPage({ params }) {
                 message={modalConfig.message}
                 confirmText="Oke, Lanjutkan"
             />
+
+            {/* Photo Review Lightbox/Modal */}
+            {isPreviewOpen && form.shipping_proof && (
+                <div
+                    className="fixed inset-0 z-[110] flex items-center justify-center bg-black/95 backdrop-blur-md animate-in fade-in duration-300"
+                    onClick={() => setIsPreviewOpen(false)}
+                >
+                    <div
+                        className="relative max-w-4xl max-h-[85vh] w-full p-4 flex flex-col items-center justify-center gap-4"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        {/* Close button */}
+                        <button
+                            onClick={() => setIsPreviewOpen(false)}
+                            className="absolute -top-12 right-4 text-zinc-400 hover:text-white p-2 transition-colors flex items-center gap-2 text-xs font-black uppercase tracking-widest"
+                        >
+                            Tutup [X]
+                        </button>
+
+                        <div className="bg-zinc-900 border border-zinc-800 rounded-3xl p-3 max-w-full overflow-hidden flex items-center justify-center">
+                            <img
+                                src={`${getApiUrl()}${form.shipping_proof}`}
+                                className="max-w-full max-h-[70vh] object-contain rounded-2xl"
+                                alt="Review Bukti Pengiriman"
+                            />
+                        </div>
+                        <p className="text-zinc-500 text-[10px] font-black uppercase tracking-widest">Review Bukti Pengiriman Anda</p>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

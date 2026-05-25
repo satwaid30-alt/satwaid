@@ -18,6 +18,7 @@ import {
     ArrowLeft, MapPin, Tag, ChevronDown, ChevronUp, AlertCircle, Star, Image as ImageIcon, Upload, Info
 } from "lucide-react";
 import ActionModal from "@/components/ActionModal";
+import { getApiUrl, getLogoUrl } from "@/app/utils/api";
 
 // Import ReactQuill dynamically for shop description
 const ReactQuill = dynamic(() => import("react-quill-new"), { ssr: false });
@@ -42,6 +43,7 @@ const quillFormats = [
 export default function UserTokoPage() {
     const router = useRouter();
     const [hasShop, setHasShop] = useState(false); // Mocked
+    const [isLoading, setIsLoading] = useState(true);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [showRules, setShowRules] = useState(false);
     const [showResubmitSuccess, setShowResubmitSuccess] = useState(false);
@@ -86,7 +88,7 @@ export default function UserTokoPage() {
             try {
                 const parsed = JSON.parse(userData);
                 // 1. Fetch Latest User Profile from DB (for bank accounts, address, etc)
-                fetch(`${process.env.NEXT_PUBLIC_API_URL}/users/${parsed.id}`)
+                fetch(`${getApiUrl()}/users/${parsed.id}`)
                     .then(res => res.json())
                     .then(res => {
                         if (res.data) {
@@ -98,7 +100,7 @@ export default function UserTokoPage() {
                     .catch(err => console.error("Error fetching user profile:", err));
 
                 // 2. Check if user already has a shop
-                fetch(`${process.env.NEXT_PUBLIC_API_URL}/shops/user/${parsed.id}`)
+                fetch(`${getApiUrl()}/shops/user/${parsed.id}`)
                     .then(res => res.json())
                     .then(res => {
                         if (res.data) {
@@ -116,13 +118,20 @@ export default function UserTokoPage() {
                             }));
                             setProvinceSearch(parsed.province || "");
                             setCitySearch(parsed.city || "");
+                            setIsLoading(false);
                         }
                     })
-                    .catch(err => console.error("Error fetching shop:", err));
+                    .catch(err => {
+                        console.error("Error fetching shop:", err);
+                        setIsLoading(false);
+                    });
 
             } catch (e) {
                 console.error("Error parsing user data", e);
+                setIsLoading(false);
             }
+        } else {
+            setIsLoading(false);
         }
         fetchProvinces();
     }, []);
@@ -152,7 +161,7 @@ export default function UserTokoPage() {
 
         setIsSubmitting(true);
         try {
-            const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/shops/${shopData.id}`, {
+            const response = await fetch(`${getApiUrl()}/shops/${shopData.id}`, {
                 method: "PUT",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
@@ -232,7 +241,7 @@ export default function UserTokoPage() {
         const userData = JSON.parse(localStorage.getItem("user"));
 
         try {
-            const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/shops`, {
+            const response = await fetch(`${getApiUrl()}/shops`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
@@ -276,7 +285,7 @@ export default function UserTokoPage() {
     };
 
 
-    if (hasShop) {
+    if (isLoading) {
         return (
             <div className="flex items-center justify-center min-h-[80vh] bg-zinc-950">
                 <div className="relative">
@@ -294,7 +303,7 @@ export default function UserTokoPage() {
                 <div className="max-w-4xl w-full text-center space-y-8 animate-in fade-in slide-in-from-bottom-8 duration-700">
                     <div className="relative inline-block">
                         <div className="absolute inset-0 bg-emerald-500/20 blur-[60px] rounded-full"></div>
-                        <div className="relative w-24 h-24 sm:w-32 sm:h-32 bg-zinc-900 border border-zinc-800 rounded-[2.5rem] flex items-center justify-center mx-auto shadow-2xl mb-8 group overflow-hidden">
+                        <div className="relative w-24 h-24 sm:w-32 sm:h-32 bg-zinc-900 border border-zinc-800 rounded-[2.5rem] flex items-center justify-center mx-auto mb-8 group overflow-hidden">
                             <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
                             <Store size={64} className="text-emerald-500 relative z-10 group-hover:scale-110 transition-transform duration-500" />
                         </div>
@@ -316,7 +325,7 @@ export default function UserTokoPage() {
                             { icon: <Tag className="text-blue-500" />, title: "Pasar Luas", desc: "Produk Anda terlihat oleh ribuan pecinta satwa setiap hari." },
                             { icon: <CheckCircle2 className="text-amber-500" />, title: "Terverifikasi", desc: "Meningkatkan kepercayaan pembeli dengan badge toko resmi." }
                         ].map((feature, i) => (
-                            <div key={i} className="bg-zinc-900/50 border border-zinc-800 p-6 rounded-3xl text-left hover:border-zinc-700 transition-all group hover:bg-zinc-900 shadow-xl">
+                            <div key={i} className="bg-zinc-900/50 border border-zinc-800 p-6 rounded-3xl text-left hover:border-zinc-700 transition-all group hover:bg-zinc-900">
                                 <div className="w-12 h-12 bg-zinc-950 rounded-2xl flex items-center justify-center mb-4 border border-zinc-800 group-hover:border-emerald-500/50 transition-all">
                                     {feature.icon}
                                 </div>
@@ -329,7 +338,7 @@ export default function UserTokoPage() {
                     <div className="pt-12 flex flex-col sm:flex-row items-center justify-center gap-4">
                         <button
                             onClick={() => setShowCreateForm(true)}
-                            className="w-full sm:w-auto px-10 py-5 bg-emerald-500 hover:bg-emerald-400 text-zinc-950 font-black text-lg rounded-2xl shadow-2xl shadow-emerald-500/20 transition-all flex items-center justify-center gap-3 group active:scale-95"
+                            className="w-full sm:w-auto px-10 py-5 bg-emerald-500 hover:bg-emerald-400 text-zinc-950 font-black text-lg rounded-2xl transition-all flex items-center justify-center gap-3 group active:scale-95"
                         >
                             <Store size={24} />
                             Mulai Buka Toko
@@ -464,7 +473,7 @@ export default function UserTokoPage() {
                                             autoComplete="off"
                                         />
                                         {showProvinceDropdown && (
-                                            <div className="absolute z-50 w-full mt-2 bg-zinc-900 border border-zinc-800 rounded-2xl shadow-2xl max-h-60 overflow-y-auto custom-scrollbar">
+                                            <div className="absolute z-50 w-full mt-2 bg-zinc-900 border border-zinc-800 rounded-2xl max-h-60 overflow-y-auto custom-scrollbar">
                                                 {provinces
                                                     .filter(p => p.name.toLowerCase().includes((provinceSearch || "").toLowerCase()))
                                                     .map(p => (
@@ -507,7 +516,7 @@ export default function UserTokoPage() {
                                             autoComplete="off"
                                         />
                                         {showCityDropdown && cities.length > 0 && (
-                                            <div className="absolute z-50 w-full mt-2 bg-zinc-900 border border-zinc-800 rounded-2xl shadow-2xl max-h-60 overflow-y-auto custom-scrollbar">
+                                            <div className="absolute z-50 w-full mt-2 bg-zinc-900 border border-zinc-800 rounded-2xl max-h-60 overflow-y-auto custom-scrollbar">
                                                 {cities
                                                     .filter(c => c.name.toLowerCase().includes((citySearch || "").toLowerCase()))
                                                     .map(c => (
@@ -600,7 +609,7 @@ export default function UserTokoPage() {
                                     <div className="relative shrink-0">
                                         <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl overflow-hidden bg-zinc-900 border-2 border-zinc-800 flex items-center justify-center relative">
                                             {shopData.logo_url ? (
-                                                <img src={shopData.logo_url} className="w-full h-full object-cover" alt="Logo Toko" />
+                                                <img src={getLogoUrl(shopData.logo_url)} className="w-full h-full object-cover" alt="Logo Toko" />
                                             ) : (
                                                 <div className="flex flex-col items-center gap-1 text-zinc-700">
                                                     <ImageIcon size={22} />
@@ -626,7 +635,7 @@ export default function UserTokoPage() {
                                             />
                                         </div>
                                         {shopData.logo_url && (
-                                            <button type="button" onClick={() => setShopData({ ...shopData, logo_url: "" })} className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white rounded-full flex items-center justify-center shadow-lg hover:bg-red-400 z-20">
+                                            <button type="button" onClick={() => setShopData({ ...shopData, logo_url: "" })} className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white rounded-full flex items-center justify-center hover:bg-red-400 z-20">
                                                 <XCircle size={12} />
                                             </button>
                                         )}
@@ -693,7 +702,7 @@ export default function UserTokoPage() {
                             <button
                                 type="submit"
                                 disabled={isSubmitting}
-                                className="flex-[1.5] bg-emerald-500 hover:bg-emerald-400 text-zinc-950 font-black py-4 sm:py-5 rounded-xl sm:rounded-2xl shadow-2xl shadow-emerald-500/20 transition-all flex items-center justify-center gap-3 group disabled:opacity-50 disabled:cursor-not-allowed text-sm sm:text-base"
+                                className="flex-[1.5] bg-emerald-500 hover:bg-emerald-400 text-zinc-950 font-black py-4 sm:py-5 rounded-xl sm:rounded-2xl transition-all flex items-center justify-center gap-3 group disabled:opacity-50 disabled:cursor-not-allowed text-sm sm:text-base"
                             >
                                 {isSubmitting ? (
                                     <i className="fa-solid fa-circle-notch fa-spin text-xl"></i>
@@ -720,6 +729,7 @@ export default function UserTokoPage() {
                     onClose={() => {
                         setModalConfig({ ...modalConfig, isOpen: false });
                         if (modalConfig.type === "success" && redirectShopId) {
+                            setIsLoading(true);
                             router.push(`/user/toko/detail-toko/${redirectShopId}`);
                         }
                     }}
@@ -733,7 +743,7 @@ export default function UserTokoPage() {
             {showTermsModal && (
                 <div className="fixed inset-0 z-[120] flex items-center justify-center p-4">
                     <div className="absolute inset-0 bg-zinc-950/80 backdrop-blur-md animate-in fade-in duration-300" onClick={() => setShowTermsModal(false)}></div>
-                    <div className="bg-zinc-900 border border-zinc-800 rounded-[2.5rem] w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col relative z-10 shadow-2xl animate-in zoom-in-95 duration-300">
+                    <div className="bg-zinc-900 border border-zinc-800 rounded-[2.5rem] w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col relative z-10 animate-in zoom-in-95 duration-300">
                         {/* Modal Header */}
                         <div className="p-8 border-b border-zinc-800 flex items-center justify-between shrink-0">
                             <div className="flex items-center gap-4">
@@ -846,7 +856,7 @@ export default function UserTokoPage() {
                                 <button
                                     disabled={!agreedToTerms || isSubmitting}
                                     onClick={() => handleCreateShop()}
-                                    className="flex-[2] py-4 bg-emerald-500 hover:bg-emerald-400 disabled:bg-zinc-800 disabled:text-zinc-600 text-zinc-950 font-black rounded-2xl transition-all shadow-xl shadow-emerald-500/10 flex items-center justify-center gap-2"
+                                    className="flex-[2] py-4 bg-emerald-500 hover:bg-emerald-400 disabled:bg-zinc-800 disabled:text-zinc-600 text-zinc-950 font-black rounded-2xl transition-all flex items-center justify-center gap-2"
                                 >
                                     {isSubmitting ? (
                                         <i className="fa-solid fa-circle-notch fa-spin text-xl"></i>

@@ -1,5 +1,7 @@
 const { Op, Sequelize } = require('sequelize');
 const jwt = require('jsonwebtoken');
+const crypto = require('crypto');
+const nodemailer = require('nodemailer');
 const { hashPasswordWithMD5 } = require('../helpers/App.helper');
 const sequelize = new Sequelize(process.env.DATABASE_URL);
 const initModels = require('../database/init');
@@ -127,25 +129,127 @@ module.exports.forgotPassword = async (req, res, next) => {
             return res.status(404).json({ message: "Email tidak terdaftar di sistem kami" });
         }
 
-        // Generate temporary password: 3 kata + 3 angka, mudah dibaca
-        const words = ["Reptil", "Ular", "Gecko", "Iguana", "Kadal", "Buaya", "Kura"];
-        const randomWord = words[Math.floor(Math.random() * words.length)];
-        const randomNum = Math.floor(100 + Math.random() * 900); // 3 digit
-        const tempPassword = `${randomWord}${randomNum}`;
+        // 1. Generate secure random token
+        const resetToken = crypto.randomBytes(32).toString('hex');
+        const resetExpires = new Date(Date.now() + 15 * 60 * 1000); // 15 menit
 
-        // Simpan password sementara ke DB (hook model akan auto-hash MD5)
-        await user.update({ password: tempPassword });
+        // 2. Simpan token ke DB
+        await user.update({
+            reset_password_token: resetToken,
+            reset_password_expires: resetExpires
+        });
+
+        const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+        const resetUrl = `${frontendUrl}/reset-password?token=${resetToken}`;
+
+        // 3. Konfigurasi SMTP
+        const mailHost = process.env.MAIL_HOST || 'smtp.gmail.com';
+        const mailPort = parseInt(process.env.MAIL_PORT || '587');
+        const mailUser = process.env.MAIL_USER;
+        const mailPass = process.env.MAIL_PASS;
+        const mailFrom = process.env.MAIL_FROM || '"Satwa iD Security" <no-reply@satwaid.com>';
+
+        // Cek jika masih menggunakan placeholder default di .env (mode simulasi)
+        const isDevSimulated = !mailUser || mailUser.includes('alamat_email_anda') || !mailPass || mailPass.includes('sandi_aplikasi_anda');
+
+        // if (isDevSimulated) {
+        //     console.log("\n========================================================");
+        //     console.log("🔒 [SIMULASI RESET PASSWORD SATWA ID]");
+        //     console.log(`Untuk User: ${user.username} (${user.email})`);
+        //     console.log(`Link Reset Password: ${resetUrl}`);
+        //     console.log("========================================================\n");
+
+        //     return res.status(200).json({
+        //         message: "Instruksi reset password berhasil dibuat.",
+        //         dev_simulated: true,
+        //         reset_url: resetUrl
+        //     });
+        // }
+
+        // Kirim email asli via SMTP
+        const transporter = nodemailer.createTransport({
+            host: mailHost,
+            port: mailPort,
+            secure: mailPort === 465,
+            auth: {
+                user: mailUser,
+                pass: mailPass
+            }
+        });
+
+        const mailOptions = {
+            from: mailFrom,
+            to: user.email,
+            subject: 'Permintaan Reset Password Akun Satwa iD',
+            html: `
+                <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eee; border-radius: 10px;">
+                    <h2 style="color: #10b981;">Halo ${user.username || user.name},</h2>
+                    <p>Kami menerima permintaan untuk melakukan reset password pada akun Satwa iD Anda.</p>
+                    <p>Silakan klik tombol di bawah ini untuk mereset password Anda. Link ini hanya berlaku selama 15 menit:</p>
+                    <div style="text-align: center; margin: 30px 0;">
+                        <a href="${resetUrl}" style="background-color: #10b981; color: white; padding: 12px 25px; text-decoration: none; border-radius: 8px; font-weight: bold; display: inline-block;">Reset Password Sekarang</a>
+                    </div>
+                    <p style="color: #666; font-size: 14px;">Jika tombol di atas tidak berfungsi, Anda juga dapat menyalin tautan berikut ke browser Anda:</p>
+                    <p style="color: #10b981; word-break: break-all; font-size: 14px;">${resetUrl}</p>
+                    <hr style="border: none; border-top: 1px solid #eee; margin: 20px 0;" />
+                    <p style="color: #999; font-size: 12px;">Jika Anda tidak meminta perubahan ini, abaikan saja email ini dan password Anda akan tetap aman.</p>
+                </div>
+            `
+        };
+
+        await transporter.sendMail(mailOptions);
 
         res.status(200).json({
-            message: "Password sementara berhasil dibuat",
-            temp_password: tempPassword,
-            username: user.username
+            message: "Instruksi reset password telah dikirim ke email Anda. Silakan periksa kotak masuk."
         });
     } catch (err) {
         console.error("Error forgot password:", err);
         next(err);
     }
 }
+
+module.exports.resetPassword = async (req, res, next) => {
+    try {
+        const { token, new_password } = req.body;
+
+        if (!token || !new_password) {
+            return res.status(400).json({ message: "Token dan password baru wajib diisi" });
+        }
+
+        if (new_password.length < 4) {
+            return res.status(400).json({ message: "Password minimal 4 karakter" });
+        }
+
+        // Cari user dengan token reset yang cocok dan masih aktif
+        const user = await models.users.findOne({
+            where: {
+                reset_password_token: token,
+                reset_password_expires: {
+                    [Op.gt]: new Date()
+                }
+            }
+        });
+
+        if (!user) {
+            return res.status(400).json({ message: "Tautan reset tidak valid atau telah kedaluwarsa" });
+        }
+
+        // Simpan password baru (hook bcrypt otomatis aktif) & bersihkan token reset
+        await user.update({
+            password: new_password,
+            reset_password_token: null,
+            reset_password_expires: null
+        });
+
+        res.status(200).json({
+            message: "Password berhasil diperbarui. Silakan login dengan password baru Anda."
+        });
+    } catch (err) {
+        console.error("Error reset password:", err);
+        next(err);
+    }
+}
+
 
 module.exports.changePassword = async (req, res, next) => {
     try {

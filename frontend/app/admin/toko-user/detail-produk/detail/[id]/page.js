@@ -17,12 +17,15 @@ import {
     Trash2,
     MessageSquare,
     ArrowLeft,
-    ScrollText
+    ScrollText,
+    Clock,
+    Gavel
 } from "lucide-react";
 import { useState, useEffect, use } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import ActionModal from "@/components/ActionModal";
+import { getApiUrl, getLogoUrl } from "@/app/utils/api";
 
 export default function AdminProductDetailPage({ params }) {
     const { id } = use(params);
@@ -49,7 +52,7 @@ export default function AdminProductDetailPage({ params }) {
 
     const fetchListingDetail = async () => {
         try {
-            const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/listings/${id}`);
+            const response = await fetch(`${getApiUrl()}/listings/${id}`);
             const result = await response.json();
             if (response.ok) {
                 setListing(result.data);
@@ -66,7 +69,7 @@ export default function AdminProductDetailPage({ params }) {
 
     const fetchListingOrders = async () => {
         try {
-            const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/orders/listing/${id}`);
+            const response = await fetch(`${getApiUrl()}/orders/listing/${id}`);
             const result = await response.json();
             if (response.ok) {
                 setListingOrders(result.data);
@@ -94,12 +97,12 @@ export default function AdminProductDetailPage({ params }) {
 
         try {
             if (type === 'delete') {
-                const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/listings/${id}`, {
+                const response = await fetch(`${getApiUrl()}/listings/${id}`, {
                     method: "DELETE"});
                 if (response.ok) router.push("/admin/toko-user/detail-produk");
             } else {
                 const status = type === 'verify' ? 'active' : 'rejected';
-                const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/listings/${id}`, {
+                const response = await fetch(`${getApiUrl()}/listings/${id}`, {
                     method: "PUT",
                     headers: { "Content-Type": "application/json"},
                     body: JSON.stringify({
@@ -238,28 +241,61 @@ export default function AdminProductDetailPage({ params }) {
                         </div>
 
                         {/* Price Card */}
-                        <div className="bg-zinc-950/50 rounded-[2.5rem] p-8 border border-zinc-800 flex items-center justify-between shadow-inner">
-                            <div>
+                        <div className={`rounded-[2.5rem] p-8 border flex flex-col md:flex-row md:items-center justify-between shadow-inner relative overflow-hidden ${listing.type === 'auction' ? 'bg-amber-500/5 border-amber-500/20' : 'bg-zinc-950/50 border-zinc-800'}`}>
+                            <div className="relative z-10 w-full">
                                 <p className="text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-2">
-                                    {listing.type === 'sell' ? 'Harga Jual Produk' : 'Current Bid Terkini'}
+                                    {listing.type === 'sell' ? 'Harga Jual Produk' : 'Open Bid (OB)'}
                                 </p>
-                                <p className="text-2xl lg:text-2xl font-black text-white">
-                                    Rp {new Number(listing.type === 'sell' ? listing.price : (listing.current_bid || listing.start_bid)).toLocaleString('id-ID')}
-                                </p>
+                                <div className="flex flex-wrap items-baseline gap-2 lg:gap-4">
+                                    <p className="text-2xl lg:text-3xl font-black text-white">
+                                        Rp {new Number(listing.type === 'sell' ? listing.price : (listing.current_bid || listing.start_bid)).toLocaleString('id-ID')}
+                                    </p>
+                                    {listing.type === 'auction' && (
+                                        <p className="text-amber-500 font-black text-sm mb-2">
+                                            (Kelipatan +Rp {new Number(listing.multiple).toLocaleString('id-ID')})
+                                        </p>
+                                    )}
+                                </div>
+                                
+                                {listing.type === 'auction' && listing.bin_price && (
+                                    <div className="mt-4 pt-4 border-t border-amber-500/10 w-full max-w-sm">
+                                         <p className="text-[10px] font-black text-zinc-500 uppercase tracking-[0.3em] mb-2">Beli Sekarang (BIN)</p>
+                                         <p className="text-xl font-black text-white">Rp {new Number(listing.bin_price).toLocaleString('id-ID')}</p>
+                                    </div>
+                                )}
+                                
+                                {listing.type === 'auction' && (
+                                     <div className="mt-6 pt-6 border-t border-amber-500/10 grid grid-cols-1 md:grid-cols-2 gap-4 w-full">
+                                         <div className="bg-zinc-950/50 p-4 rounded-2xl border border-zinc-800/50">
+                                             <p className="text-[9px] font-black text-zinc-500 uppercase tracking-widest mb-1.5 flex items-center gap-1.5"><Calendar size={12} className="text-amber-500"/> Mulai Lelang</p>
+                                             <p className="text-sm font-bold text-zinc-300">
+                                                 {new Date(listing.start_date).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }).replace('.', ':').replace(' pukul ', ' • ')} WIB
+                                             </p>
+                                         </div>
+                                         <div className="bg-amber-500/10 p-4 rounded-2xl border border-amber-500/20">
+                                             <p className="text-[9px] font-black text-amber-500/80 uppercase tracking-widest mb-1.5 flex items-center gap-1.5"><Clock size={12} className="text-amber-500"/> Berakhir Pada</p>
+                                             <p className="text-sm font-black text-amber-500">
+                                                 {new Date(listing.end_date).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }).replace('.', ':').replace(' pukul ', ' • ')} WIB
+                                             </p>
+                                         </div>
+                                     </div>
+                                )}
                             </div>
-                            <Tag className="text-emerald-500 opacity-10" size={64} />
+                            <div className={`absolute top-0 right-0 p-8 transition-colors hidden sm:block ${listing.type === 'auction' ? 'text-amber-500/5' : 'text-emerald-500/5'}`}>
+                                {listing.type === 'auction' ? <Gavel size={120} strokeWidth={1.5} /> : <Tag size={120} strokeWidth={1.5} />}
+                            </div>
                         </div>
 
                         {/* Badges */}
                         {(listing.is_free_shipping || listing.is_free_packing) && (
                             <div className="flex flex-wrap gap-4">
                                 {listing.is_free_shipping && (
-                                    <div className="flex-1 min-w-[200px] p-6 bg-emerald-500/5 border border-emerald-500/10 rounded-[2rem] flex items-center gap-4 shadow-sm">
-                                        <div className="w-12 h-12 bg-emerald-500/10 text-emerald-500 rounded-2xl flex items-center justify-center">
+                                    <div className={`flex-1 min-w-[200px] p-6 border rounded-[2rem] flex items-center gap-4 shadow-sm ${listing.type === 'auction' ? 'bg-amber-500/5 border-amber-500/10' : 'bg-emerald-500/5 border-emerald-500/10'}`}>
+                                        <div className={`w-12 h-12 rounded-2xl flex items-center justify-center ${listing.type === 'auction' ? 'bg-amber-500/10 text-amber-500' : 'bg-emerald-500/10 text-emerald-500'}`}>
                                             <Truck size={24} />
                                         </div>
                                         <div>
-                                            <p className="text-xs font-black text-emerald-500 uppercase tracking-widest mb-1">Gratis Ongkir</p>
+                                            <p className={`text-xs font-black uppercase tracking-widest mb-1 ${listing.type === 'auction' ? 'text-amber-500' : 'text-emerald-500'}`}>Gratis Ongkir</p>
                                             <p className="text-sm text-zinc-500 font-bold">Layanan antar tanpa biaya</p>
                                         </div>
                                     </div>
@@ -283,7 +319,7 @@ export default function AdminProductDetailPage({ params }) {
                             <div className="p-6 bg-zinc-950/30 rounded-[2rem] border border-zinc-800/50 flex items-center gap-4">
                                 <div className="w-14 h-14 rounded-2xl bg-zinc-900 border border-zinc-800 flex items-center justify-center text-emerald-500 overflow-hidden shrink-0">
                                     {listing.shop?.logo_url ? (
-                                        <img src={listing.shop.logo_url} className="w-full h-full object-cover" alt={listing.shop.name} />
+                                        <img src={getLogoUrl(listing.shop.logo_url)} className="w-full h-full object-cover" alt={listing.shop.name} />
                                     ) : (
                                         <Store size={28} />
                                     )}
@@ -313,7 +349,7 @@ export default function AdminProductDetailPage({ params }) {
                                 <p className="text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-6 flex items-center gap-2">
                                     <Package size={14} className="text-emerald-500" /> Ringkasan Sinkronisasi Stok
                                 </p>
-                                <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
+                                <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
                                     <div className="p-5 bg-zinc-900/50 rounded-2xl border border-emerald-500/10">
                                         <p className="text-[9px] font-black text-emerald-500/50 uppercase tracking-tighter mb-1">Stok Tersedia</p>
                                         <p className="text-2xl font-black text-white">{listing.stock || 0} <span className="text-xs text-zinc-500">Ekor</span></p>
@@ -330,13 +366,77 @@ export default function AdminProductDetailPage({ params }) {
                                             {listingOrders.filter(o => !['completed', 'cancelled', 'complained'].includes(o.status)).reduce((sum, o) => sum + (o.quantity || 1), 0)} <span className="text-xs text-zinc-500">Ekor</span>
                                         </p>
                                     </div>
-                                    <div className="p-5 bg-zinc-900/50 rounded-2xl border border-purple-500/10 flex flex-col justify-center">
-                                        <p className="text-[9px] font-black text-purple-500/50 uppercase tracking-tighter mb-1">Nomor Invoice</p>
-                                        <p className="text-[11px] font-black text-white font-mono truncate mt-1">
-                                            {listing.latestOrderId || "-"}
-                                        </p>
-                                    </div>
                                 </div>
+                            </div>
+
+                            <div className="md:col-span-3 p-8 bg-zinc-950/30 rounded-[2.5rem] border border-zinc-800/50">
+                                <div className="flex items-center justify-between mb-6">
+                                    <p className="text-[10px] font-black text-zinc-500 uppercase tracking-widest flex items-center gap-2">
+                                        <ScrollText size={14} className="text-purple-500" /> Daftar Invoice Penjualan
+                                    </p>
+                                    <span className="px-3 py-1 bg-purple-500/10 text-purple-400 text-[10px] font-black uppercase rounded-full border border-purple-500/20">
+                                        {listingOrders.length} Transaksi
+                                    </span>
+                                </div>
+
+                                {listingOrders && listingOrders.length > 0 ? (
+                                    <div className="overflow-x-auto">
+                                        <table className="w-full text-left border-collapse">
+                                            <thead>
+                                                <tr className="border-b border-zinc-800 text-[9px] font-black text-zinc-500 uppercase tracking-wider">
+                                                    <th className="pb-3 font-black">Nomor Invoice</th>
+                                                    <th className="pb-3 font-black">Pembeli</th>
+                                                    <th className="pb-3 font-black">Tanggal</th>
+                                                    <th className="pb-3 font-black text-center">Kuantitas</th>
+                                                    <th className="pb-3 font-black text-right">Status</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody className="divide-y divide-zinc-800/50">
+                                                {listingOrders.map((order, idx) => (
+                                                    <tr key={idx} className="text-xs hover:bg-zinc-900/40 transition-colors">
+                                                        <td className="py-4 font-mono font-bold text-white tracking-wide">
+                                                            {order.order_id}
+                                                        </td>
+                                                        <td className="py-4 text-zinc-400 font-medium">
+                                                            {order.user?.username || order.user?.email || "Pembeli"}
+                                                        </td>
+                                                        <td className="py-4 text-zinc-500">
+                                                            {new Date(order.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}
+                                                        </td>
+                                                        <td className="py-4 text-center">
+                                                            <span className="px-2 py-0.5 bg-purple-500/10 text-purple-400 rounded-md border border-purple-500/20 text-[10px] font-bold">
+                                                                {order.quantity || 1} Ekor
+                                                            </span>
+                                                        </td>
+                                                        <td className="py-4 text-right">
+                                                            <span className={`px-2.5 py-1 rounded-full text-[9px] font-black uppercase tracking-wider ${
+                                                                order.status === 'completed' || order.status === 'disbursed' ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' :
+                                                                order.status === 'cancelled' ? 'bg-red-500/10 text-red-400 border border-red-500/20' :
+                                                                'bg-amber-500/10 text-amber-400 border border-amber-500/20'
+                                                            }`}>
+                                                                {order.status === 'pending_shipping_info' ? 'Isi Alamat' :
+                                                                 order.status === 'waiting_shipping_cost' ? 'Input Ongkir' :
+                                                                 order.status === 'waiting_payment' ? 'Belum Bayar' :
+                                                                 order.status === 'processing' ? 'Verifikasi Admin' :
+                                                                 order.status === 'payment_verified' ? 'Perlu Dikirim' :
+                                                                 order.status === 'shipped' ? 'Dikirim' :
+                                                                 order.status === 'completed' ? 'Selesai' :
+                                                                 order.status === 'cancelled' ? 'Dibatalkan' :
+                                                                 order.status === 'complained' ? 'Dikomplain' :
+                                                                 order.status === 'disbursement_requested' ? 'Pengajuan Pencairan' :
+                                                                 order.status === 'disbursed' ? 'Dana Dicairkan' : order.status}
+                                                            </span>
+                                                        </td>
+                                                    </tr>
+                                                ))}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                ) : (
+                                    <div className="py-10 text-center bg-zinc-950/40 rounded-3xl border border-dashed border-zinc-800">
+                                        <p className="text-sm font-bold text-zinc-500">Belum ada riwayat transaksi untuk produk ini.</p>
+                                    </div>
+                                )}
                             </div>
                         </div>
 

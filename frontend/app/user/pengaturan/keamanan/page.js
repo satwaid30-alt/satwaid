@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Shield, KeyRound, Eye, EyeOff, Check, AlertTriangle, Lock, LogOut } from "lucide-react";
+import { getApiUrl } from "@/app/utils/api";
 
 // ✅ Didefinisikan di LUAR komponen utama agar tidak di-remount setiap render
 function PasswordInput({ label, name, value, onChange, showPass, onToggleShow, placeholder, hint, error }) {
@@ -18,10 +19,9 @@ function PasswordInput({ label, name, value, onChange, showPass, onToggleShow, p
                     onChange={onChange}
                     placeholder={placeholder}
                     autoComplete="new-password"
-                    className={`w-full bg-zinc-950 border rounded-xl pl-12 pr-12 py-3.5 text-white placeholder:text-zinc-600 focus:outline-none focus:ring-2 transition-all ${
-                        error
-                            ? "border-red-500/60 focus:ring-red-500/30"
-                            : "border-zinc-700 focus:ring-emerald-500 focus:border-transparent"}`}
+                    className={`w-full bg-zinc-950 border rounded-xl pl-12 pr-12 py-3.5 text-white placeholder:text-zinc-600 focus:outline-none focus:ring-2 transition-all ${error
+                        ? "border-red-500/60 focus:ring-red-500/30"
+                        : "border-zinc-700 focus:ring-emerald-500 focus:border-transparent"}`}
                 />
                 <button
                     type="button"
@@ -47,11 +47,11 @@ function PasswordInput({ label, name, value, onChange, showPass, onToggleShow, p
 function getPasswordStrength(pwd) {
     if (!pwd) return null;
     const len = pwd.length;
-    if (len < 6)  return { label: "Terlalu Pendek", color: "bg-red-500",    width: "w-1/5",  textColor: "text-red-400" };
-    if (len < 8)  return { label: "Cukup",          color: "bg-amber-500",  width: "w-2/5",  textColor: "text-amber-400" };
-    if (len < 10) return { label: "Sedang",         color: "bg-yellow-400", width: "w-3/5",  textColor: "text-yellow-400" };
-    if (len < 14) return { label: "Kuat",           color: "bg-emerald-500",width: "w-4/5",  textColor: "text-emerald-400" };
-    return         { label: "Sangat Kuat",           color: "bg-emerald-400",width: "w-full", textColor: "text-emerald-300" };
+    if (len < 6) return { label: "Terlalu Pendek", color: "bg-red-500", width: "w-1/5", textColor: "text-red-400" };
+    if (len < 8) return { label: "Cukup", color: "bg-amber-500", width: "w-2/5", textColor: "text-amber-400" };
+    if (len < 10) return { label: "Sedang", color: "bg-yellow-400", width: "w-3/5", textColor: "text-yellow-400" };
+    if (len < 14) return { label: "Kuat", color: "bg-emerald-500", width: "w-4/5", textColor: "text-emerald-400" };
+    return { label: "Sangat Kuat", color: "bg-emerald-400", width: "w-full", textColor: "text-emerald-300" };
 }
 
 export default function KeamananAkunPage() {
@@ -133,7 +133,7 @@ export default function KeamananAkunPage() {
 
         setIsLoading(true);
         try {
-            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/change-password`, {
+            const res = await fetch(`${getApiUrl()}/change-password`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -211,7 +211,7 @@ export default function KeamananAkunPage() {
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 {/* Form */}
                 <div className="lg:col-span-2">
-                    <div className="bg-zinc-900 border border-zinc-800 rounded-3xl p-6 md:p-8 shadow-xl">
+                    <div className="bg-zinc-900 border border-zinc-800 rounded-3xl p-6 md:p-8">
                         <h2 className="text-lg font-bold text-white mb-6 flex items-center gap-2">
                             <KeyRound size={20} className="text-emerald-500" />
                             Ubah Password
@@ -291,8 +291,7 @@ export default function KeamananAkunPage() {
                                 <button
                                     type="submit"
                                     disabled={isLoading}
-                                    className={`w-full flex items-center justify-center gap-2 py-3.5 bg-emerald-500 hover:bg-emerald-400 text-zinc-950 font-bold rounded-xl transition-all shadow-lg shadow-emerald-500/20 ${
-                                        isLoading ? "opacity-70 cursor-not-allowed" : ""}`}
+                                    className={`w-full flex items-center justify-center gap-2 py-3.5 bg-emerald-500 hover:bg-emerald-400 text-zinc-950 font-bold rounded-xl transition-all ${isLoading ? "opacity-70 cursor-not-allowed" : ""}`}
                                 >
                                     {isLoading ? (
                                         <svg className="animate-spin h-5 w-5" fill="none" viewBox="0 0 24 24">
@@ -310,7 +309,7 @@ export default function KeamananAkunPage() {
 
                 {/* Tips Panel */}
                 <div className="space-y-4">
-                    <div className="bg-zinc-900 border border-zinc-800 rounded-3xl p-6 shadow-xl">
+                    <div className="bg-zinc-900 border border-zinc-800 rounded-3xl p-6">
                         <h3 className="text-sm font-bold text-white mb-4 flex items-center gap-2">
                             <Shield size={16} className="text-emerald-500" />
                             Tips Keamanan

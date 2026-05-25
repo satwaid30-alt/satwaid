@@ -1,12 +1,13 @@
 "use client";
 
 import {
-    Tag, Trash2, Edit, Eye, Search, Plus, CheckCircle2, ChevronRight, ShoppingBag, AlertCircle, XCircle, Truck, ScrollText
+    Tag, Trash2, Edit, Eye, Search, Plus, CheckCircle2, ChevronRight, ShoppingBag, AlertCircle, XCircle, Truck, ScrollText, RotateCcw
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import ActionModal from "@/components/ActionModal";
 import { io } from "socket.io-client";
+import { getApiUrl, getSocketUrl } from "@/app/utils/api";
 
 export default function DaftarJualanPage() {
     const [listings, setListings] = useState([]);
@@ -29,17 +30,53 @@ export default function DaftarJualanPage() {
         id: null
     });
 
+    const [, setTick] = useState(0);
+
+    // Timer to force re-render for countdowns
+    useEffect(() => {
+        const interval = setInterval(() => {
+            const hasActiveAuctions = listings.some(item => {
+                if (item.type !== 'auction') return false;
+                const status = item.status?.toLowerCase() || 'active';
+                const now = new Date();
+                const endDate = item.end_date ? new Date(item.end_date) : null;
+                return status === 'active' && endDate && endDate > now;
+            });
+            
+            if (hasActiveAuctions) {
+                setTick(prev => prev + 1);
+            }
+        }, 1000);
+
+        return () => clearInterval(interval);
+    }, [listings]);
+
     useEffect(() => {
         fetchMyListings();
 
         const userRaw = localStorage.getItem("user");
         if (userRaw) {
             const userData = JSON.parse(userRaw);
-            const socket = io(process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000");
+            const token = typeof window !== 'undefined' ? localStorage.getItem("token") : null;
+            const socket = io(getSocketUrl(), {
+              auth: {
+                token: token ? `Bearer ${token}` : null
+              }
+            });
 
             socket.on("connect", () => {
                 console.log("[Socket] Connected to server");
                 socket.emit("join_user", userData.id);
+            });
+
+            socket.on("new_notification", (data) => {
+                console.log("[Socket] Received new_notification on product list:", data);
+                fetchMyListings();
+            });
+
+            socket.on("listing_bid_updated", (data) => {
+                console.log("[Socket] Received listing_bid_updated on product list:", data);
+                fetchMyListings();
             });
 
             socket.on("listing_status_updated", (data) => {
@@ -54,8 +91,8 @@ export default function DaftarJualanPage() {
             });
 
             socket.on("listing_deleted", (data) => {
-                 console.log("[Socket] Received listing_deleted:", data);
-                 setListings((prevListings) => prevListings.filter((item) => item.id !== data.id));
+                console.log("[Socket] Received listing_deleted:", data);
+                setListings((prevListings) => prevListings.filter((item) => item.id !== data.id));
             });
 
             return () => {
@@ -70,11 +107,11 @@ export default function DaftarJualanPage() {
             if (!userRaw) return;
             const userData = JSON.parse(userRaw);
 
-            const shopRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/shops/user/${userData.id}`);
+            const shopRes = await fetch(`${getApiUrl()}/shops/user/${userData.id}`);
             const shopData = await shopRes.json();
 
             if (shopRes.ok && shopData.data) {
-                const listingsRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/listings/shop/${shopData.data.id}?all=true`);
+                const listingsRes = await fetch(`${getApiUrl()}/listings/shop/${shopData.data.id}?all=true`);
                 const listingsData = await listingsRes.json();
 
                 if (listingsRes.ok) {
@@ -102,7 +139,7 @@ export default function DaftarJualanPage() {
     const processDelete = async (id) => {
         setActionModal(prev => ({ ...prev, isLoading: true }));
         try {
-            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/listings/${id}`, {
+            const res = await fetch(`${getApiUrl()}/listings/${id}`, {
                 method: "DELETE"
             });
             if (res.ok) {
@@ -132,7 +169,7 @@ export default function DaftarJualanPage() {
     const handleDismissCancellation = async (orderId, listingId) => {
         if (!orderId) return;
         try {
-            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/orders/${encodeURIComponent(orderId)}/dismiss-cancellation`, {
+            const res = await fetch(`${getApiUrl()}/orders/${encodeURIComponent(orderId)}/dismiss-cancellation`, {
                 method: 'PUT'
             });
             if (res.ok) {
@@ -156,18 +193,69 @@ export default function DaftarJualanPage() {
 
     const getEffectiveStatus = (item) => {
         if (item.isVirtual) return 'cancelled_order';
+        
         let status = item.status?.toLowerCase() || 'active';
+        
+        if (item.type === 'auction') {
+            const now = new Date();
+            const startDate = item.start_date ? new Date(item.start_date) : null;
+            const endDate = item.end_date ? new Date(item.end_date) : null;
+            const isEnded = status === 'ended' || status === 'sold' || (endDate && endDate <= now);
+
+            if (isEnded) {
+                if (Number(item.bid_count) > 0) {
+                    if (item.latestOrderId) {
+                        const orderStatus = item.lastOrderStatus?.toLowerCase();
+                        if (['completed', 'disbursed', 'disbursement_requested'].includes(orderStatus)) {
+                            return 'auction_completed';
+                        }
+                        if (orderStatus === 'cancelled') {
+                            return 'auction_cancelled_transaction';
+                        }
+                        return 'auction_in_transaction';
+                    }
+                    return 'auction_waiting_checkout';
+                }
+                return 'auction_no_bids';
+            }
+
+            // Auction is active and currently running (between start & end date)
+            if (status === 'active' && startDate && startDate <= now && endDate && endDate > now) {
+                return 'proses_lelang';
+            }
+        }
+        
         if (status === 'active' && item.stock <= 0) return 'sold';
         return status;
     };
 
     const filteredListings = listings.flatMap(item => {
         const matchesSearch = item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            item.species.toLowerCase().includes(searchQuery.toLowerCase());
+            item.species.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            (item.product_id && item.product_id.toLowerCase().includes(searchQuery.toLowerCase()));
         const matchesType = filterType === "all" || item.type === filterType;
 
         const effectiveStatus = getEffectiveStatus(item);
-        const matchesStatus = filterStatus === "all" || effectiveStatus === filterStatus;
+        
+        // Exclude completed auctions from product list (moved to dashboard completed orders)
+        if (item.type === "auction" && effectiveStatus === "auction_completed") {
+            return [];
+        }
+
+        let matchesStatus = false;
+        if (filterStatus === "all") {
+            matchesStatus = true;
+        } else if (filterStatus === "sold") {
+            matchesStatus = effectiveStatus === "sold";
+        } else if (filterStatus === "rejected") {
+            matchesStatus = ["rejected", "cancelled", "cancelled_order", "auction_cancelled_transaction"].includes(effectiveStatus);
+        } else if (filterStatus === "active") {
+            // 'active' filter: only show non-running auctions + non-auction actives
+            // auction_in_transaction & auction_waiting_checkout are post-auction, not "active"
+            matchesStatus = ["active", "proses_lelang", "auction_in_transaction", "auction_waiting_checkout"].includes(effectiveStatus);
+        } else {
+            matchesStatus = effectiveStatus === filterStatus;
+        }
 
         const rows = [];
 
@@ -217,14 +305,23 @@ export default function DaftarJualanPage() {
         switch (status) {
             case 'active':
                 return "bg-blue-500/10 text-blue-400 border-blue-500/20";
+            case 'proses_lelang':
+                return "bg-amber-500/10 text-amber-400 border-amber-500/20 animate-pulse";
             case 'rejected':
             case 'cancelled':
             case 'cancelled_order':
+            case 'auction_cancelled_transaction':
                 return "bg-red-500/10 text-red-400 border-red-500/20";
             case 'pending':
-                return "bg-amber-500/10 text-amber-400 border-amber-500/20";
+                return "bg-orange-500/10 text-orange-400 border-orange-500/20";
             case 'sold':
+            case 'auction_completed':
                 return "bg-emerald-500/10 text-emerald-400 border-emerald-500/20";
+            case 'auction_in_transaction':
+                return "bg-violet-500/10 text-violet-400 border-violet-500/20";
+            case 'auction_waiting_checkout':
+                return "bg-amber-500/10 text-amber-400 border-amber-500/20";
+            case 'auction_no_bids':
             default:
                 return "bg-zinc-500/10 text-zinc-500 border-zinc-500/20";
         }
@@ -233,11 +330,17 @@ export default function DaftarJualanPage() {
     const getStatusLabel = (status) => {
         switch (status) {
             case 'active': return 'Aktif';
+            case 'proses_lelang': return 'Proses Lelang';
             case 'pending': return 'Pending';
             case 'sold': return 'Terjual';
             case 'rejected': return 'Ditolak Admin';
             case 'cancelled': return 'Batal Sistem';
             case 'cancelled_order': return 'Transaksi Batal';
+            case 'auction_completed': return 'Lelang Selesai (Terjual)';
+            case 'auction_cancelled_transaction': return 'Transaksi Batal';
+            case 'auction_in_transaction': return 'Proses Transaksi';
+            case 'auction_waiting_checkout': return 'Menunggu Checkout';
+            case 'auction_no_bids': return 'Lelang Selesai (Tidak Ada Bid)';
             default: return status || 'Aktif';
         }
     };
@@ -270,30 +373,22 @@ export default function DaftarJualanPage() {
                     </h1>
                     <p className="text-zinc-500 text-sm mt-1">Kelola semua iklan jualan dan lelang reptil Anda.</p>
                 </div>
-
-                <Link
-                    href="/user/toko/jual-produk"
-                    className="bg-emerald-500 hover:bg-emerald-400 text-zinc-950 font-black px-6 py-4 rounded-2xl flex items-center gap-2 transition-all shadow-lg shadow-emerald-500/10 active:scale-95 group w-fit"
-                >
-                    <Plus size={20} className="group-hover:rotate-90 transition-transform" />
-                    Tambah Produk Baru
-                </Link>
             </div>
 
             {/* Filters */}
-            <div className="bg-zinc-900 border border-zinc-800 p-2 rounded-[2rem] flex flex-col md:flex-row gap-2 items-center shadow-xl">
+            <div className="bg-zinc-900 border border-zinc-800 p-2 rounded-[2rem] flex flex-col md:flex-row gap-2 items-center">
                 <div className="relative flex-1 w-full">
                     <Search className="absolute left-6 top-1/2 -translate-y-1/2 text-zinc-500" size={18} />
                     <input
                         type="text"
-                        placeholder="Cari nama reptil atau spesies..."
+                        placeholder="Cari nama reptil atau id produk..."
                         className="w-full bg-zinc-950 border border-transparent rounded-[1.5rem] pl-14 pr-6 py-4 text-sm text-white focus:border-emerald-500 transition-all outline-none"
                         value={searchQuery}
                         onChange={(e) => handleSearchChange(e.target.value)}
                     />
                 </div>
                 <div className="flex flex-col md:flex-row gap-2 w-full md:w-auto">
-                    <div className="hidden md:flex bg-zinc-950 border border-zinc-800 rounded-[1.5rem] p-1.5 shadow-inner">
+                    <div className="hidden md:flex bg-zinc-950 border border-zinc-800 rounded-[1.5rem] p-1.5">
                         {[
                             { id: 'all', label: 'Tipe: Semua' },
                             { id: 'sell', label: 'Jual' },
@@ -302,14 +397,14 @@ export default function DaftarJualanPage() {
                             <button
                                 key={type.id}
                                 onClick={() => handleFilterChange(type.id)}
-                                className={`px-6 py-2.5 rounded-xl text-xs font-black transition-all ${filterType === type.id ? "bg-zinc-800 text-white shadow-lg" : "text-zinc-500 hover:text-white"}`}
+                                className={`px-6 py-2.5 rounded-xl text-xs font-black transition-all ${filterType === type.id ? "bg-zinc-800 text-white" : "text-zinc-500 hover:text-white"}`}
                             >
                                 {type.label}
                             </button>
                         ))}
                     </div>
 
-                    <div className="hidden md:flex bg-zinc-950 border border-zinc-800 rounded-[1.5rem] p-1.5 shadow-inner">
+                    <div className="hidden md:flex bg-zinc-950 border border-zinc-800 rounded-[1.5rem] p-1.5">
                         {[
                             { id: 'all', label: 'Status: Semua' },
                             { id: 'active', label: 'Aktif' },
@@ -320,7 +415,7 @@ export default function DaftarJualanPage() {
                             <button
                                 key={status.id}
                                 onClick={() => { setFilterStatus(status.id); setCurrentPage(1); }}
-                                className={`px-6 py-2.5 rounded-xl text-xs font-black transition-all whitespace-nowrap ${filterStatus === status.id ? "bg-zinc-800 text-white shadow-lg" : "text-zinc-500 hover:text-white"}`}
+                                className={`px-6 py-2.5 rounded-xl text-xs font-black transition-all whitespace-nowrap ${filterStatus === status.id ? "bg-zinc-800 text-white" : "text-zinc-500 hover:text-white"}`}
                             >
                                 {status.label}
                             </button>
@@ -353,7 +448,7 @@ export default function DaftarJualanPage() {
             </div>
 
             {/* Table View (Desktop) */}
-            <div className="hidden md:block bg-zinc-900 border border-zinc-800 rounded-[2.5rem] overflow-hidden shadow-2xl">
+            <div className="hidden md:block bg-zinc-900 border border-zinc-800 rounded-[2.5rem] overflow-hidden">
                 <div className="overflow-x-auto">
                     <table className="w-full text-left border-collapse">
                         <thead>
@@ -382,7 +477,7 @@ export default function DaftarJualanPage() {
                                             </td>
                                             <td className="p-6">
                                                 <div className="flex items-center gap-4">
-                                                    <div className="w-14 h-14 rounded-2xl bg-zinc-950 border border-zinc-800 overflow-hidden shrink-0 shadow-inner group-hover:border-zinc-700 transition-all">
+                                                    <div className="w-14 h-14 rounded-2xl bg-zinc-950 border border-zinc-800 overflow-hidden shrink-0 group-hover:border-zinc-700 transition-all">
                                                         <img
                                                             src={item.images && item.images[0] ? item.images[0] : "https://placehold.co/400x400/18181b/52525b?text=No+Image"}
                                                             alt={item.name}
@@ -413,6 +508,12 @@ export default function DaftarJualanPage() {
                                                                 </span>
                                                             </div>
                                                         )}
+                                                        {item.displayStatus === 'rejected' && item.rejection_reason && (
+                                                            <div className="flex items-start gap-1.5 mt-2 bg-red-500/5 border border-red-500/20 rounded-xl px-3 py-2 max-w-xs">
+                                                                <AlertCircle size={11} className="text-red-400 mt-0.5 shrink-0" />
+                                                                <p className="text-[10px] font-bold text-red-400 leading-snug">{item.rejection_reason}</p>
+                                                            </div>
+                                                        )}
                                                     </div>
                                                 </div>
                                             </td>
@@ -436,7 +537,7 @@ export default function DaftarJualanPage() {
                                                 </div>
                                             </td>
                                             <td className="p-6">
-                                                <span className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest border shadow-sm w-fit ${getStatusStyles(item.displayStatus)}`}>
+                                                <span className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest border w-fit ${getStatusStyles(item.displayStatus)}`}>
                                                     {getStatusLabel(item.displayStatus)}
                                                 </span>
                                             </td>
@@ -466,29 +567,70 @@ export default function DaftarJualanPage() {
                                                     ) : (
                                                         <>
                                                             <Link
-                                                                href={`/user/toko/daftar-produk/detail/${item.id}`}
-                                                                className="w-10 h-10 bg-zinc-800 text-white hover:bg-emerald-500 hover:text-zinc-950 rounded-xl flex items-center justify-center transition-all shadow-lg active:scale-90"
+                                                                href={item.type === "auction" ? `/user/toko/lelang-produk/detail/${item.id}` : `/user/toko/daftar-produk/detail/${item.id}`}
+                                                                className={`w-10 h-10 bg-zinc-800 text-white rounded-xl flex items-center justify-center transition-all active:scale-90 ${
+                                                                    item.type === "auction"
+                                                                        ? "hover:bg-amber-500 hover:text-zinc-950"
+                                                                        : "hover:bg-emerald-500 hover:text-zinc-950"
+                                                                }`}
                                                                 title="Detail Iklan"
                                                             >
                                                                 <Eye size={18} />
                                                             </Link>
-                                                            {item.displayStatus !== 'sold' && (
-                                                                <>
-                                                                    <Link
-                                                                        href={`/user/toko/jual-produk/edit/${item.id}`}
-                                                                        className="w-10 h-10 bg-zinc-800 text-white hover:bg-amber-500 hover:text-zinc-950 rounded-xl flex items-center justify-center transition-all shadow-lg active:scale-90"
-                                                                        title="Edit Iklan"
-                                                                    >
-                                                                        <Edit size={18} />
-                                                                    </Link>
-                                                                    <button
-                                                                        onClick={() => openDeleteModal(item)}
-                                                                        className="w-10 h-10 bg-zinc-800 text-white hover:bg-red-500 hover:text-white rounded-xl flex items-center justify-center transition-all shadow-lg active:scale-90"
-                                                                        title="Hapus Iklan"
-                                                                    >
-                                                                        <Trash2 size={18} />
-                                                                    </button>
-                                                                </>
+                                                            {item.type === 'auction' && item.latestOrderUuid && (
+                                                                <Link
+                                                                    href={`/user/toko/pesanan-masuk/detail/${item.latestOrderUuid}`}
+                                                                    className="w-10 h-10 bg-violet-600/10 text-violet-400 hover:bg-violet-600 hover:text-white rounded-xl flex items-center justify-center transition-all active:scale-90 border border-violet-500/20"
+                                                                    title="Kelola Transaksi Lelang"
+                                                                >
+                                                                    <ShoppingBag size={18} />
+                                                                </Link>
+                                                            )}
+                                                            {item.type === "auction" ? (
+                                                                Number(item.bid_count || 0) === 0 && item.displayStatus !== 'proses_lelang' && (
+                                                                    <>
+                                                                        <Link
+                                                                            href={`/user/toko/lelang-produk/edit/${item.id}`}
+                                                                            className="w-10 h-10 bg-zinc-800 text-white hover:bg-amber-500 hover:text-zinc-950 rounded-xl flex items-center justify-center transition-all active:scale-90"
+                                                                            title="Edit Lelang"
+                                                                        >
+                                                                            <Edit size={18} />
+                                                                        </Link>
+                                                                        <Link
+                                                                            href={`/user/toko/lelang-produk/edit/${item.id}?reauction=true`}
+                                                                            className="w-10 h-10 bg-zinc-800 text-white hover:bg-emerald-500 hover:text-zinc-950 rounded-xl flex items-center justify-center transition-all active:scale-90"
+                                                                            title="Lelang Kembali"
+                                                                        >
+                                                                            <RotateCcw size={18} />
+                                                                        </Link>
+                                                                        <button
+                                                                            onClick={() => openDeleteModal(item)}
+                                                                            className="w-10 h-10 bg-zinc-800 text-white hover:bg-red-500 hover:text-white rounded-xl flex items-center justify-center transition-all active:scale-90"
+                                                                            title="Hapus Lelang"
+                                                                        >
+                                                                            <Trash2 size={18} />
+                                                                        </button>
+                                                                    </>
+                                                                )
+                                                            ) : (
+                                                                !['sold', 'cancelled_order'].includes(item.displayStatus) && (
+                                                                    <>
+                                                                        <Link
+                                                                            href={`/user/toko/jual-produk/edit/${item.id}`}
+                                                                            className="w-10 h-10 bg-zinc-800 text-white hover:bg-amber-500 hover:text-zinc-950 rounded-xl flex items-center justify-center transition-all active:scale-90"
+                                                                            title="Edit Iklan"
+                                                                        >
+                                                                            <Edit size={18} />
+                                                                        </Link>
+                                                                        <button
+                                                                            onClick={() => openDeleteModal(item)}
+                                                                            className="w-10 h-10 bg-zinc-800 text-white hover:bg-red-500 hover:text-white rounded-xl flex items-center justify-center transition-all active:scale-90"
+                                                                            title="Hapus Iklan"
+                                                                        >
+                                                                            <Trash2 size={18} />
+                                                                        </button>
+                                                                    </>
+                                                                )
                                                             )}
                                                         </>
                                                     )}
@@ -521,7 +663,7 @@ export default function DaftarJualanPage() {
             <div className="md:hidden space-y-4">
                 {paginatedListings.length > 0 ? (
                     paginatedListings.map((item, index) => (
-                        <div key={item.id} className={`border rounded-[2rem] overflow-hidden shadow-xl animate-in slide-in-from-bottom-4 duration-300 ${item.isVirtual ? 'bg-red-900/10 border-red-500/20' : 'bg-zinc-900 border-zinc-800'}`} style={{ animationDelay: `${index * 50}ms` }}>
+                        <div key={item.id} className={`border rounded-[2rem] overflow-hidden animate-in slide-in-from-bottom-4 duration-300 ${item.isVirtual ? 'bg-red-900/10 border-red-500/20' : 'bg-zinc-900 border-zinc-800'}`} style={{ animationDelay: `${index * 50}ms` }}>
                             {/* Card Header */}
                             <div className="px-5 py-3 border-b border-zinc-800 bg-zinc-950/30 flex items-center justify-between">
                                 <div className="flex items-center gap-2">
@@ -540,7 +682,7 @@ export default function DaftarJualanPage() {
                             {/* Card Body */}
                             <div className="p-5 space-y-4">
                                 <div className="flex gap-4">
-                                    <div className="w-16 h-16 rounded-2xl bg-zinc-950 border border-zinc-800 overflow-hidden shrink-0 shadow-inner">
+                                    <div className="w-16 h-16 rounded-2xl bg-zinc-950 border border-zinc-800 overflow-hidden shrink-0">
                                         <img
                                             src={item.images && item.images[0] ? item.images[0] : "https://placehold.co/400x400/18181b/52525b?text=No+Image"}
                                             alt={item.name}
@@ -569,24 +711,32 @@ export default function DaftarJualanPage() {
                                         )}
                                     </div>
                                 </div>
-
+                                {item.displayStatus === 'rejected' && item.rejection_reason && (
+                                    <div className="flex items-start gap-2 bg-red-500/5 border border-red-500/20 rounded-2xl px-4 py-3">
+                                        <AlertCircle size={13} className="text-red-400 mt-0.5 shrink-0" />
+                                        <div>
+                                            <p className="text-[8px] font-black text-red-500 uppercase tracking-widest mb-1">Alasan Penolakan Admin</p>
+                                            <p className="text-[10px] font-bold text-red-300 leading-snug">{item.rejection_reason}</p>
+                                        </div>
+                                    </div>
+                                )}
                                 <div className="grid grid-cols-2 gap-3 pt-1">
                                     <div className="p-3 bg-zinc-950/40 border border-zinc-800/50 rounded-xl col-span-2">
                                         <p className="text-[8px] font-black text-zinc-500 uppercase tracking-widest mb-1 flex items-center gap-1">
-                                            <ScrollText size={10} className={item.displayStatus === 'sold' || item.displayStatus === 'cancelled_order' ? "text-emerald-500" : "text-zinc-500"} />
-                                            {item.displayStatus === 'cancelled_order' ? "Invoice Batal" : "Nomor Invoice"}
+                                            <ScrollText size={10} className={item.latestOrderId || item.invoiceId ? "text-emerald-500" : "text-zinc-500"} />
+                                            {item.displayStatus === 'cancelled_order' || item.displayStatus === 'auction_cancelled_transaction' ? "Invoice Batal" : "Nomor Invoice"}
                                         </p>
                                         {item.isVirtual ? (
                                             <p className="text-[10px] font-black text-red-400 font-mono">{item.invoiceId}</p>
-                                        ) : item.status?.toLowerCase() === 'sold' ? (
-                                            <p className="text-[10px] font-black text-white font-mono">{item.latestOrderId || "-"}</p>
+                                        ) : item.latestOrderId ? (
+                                            <p className="text-[10px] font-black text-white font-mono">{item.latestOrderId}</p>
                                         ) : (
                                             <p className="text-[10px] font-bold text-zinc-600 italic">Belum Terjual</p>
                                         )}
                                     </div>
                                 </div>
 
-                                <div className={`grid gap-2 pt-2 ${item.displayStatus === 'sold' ? 'grid-cols-1' : 'grid-cols-3'}`}>
+                                <div className="flex flex-wrap gap-2 pt-2">
                                     {item.isVirtual ? (
                                         <button
                                             onClick={(e) => {
@@ -604,36 +754,77 @@ export default function DaftarJualanPage() {
                                                     }
                                                 });
                                             }}
-                                            className="col-span-3 flex items-center justify-center gap-2 py-3 bg-red-500/10 hover:bg-red-500/20 text-red-500 rounded-xl transition-all border border-red-500/30 font-black text-[10px] uppercase tracking-widest"
+                                            className="w-full flex items-center justify-center gap-2 py-3 bg-red-500/10 hover:bg-red-500/20 text-red-500 rounded-xl transition-all border border-red-500/30 font-black text-[10px] uppercase tracking-widest"
                                         >
                                             <Trash2 size={14} /> Bersihkan Riwayat Batal
                                         </button>
                                     ) : (
                                         <>
                                             <Link
-                                                href={`/user/toko/daftar-produk/detail/${item.id}`}
-                                                className="flex items-center justify-center gap-1.5 py-3 bg-zinc-800 hover:bg-emerald-500 text-zinc-400 hover:text-zinc-950 rounded-xl transition-all border border-zinc-700 hover:border-emerald-500"
+                                                href={item.type === "auction" ? `/user/toko/lelang-produk/detail/${item.id}` : `/user/toko/daftar-produk/detail/${item.id}`}
+                                                className={`flex-1 min-w-[80px] flex items-center justify-center gap-1.5 py-3 bg-zinc-800 text-zinc-400 rounded-xl transition-all border border-zinc-700 ${
+                                                    item.type === "auction"
+                                                        ? "hover:bg-amber-500 hover:text-zinc-950 hover:border-amber-500"
+                                                        : "hover:bg-emerald-500 hover:text-zinc-950 hover:border-emerald-500"
+                                                }`}
                                             >
                                                 <Eye size={14} />
                                                 <span className="text-[9px] font-black uppercase tracking-widest">Detail</span>
                                             </Link>
-                                            {item.displayStatus !== 'sold' && (
-                                                <>
-                                                    <Link
-                                                        href={`/user/toko/jual-produk/edit/${item.id}`}
-                                                        className="flex items-center justify-center gap-1.5 py-3 bg-zinc-800 hover:bg-amber-500 text-zinc-400 hover:text-zinc-950 rounded-xl transition-all border border-zinc-700 hover:border-amber-500"
-                                                    >
-                                                        <Edit size={14} />
-                                                        <span className="text-[9px] font-black uppercase tracking-widest">Edit</span>
-                                                    </Link>
-                                                    <button
-                                                        onClick={() => openDeleteModal(item)}
-                                                        className="flex items-center justify-center gap-1.5 py-3 bg-zinc-800 hover:bg-red-500 text-zinc-400 hover:text-white rounded-xl transition-all border border-zinc-700 hover:border-red-500"
-                                                    >
-                                                        <Trash2 size={14} />
-                                                        <span className="text-[9px] font-black uppercase tracking-widest">Hapus</span>
-                                                    </button>
-                                                </>
+                                            {item.type === 'auction' && item.latestOrderUuid && (
+                                                <Link
+                                                    href={`/user/toko/pesanan-masuk/detail/${item.latestOrderUuid}`}
+                                                    className="flex-1 min-w-[80px] flex items-center justify-center gap-1.5 py-3 bg-violet-600/10 hover:bg-violet-600 text-violet-400 hover:text-white rounded-xl transition-all border border-violet-500/20 hover:border-violet-600 font-bold"
+                                                >
+                                                    <ShoppingBag size={14} />
+                                                    <span className="text-[9px] font-black uppercase tracking-widest">Transaksi</span>
+                                                </Link>
+                                            )}
+                                            {item.type === "auction" ? (
+                                                Number(item.bid_count || 0) === 0 && item.displayStatus !== 'proses_lelang' && (
+                                                    <>
+                                                        <Link
+                                                            href={`/user/toko/lelang-produk/edit/${item.id}`}
+                                                            className="flex-1 min-w-[80px] flex items-center justify-center gap-1.5 py-3 bg-zinc-800 hover:bg-amber-500 text-zinc-400 hover:text-zinc-950 rounded-xl transition-all border border-zinc-700 hover:border-amber-500"
+                                                        >
+                                                            <Edit size={14} />
+                                                            <span className="text-[9px] font-black uppercase tracking-widest">Edit</span>
+                                                        </Link>
+                                                        <Link
+                                                            href={`/user/toko/lelang-produk/edit/${item.id}?reauction=true`}
+                                                            className="flex-1 min-w-[80px] flex items-center justify-center gap-1.5 py-3 bg-zinc-800 hover:bg-emerald-500 text-zinc-400 hover:text-zinc-950 rounded-xl transition-all border border-zinc-700 hover:border-emerald-500"
+                                                        >
+                                                            <RotateCcw size={14} />
+                                                            <span className="text-[9px] font-black uppercase tracking-widest">Lelang</span>
+                                                        </Link>
+                                                        <button
+                                                            onClick={() => openDeleteModal(item)}
+                                                            className="flex-1 min-w-[80px] flex items-center justify-center gap-1.5 py-3 bg-zinc-800 hover:bg-red-500 text-zinc-400 hover:text-white rounded-xl transition-all border border-zinc-700 hover:border-red-500"
+                                                        >
+                                                            <Trash2 size={14} />
+                                                            <span className="text-[9px] font-black uppercase tracking-widest">Hapus</span>
+                                                        </button>
+                                                    </>
+                                                )
+                                            ) : (
+                                                !['sold', 'cancelled_order'].includes(item.displayStatus) && (
+                                                    <>
+                                                        <Link
+                                                            href={`/user/toko/jual-produk/edit/${item.id}`}
+                                                            className="flex-1 min-w-[80px] flex items-center justify-center gap-1.5 py-3 bg-zinc-800 hover:bg-amber-500 text-zinc-400 hover:text-zinc-950 rounded-xl transition-all border border-zinc-700 hover:border-amber-500"
+                                                        >
+                                                            <Edit size={14} />
+                                                            <span className="text-[9px] font-black uppercase tracking-widest">Edit</span>
+                                                        </Link>
+                                                        <button
+                                                            onClick={() => openDeleteModal(item)}
+                                                            className="flex-1 min-w-[80px] flex items-center justify-center gap-1.5 py-3 bg-zinc-800 hover:bg-red-500 text-zinc-400 hover:text-white rounded-xl transition-all border border-zinc-700 hover:border-red-500"
+                                                        >
+                                                            <Trash2 size={14} />
+                                                            <span className="text-[9px] font-black uppercase tracking-widest">Hapus</span>
+                                                        </button>
+                                                    </>
+                                                )
                                             )}
                                         </>
                                     )}
@@ -657,7 +848,7 @@ export default function DaftarJualanPage() {
             {/* Pagination Controls */}
             {filteredListings.length > 0 && (
                 <div className="flex flex-col items-center gap-4 mt-4">
-                    <div className="inline-flex items-center rounded-full border border-zinc-800 bg-zinc-950 text-sm shadow-sm overflow-hidden">
+                    <div className="inline-flex items-center rounded-full border border-zinc-800 bg-zinc-950 text-sm overflow-hidden">
                         <button
                             onClick={() => goToPage(currentPage - 1)}
                             disabled={currentPage === 1}

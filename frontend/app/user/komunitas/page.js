@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { MessageSquare, Flame, TrendingUp, Clock, Plus, Filter, Search, Heart, Share2, MoreVertical, Edit, Trash2, X, Image as ImageIcon, Star } from "lucide-react";
 import Link from "next/link";
+import { getApiUrl } from "@/app/utils/api";
 
 export default function UserKomunitasPage() {
     const [searchQuery, setSearchQuery] = useState("");
@@ -35,7 +36,7 @@ export default function UserKomunitasPage() {
 
     const fetchTopics = async (userId) => {
         try {
-            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/topics?user_id=${userId}`);
+            const res = await fetch(`${getApiUrl()}/topics?user_id=${userId}`);
             const data = await res.json();
             if (res.ok) setTopics(data.data);
         } catch (err) {
@@ -61,7 +62,7 @@ export default function UserKomunitasPage() {
         const formDataObj = new FormData();
         formDataObj.append("image", file);
         try {
-            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/upload`, {
+            const res = await fetch(`${getApiUrl()}/upload`, {
                 method: "POST",
                 body: formDataObj
             });
@@ -78,7 +79,7 @@ export default function UserKomunitasPage() {
         e.preventDefault();
         setIsSubmitting(true);
         try {
-            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/topics`, {
+            const res = await fetch(`${getApiUrl()}/topics`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
@@ -102,7 +103,7 @@ export default function UserKomunitasPage() {
     const handleDelete = async (id) => {
         if (!confirm("Apakah Anda yakin ingin menghapus topik ini?")) return;
         try {
-            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/topics/${id}`, { method: "DELETE" });
+            const res = await fetch(`${getApiUrl()}/topics/${id}`, { method: "DELETE" });
             if (res.ok) {
                 fetchTopics(user.id);
             }
@@ -255,7 +256,7 @@ export default function UserKomunitasPage() {
                                     <div key={topic.id} className="flex flex-col md:flex-row justify-between gap-4 p-4 rounded-xl border border-zinc-800 hover:border-zinc-700 bg-zinc-950/50 hover:bg-zinc-800/30 transition-all group">
                                         {topic.image && (
                                             <div className="w-full md:w-32 h-24 rounded-lg overflow-hidden shrink-0 border border-zinc-800">
-                                                <img src={topic.image.startsWith('http') ? topic.image : `${process.env.NEXT_PUBLIC_API_URL}${topic.image}`} alt={topic.title} className="w-full h-full object-cover" />
+                                                <img src={topic.image.startsWith('http') ? topic.image : `${getApiUrl()}${topic.image}`} alt={topic.title} className="w-full h-full object-cover" />
                                             </div>
                                         )}
                                         <div className="flex-1 space-y-2">
@@ -455,7 +456,7 @@ export default function UserKomunitasPage() {
             {/* Modal Error */}
             {errorModal.isOpen && (
                 <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-zinc-950/80 backdrop-blur-sm animate-in fade-in zoom-in-95 duration-200">
-                    <div className="bg-zinc-900 border border-red-500/30 rounded-3xl w-full max-w-sm overflow-hidden shadow-2xl shadow-red-500/10">
+                    <div className="bg-zinc-900 border border-red-500/30 rounded-3xl w-full max-w-sm overflow-hidden">
                         <div className="p-6 flex flex-col items-center text-center space-y-4">
                             <div className="w-16 h-16 bg-red-500/10 text-red-500 rounded-full flex items-center justify-center shrink-0">
                                 <span className="text-3xl">⚠️</span>

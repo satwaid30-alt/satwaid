@@ -3,6 +3,8 @@
 import { useState, useEffect, use } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { io } from "socket.io-client";
+import { getApiUrl, getSocketUrl } from "@/app/utils/api";
 import {
     Star,
     MessageSquare,
@@ -40,14 +42,50 @@ export default function TransactionCompletePage({ params }) {
 
     useEffect(() => {
         fetchOrderDetail();
+
+        // Setup Socket.io for Real-time Updates
+        const userStr = localStorage.getItem("user");
+        let socket;
+        if (userStr) {
+            try {
+                const userData = JSON.parse(userStr);
+                const token = typeof window !== 'undefined' ? localStorage.getItem("token") : null;
+                socket = io(getSocketUrl(), {
+                    auth: {
+                        token: token ? `Bearer ${token}` : null
+                    }
+                });
+                socket.emit("join_user", userData.id);
+
+                socket.on("new_notification", () => {
+                    fetchOrderDetail(); // Auto-refresh when status changes
+                });
+            } catch (e) {
+                console.error("Socket connection error in transaksi-selesai", e);
+            }
+        }
+
+        return () => {
+            if (socket) socket.disconnect();
+        };
     }, [id]);
 
     const fetchOrderDetail = async () => {
         try {
-            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/orders/${id}`);
+            const res = await fetch(`${getApiUrl()}/orders/${id}`);
             const result = await res.json();
             if (res.ok && result.data) {
-                setOrder(result.data);
+                const orderData = result.data;
+                if (orderData.status !== "shipped") {
+                    const finalStatuses = ["completed", "complained", "cancelled", "disbursement_requested", "disbursed"];
+                    if (finalStatuses.includes(orderData.status)) {
+                        router.replace("/user/pesanan");
+                    } else {
+                        router.replace(`/user/pesanan/transaksi/${id}`);
+                    }
+                    return;
+                }
+                setOrder(orderData);
             } else {
                 setModalConfig({
                     title: "Gagal",
@@ -88,7 +126,7 @@ export default function TransactionCompletePage({ params }) {
         e.preventDefault();
         setIsSubmitting(true);
         try {
-            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/orders/${id}/complete`, {
+            const res = await fetch(`${getApiUrl()}/orders/${id}/complete`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ rating, review })
@@ -132,7 +170,7 @@ export default function TransactionCompletePage({ params }) {
             if (complaintImage) {
                 const formData = new FormData();
                 formData.append('image', complaintImage);
-                const uploadRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/upload`, {
+                const uploadRes = await fetch(`${getApiUrl()}/upload`, {
                     method: 'POST',
                     body: formData
                 });
@@ -142,7 +180,7 @@ export default function TransactionCompletePage({ params }) {
                 }
             }
 
-            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/orders/${id}/complain`, {
+            const res = await fetch(`${getApiUrl()}/orders/${id}/complain`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -189,6 +227,7 @@ export default function TransactionCompletePage({ params }) {
             <div className="flex items-center justify-between">
                 <Link
                     href={`/user/pesanan/transaksi/${id}`}
+                    replace
                     className="flex items-center gap-2 text-zinc-400 hover:text-white transition-colors group"
                 >
                     <div className="w-8 h-8 rounded-lg bg-zinc-900 border border-zinc-800 flex items-center justify-center group-hover:bg-zinc-800 transition-all">
@@ -203,10 +242,10 @@ export default function TransactionCompletePage({ params }) {
             </div>
 
             {/* Main Card */}
-            <div className="bg-zinc-900 border border-zinc-800 rounded-3xl md:rounded-[3rem] overflow-hidden shadow-2xl">
+            <div className="bg-zinc-900 border border-zinc-800 rounded-3xl md:rounded-[3rem] overflow-hidden">
                 {/* Product Header */}
                 <div className="p-6 md:p-8 bg-zinc-950/50 border-b border-zinc-800 flex flex-col md:flex-row items-center gap-6 md:gap-8 text-center md:text-left">
-                    <div className="w-24 h-24 md:w-32 md:h-32 rounded-2xl md:rounded-[2rem] overflow-hidden border-2 border-zinc-800 shrink-0 shadow-2xl relative group">
+                    <div className="w-24 h-24 md:w-32 md:h-32 rounded-2xl md:rounded-[2rem] overflow-hidden border-2 border-zinc-800 shrink-0 relative group">
                         <img
                             src={order.product?.images?.[0]}
                             alt={order.product?.name}
@@ -232,8 +271,8 @@ export default function TransactionCompletePage({ params }) {
                     <button
                         onClick={() => setActiveTab("complete")}
                         className={`flex-1 py-4 md:py-6 rounded-2xl md:rounded-[2rem] flex flex-col md:flex-row items-center justify-center gap-1.5 md:gap-3 transition-all ${activeTab === "complete"
-                                ? "bg-blue-500 text-zinc-950 font-black shadow-lg shadow-blue-500/20"
-                                : "text-zinc-500 hover:text-white font-bold"}`}
+                            ? "bg-blue-500 text-zinc-950 font-black"
+                            : "text-zinc-500 hover:text-white font-bold"}`}
                     >
                         <CheckCircle2 size={18} className="md:w-5 md:h-5" />
                         <span className="text-[10px] md:text-sm uppercase tracking-widest">Diterima</span>
@@ -241,8 +280,8 @@ export default function TransactionCompletePage({ params }) {
                     <button
                         onClick={() => setActiveTab("complain")}
                         className={`flex-1 py-4 md:py-6 rounded-2xl md:rounded-[2rem] flex flex-col md:flex-row items-center justify-center gap-1.5 md:gap-3 transition-all ${activeTab === "complain"
-                                ? "bg-red-500 text-white font-black shadow-lg shadow-red-500/20"
-                                : "text-zinc-500 hover:text-white font-bold"}`}
+                            ? "bg-red-500 text-white font-black"
+                            : "text-zinc-500 hover:text-white font-bold"}`}
                     >
                         <AlertTriangle size={18} className="md:w-5 md:h-5" />
                         <span className="text-[10px] md:text-sm uppercase tracking-widest">Komplain</span>
@@ -292,7 +331,7 @@ export default function TransactionCompletePage({ params }) {
                             <button
                                 type="submit"
                                 disabled={isSubmitting}
-                                className="w-full py-4 md:py-6 bg-blue-500 hover:bg-blue-400 text-zinc-950 font-black rounded-2xl md:rounded-3xl transition-all shadow-xl shadow-blue-500/20 uppercase tracking-[0.15em] md:tracking-[0.2em] flex items-center justify-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed text-sm md:text-base"
+                                className="w-full py-4 md:py-6 bg-blue-500 hover:bg-blue-400 text-zinc-950 font-black rounded-2xl md:rounded-3xl transition-all uppercase tracking-[0.15em] md:tracking-[0.2em] flex items-center justify-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed text-sm md:text-base"
                             >
                                 {isSubmitting ? (
                                     <div className="w-5 h-5 md:w-6 md:h-6 border-2 border-zinc-950 border-t-transparent rounded-full animate-spin"></div>
@@ -322,7 +361,7 @@ export default function TransactionCompletePage({ params }) {
                                 </label>
                                 <div className="flex flex-col items-center justify-center">
                                     {complaintImagePreview ? (
-                                        <div className="relative group w-full max-w-md aspect-video rounded-3xl overflow-hidden border-2 border-red-500/50 shadow-2xl">
+                                        <div className="relative group w-full max-w-md aspect-video rounded-3xl overflow-hidden border-2 border-red-500/50">
                                             <img
                                                 src={complaintImagePreview}
                                                 className="w-full h-full object-cover"
@@ -334,7 +373,7 @@ export default function TransactionCompletePage({ params }) {
                                                     setComplaintImage(null);
                                                     setComplaintImagePreview(null);
                                                 }}
-                                                className="absolute top-4 right-4 w-10 h-10 bg-red-500 text-white rounded-full flex items-center justify-center shadow-lg hover:scale-110 transition-transform"
+                                                className="absolute top-4 right-4 w-10 h-10 bg-red-500 text-white rounded-full flex items-center justify-center hover:scale-110 transition-transform"
                                             >
                                                 <XCircle size={20} />
                                             </button>
@@ -375,7 +414,7 @@ export default function TransactionCompletePage({ params }) {
                             <button
                                 type="submit"
                                 disabled={isSubmitting}
-                                className="w-full py-6 bg-red-500 hover:bg-red-400 text-white font-black rounded-3xl transition-all shadow-xl shadow-red-500/20 uppercase tracking-[0.2em] flex items-center justify-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed"
+                                className="w-full py-6 bg-red-500 hover:bg-red-400 text-white font-black rounded-3xl transition-all uppercase tracking-[0.2em] flex items-center justify-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed"
                             >
                                 {isSubmitting ? (
                                     <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
@@ -402,10 +441,10 @@ export default function TransactionCompletePage({ params }) {
             {showSuccessModal && (
                 <div className="fixed inset-0 z-[500] flex items-center justify-center p-6">
                     <div className="absolute inset-0 bg-zinc-950/80 backdrop-blur-sm animate-in fade-in duration-300"></div>
-                    <div className="relative bg-zinc-900 border border-zinc-800 w-full max-w-md p-8 md:p-10 rounded-[2rem] md:rounded-[3rem] shadow-2xl text-center animate-in zoom-in-95 duration-300">
-                        <div className={`w-16 h-16 md:w-24 md:h-24 mx-auto mb-6 md:mb-8 rounded-2xl md:rounded-[2rem] flex items-center justify-center shadow-inner ${modalConfig.type === 'error' ? 'bg-red-500/10 text-red-500' :
-                                modalConfig.type === 'complaint' ? 'bg-amber-500/10 text-amber-500' :
-                                    'bg-blue-500/10 text-blue-500'}`}>
+                    <div className="relative bg-zinc-900 border border-zinc-800 w-full max-w-md p-8 md:p-10 rounded-[2rem] md:rounded-[3rem] text-center animate-in zoom-in-95 duration-300">
+                        <div className={`w-16 h-16 md:w-24 md:h-24 mx-auto mb-6 md:mb-8 rounded-2xl md:rounded-[2rem] flex items-center justify-center ${modalConfig.type === 'error' ? 'bg-red-500/10 text-red-500' :
+                            modalConfig.type === 'complaint' ? 'bg-amber-500/10 text-amber-500' :
+                                'bg-blue-500/10 text-blue-500'}`}>
                             {modalConfig.type === 'error' ? <XCircle className="w-8 h-8 md:w-12 md:h-12" /> :
                                 modalConfig.type === 'complaint' ? <ShieldAlert className="w-8 h-8 md:w-12 md:h-12" /> :
                                     <CheckCircle2 className="w-8 h-8 md:w-12 md:h-12" />}
@@ -418,12 +457,12 @@ export default function TransactionCompletePage({ params }) {
                             onClick={() => {
                                 setShowSuccessModal(false);
                                 if (modalConfig.type !== 'error') {
-                                    router.push(`/user/pesanan/transaksi/${id}`);
+                                    router.replace(`/user/pesanan/transaksi/${id}`);
                                 }
                             }}
                             className={`w-full py-4 md:py-5 rounded-xl md:rounded-2xl font-black uppercase tracking-widest transition-all text-xs md:text-sm ${modalConfig.type === 'error' ? 'bg-zinc-800 text-white hover:bg-zinc-700' :
-                                    modalConfig.type === 'complaint' ? 'bg-amber-500 text-zinc-950 hover:bg-amber-400' :
-                                        'bg-blue-500 text-zinc-950 hover:bg-blue-400'}`}
+                                modalConfig.type === 'complaint' ? 'bg-amber-500 text-zinc-950 hover:bg-amber-400' :
+                                    'bg-blue-500 text-zinc-950 hover:bg-blue-400'}`}
                         >
                             {modalConfig.type === 'error' ? 'Tutup' : 'Kembali ke Transaksi'}
                         </button>

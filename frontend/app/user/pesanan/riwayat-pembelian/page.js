@@ -7,7 +7,6 @@ import {
     Search,
     CheckCircle2,
     Store,
-    Trash2,
     Eye,
     AlertCircle,
     Calendar,
@@ -16,6 +15,7 @@ import {
     Package
 } from "lucide-react";
 import ActionModal from "@/components/ActionModal";
+import { getApiUrl } from "@/app/utils/api";
 
 export default function RiwayatPembelianPage() {
     const [searchQuery, setSearchQuery] = useState("");
@@ -36,14 +36,14 @@ export default function RiwayatPembelianPage() {
     const fetchOrders = async () => {
         setIsLoading(true);
         const userStr = localStorage.getItem("user");
-        if (!userStr || !process.env.NEXT_PUBLIC_API_URL) {
+        if (!userStr) {
             setIsLoading(false);
             return;
         }
 
         try {
             const user = JSON.parse(userStr);
-            const url = `${process.env.NEXT_PUBLIC_API_URL}/orders/user/${user.id}`;
+            const url = `${getApiUrl()}/orders/user/${user.id}`;
             const response = await fetch(url);
             const result = await response.json();
 
@@ -55,7 +55,7 @@ export default function RiwayatPembelianPage() {
                 console.error("Failed to fetch orders:", result.message);
             }
         } catch (err) {
-            console.error("Error fetching orders from", process.env.NEXT_PUBLIC_API_URL, err);
+            console.error("Error fetching orders from", getApiUrl(), err);
         } finally {
             setIsLoading(false);
         }
@@ -65,41 +65,6 @@ export default function RiwayatPembelianPage() {
         fetchOrders();
     }, []);
 
-    const handleDeleteOrderHistory = (orderId) => {
-        setActionModal({
-            isOpen: true,
-            type: 'danger',
-            title: 'Hapus Riwayat?',
-            message: 'Apakah Anda yakin ingin menghapus catatan ini secara permanen dari daftar belanja?',
-            confirmText: 'Ya, Hapus',
-            onConfirm: async () => {
-                setActionModal(prev => ({ ...prev, isLoading: true }));
-                try {
-                    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/orders/${orderId}/history`, {
-                        method: 'DELETE'
-                    });
-
-                    if (response.ok) {
-                        fetchOrders();
-                        setActionModal({
-                            isOpen: true,
-                            type: 'success',
-                            title: 'Berhasil Dihapus',
-                            message: 'Riwayat pesanan telah dihapus.',
-                            onConfirm: null
-                        });
-                    } else {
-                        const err = await response.json();
-                        alert(err.message || "Gagal menghapus riwayat.");
-                    }
-                } catch (err) {
-                    console.error(err);
-                } finally {
-                    setActionModal(prev => ({ ...prev, isLoading: false }));
-                }
-            }
-        });
-    };
 
     const formatPrice = (price) => {
         const num = parseFloat(price) || 0;
@@ -124,9 +89,21 @@ export default function RiwayatPembelianPage() {
         if (!path) return "/placeholder.png";
         if (path.startsWith("data:image")) return path;
         if (path.startsWith("http")) {
+            if (typeof window !== "undefined") {
+                try {
+                    const urlObj = new URL(path);
+                    if (urlObj.hostname === "localhost" || urlObj.hostname === "127.0.0.1" || urlObj.port === "4000" || urlObj.port === "3000") {
+                        urlObj.hostname = window.location.hostname;
+                        urlObj.port = "4000";
+                    }
+                    return urlObj.toString();
+                } catch (e) {
+                    return path;
+                }
+            }
             return path.replace("localhost:3000", "localhost:4000");
         }
-        return `${process.env.NEXT_PUBLIC_API_URL}${path.startsWith("/") ? "" : "/"}${path}`;
+        return `${getApiUrl()}${path.startsWith("/") ? "" : "/"}${path}`;
     };
 
     const filteredOrders = orders.filter(order => {
@@ -180,7 +157,7 @@ export default function RiwayatPembelianPage() {
                 ) : filteredOrders.length > 0 ? (
                     <>
                         {/* DESKTOP TABLE VIEW */}
-                        <div className="hidden md:block bg-zinc-900/30 border border-zinc-800 rounded-[2.5rem] overflow-hidden shadow-2xl relative">
+                        <div className="hidden md:block bg-zinc-900/30 border border-zinc-800 rounded-[2.5rem] overflow-hidden relative">
                             <div className="overflow-x-auto">
                                 <table className="w-full text-left border-collapse">
                                     <thead>
@@ -213,7 +190,7 @@ export default function RiwayatPembelianPage() {
                                                 </td>
                                                 <td className="px-6 py-6">
                                                     <div className="flex items-center gap-4">
-                                                        <div className="w-12 h-12 rounded-xl overflow-hidden bg-zinc-800 shrink-0 border border-zinc-700 shadow-inner">
+                                                        <div className="w-12 h-12 rounded-xl overflow-hidden bg-zinc-800 shrink-0 border border-zinc-700">
                                                             <img
                                                                 src={getImageUrl(getImagesArray(order.product?.images)[0])}
                                                                 alt={order.product?.name}
@@ -246,18 +223,11 @@ export default function RiwayatPembelianPage() {
                                                     <div className="flex justify-center items-center gap-2">
                                                         <Link
                                                             href={`/user/pesanan/detail-pesanan/${order.id}`}
-                                                            className="p-2.5 bg-zinc-800 hover:bg-emerald-500 text-zinc-400 hover:text-zinc-950 rounded-xl transition-all active:scale-90 shadow-lg border border-zinc-700 hover:border-emerald-400"
+                                                            className="p-2.5 bg-zinc-800 hover:bg-emerald-500 text-zinc-400 hover:text-zinc-950 rounded-xl transition-all active:scale-90 border border-zinc-700 hover:border-emerald-400"
                                                             title="Lihat Detail"
                                                         >
                                                             <Eye size={18} />
                                                         </Link>
-                                                        {/* <button
-                                                            onClick={() => handleDeleteOrderHistory(order.id)}
-                                                            className="p-2.5 bg-zinc-800 hover:bg-red-500 text-zinc-400 hover:text-white rounded-xl transition-all active:scale-90 shadow-lg border border-zinc-700 hover:border-red-400"
-                                                            title="Hapus Riwayat"
-                                                        >
-                                                            <Trash2 size={18} />
-                                                        </button> */}
                                                     </div>
                                                 </td>
                                             </tr>
@@ -272,7 +242,7 @@ export default function RiwayatPembelianPage() {
                             {filteredOrders.map((order) => (
                                 <div
                                     key={order.id}
-                                    className="bg-zinc-900/20 border border-zinc-800 hover:border-zinc-700 rounded-3xl overflow-hidden transition-all group shadow-xl"
+                                    className="bg-zinc-900/20 border border-zinc-800 hover:border-zinc-700 rounded-3xl overflow-hidden transition-all group"
                                 >
                                     {/* Card Header */}
                                     <div className="px-6 py-4 border-b border-zinc-800 flex items-center justify-between gap-4 bg-zinc-900/40">
@@ -319,12 +289,6 @@ export default function RiwayatPembelianPage() {
                                         >
                                             <Eye size={14} /> Detail
                                         </Link>
-                                        <button
-                                            onClick={() => handleDeleteOrderHistory(order.id)}
-                                            className="p-2.5 bg-red-500/10 text-red-500 border border-red-500/20 rounded-xl transition-all"
-                                        >
-                                            <Trash2 size={16} />
-                                        </button>
                                     </div>
                                 </div>
                             ))}
@@ -332,7 +296,7 @@ export default function RiwayatPembelianPage() {
                     </>
                 ) : (
                     <div className="py-20 flex flex-col items-center text-center space-y-6 bg-zinc-900/20 border border-zinc-800 rounded-[3rem] border-dashed">
-                        <div className="w-24 h-24 bg-zinc-900 rounded-full flex items-center justify-center text-zinc-700 shadow-inner">
+                        <div className="w-24 h-24 bg-zinc-900 rounded-full flex items-center justify-center text-zinc-700">
                             <ShoppingBag size={48} />
                         </div>
                         <div className="space-y-2">
@@ -341,7 +305,7 @@ export default function RiwayatPembelianPage() {
                         </div>
                         <Link
                             href="/toko"
-                            className="bg-emerald-500 hover:bg-emerald-400 text-zinc-950 font-black px-8 py-3 rounded-2xl transition-all shadow-lg shadow-emerald-500/20 active:scale-95"
+                            className="bg-emerald-500 hover:bg-emerald-400 text-zinc-950 font-black px-8 py-3 rounded-2xl transition-all active:scale-95"
                         >
                             Mulai Belanja
                         </Link>

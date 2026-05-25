@@ -31,6 +31,39 @@ export default function UploadFinanceDocPage({ params }) {
     const [notes, setNotes] = useState("");
     const [additionalFee, setAdditionalFee] = useState(0);
 
+    // Helper to get Seller/Shop Owner bank info
+    const getSellerBankInfo = () => {
+        const owner = order?.shop?.owner;
+        let bankAccounts = owner?.bank_accounts;
+        
+        // If it is a string representation of JSON, parse it
+        if (typeof bankAccounts === 'string') {
+            try {
+                bankAccounts = JSON.parse(bankAccounts);
+            } catch (e) {
+                bankAccounts = null;
+            }
+        }
+        
+        if (Array.isArray(bankAccounts) && bankAccounts.length > 0) {
+            const primaryBank = bankAccounts[0];
+            return {
+                bankName: primaryBank.bank_name || primaryBank.bankName || "-",
+                bankAccount: primaryBank.account_number || primaryBank.accountNumber || primaryBank.bank_account || "-",
+                bankHolder: primaryBank.account_name || primaryBank.accountName || primaryBank.bank_holder || owner.name || "-"
+            };
+        }
+        
+        // Fallbacks
+        return {
+            bankName: order?.shop?.bank_name || "-",
+            bankAccount: order?.shop?.bank_account || "-",
+            bankHolder: order?.shop?.bank_holder || owner?.name || "-"
+        };
+    };
+
+    const sellerBank = getSellerBankInfo();
+
     const getImageUrl = (path) => {
         if (!path) return "https://placehold.co/100x100?text=No+Image";
         let finalPath = path;
@@ -53,8 +86,7 @@ export default function UploadFinanceDocPage({ params }) {
     // Calculate total disbursement
     const totalDisbursement = (Number(order?.price || 0) * Number(order?.quantity || 1)) +
         Number(order?.shipping_cost || 0) +
-        Number(order?.packing_cost || 0) -
-        Number(additionalFee || 0);
+        Number(order?.packing_cost || 0);
 
     useEffect(() => {
         if (order) {
@@ -319,19 +351,7 @@ export default function UploadFinanceDocPage({ params }) {
                                             </label>
                                         </div>
 
-                                        <div className="space-y-2">
-                                            <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest ml-1">Biaya Tambahan / Admin Transfer (Opsional)</label>
-                                            <div className="relative">
-                                                <span className="absolute left-6 top-1/2 -translate-y-1/2 text-zinc-500 font-black text-sm">Rp</span>
-                                                <input
-                                                    type="number"
-                                                    value={additionalFee}
-                                                    onChange={(e) => setAdditionalFee(Math.max(0, parseInt(e.target.value) || 0))}
-                                                    className="w-full bg-zinc-950 border border-zinc-800 rounded-2xl py-5 pl-14 pr-6 text-white text-sm font-bold focus:outline-none focus:border-emerald-500 transition-all shadow-inner"
-                                                    placeholder="0"
-                                                />
-                                            </div>
-                                        </div>
+
 
                                         <div className="space-y-2">
                                             <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest ml-1">Catatan Tambahan</label>
@@ -386,7 +406,7 @@ export default function UploadFinanceDocPage({ params }) {
                         </div>
 
                         <div className="space-y-6">
-                            <h4 className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Detail Penerima Dana</h4>
+                            <h4 className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Detail Penerima Dana (Seller)</h4>
                             <div className="bg-zinc-950/50 rounded-2xl p-5 border border-zinc-800/50 space-y-4">
                                 <div className="flex items-center gap-3">
                                     <div className="w-8 h-8 rounded-lg bg-zinc-900 flex items-center justify-center border border-zinc-800">
@@ -394,7 +414,7 @@ export default function UploadFinanceDocPage({ params }) {
                                     </div>
                                     <div>
                                         <p className="text-[10px] font-black text-zinc-500 uppercase tracking-widest leading-none mb-1">Nama Bank</p>
-                                        <p className="text-sm font-black text-white uppercase">{order.bank_name || order.shop?.bank_name || "-"}</p>
+                                        <p className="text-sm font-black text-white uppercase">{sellerBank.bankName}</p>
                                     </div>
                                 </div>
                                 <div className="flex items-center gap-3">
@@ -403,7 +423,7 @@ export default function UploadFinanceDocPage({ params }) {
                                     </div>
                                     <div>
                                         <p className="text-[10px] font-black text-zinc-500 uppercase tracking-widest leading-none mb-1">Nomor Rekening</p>
-                                        <p className="text-sm font-black text-white tracking-widest">{order.bank_account || order.shop?.bank_account || "-"}</p>
+                                        <p className="text-sm font-black text-white tracking-widest">{sellerBank.bankAccount}</p>
                                     </div>
                                 </div>
                                 <div className="flex items-center gap-3">
@@ -412,7 +432,7 @@ export default function UploadFinanceDocPage({ params }) {
                                     </div>
                                     <div>
                                         <p className="text-[10px] font-black text-zinc-500 uppercase tracking-widest leading-none mb-1">Atas Nama</p>
-                                        <p className="text-sm font-black text-white">{order.bank_holder || order.shop?.bank_holder || "-"}</p>
+                                        <p className="text-sm font-black text-white">{sellerBank.bankHolder}</p>
                                     </div>
                                 </div>
                             </div>

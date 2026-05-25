@@ -45,6 +45,22 @@ module.exports = {
     getChatMessages: async (req, res) => {
         try {
             const { chat_id } = req.params;
+            const { user_id } = req.query;
+
+            // Mark incoming messages as read if user_id is provided
+            if (user_id) {
+                await models.chat_messages.update(
+                    { is_read: true },
+                    {
+                        where: {
+                            chat_id,
+                            sender_id: { [Op.ne]: user_id },
+                            is_read: false
+                        }
+                    }
+                );
+            }
+
             const messages = await models.chat_messages.findAll({
                 where: { chat_id },
                 include: [{
@@ -112,6 +128,33 @@ module.exports = {
             res.status(200).json({ message: "Success", data: count });
         } catch (error) {
             console.error("Error in getProductChatCount:", error);
+            res.status(500).json({ message: "Internal server error" });
+        }
+    },
+
+    markAsRead: async (req, res) => {
+        try {
+            const { chat_id } = req.params;
+            const { user_id } = req.query;
+
+            if (!user_id) {
+                return res.status(400).json({ message: "User ID is required" });
+            }
+
+            await models.chat_messages.update(
+                { is_read: true },
+                {
+                    where: {
+                        chat_id,
+                        sender_id: { [Op.ne]: user_id },
+                        is_read: false
+                    }
+                }
+            );
+
+            res.status(200).json({ message: "Success marking chat as read" });
+        } catch (error) {
+            console.error("Error marking chat as read:", error);
             res.status(500).json({ message: "Internal server error" });
         }
     }

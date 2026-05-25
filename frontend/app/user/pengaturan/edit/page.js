@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { User, Mail, Phone, MapPin, Save, Camera, Building, CreditCard, Plus, Trash2, Edit2, X } from "lucide-react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { getApiUrl } from "@/app/utils/api";
 
 export default function EditProfilPage() {
     const router = useRouter();
@@ -39,8 +40,8 @@ export default function EditProfilPage() {
                         address: parsed.address || "",
                         city: parsed.city || "",
                         province: parsed.province || "",
-                        bankAccounts: (parsed.bank_accounts || parsed.bankAccounts) && (parsed.bank_accounts || parsed.bankAccounts).length > 0 
-                            ? (parsed.bank_accounts || parsed.bankAccounts) 
+                        bankAccounts: (parsed.bank_accounts || parsed.bankAccounts) && (parsed.bank_accounts || parsed.bankAccounts).length > 0
+                            ? (parsed.bank_accounts || parsed.bankAccounts)
                             : [{ bankName: "", accountNumber: "", accountName: "" }],
                         avatar_url: parsed.avatar_url || ""
                     });
@@ -75,16 +76,16 @@ export default function EditProfilPage() {
 
     const handleSave = async (e) => {
         e.preventDefault();
-        
+
         if (!userId) {
             alert("Sesi tidak valid, silakan login ulang.");
             return;
         }
 
         setIsLoading(true);
-        
+
         try {
-            const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/users/profile/${userId}`, {
+            const response = await fetch(`${getApiUrl()}/users/profile/${userId}`, {
                 method: "PUT",
                 headers: {
                     "Content-Type": "application/json",
@@ -120,19 +121,27 @@ export default function EditProfilPage() {
     const handleCloseModal = () => {
         setShowModal(false);
         // Refresh & Redirect to view page
-        window.location.href = "/user/pengaturan"; 
+        window.location.href = "/user/pengaturan";
     };
 
     const handleFileUpload = async (e) => {
         const file = e.target.files[0];
         if (!file) return;
 
+        // Validasi ukuran file (maksimal 500 KB)
+        const MAX_FILE_SIZE = 500 * 1024;
+        if (file.size > MAX_FILE_SIZE) {
+            alert("Ukuran foto profil maksimal adalah 500 KB. Silakan pilih file yang lebih kecil.");
+            e.target.value = "";
+            return;
+        }
+
         setIsLoading(true);
         const formData = new FormData();
         formData.append("image", file);
 
         try {
-            const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/upload`, {
+            const response = await fetch(`${getApiUrl()}/upload`, {
                 method: "POST",
                 body: formData
             });
@@ -156,7 +165,7 @@ export default function EditProfilPage() {
             {/* Success Modal */}
             {showModal && (
                 <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-zinc-950/80 backdrop-blur-sm">
-                    <div className="bg-zinc-900 border border-emerald-500/30 rounded-3xl p-8 max-w-sm w-full text-center shadow-2xl shadow-emerald-500/20 transform animate-in fade-in zoom-in duration-300">
+                    <div className="bg-zinc-900 border border-emerald-500/30 rounded-3xl p-8 max-w-sm w-full text-center transform animate-in fade-in zoom-in duration-300">
                         <div className="w-20 h-20 bg-emerald-500/20 rounded-full flex items-center justify-center mx-auto mb-6">
                             <div className="w-12 h-12 bg-emerald-500 rounded-full flex items-center justify-center text-zinc-950">
                                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={3} stroke="currentColor" className="w-6 h-6">
@@ -166,9 +175,9 @@ export default function EditProfilPage() {
                         </div>
                         <h3 className="text-2xl font-bold text-white mb-2">Penyimpanan Berhasil!</h3>
                         <p className="text-zinc-400 mb-8">Data pengaturan profil Anda telah berhasil diperbarui dan disimpan.</p>
-                        <button 
+                        <button
                             onClick={handleCloseModal}
-                            className="w-full bg-emerald-500 hover:bg-emerald-400 text-zinc-950 font-bold py-3 rounded-xl transition-colors shadow-lg shadow-emerald-500/20"
+                            className="w-full bg-emerald-500 hover:bg-emerald-400 text-zinc-950 font-bold py-3 rounded-xl transition-colors"
                         >
                             Selesai
                         </button>
@@ -181,14 +190,14 @@ export default function EditProfilPage() {
                 <p className="text-zinc-400">Perbarui informasi data diri, kontak, dan detail toko Anda.</p>
             </div>
 
-            <div className="bg-zinc-900 border border-zinc-800 rounded-3xl p-6 md:p-8 shadow-xl">
+            <div className="bg-zinc-900 border border-zinc-800 rounded-3xl p-6 md:p-8 ">
                 {/* Profile Picture Upload Section */}
                 <div className="flex flex-col md:flex-row items-center gap-6 mb-10 pb-10 border-b border-zinc-800">
                     <div className="relative group cursor-pointer w-24 h-24">
                         {user.avatar_url ? (
-                            <img src={`${process.env.NEXT_PUBLIC_API_URL}${user.avatar_url}`} alt="Profile" className="w-24 h-24 rounded-full object-cover shadow-[0_0_20px_rgba(16,185,129,0.3)]" />
+                            <img src={user.avatar_url.startsWith('http') ? user.avatar_url : `${getApiUrl()}${user.avatar_url}`} alt="Profile" className="w-24 h-24 rounded-full object-cover" />
                         ) : (
-                            <div className="w-24 h-24 bg-emerald-500 rounded-full flex items-center justify-center text-white font-bold text-3xl shadow-[0_0_20px_rgba(16,185,129,0.3)]">
+                            <div className="w-24 h-24 bg-emerald-500 rounded-full flex items-center justify-center text-white font-bold text-3xl">
                                 {user.username ? user.username.charAt(0).toUpperCase() : "U"}
                             </div>
                         )}
@@ -199,7 +208,7 @@ export default function EditProfilPage() {
                     </div>
                     <div className="text-center md:text-left">
                         <h3 className="text-xl font-bold text-white mb-1">Foto Profil</h3>
-                        <p className="text-zinc-400 text-sm mb-4">Format disarankan: JPG, PNG. Maksimal 2MB.</p>
+                        <p className="text-zinc-400 text-sm mb-4">Format disarankan: JPG, PNG. Maksimal 500 KB.</p>
                         <div className="flex justify-center md:justify-start gap-3">
                             <label className="px-4 py-2 bg-zinc-800 hover:bg-zinc-700 text-white text-sm font-semibold rounded-lg transition-colors cursor-pointer">
                                 Ganti Foto
@@ -401,7 +410,7 @@ export default function EditProfilPage() {
                         <button
                             type="submit"
                             disabled={isLoading}
-                            className={`flex items-center gap-2 px-8 py-3.5 bg-emerald-500 hover:bg-emerald-400 text-zinc-950 font-bold rounded-xl transition-all shadow-lg shadow-emerald-500/20 ${isLoading ? "opacity-70 cursor-not-allowed" : ""}`}
+                            className={`flex items-center gap-2 px-8 py-3.5 bg-emerald-500 hover:bg-emerald-400 text-zinc-950 font-bold rounded-xl transition-all ${isLoading ? "opacity-70 cursor-not-allowed" : ""}`}
                         >
                             {isLoading ? (
                                 <svg className="animate-spin h-5 w-5 text-current" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">

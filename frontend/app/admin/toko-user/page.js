@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { getApiUrl, getLogoUrl } from "@/app/utils/api";
 import Link from "next/link";
 import {
     Store,
@@ -58,7 +59,7 @@ export default function AdminTokoUserPage() {
 
     const fetchShops = async () => {
         try {
-            const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/shops`);
+            const response = await fetch(`${getApiUrl()}/shops`);
             const result = await response.json();
             if (response.ok) {
                 setShops(result.data);
@@ -84,10 +85,10 @@ export default function AdminTokoUserPage() {
         try {
             let response;
             if (type === 'delete') {
-                response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/shops/${shopId}`, {
+                response = await fetch(`${getApiUrl()}/shops/${shopId}`, {
                     method: "DELETE"});
             } else {
-                response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/shops/${shopId}`, {
+                response = await fetch(`${getApiUrl()}/shops/${shopId}`, {
                     method: "PUT",
                     headers: { "Content-Type": "application/json"},
                     body: JSON.stringify({ status: type })
@@ -112,7 +113,7 @@ export default function AdminTokoUserPage() {
         }
 
         try {
-            const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/shops/${shopId}`, {
+            const response = await fetch(`${getApiUrl()}/shops/${shopId}`, {
                 method: "PUT",
                 headers: { "Content-Type": "application/json"},
                 body: JSON.stringify({ 
@@ -238,7 +239,7 @@ export default function AdminTokoUserPage() {
                                     <td className="p-6">
                                         <div className="flex items-center gap-4">
                                             <div className="w-12 h-12 bg-zinc-800 rounded-xl flex items-center justify-center text-zinc-500 border border-zinc-700 overflow-hidden">
-                                                {shop.logo_url ? <img src={shop.logo_url} className="w-full h-full object-cover" /> : <Store size={24} />}
+                                                {shop.logo_url ? <img src={getLogoUrl(shop.logo_url)} className="w-full h-full object-cover" /> : <Store size={24} />}
                                             </div>
                                             <div>
                                                 <p className="font-black text-white group-hover:text-emerald-400 transition-colors leading-tight">{shop.name}</p>

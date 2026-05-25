@@ -19,10 +19,12 @@ import {
     Users
 } from "lucide-react";
 import { io } from "socket.io-client";
+import { getApiUrl, getSocketUrl } from "@/app/utils/api";
 
 export default function UserNavbar() {
     const pathname = usePathname();
     const [user, setUser] = useState(null);
+    const [isLoaded, setIsLoaded] = useState(false);
     
     // Notifications State matching Navbar.js
     const [notifCount, setNotifCount] = useState(0);
@@ -61,6 +63,7 @@ export default function UserNavbar() {
                     console.error("Error parsing user data", e);
                 }
             }
+            setIsLoaded(true);
         }
     }, []);
 
@@ -73,9 +76,9 @@ export default function UserNavbar() {
     }, [user]);
 
     const fetchCounts = async () => {
-        if (!user || !process.env.NEXT_PUBLIC_API_URL) return;
+        if (!user) return;
         try {
-            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/notifications/${user.id}`);
+            const res = await fetch(`${getApiUrl()}/notifications/${user.id}`);
             const result = await res.json();
             if (res.ok) {
                 setNotifCount(
@@ -87,34 +90,48 @@ export default function UserNavbar() {
                 );
             }
         } catch (e) {
-            console.error("Error fetching counts from", process.env.NEXT_PUBLIC_API_URL, e);
+            console.error("Error fetching counts from", getApiUrl(), e);
         }
     };
 
     useEffect(() => {
-        if (!user || !process.env.NEXT_PUBLIC_API_URL) return;
+        if (!user) return;
 
-        const newSocket = io(process.env.NEXT_PUBLIC_API_URL);
+        const token = localStorage.getItem("token");
+        const newSocket = io(getSocketUrl(), {
+            auth: {
+                token: token ? `Bearer ${token}` : null
+            }
+        });
         setSocket(newSocket);
         newSocket.emit("join_user", user.id);
 
+        const handleSyncNotifs = () => {
+            fetchCounts();
+            fetchNotifications();
+        };
+
         newSocket.on("new_notification", (data) => {
-            fetchCounts(); // Fetch accurate counts from backend
-            fetchNotifications(); // Refresh list
+            handleSyncNotifs();
         });
 
-        return () => newSocket.disconnect();
+        window.addEventListener("sync_notifications", handleSyncNotifs);
+
+        return () => {
+            newSocket.disconnect();
+            window.removeEventListener("sync_notifications", handleSyncNotifs);
+        };
     }, [user]);
 
     const fetchNotifications = async () => {
-        if (!user || !process.env.NEXT_PUBLIC_API_URL) return;
+        if (!user) return;
         setIsLoadingNotifs(true);
         try {
-            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/notifications/list/${user.id}`);
+            const res = await fetch(`${getApiUrl()}/notifications/list/${user.id}`);
             const result = await res.json();
             if (res.ok) setNotifications(result.data || []);
         } catch (e) {
-            console.error("Error fetching notifications from", process.env.NEXT_PUBLIC_API_URL, e);
+            console.error("Error fetching notifications from", getApiUrl(), e);
         } finally {
             setIsLoadingNotifs(false);
         }
@@ -159,7 +176,7 @@ export default function UserNavbar() {
                             if (!showNotifDropdown) {
                                 setNotifCount(0);
                                 if (user) {
-                                    fetch(`${process.env.NEXT_PUBLIC_API_URL}/notifications/${user.id}/read-all`, { method: 'PUT' })
+                                    fetch(`${getApiUrl()}/notifications/${user.id}/read-all`, { method: 'PUT' })
                                         .then(() => fetchNotifications())
                                         .catch(console.error);
                                 } else {
@@ -194,7 +211,7 @@ export default function UserNavbar() {
                                     onClick={async () => {
                                         if (user) {
                                             try {
-                                                await fetch(`${process.env.NEXT_PUBLIC_API_URL}/notifications/${user.id}`, { method: 'DELETE' });
+                                                await fetch(`${getApiUrl()}/notifications/${user.id}`, { method: 'DELETE' });
                                                 setNotifications([]);
                                                 setNotifCount(0);
                                                 fetchNotifications();
@@ -308,22 +325,26 @@ export default function UserNavbar() {
 
                 {/* Profile User Dropdown */}
                 <div className="relative">
-                    <button
-                        onClick={() => {
-                            setShowProfileDropdown(!showProfileDropdown);
-                            setShowNotifDropdown(false);
-                        }}
-                        className="flex items-center gap-3 p-1.5 pr-3 rounded-xl bg-zinc-900 border border-zinc-800 hover:bg-zinc-800/80 transition-all hover:border-zinc-700 active:scale-95"
-                    >
-                        <div className="w-8 h-8 bg-emerald-500 rounded-lg flex items-center justify-center text-zinc-950 font-black text-sm shadow-[0_0_10px_rgba(16,185,129,0.2)]">
-                            {user?.username ? user.username.charAt(0).toUpperCase() : "U"}
-                        </div>
-                        <div className="hidden sm:flex flex-col items-start leading-none">
-                            <span className="text-xs font-bold text-white max-w-[80px] truncate">{user?.name || user?.username || "User"}</span>
-                            <span className="text-[9px] font-semibold text-emerald-500 uppercase tracking-widest mt-0.5">Verified</span>
-                        </div>
-                        <ChevronDown size={14} className={`text-zinc-500 transition-transform duration-300 ${showProfileDropdown ? "rotate-180" : ""}`} />
-                    </button>
+                    {!isLoaded ? (
+                        <div className="w-24 h-10 bg-zinc-900 border border-zinc-800 rounded-xl animate-pulse"></div>
+                    ) : (
+                        <button
+                            onClick={() => {
+                                setShowProfileDropdown(!showProfileDropdown);
+                                setShowNotifDropdown(false);
+                            }}
+                            className="flex items-center gap-3 p-1.5 pr-3 rounded-xl bg-zinc-900 border border-zinc-800 hover:bg-zinc-800/80 transition-all hover:border-zinc-700 active:scale-95"
+                        >
+                            <div className="w-8 h-8 bg-emerald-500 rounded-lg flex items-center justify-center text-zinc-950 font-black text-sm shadow-[0_0_10px_rgba(16,185,129,0.2)]">
+                                {user?.username ? user.username.charAt(0).toUpperCase() : "U"}
+                            </div>
+                            <div className="hidden sm:flex flex-col items-start leading-none">
+                                <span className="text-xs font-bold text-white max-w-[80px] truncate">{user?.name || user?.username || "User"}</span>
+                                <span className="text-[9px] font-semibold text-emerald-500 uppercase tracking-widest mt-0.5">Verified</span>
+                            </div>
+                            <ChevronDown size={14} className={`text-zinc-500 transition-transform duration-300 ${showProfileDropdown ? "rotate-180" : ""}`} />
+                        </button>
+                    )}
 
                     {/* Profile Dropdown Menu */}
                     {showProfileDropdown && (

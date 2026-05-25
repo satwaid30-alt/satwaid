@@ -4,6 +4,7 @@ import { useState, useEffect, use } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { io } from "socket.io-client";
+import { getApiUrl, getSocketUrl } from "@/app/utils/api";
 import {
     Package,
     MapPin,
@@ -58,11 +59,31 @@ export default function TransactionProcessPage({ params }) {
         if (userStr) {
             try {
                 const userData = JSON.parse(userStr);
-                socket = io(process.env.NEXT_PUBLIC_API_URL);
-                socket.emit("join_user", userData.id);
-                
-                socket.on("new_notification", () => {
+                const token = typeof window !== 'undefined' ? localStorage.getItem("token") : null;
+                socket = io(getSocketUrl(), {
+                    auth: {
+                        token: token ? `Bearer ${token}` : null
+                    }
+                });
+
+                socket.on("connect", () => {
+                    console.log("[Socket] Connected successfully with ID:", socket.id);
+                    socket.emit("join_user", userData.id);
+                    socket.emit("join_order", id);
+                });
+
+                socket.on("connect_error", (err) => {
+                    console.error("[Socket] Connection error:", err.message);
+                });
+
+                socket.on("new_notification", (notif) => {
+                    console.log("[Socket] Received new_notification:", notif);
                     fetchOrderDetail(); // Auto-refresh when status changes
+                });
+
+                socket.on("order_updated", (update) => {
+                    console.log("[Socket] Received order_updated:", update);
+                    fetchOrderDetail(); // Auto-refresh when transaction changes
                 });
             } catch (e) {
                 console.error("Socket connection error", e);
@@ -76,7 +97,7 @@ export default function TransactionProcessPage({ params }) {
 
     const fetchOrderDetail = async () => {
         try {
-            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/orders/${id}`);
+            const res = await fetch(`${getApiUrl()}/orders/${id}`);
             const result = await res.json();
             if (res.ok && result.data) {
                 const orderData = result.data;
@@ -99,7 +120,7 @@ export default function TransactionProcessPage({ params }) {
                 const userStr = localStorage.getItem("user");
                 if (userStr && (!orderData.bank_account)) {
                     const user = JSON.parse(userStr);
-                    const userRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/users/${user.id}`);
+                    const userRes = await fetch(`${getApiUrl()}/users/${user.id}`);
                     const userResult = await userRes.json();
                     if (userRes.ok && userResult.data) {
                         const userData = userResult.data;
@@ -143,7 +164,7 @@ export default function TransactionProcessPage({ params }) {
 
         setIsCancelling(true);
         try {
-            const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/orders/${id}/cancel`, {
+            const response = await fetch(`${getApiUrl()}/orders/${id}/cancel`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -170,7 +191,7 @@ export default function TransactionProcessPage({ params }) {
         e.preventDefault();
         setIsUpdatingShipping(true);
         try {
-            const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/orders/${id}/shipping-info`, {
+            const response = await fetch(`${getApiUrl()}/orders/${id}/shipping-info`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -242,9 +263,9 @@ export default function TransactionProcessPage({ params }) {
                         <OrderTimeline order={order} formatPrice={formatPrice} />
                     </div>
                     {/* Dynamic Action Card based on Status */}
-                    <div className="bg-zinc-900 border border-zinc-800 rounded-[3rem] p-10 shadow-2xl relative overflow-hidden">
+                    <div className="bg-zinc-900 border border-zinc-800 rounded-[3rem] p-10 relative overflow-hidden">
                         <div className="flex flex-col md:flex-row items-center gap-8">
-                            <div className="w-24 h-24 bg-emerald-500/10 text-emerald-500 rounded-[2rem] flex items-center justify-center shrink-0 border border-emerald-500/20 shadow-inner">
+                            <div className="w-24 h-24 bg-emerald-500/10 text-emerald-500 rounded-[2rem] flex items-center justify-center shrink-0 border border-emerald-500/20">
                                 {['completed', 'disbursement_requested', 'disbursed'].includes(order.status) ? <CheckCircle2 size={48} /> :
                                     order.status === 'complained' ? <ShieldAlert size={48} className="text-red-500" /> :
                                         <Info size={48} />}
@@ -256,7 +277,7 @@ export default function TransactionProcessPage({ params }) {
                                             order.status === 'waiting_payment' ? "Selesaikan Pembayaran" :
                                                 order.status === 'processing' ? "Menunggu Verifikasi" :
                                                     ['waiting_shipment', 'payment_verified'].includes(order.status) ? "Pesanan Sedang Diproses" :
-                                                        order.status === 'shipped' ? "Pesanan Dalam Perjalanan" :
+                                                        order.status === 'shipped' ? "Pesanan Sedang Dikirim" :
                                                             order.status === 'complained' ? "Pesanan Dikomplain" :
                                                                 ['completed', 'disbursement_requested', 'disbursed'].includes(order.status) ? "Transaksi Selesai" : "Status Unknown"}
                                 </h2>
@@ -266,7 +287,7 @@ export default function TransactionProcessPage({ params }) {
                                             order.status === 'waiting_payment' ? "Biaya pengiriman sudah ditentukan. Silakan lakukan pembayaran agar pesanan bisa segera diproses." :
                                                 order.status === 'processing' ? "Pembayaran Anda telah diterima. Admin sedang memverifikasi data transaksi Anda." :
                                                     ['waiting_shipment', 'payment_verified'].includes(order.status) ? "Pembayaran terverifikasi! Penjual sedang menyiapkan paket Anda untuk segera dikirim." :
-                                                        order.status === 'shipped' ? "Paket Anda telah diserahkan ke kurir dengan nomor resi di bawah. Silakan pantau secara berkala." :
+                                                        order.status === 'shipped' ? "Pesanan Anda sedang dalam proses pengiriman dan dapat dipantau melalui nomor resi yang tersedia." :
                                                             order.status === 'complained' ? "Anda telah mengajukan komplain untuk pesanan ini. Mohon tunggu tanggapan dari penjual atau bantuan admin." :
                                                                 ['completed', 'disbursement_requested', 'disbursed'].includes(order.status) ? "Terima kasih telah berbelanja! Pesanan Anda telah sampai dan transaksi dinyatakan selesai." : ""}
                                 </p>
@@ -281,7 +302,7 @@ export default function TransactionProcessPage({ params }) {
                                                 setShowShippingModal(true);
                                             }
                                         }}
-                                        className="w-full md:w-auto px-10 py-5 bg-emerald-500 hover:bg-emerald-400 text-zinc-950 font-black rounded-2xl transition-all shadow-xl shadow-emerald-500/20 active:scale-95 flex items-center justify-center gap-3"
+                                        className="w-full md:w-auto px-10 py-5 bg-emerald-500 hover:bg-emerald-400 text-zinc-950 font-black rounded-2xl transition-all active:scale-95 flex items-center justify-center gap-3"
                                     >
                                         Lengkapi Sekarang <MapPin size={20} />
                                     </button>
@@ -289,7 +310,7 @@ export default function TransactionProcessPage({ params }) {
                                 {order.status === 'waiting_payment' && (
                                     <Link
                                         href={`/user/pesanan/bayar/${id}`}
-                                        className="w-full md:w-auto px-10 py-5 bg-emerald-500 hover:bg-emerald-400 text-zinc-950 font-black rounded-2xl transition-all shadow-xl shadow-emerald-500/20 active:scale-95 flex items-center justify-center gap-3"
+                                        className="w-full md:w-auto px-10 py-5 bg-emerald-500 hover:bg-emerald-400 text-zinc-950 font-black rounded-2xl transition-all active:scale-95 flex items-center justify-center gap-3"
                                     >
                                         Bayar Sekarang <CreditCard size={20} />
                                     </Link>
@@ -297,12 +318,13 @@ export default function TransactionProcessPage({ params }) {
                                 {order.status === 'shipped' && (
                                     <Link
                                         href={`/user/pesanan/transaksi-selesai/${id}`}
-                                        className="w-full md:w-auto px-10 py-5 bg-blue-500 hover:bg-blue-400 text-zinc-950 font-black rounded-2xl transition-all shadow-xl shadow-blue-500/20 active:scale-95 flex items-center justify-center gap-3"
+                                        replace
+                                        className="w-full md:w-auto px-10 py-5 bg-blue-500 hover:bg-blue-400 text-zinc-950 font-black rounded-2xl transition-all active:scale-95 flex items-center justify-center gap-3"
                                     >
-                                        Konfirmasi Barang <CheckCircle2 size={20} />
+                                        Pesanan Diterima <CheckCircle2 size={20} />
                                     </Link>
                                 )}
-                                {['pending_shipping_info', 'waiting_shipping_cost', 'waiting_payment'].includes(order.status) && (
+                                {order.product?.type === 'sell' && ['pending_shipping_info', 'waiting_shipping_cost', 'waiting_payment'].includes(order.status) && (
                                     <button
                                         onClick={handleCancelOrder}
                                         className="w-full md:w-auto px-10 py-4 bg-red-500/10 hover:bg-red-500 text-red-500 hover:text-white font-black rounded-2xl transition-all border border-red-500/20 flex items-center justify-center gap-3 active:scale-95"
@@ -326,7 +348,7 @@ export default function TransactionProcessPage({ params }) {
                 {/* Sidebar Summary */}
                 <div className="lg:col-span-4 space-y-8">
                     {/* Alamat Pengiriman */}
-                    <div className="bg-zinc-900 border border-zinc-800 rounded-[3rem] p-8 shadow-2xl space-y-6">
+                    <div className="bg-zinc-900 border border-zinc-800 rounded-[3rem] p-8 space-y-6">
                         <div className="flex items-center justify-between">
                             <h3 className="text-[10px] font-black text-zinc-100 uppercase tracking-widest flex items-center gap-2">
                                 <MapPin size={14} className="text-pink-500" /> Alamat Pengiriman
@@ -341,6 +363,7 @@ export default function TransactionProcessPage({ params }) {
                                     <p className="text-sm text-white font-black uppercase tracking-tight">{order.receiver_name || "Nama Belum Diisi"}</p>
                                     <p className="text-xs text-zinc-400 leading-relaxed font-medium line-clamp-3">{order.shipping_address || "Alamat belum dilengkapi"}</p>
                                 </div>
+
 
                                 <div className="space-y-2 pt-2 border-t border-zinc-800/50">
                                     <div className="flex items-center gap-2 text-zinc-500">
@@ -377,7 +400,7 @@ export default function TransactionProcessPage({ params }) {
                     </div>
 
                     {/* Ringkasan Biaya */}
-                    <div className="bg-zinc-900 border border-zinc-800 rounded-[3rem] p-8 shadow-2xl space-y-8">
+                    <div className="bg-zinc-900 border border-zinc-800 rounded-[3rem] p-8 space-y-8">
                         <h3 className="text-[10px] font-black text-zinc-100 uppercase tracking-widest flex items-center gap-2">
                             <CreditCard size={14} className="text-emerald-500" /> Ringkasan Pembayaran
                         </h3>
@@ -418,7 +441,7 @@ export default function TransactionProcessPage({ params }) {
             {showShippingModal && (
                 <div className="fixed inset-0 z-[150] flex items-center justify-center p-4 overflow-y-auto">
                     <div className="absolute inset-0 bg-zinc-950/90 backdrop-blur-md animate-in fade-in duration-300" onClick={() => !isUpdatingShipping && setShowShippingModal(false)}></div>
-                    <div className="bg-zinc-900 border border-zinc-800 w-full max-w-lg rounded-[2rem] lg:rounded-[2.5rem] relative z-10 overflow-hidden shadow-2xl animate-in zoom-in-95 duration-300 my-auto max-h-[90vh] flex flex-col">
+                    <div className="bg-zinc-900 border border-zinc-800 w-full max-w-lg rounded-[2rem] lg:rounded-[2.5rem] relative z-10 overflow-hidden animate-in zoom-in-95 duration-300 my-auto max-h-[90vh] flex flex-col">
                         <div className="p-6 lg:p-8 space-y-6 lg:space-y-8 overflow-y-auto custom-scrollbar">
                             <div className="text-center space-y-2">
                                 <div className="w-12 h-12 lg:w-16 lg:h-16 bg-emerald-500/10 text-emerald-500 rounded-2xl flex items-center justify-center mx-auto mb-2 lg:mb-4">
@@ -528,7 +551,7 @@ export default function TransactionProcessPage({ params }) {
                                     <button
                                         type="submit"
                                         disabled={isUpdatingShipping}
-                                        className="flex-1 py-4 bg-emerald-500 hover:bg-emerald-400 text-zinc-950 font-black rounded-2xl transition-all shadow-lg shadow-emerald-500/20 disabled:opacity-50 flex items-center justify-center gap-2"
+                                        className="flex-1 py-4 bg-emerald-500 hover:bg-emerald-400 text-zinc-950 font-black rounded-2xl transition-all disabled:opacity-50 flex items-center justify-center gap-2"
                                     >
                                         {isUpdatingShipping ? (
                                             <>
@@ -550,7 +573,7 @@ export default function TransactionProcessPage({ params }) {
                         className="absolute inset-0 bg-zinc-950/80 backdrop-blur-md animate-in fade-in duration-300"
                         onClick={() => !isCancelling && setShowCancelModal(false)}
                     ></div>
-                    <div className="bg-zinc-900 border border-zinc-800 w-full max-w-md rounded-[2.5rem] relative z-10 overflow-hidden shadow-2xl animate-in zoom-in-95 duration-300">
+                    <div className="bg-zinc-900 border border-zinc-800 w-full max-w-md rounded-[2.5rem] relative z-10 overflow-hidden animate-in zoom-in-95 duration-300">
                         <div className="p-8 space-y-6 text-center">
                             <div className="w-20 h-20 bg-red-500/10 text-red-500 rounded-[2rem] flex items-center justify-center mx-auto mb-4 border border-red-500/20">
                                 <AlertCircle size={40} />
@@ -574,7 +597,7 @@ export default function TransactionProcessPage({ params }) {
                                 <button
                                     disabled={isCancelling}
                                     onClick={confirmCancelOrder}
-                                    className="flex-1 py-4 bg-red-500 hover:bg-red-600 text-white font-black rounded-2xl transition-all shadow-lg shadow-red-500/20 disabled:opacity-50 flex items-center justify-center gap-2"
+                                    className="flex-1 py-4 bg-red-500 hover:bg-red-600 text-white font-black rounded-2xl transition-all disabled:opacity-50 flex items-center justify-center gap-2"
                                 >
                                     {isCancelling ? (
                                         <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
@@ -594,9 +617,9 @@ export default function TransactionProcessPage({ params }) {
                         className="absolute inset-0 bg-zinc-950/80 backdrop-blur-md animate-in fade-in duration-500"
                         onClick={() => setShowSuccessModal(false)}
                     ></div>
-                    <div className="bg-zinc-900 border border-zinc-800 w-full max-w-sm rounded-[2.5rem] relative z-10 overflow-hidden shadow-2xl animate-in zoom-in-95 duration-300">
+                    <div className="bg-zinc-900 border border-zinc-800 w-full max-w-sm rounded-[2.5rem] relative z-10 overflow-hidden animate-in zoom-in-95 duration-300">
                         <div className="p-10 text-center space-y-6">
-                            <div className="w-20 h-20 bg-emerald-500/10 text-emerald-500 rounded-[2.2rem] flex items-center justify-center mx-auto border border-emerald-500/20 shadow-lg shadow-emerald-500/10">
+                            <div className="w-20 h-20 bg-emerald-500/10 text-emerald-500 rounded-[2.2rem] flex items-center justify-center mx-auto border border-emerald-500/20">
                                 <CheckCircle2 size={44} className="animate-in zoom-in duration-700" />
                             </div>
                             <div className="space-y-2">
@@ -607,7 +630,7 @@ export default function TransactionProcessPage({ params }) {
                             </div>
                             <button
                                 onClick={() => setShowSuccessModal(false)}
-                                className="w-full py-4 bg-emerald-500 hover:bg-emerald-400 text-zinc-950 font-black rounded-2xl transition-all shadow-xl shadow-emerald-500/20 active:scale-95"
+                                className="w-full py-4 bg-emerald-500 hover:bg-emerald-400 text-zinc-950 font-black rounded-2xl transition-all active:scale-95"
                             >
                                 Oke, Mengerti
                             </button>
@@ -620,9 +643,9 @@ export default function TransactionProcessPage({ params }) {
             {showProfileWarning && (
                 <div className="fixed inset-0 z-[300] flex items-center justify-center p-4">
                     <div className="absolute inset-0 bg-zinc-950/90 backdrop-blur-md animate-in fade-in duration-300" onClick={() => setShowProfileWarning(false)}></div>
-                    <div className="bg-zinc-900 border border-zinc-800 w-full max-w-md rounded-[2.5rem] relative z-10 overflow-hidden shadow-2xl animate-in zoom-in-95 duration-300">
+                    <div className="bg-zinc-900 border border-zinc-800 w-full max-w-md rounded-[2.5rem] relative z-10 overflow-hidden animate-in zoom-in-95 duration-300">
                         <div className="p-8 lg:p-10 space-y-6 text-center">
-                            <div className="w-20 h-20 bg-amber-500/10 text-amber-500 rounded-[2rem] flex items-center justify-center mx-auto mb-4 border border-amber-500/20 shadow-inner">
+                            <div className="w-20 h-20 bg-amber-500/10 text-amber-500 rounded-[2rem] flex items-center justify-center mx-auto mb-4 border border-amber-500/20">
                                 <ShieldAlert size={40} />
                             </div>
                             <div className="space-y-2">
@@ -635,7 +658,7 @@ export default function TransactionProcessPage({ params }) {
                             <div className="flex flex-col gap-3 pt-2">
                                 <Link
                                     href="/user/pengaturan"
-                                    className="w-full py-4 bg-emerald-500 hover:bg-emerald-400 text-zinc-950 font-black rounded-2xl transition-all shadow-lg shadow-emerald-500/20 active:scale-95 flex items-center justify-center gap-2"
+                                    className="w-full py-4 bg-emerald-500 hover:bg-emerald-400 text-zinc-950 font-black rounded-2xl transition-all active:scale-95 flex items-center justify-center gap-2"
                                 >
                                     Lengkapi Profil Sekarang <ChevronRight size={18} />
                                 </Link>

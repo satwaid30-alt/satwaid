@@ -16,6 +16,7 @@ import {
     ArrowLeft, MapPin, Tag, ChevronDown, ChevronUp, AlertCircle, Star, Image as ImageIcon, Upload, Info
 } from "lucide-react";
 import ActionModal from "@/components/ActionModal";
+import { getApiUrl, getLogoUrl } from "@/app/utils/api";
 
 export default function UserTokoDetailPage() {
     const params = useParams();
@@ -26,16 +27,62 @@ export default function UserTokoDetailPage() {
     const [showResubmitSuccess, setShowResubmitSuccess] = useState(false);
 
     const [shopData, setShopData] = useState(null);
+    const [reviews, setReviews] = useState([]);
+    const [loadingReviews, setLoadingReviews] = useState(true);
+    const [currentPage, setCurrentPage] = useState(1);
 
     useEffect(() => {
         if (params.id) {
             fetchShopDetail();
+            fetchShopReviews();
         }
     }, [params.id]);
 
+    const fetchShopReviews = async () => {
+        try {
+            const response = await fetch(`${getApiUrl()}/orders/shop/${params.id}`);
+            const result = await response.json();
+            if (response.ok && result.data) {
+                // Filter only orders that have a rating or a review
+                const filtered = result.data.filter(order => order.rating !== null || order.review);
+                setReviews(filtered);
+            }
+        } catch (err) {
+            console.error("Error fetching shop reviews:", err);
+        } finally {
+            setLoadingReviews(false);
+        }
+    };
+
+    const maskName = (name) => {
+        if (!name) return "Pembeli Anonim";
+        const parts = name.trim().split(/\s+/);
+        return parts.map(part => {
+            if (part.length <= 2) {
+                return part[0] + "*".repeat(part.length - 1);
+            }
+            return part[0] + "*".repeat(part.length - 2) + part[part.length - 1];
+        }).join(" ");
+    };
+
+    const renderStars = (rating) => {
+        const stars = [];
+        const r = Math.round(rating || 5);
+        for (let i = 1; i <= 5; i++) {
+            stars.push(
+                <Star
+                    key={i}
+                    size={14}
+                    className={i <= r ? "text-amber-500 fill-amber-500" : "text-zinc-700"}
+                />
+            );
+        }
+        return <div className="flex items-center gap-1">{stars}</div>;
+    };
+
     const fetchShopDetail = async () => {
         try {
-            const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/shops/${params.id}`);
+            const response = await fetch(`${getApiUrl()}/shops/${params.id}`);
             const result = await response.json();
             if (response.ok && result.data) {
                 setShopData(result.data);
@@ -55,7 +102,7 @@ export default function UserTokoDetailPage() {
 
         setIsSubmitting(true);
         try {
-            const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/shops/${shopData.id}`, {
+            const response = await fetch(`${getApiUrl()}/shops/${shopData.id}`, {
                 method: "PUT",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
@@ -92,6 +139,13 @@ export default function UserTokoDetailPage() {
 
     const userBankAccounts = shopData.owner?.bank_accounts || [];
 
+    // Pagination for Reviews
+    const reviewsPerPage = 4;
+    const indexOfLastReview = currentPage * reviewsPerPage;
+    const indexOfFirstReview = indexOfLastReview - reviewsPerPage;
+    const currentReviews = reviews.slice(indexOfFirstReview, indexOfLastReview);
+    const totalPages = Math.ceil(reviews.length / reviewsPerPage);
+
     return (
         <div className="min-h-screen bg-zinc-950 text-zinc-300 py-6 sm:py-12 px-3 sm:px-6 lg:px-8">
             <div className="max-w-7xl mx-auto space-y-6 sm:space-y-10 animate-in fade-in duration-500">
@@ -102,7 +156,7 @@ export default function UserTokoDetailPage() {
                         <div className="w-16 h-16 sm:w-24 sm:h-24 bg-zinc-950 rounded-2xl sm:rounded-3xl overflow-hidden border border-zinc-800 shrink-0 relative group">
                             {shopData.logo_url ? (
                                 <img
-                                    src={shopData.logo_url}
+                                    src={getLogoUrl(shopData.logo_url)}
                                     alt={shopData.name}
                                     className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                                 />
@@ -125,7 +179,7 @@ export default function UserTokoDetailPage() {
                             {/* Shop Code Badge */}
                             {shopData.shop_code && (
                                 <div className="flex items-center justify-center mt-3 mb-4 sm:mb-6">
-                                    <div className="group/code flex items-center gap-3 bg-zinc-950/50 border border-zinc-800/80 hover:border-emerald-500/40 px-4 py-2 rounded-2xl transition-all duration-500 hover:shadow-lg hover:shadow-emerald-500/5 backdrop-blur-md">
+                                    <div className="group/code flex items-center gap-3 bg-zinc-950/50 border border-zinc-800/80 hover:border-emerald-500/40 px-4 py-2 rounded-2xl transition-all duration-500 backdrop-blur-md">
                                         <div className="flex items-center gap-1.5 border-r border-zinc-800/80 pr-2.5">
                                             <i className="fa-solid fa-id-badge text-[10px] text-emerald-500/70"></i>
                                             <span className="text-[10px] font-black text-zinc-500 uppercase tracking-tighter">ID Toko</span>
@@ -198,18 +252,24 @@ export default function UserTokoDetailPage() {
                     </div>
 
                     {/* Policies Display */}
-                    <div className="mt-6 sm:mt-8 pt-6 sm:pt-8 border-t border-zinc-800 grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-8">
+                    <div className="mt-6 sm:mt-8 pt-6 sm:pt-8 border-t border-zinc-800 grid grid-cols-1 sm:grid-cols-2 gap-6 sm:gap-8">
                         <div>
                             <p className="text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-2 sm:mb-3 flex items-center gap-2">
                                 <i className="fa-solid fa-truck-fast text-emerald-500"></i> Kebijakan Pengiriman
                             </p>
-                            <div className="text-xs sm:text-sm text-zinc-400 leading-relaxed description-content bg-zinc-950/30 p-3 sm:p-5 rounded-xl sm:rounded-2xl border border-zinc-800 break-words" dangerouslySetInnerHTML={{ __html: shopData.shipping_policy || '<span class="italic opacity-50">Belum diatur</span>' }}></div>
+                            <div 
+                                className="text-xs sm:text-sm text-zinc-400 leading-relaxed description-content break-words" 
+                                dangerouslySetInnerHTML={{ __html: shopData.shipping_policy || '<span class="italic opacity-50">Belum diatur</span>' }}
+                            />
                         </div>
                         <div>
                             <p className="text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-2 sm:mb-3 flex items-center gap-2">
                                 <i className="fa-solid fa-shield-heart text-amber-500"></i> Kebijakan Garansi
                             </p>
-                            <div className="text-xs sm:text-sm text-zinc-400 leading-relaxed description-content bg-zinc-950/30 p-3 sm:p-5 rounded-xl sm:rounded-2xl border border-zinc-800 break-words" dangerouslySetInnerHTML={{ __html: shopData.warranty_policy || '<span class="italic opacity-50">Belum diatur</span>' }}></div>
+                            <div 
+                                className="text-xs sm:text-sm text-zinc-400 leading-relaxed description-content break-words" 
+                                dangerouslySetInnerHTML={{ __html: shopData.warranty_policy || '<span class="italic opacity-50">Belum diatur</span>' }}
+                            />
                         </div>
                     </div>
 
@@ -548,6 +608,144 @@ export default function UserTokoDetailPage() {
                     </div>
                 </div>
 
+                {/* Ulasan & Komentar Penjualan */}
+                <div className="bg-zinc-900 border border-zinc-800 rounded-3xl p-6 sm:p-10 space-y-6 sm:space-y-8">
+                    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-zinc-800 pb-6">
+                        <div className="space-y-1">
+                            <h2 className="text-xl sm:text-2xl font-black text-white uppercase tracking-tight flex items-center gap-2">
+                                <Star className="text-amber-500 fill-amber-500" size={24} /> Ulasan & Komentar Pembeli
+                            </h2>
+                            <p className="text-xs sm:text-sm text-zinc-500 font-medium">Ulasan dari hasil penjualan sukses toko Anda.</p>
+                        </div>
+                        <div className="flex items-center gap-4 bg-zinc-950/50 border border-zinc-850 px-4 py-3 rounded-2xl shrink-0">
+                            <div className="text-center border-r border-zinc-800 pr-4">
+                                <p className="text-2xl sm:text-3xl font-black text-white leading-none">{shopData.avgRating || "5.0"}</p>
+                                <p className="text-[9px] text-zinc-500 font-black uppercase tracking-wider mt-1">Skor Toko</p>
+                            </div>
+                            <div className="space-y-1">
+                                <div className="flex items-center gap-1">
+                                    {renderStars(parseFloat(shopData.avgRating || 5))}
+                                </div>
+                                <p className="text-[10px] text-zinc-400 font-bold tracking-tight">{reviews.length} Ulasan Terverifikasi</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    {loadingReviews ? (
+                        <div className="py-12 flex flex-col items-center justify-center gap-3">
+                            <div className="w-8 h-8 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin"></div>
+                            <p className="text-xs text-zinc-500 font-medium animate-pulse">Memuat Ulasan...</p>
+                        </div>
+                    ) : reviews.length > 0 ? (
+                        <>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
+                                {currentReviews.map((rev) => (
+                                    <div key={rev.id} className="bg-zinc-950/40 border border-zinc-800/80 rounded-2xl p-5 sm:p-6 space-y-4 hover:border-zinc-750 transition-all flex flex-col justify-between group">
+                                        <div className="space-y-3">
+                                            <div className="flex justify-between items-start gap-4">
+                                                <div className="flex items-center gap-3 min-w-0">
+                                                    <div className="w-10 h-10 rounded-full bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-500 font-black text-sm shrink-0 uppercase">
+                                                        {(rev.user?.name || rev.user?.username || "B").substring(0, 2)}
+                                                    </div>
+                                                    <div className="min-w-0">
+                                                        <h4 className="text-xs sm:text-sm font-black text-white truncate leading-none mb-1">
+                                                            {maskName(rev.user?.name || rev.user?.username)}
+                                                        </h4>
+                                                        <p className="text-[9px] text-zinc-500 font-bold">
+                                                            {new Date(rev.created_at || rev.updated_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                                <div className="bg-zinc-900/80 px-2.5 py-1.5 rounded-xl border border-zinc-800/60 shrink-0">
+                                                    {renderStars(rev.rating)}
+                                                </div>
+                                            </div>
+
+                                            <div className="bg-zinc-900/30 border border-zinc-850 p-3.5 rounded-xl text-xs text-zinc-400 font-medium leading-relaxed italic break-words">
+                                                &ldquo;{rev.review || "Pembeli memberikan rating bintang 5 otomatis tanpa komentar tertulis."}&rdquo;
+                                            </div>
+                                        </div>
+
+                                        {rev.product && (
+                                            <div className="pt-3 border-t border-zinc-900 flex items-center gap-3 bg-zinc-900/10 p-2.5 rounded-xl border border-zinc-850 mt-2 shrink-0">
+                                                <div className="w-10 h-10 rounded-lg overflow-hidden bg-zinc-950 border border-zinc-800 shrink-0">
+                                                    <img
+                                                        src={rev.product.images?.[0]}
+                                                        alt={rev.product.name}
+                                                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                                                    />
+                                                </div>
+                                                <div className="min-w-0 flex-1">
+                                                    <p className="text-[8px] font-black text-zinc-500 uppercase tracking-widest leading-none mb-1">Membeli Produk</p>
+                                                    <p className="text-[10px] sm:text-xs font-black text-zinc-300 truncate leading-tight group-hover:text-emerald-400 transition-colors">{rev.product.name}</p>
+                                                </div>
+                                            </div>
+                                        )}
+                                    </div>
+                                ))}
+                            </div>
+
+                            {/* Pagination Controls */}
+                            {totalPages > 1 && (
+                                <div className="flex flex-col sm:flex-row items-center justify-between gap-4 border-t border-zinc-800/80 pt-6 mt-6">
+                                    <p className="text-[10px] text-zinc-500 font-black uppercase tracking-wider">
+                                        Menampilkan {indexOfFirstReview + 1} - {Math.min(indexOfLastReview, reviews.length)} dari {reviews.length} Ulasan
+                                    </p>
+                                    <div className="flex items-center gap-1.5">
+                                        <button
+                                            type="button"
+                                            onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                                            disabled={currentPage === 1}
+                                            className={`px-3 py-1.5 rounded-lg border text-[10px] font-black uppercase tracking-wider transition-all active:scale-95 ${currentPage === 1
+                                                ? "border-zinc-850 bg-zinc-900/10 text-zinc-600 cursor-not-allowed"
+                                                : "border-zinc-800 bg-zinc-900 hover:bg-zinc-850 text-zinc-300 hover:text-white"
+                                                }`}
+                                        >
+                                            Sebelumnya
+                                        </button>
+
+                                        {Array.from({ length: totalPages }, (_, i) => i + 1).map((pageNumber) => (
+                                            <button
+                                                type="button"
+                                                key={pageNumber}
+                                                onClick={() => setCurrentPage(pageNumber)}
+                                                className={`w-8 h-8 rounded-lg text-xs font-black transition-all active:scale-95 flex items-center justify-center border ${currentPage === pageNumber
+                                                    ? "bg-emerald-500 border-emerald-400 text-zinc-950"
+                                                    : "bg-zinc-900 border-zinc-850 text-zinc-400 hover:bg-zinc-850 hover:text-zinc-200"
+                                                    }`}
+                                            >
+                                                {pageNumber}
+                                            </button>
+                                        ))}
+
+                                        <button
+                                            type="button"
+                                            onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                                            disabled={currentPage === totalPages}
+                                            className={`px-3 py-1.5 rounded-lg border text-[10px] font-black uppercase tracking-wider transition-all active:scale-95 ${currentPage === totalPages
+                                                ? "border-zinc-850 bg-zinc-900/10 text-zinc-600 cursor-not-allowed"
+                                                : "border-zinc-850 bg-zinc-900 hover:bg-zinc-850 text-zinc-300 hover:text-white"
+                                                }`}
+                                        >
+                                            Berikutnya
+                                        </button>
+                                    </div>
+                                </div>
+                            )}
+                        </>
+                    ) : (
+                        <div className="py-16 text-center space-y-4 bg-zinc-950/20 border border-zinc-800 rounded-3xl border-dashed">
+                            <div className="w-16 h-16 bg-zinc-900 rounded-2xl flex items-center justify-center text-zinc-700 mx-auto">
+                                <Star size={28} />
+                            </div>
+                            <div className="space-y-1">
+                                <h3 className="text-base font-black text-white uppercase tracking-wider">Belum Ada Ulasan</h3>
+                                <p className="text-zinc-500 text-xs max-w-xs mx-auto">Ulasan dan rating dari pembeli tokomu akan ditampilkan secara berkala di sini.</p>
+                            </div>
+                        </div>
+                    )}
+                </div>
+
                 {/* Resubmit Success Modal */}
                 <ActionModal
                     isOpen={showResubmitSuccess}
@@ -562,15 +760,15 @@ export default function UserTokoDetailPage() {
             <style jsx global>{`
                 .description-content ul, .ql-editor ul {
                     list-style-type: disc !important;
-                    list-style-position: inside !important;
-                    padding-left: 0.5rem !important;
+                    list-style-position: outside !important;
+                    padding-left: 1.5rem !important;
                     margin-left: 0 !important;
                     margin-bottom: 1rem !important;
                 }
                 .description-content ol, .ql-editor ol {
                     list-style-type: decimal !important;
-                    list-style-position: inside !important;
-                    padding-left: 0.5rem !important;
+                    list-style-position: outside !important;
+                    padding-left: 1.5rem !important;
                     margin-left: 0 !important;
                     margin-bottom: 1rem !important;
                 }

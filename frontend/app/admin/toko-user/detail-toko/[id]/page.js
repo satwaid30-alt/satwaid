@@ -25,6 +25,7 @@ import {
     ShieldHalf
 } from "lucide-react";
 import ActionModal from "@/components/ActionModal";
+import { getApiUrl, getLogoUrl } from "@/app/utils/api";
 
 export default function AdminDetailTokoPage() {
     const params = useParams();
@@ -45,7 +46,7 @@ export default function AdminDetailTokoPage() {
 
     const fetchShopDetail = async () => {
         try {
-            const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/shops/${params.id}`);
+            const response = await fetch(`${getApiUrl()}/shops/${params.id}`);
             const result = await response.json();
             if (response.ok) {
                 setShop(result.data);
@@ -62,7 +63,7 @@ export default function AdminDetailTokoPage() {
 
     const handleUpdateStatus = async (status) => {
         try {
-            const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/shops/${shop.id}`, {
+            const response = await fetch(`${getApiUrl()}/shops/${shop.id}`, {
                 method: "PUT",
                 headers: { "Content-Type": "application/json"},
                 body: JSON.stringify({ status })
@@ -123,7 +124,7 @@ export default function AdminDetailTokoPage() {
                     <div className="flex items-center gap-6">
                         <div className="w-24 h-24 bg-zinc-900 rounded-[2rem] flex items-center justify-center text-emerald-500 border border-emerald-500/20 shadow-2xl overflow-hidden shrink-0">
                             {shop.logo_url ? (
-                                <img src={shop.logo_url} className="w-full h-full object-cover" alt={shop.name} />
+                                <img src={getLogoUrl(shop.logo_url)} className="w-full h-full object-cover" alt={shop.name} />
                             ) : (
                                 <Store size={40} />
                             )}

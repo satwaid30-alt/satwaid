@@ -20,6 +20,7 @@ import Link from "next/link";
 import Navbar from "../../../components/Navbar";
 import Comments from "../../../components/Comments";
 import { copyToClipboard } from "../../utils/clipboard";
+import { getApiUrl } from "@/app/utils/api";
 
 export default function DetailKomunitasPage() {
     const params = useParams();
@@ -50,7 +51,7 @@ export default function DetailKomunitasPage() {
 
     const markAsRead = async (userId) => {
         try {
-            await fetch(`${process.env.NEXT_PUBLIC_API_URL}/notifications/${userId}/read`, { method: 'PUT' });
+            await fetch(`${getApiUrl()}/notifications/${userId}/read`, { method: 'PUT' });
         } catch (e) {
             console.error("Error marking community as read:", e);
         }
@@ -65,7 +66,7 @@ export default function DetailKomunitasPage() {
     const handleLike = async () => {
         if (!currentUser) { alert("Silakan login untuk menyukai topik!"); return; }
         try {
-            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/topics/${topic.id}/like`, {
+            const res = await fetch(`${getApiUrl()}/topics/${topic.id}/like`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ user_id: currentUser.id })
@@ -85,7 +86,7 @@ export default function DetailKomunitasPage() {
 
     const fetchTopic = async () => {
         try {
-            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/topics/${id}`);
+            const res = await fetch(`${getApiUrl()}/topics/${id}`);
             const data = await res.json();
             if (res.ok) {
                 setTopic(data.data);
@@ -133,7 +134,7 @@ export default function DetailKomunitasPage() {
                     <h1 className="text-2xl font-black text-white mb-2">Topik Tidak Ditemukan</h1>
                     <p className="text-zinc-500 max-w-md text-sm">Topik diskusi yang Anda cari mungkin telah dihapus atau tidak tersedia.</p>
                 </div>
-                <Link href="/komunitas" className="px-6 py-3 bg-emerald-500 hover:bg-emerald-400 text-zinc-950 font-black rounded-2xl transition-all shadow-lg shadow-emerald-500/20">
+                <Link href="/komunitas" className="px-6 py-3 bg-emerald-500 hover:bg-emerald-400 text-zinc-950 font-black rounded-2xl transition-all">
                     Kembali ke Komunitas
                 </Link>
             </div>
@@ -141,11 +142,11 @@ export default function DetailKomunitasPage() {
     }
 
     const imageUrl = topic.image
-        ? (topic.image.startsWith('http') ? topic.image : `${process.env.NEXT_PUBLIC_API_URL}${topic.image}`)
+        ? (topic.image.startsWith('http') ? topic.image : `${getApiUrl()}${topic.image}`)
         : null;
 
     const avatarUrl = topic.author?.avatar_url
-        ? `${process.env.NEXT_PUBLIC_API_URL}${topic.author.avatar_url}`
+        ? `${getApiUrl()}${topic.author.avatar_url}`
         : null;
 
     return (
@@ -169,7 +170,7 @@ export default function DetailKomunitasPage() {
                     <div className="lg:col-span-8 space-y-6">
 
                         {/* Topic Article */}
-                        <article className="bg-zinc-900 border border-zinc-800 rounded-[2.5rem] overflow-hidden shadow-2xl animate-in fade-in slide-in-from-bottom-4 duration-500">
+                        <article className="bg-zinc-900 border border-zinc-800 rounded-[2.5rem] overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-500">
 
                             {/* Cover Image */}
                             {imageUrl && (
@@ -300,7 +301,7 @@ export default function DetailKomunitasPage() {
                     <aside className="lg:col-span-4 space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700 delay-100">
 
                         {/* Author Card */}
-                        <div className="bg-zinc-900 border border-zinc-800 rounded-[2rem] p-6 space-y-4 shadow-xl">
+                        <div className="bg-zinc-900 border border-zinc-800 rounded-[2rem] p-6 space-y-4">
                             <h3 className="text-[10px] font-black text-zinc-600 uppercase tracking-widest flex items-center gap-2">
                                 <User size={12} /> Penulis
                             </h3>
@@ -324,7 +325,7 @@ export default function DetailKomunitasPage() {
                         </div>
 
                         {/* Topic Stats */}
-                        <div className="bg-zinc-900 border border-zinc-800 rounded-[2rem] p-6 space-y-4 shadow-xl">
+                        <div className="bg-zinc-900 border border-zinc-800 rounded-[2rem] p-6 space-y-4">
                             <h3 className="text-[10px] font-black text-zinc-600 uppercase tracking-widest">Statistik Topik</h3>
                             <div className="space-y-3">
                                 <div className="flex items-center justify-between">
@@ -369,7 +370,7 @@ export default function DetailKomunitasPage() {
                         <ArrowLeft size={24} className="rotate-90" />
                     </button>
                     <div
-                        className="relative max-w-7xl max-h-[90vh] overflow-hidden rounded-2xl shadow-2xl animate-in zoom-in-95 duration-300"
+                        className="relative max-w-7xl max-h-[90vh] overflow-hidden rounded-2xl animate-in zoom-in-95 duration-300"
                         onClick={(e) => e.stopPropagation()}
                     >
                         <img

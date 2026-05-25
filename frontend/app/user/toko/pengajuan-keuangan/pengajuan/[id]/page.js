@@ -1,12 +1,12 @@
 "use client";
 
 import { useState, useEffect, use } from "react";
-import { 
-    ChevronLeft, 
-    ArrowUpRight, 
-    CheckCircle2, 
-    CreditCard, 
-    Info, 
+import {
+    ChevronLeft,
+    ArrowUpRight,
+    CheckCircle2,
+    CreditCard,
+    Info,
     AlertCircle,
     DollarSign,
     Package,
@@ -17,6 +17,7 @@ import {
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import ActionModal from "@/components/ActionModal";
+import { getApiUrl } from "@/app/utils/api";
 
 export default function PengajuanPencairanPage({ params }) {
     const { id } = use(params);
@@ -32,10 +33,43 @@ export default function PengajuanPencairanPage({ params }) {
         onConfirm: null
     });
 
+    // Helper to get Seller/Shop Owner bank info
+    const getSellerBankInfo = () => {
+        const owner = order?.shop?.owner;
+        let bankAccounts = owner?.bank_accounts;
+        
+        // If it is a string representation of JSON, parse it
+        if (typeof bankAccounts === 'string') {
+            try {
+                bankAccounts = JSON.parse(bankAccounts);
+            } catch (e) {
+                bankAccounts = null;
+            }
+        }
+        
+        if (Array.isArray(bankAccounts) && bankAccounts.length > 0) {
+            const primaryBank = bankAccounts[0];
+            return {
+                bankName: primaryBank.bank_name || primaryBank.bankName || "-",
+                bankAccount: primaryBank.account_number || primaryBank.accountNumber || primaryBank.bank_account || "-",
+                bankHolder: primaryBank.account_name || primaryBank.accountName || primaryBank.bank_holder || owner.name || "-"
+            };
+        }
+        
+        // Fallbacks
+        return {
+            bankName: order?.shop?.bank_name || "-",
+            bankAccount: order?.shop?.bank_account || "-",
+            bankHolder: order?.shop?.bank_holder || owner?.name || "-"
+        };
+    };
+
+    const sellerBank = getSellerBankInfo();
+
     const fetchOrderDetail = async () => {
         setIsLoading(true);
         try {
-            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/orders/${id}`);
+            const res = await fetch(`${getApiUrl()}/orders/${id}`);
             const result = await res.json();
             if (res.ok && result.data) {
                 setOrder(result.data);
@@ -60,7 +94,7 @@ export default function PengajuanPencairanPage({ params }) {
     const handleSubmit = async () => {
         setIsSubmitting(true);
         try {
-            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/orders/${id}/request-disbursement`, {
+            const res = await fetch(`${getApiUrl()}/orders/${id}/request-disbursement`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' }
             });
@@ -128,7 +162,7 @@ export default function PengajuanPencairanPage({ params }) {
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
                 {/* Summary Info */}
                 <div className="lg:col-span-7 space-y-8">
-                    <div className="bg-zinc-900 border border-zinc-800 rounded-[3rem] p-10 shadow-2xl space-y-10 relative overflow-hidden">
+                    <div className="bg-zinc-900 border border-zinc-800 rounded-[3rem] p-10 space-y-10 relative overflow-hidden">
                         <div className="relative z-10 space-y-8">
                             <div className="flex items-center gap-4">
                                 <div className="w-14 h-14 bg-emerald-500/10 text-emerald-500 rounded-2xl flex items-center justify-center border border-emerald-500/20">
@@ -147,7 +181,7 @@ export default function PengajuanPencairanPage({ params }) {
                                         <div className="px-2 py-1 bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 rounded-lg text-[9px] font-black uppercase">Selesai</div>
                                     </div>
                                     <div className="flex items-center gap-4">
-                                        <div className="w-16 h-16 bg-zinc-900 rounded-2xl overflow-hidden border border-zinc-800 shrink-0 shadow-inner">
+                                        <div className="w-16 h-16 bg-zinc-900 rounded-2xl overflow-hidden border border-zinc-800 shrink-0">
                                             <img src={order.product?.images?.[0] || "https://placehold.co/100x100"} className="w-full h-full object-cover" />
                                         </div>
                                         <div className="min-w-0">
@@ -159,7 +193,7 @@ export default function PengajuanPencairanPage({ params }) {
 
                                 <div className="space-y-4">
                                     <p className="text-[10px] font-black text-zinc-500 uppercase tracking-widest ml-1">Rincian Dana Pencairan</p>
-                                    <div className="bg-zinc-950/30 rounded-3xl border border-zinc-800 p-6 space-y-4 shadow-inner">
+                                    <div className="bg-zinc-950/30 rounded-3xl border border-zinc-800 p-6 space-y-4">
                                         <div className="flex justify-between items-center text-xs">
                                             <span className="text-zinc-500 font-bold uppercase tracking-widest">Harga Produk</span>
                                             <span className="text-white font-black">{formatPrice(order.price * order.quantity)}</span>
@@ -193,7 +227,7 @@ export default function PengajuanPencairanPage({ params }) {
                             <button
                                 onClick={handleSubmit}
                                 disabled={isSubmitting}
-                                className="w-full py-5 bg-emerald-500 hover:bg-emerald-400 text-zinc-950 font-black rounded-3xl transition-all shadow-2xl shadow-emerald-500/20 disabled:opacity-50 flex items-center justify-center gap-3 active:scale-[0.98] group"
+                                className="w-full py-5 bg-emerald-500 hover:bg-emerald-400 text-zinc-950 font-black rounded-3xl transition-all disabled:opacity-50 flex items-center justify-center gap-3 active:scale-[0.98] group"
                             >
                                 {isSubmitting ? (
                                     <>
@@ -202,7 +236,7 @@ export default function PengajuanPencairanPage({ params }) {
                                     </>
                                 ) : (
                                     <>
-                                        <Send size={20} className="group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" /> 
+                                        <Send size={20} className="group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
                                         Kirim Pengajuan Sekarang
                                     </>
                                 )}
@@ -218,7 +252,7 @@ export default function PengajuanPencairanPage({ params }) {
 
                 {/* Account Details Sidebar */}
                 <div className="lg:col-span-5 space-y-6">
-                    <div className="bg-zinc-900 border border-zinc-800 rounded-[2.5rem] p-8 shadow-2xl space-y-8">
+                    <div className="bg-zinc-900 border border-zinc-800 rounded-[2.5rem] p-8 space-y-8">
                         <div className="space-y-6">
                             <h4 className="text-[10px] font-black text-zinc-500 uppercase tracking-widest flex items-center gap-2">
                                 <CreditCard size={14} className="text-emerald-500" /> Rekening Tujuan
@@ -227,15 +261,15 @@ export default function PengajuanPencairanPage({ params }) {
                                 <div className="space-y-4">
                                     <div>
                                         <p className="text-[9px] font-black text-zinc-600 uppercase tracking-widest leading-none mb-2">Nama Bank</p>
-                                        <p className="text-sm font-black text-white uppercase">{order.bank_name || order.shop?.bank_name || "Belum diatur"}</p>
+                                        <p className="text-sm font-black text-white uppercase">{sellerBank.bankName}</p>
                                     </div>
                                     <div>
                                         <p className="text-[9px] font-black text-zinc-600 uppercase tracking-widest leading-none mb-2">Nomor Rekening</p>
-                                        <p className="text-lg font-black text-white tracking-widest">{order.bank_account || order.shop?.bank_account || "-"}</p>
+                                        <p className="text-lg font-black text-white tracking-widest">{sellerBank.bankAccount}</p>
                                     </div>
                                     <div>
                                         <p className="text-[9px] font-black text-zinc-600 uppercase tracking-widest leading-none mb-2">Atas Nama</p>
-                                        <p className="text-sm font-black text-white">{order.bank_holder || order.shop?.bank_holder || "-"}</p>
+                                        <p className="text-sm font-black text-white">{sellerBank.bankHolder}</p>
                                     </div>
                                 </div>
                                 <div className="pt-4 border-t border-zinc-800/50">
@@ -246,7 +280,7 @@ export default function PengajuanPencairanPage({ params }) {
                             </div>
                         </div>
 
-                        <div className="bg-amber-500/5 border border-amber-500/20 rounded-3xl p-6 flex gap-4 items-start shadow-inner">
+                        <div className="bg-amber-500/5 border border-amber-500/20 rounded-3xl p-6 flex gap-4 items-start">
                             <AlertCircle className="text-amber-500 shrink-0" size={20} />
                             <div className="space-y-1">
                                 <p className="text-[10px] font-black text-amber-500 uppercase tracking-widest">Informasi</p>

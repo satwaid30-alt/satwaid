@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { getApiUrl } from "@/app/utils/api";
 
 export default function DetailPencairanPage({ params }) {
     const { id } = use(params);
@@ -23,10 +24,43 @@ export default function DetailPencairanPage({ params }) {
     const [isLoading, setIsLoading] = useState(true);
     const [showZoom, setShowZoom] = useState(false);
 
+    // Helper to get Seller/Shop Owner bank info
+    const getSellerBankInfo = () => {
+        const owner = order?.shop?.owner;
+        let bankAccounts = owner?.bank_accounts;
+        
+        // If it is a string representation of JSON, parse it
+        if (typeof bankAccounts === 'string') {
+            try {
+                bankAccounts = JSON.parse(bankAccounts);
+            } catch (e) {
+                bankAccounts = null;
+            }
+        }
+        
+        if (Array.isArray(bankAccounts) && bankAccounts.length > 0) {
+            const primaryBank = bankAccounts[0];
+            return {
+                bankName: primaryBank.bank_name || primaryBank.bankName || "-",
+                bankAccount: primaryBank.account_number || primaryBank.accountNumber || primaryBank.bank_account || "-",
+                bankHolder: primaryBank.account_name || primaryBank.accountName || primaryBank.bank_holder || owner.name || "-"
+            };
+        }
+        
+        // Fallbacks
+        return {
+            bankName: order?.shop?.bank_name || "-",
+            bankAccount: order?.shop?.bank_account || "-",
+            bankHolder: order?.shop?.bank_holder || owner?.name || "-"
+        };
+    };
+
+    const sellerBank = getSellerBankInfo();
+
     const fetchOrderDetail = async () => {
         setIsLoading(true);
         try {
-            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/orders/${id}`);
+            const res = await fetch(`${getApiUrl()}/orders/${id}`);
             const result = await res.json();
             if (res.ok && result.data) {
                 setOrder(result.data);
@@ -57,7 +91,7 @@ export default function DetailPencairanPage({ params }) {
 
     const getImageUrl = (path) => {
         if (!path) return "https://placehold.co/100x100?text=No+Image";
-        
+
         let finalPath = path;
         try {
             if (typeof path === 'string' && (path.startsWith('[') || path.startsWith('{'))) {
@@ -72,11 +106,11 @@ export default function DetailPencairanPage({ params }) {
 
         if (!finalPath) return "https://placehold.co/100x100?text=No+Image";
         if (typeof finalPath !== 'string') return "https://placehold.co/100x100?text=Invalid+Path";
-        
+
         // Return data URLs and absolute URLs as is
         if (finalPath.startsWith('http') || finalPath.startsWith('data:')) return finalPath;
-        
-        const baseUrl = process.env.NEXT_PUBLIC_API_URL || "";
+
+        const baseUrl = getApiUrl();
         const formattedPath = finalPath.startsWith('/') ? finalPath : `/${finalPath}`;
         return `${baseUrl}${formattedPath}`;
     };
@@ -105,7 +139,7 @@ export default function DetailPencairanPage({ params }) {
                     href="/user/toko/pengajuan-keuangan"
                     className="flex items-center gap-3 text-zinc-400 hover:text-white transition-colors group"
                 >
-                    <div className="w-12 h-12 rounded-2xl bg-zinc-900 border border-zinc-800 flex items-center justify-center group-hover:bg-zinc-800 transition-all shadow-inner">
+                    <div className="w-12 h-12 rounded-2xl bg-zinc-900 border border-zinc-800 flex items-center justify-center group-hover:bg-zinc-800 transition-all">
                         <ChevronLeft size={20} />
                     </div>
                     <div className="flex flex-col">
@@ -119,7 +153,7 @@ export default function DetailPencairanPage({ params }) {
                         <span className="text-[9px] font-black text-zinc-500 uppercase tracking-widest leading-none mb-1">Status Pencairan</span>
                         <div className="flex items-center gap-2">
                             <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></div>
-                            <span className="text-sm font-black text-emerald-500 uppercase italic">Dana Berhasil Dicairkan</span>
+                            <span className="text-sm font-black text-emerald-500 uppercase italic">Dana Berhasil Ditransfer</span>
                         </div>
                     </div>
                 </div>
@@ -128,7 +162,7 @@ export default function DetailPencairanPage({ params }) {
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
                 {/* Image / Proof Section - Compact */}
                 <div className="lg:col-span-4 space-y-6">
-                    <div className="bg-zinc-900 border border-zinc-800 rounded-[2.5rem] overflow-hidden shadow-2xl group relative">
+                    <div className="bg-zinc-900 border border-zinc-800 rounded-[2.5rem] overflow-hidden group relative">
                         <div className="p-8 border-b border-zinc-800 bg-zinc-950/50 flex items-center justify-between">
                             <div className="flex items-center gap-3">
                                 <div className="w-10 h-10 bg-emerald-500/10 text-emerald-500 rounded-xl flex items-center justify-center border border-emerald-500/20">
@@ -148,7 +182,7 @@ export default function DetailPencairanPage({ params }) {
                         <div className="aspect-[1/1] bg-zinc-950 flex items-center justify-center p-4 relative">
                             {order.disbursement_proof?.toLowerCase().endsWith('.pdf') ? (
                                 <div className="flex flex-col items-center gap-6 text-zinc-500 py-20">
-                                    <div className="w-24 h-24 bg-zinc-900 rounded-[2rem] flex items-center justify-center border border-zinc-800 shadow-inner">
+                                    <div className="w-24 h-24 bg-zinc-900 rounded-[2rem] flex items-center justify-center border border-zinc-800">
                                         <FileText size={48} className="text-emerald-500" />
                                     </div>
                                     <div className="text-center">
@@ -158,7 +192,7 @@ export default function DetailPencairanPage({ params }) {
                                     <a
                                         href={order.disbursement_proof}
                                         target="_blank"
-                                        className="px-8 py-3 bg-emerald-500 text-zinc-950 rounded-2xl font-black uppercase tracking-[0.2em] text-[10px] shadow-2xl shadow-emerald-500/30 hover:bg-emerald-400 transition-all"
+                                        className="px-8 py-3 bg-emerald-500 text-zinc-950 rounded-2xl font-black uppercase tracking-[0.2em] text-[10px] hover:bg-emerald-400 transition-all"
                                     >
                                         Unduh Bukti Transfer
                                     </a>
@@ -171,7 +205,7 @@ export default function DetailPencairanPage({ params }) {
                                     >
                                         <img
                                             src={getImageUrl(order.disbursement_proof)}
-                                            className="max-w-full max-h-full object-contain rounded-2xl shadow-2xl transition-transform duration-500 group-hover/img:scale-[1.02]"
+                                            className="max-w-full max-h-full object-contain rounded-2xl transition-transform duration-500 group-hover/img:scale-[1.02]"
                                             alt="Bukti Transfer"
                                         />
                                         <div className="absolute inset-0 bg-emerald-500/10 opacity-0 group-hover/img:opacity-100 transition-all backdrop-blur-[1px] flex items-center justify-center rounded-2xl">
@@ -185,7 +219,7 @@ export default function DetailPencairanPage({ params }) {
 
                     {/* Admin Notes */}
                     {order.disbursement_notes && (
-                        <div className="bg-zinc-900 border border-zinc-800 rounded-3xl p-8 shadow-inner flex gap-6 items-start">
+                        <div className="bg-zinc-900 border border-zinc-800 rounded-3xl p-8 flex gap-6 items-start">
                             <div className="w-12 h-12 bg-blue-500/10 text-blue-500 rounded-2xl flex items-center justify-center shrink-0 border border-blue-500/20">
                                 <Info size={24} />
                             </div>
@@ -202,7 +236,7 @@ export default function DetailPencairanPage({ params }) {
                 {/* Info Sidebar - Dominant */}
                 <div className="lg:col-span-8 space-y-8">
                     {/* Financial Summary */}
-                    <div className="bg-zinc-900 border border-zinc-800 rounded-[2.5rem] p-10 shadow-2xl relative overflow-hidden group">
+                    <div className="bg-zinc-900 border border-zinc-800 rounded-[2.5rem] p-10 relative overflow-hidden group">
                         <div className="relative z-10 space-y-8">
                             <div className="flex items-center gap-3">
                                 <div className="w-10 h-10 bg-emerald-500/10 text-emerald-500 rounded-xl flex items-center justify-center border border-emerald-500/20">
@@ -212,7 +246,7 @@ export default function DetailPencairanPage({ params }) {
                             </div>
 
                             <div className="space-y-4">
-                                <div className="p-6 bg-zinc-950/50 rounded-3xl border border-zinc-800/50 space-y-4 shadow-inner">
+                                <div className="p-6 bg-zinc-950/50 rounded-3xl border border-zinc-800/50 space-y-4">
                                     <div className="flex justify-between items-center text-xs">
                                         <span className="text-zinc-500 font-bold uppercase tracking-widest">Subtotal Produk</span>
                                         <span className="text-white font-black">{formatPrice(order.price * order.quantity)}</span>
@@ -237,8 +271,8 @@ export default function DetailPencairanPage({ params }) {
                                     )}
                                     <div className="h-px bg-zinc-800"></div>
                                     <div className="flex justify-between items-center pt-2">
-                                        <span className="text-sm font-black text-white uppercase tracking-widest italic">Total Cair</span>
-                                        <span className="text-2xl font-black text-emerald-500 tracking-tighter">{formatPrice(cleanTotal)}</span>
+                                        <span className="text-sm font-black text-white uppercase tracking-widest italic">Total Diterima</span>
+                                        <span className="text-lg font-black text-emerald-500">{formatPrice(cleanTotal)}</span>
                                     </div>
                                 </div>
                             </div>
@@ -250,24 +284,24 @@ export default function DetailPencairanPage({ params }) {
                                 <div className="bg-zinc-950/30 rounded-3xl p-6 border border-zinc-800/50 space-y-4">
                                     <div>
                                         <p className="text-[9px] font-black text-zinc-600 uppercase tracking-widest leading-none mb-2">Penerima</p>
-                                        <p className="text-sm font-black text-white">{order.bank_holder || order.shop?.bank_holder || "-"}</p>
+                                        <p className="text-sm font-black text-white">{sellerBank.bankHolder}</p>
                                     </div>
                                     <div className="flex justify-between items-end">
                                         <div>
                                             <p className="text-[9px] font-black text-zinc-600 uppercase tracking-widest leading-none mb-2">Detail Akun</p>
-                                            <p className="text-xs font-black text-zinc-400 uppercase leading-none">{order.bank_name || order.shop?.bank_name} - {order.bank_account || order.shop?.bank_account}</p>
+                                            <p className="text-xs font-black text-zinc-400 uppercase leading-none">{sellerBank.bankName} - {sellerBank.bankAccount}</p>
                                         </div>
                                         <div className="px-2 py-1 bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 rounded-lg text-[8px] font-black uppercase">Verified</div>
                                     </div>
                                 </div>
                             </div>
 
-                            <div className=" flex items-center gap-4 text-zinc-500">
-                                <div className="w-10 h-10 bg-zinc-950 rounded-xl flex items-center justify-center shrink-0 border border-zinc-800 shadow-inner">
+                            <div className="flex items-center gap-4 text-zinc-500">
+                                <div className="w-10 h-10 bg-zinc-950 rounded-xl flex items-center justify-center shrink-0 border border-zinc-800">
                                     <Calendar size={18} />
                                 </div>
                                 <div>
-                                    <p className="text-[9px] font-black uppercase tracking-widest leading-none mb-1">Tanggal Cair</p>
+                                    <p className="text-[9px] font-black uppercase tracking-widest leading-none mb-1">Tanggal Transfer</p>
                                     <p className="text-xs font-bold text-zinc-300">
                                         {order.disbursed_at ? new Date(order.disbursed_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }) : "-"}
                                     </p>
@@ -282,8 +316,8 @@ export default function DetailPencairanPage({ params }) {
                     </div>
 
                     {/* Order Origin */}
-                    <div className="bg-zinc-900 border border-zinc-800 rounded-[2.5rem] p-8 shadow-2xl flex items-center gap-6 group hover:bg-zinc-800/50 transition-all">
-                        <div className="w-16 h-16 rounded-2xl overflow-hidden bg-zinc-950 border border-zinc-800 shrink-0 shadow-inner">
+                    <div className="bg-zinc-900 border border-zinc-800 rounded-[2.5rem] p-8 flex items-center gap-6 group hover:bg-zinc-800/50 transition-all">
+                        <div className="w-16 h-16 rounded-2xl overflow-hidden bg-zinc-950 border border-zinc-800 shrink-0">
                             <img
                                 src={getImageUrl(order.product?.images || order.product_image)}
                                 className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
@@ -323,7 +357,7 @@ export default function DetailPencairanPage({ params }) {
                     <div className="relative w-full h-full flex items-center justify-center">
                         <img
                             src={getImageUrl(order.disbursement_proof)}
-                            className="max-w-full max-h-full object-contain shadow-2xl animate-in zoom-in-95 duration-500 rounded-lg"
+                            className="max-w-full max-h-full object-contain animate-in zoom-in-95 duration-500 rounded-lg"
                             alt="Zoom Bukti Transfer"
                             onClick={(e) => e.stopPropagation()}
                         />

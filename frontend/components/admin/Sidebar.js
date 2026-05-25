@@ -10,7 +10,6 @@ import {
     Settings,
     LogOut,
     UserCircle,
-    Dna,
     Users,
     ChevronLeft,
     ChevronRight,
@@ -37,8 +36,6 @@ const MENU_ITEMS = [
         ]
     },
     { name: "Verifikasi Komunitas", href: "/admin/komunitas", icon: MessageSquare },
-    { name: "Data Spesies", href: "/admin/species", icon: PawPrint },
-    { name: "Grup Morfologi", href: "/admin/morph-groups", icon: Dna },
     { name: "Keuangan Toko", href: "/admin/keuangan", icon: BookOpen },
     { name: "Daftar Pengguna", href: "/admin/users", icon: Users },
     { name: "Pengaturan", href: "/admin/settings", icon: Settings },

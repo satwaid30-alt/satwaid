@@ -12,6 +12,25 @@ module.exports = function (sequelize, DataTypes) {
       type: DataTypes.STRING(100),
       allowNull: false
     },
+    category: {
+      type: DataTypes.STRING(100),
+      allowNull: true
+    },
+    title: {
+      type: DataTypes.STRING(255),
+      allowNull: true,
+      defaultValue: 'Promo Mitra Reptile'
+    },
+    badge: {
+      type: DataTypes.STRING(100),
+      allowNull: true,
+      defaultValue: 'PROMO EKSKLUSIF'
+    },
+    button_text: {
+      type: DataTypes.STRING(100),
+      allowNull: true,
+      defaultValue: 'Klaim Promo Sekarang'
+    },
     description: {
       type: DataTypes.TEXT,
       allowNull: true
@@ -19,6 +38,10 @@ module.exports = function (sequelize, DataTypes) {
     image_url: {
       type: DataTypes.STRING(255),
       allowNull: false
+    },
+    mobile_image_url: {
+      type: DataTypes.STRING(255),
+      allowNull: true
     },
     link_url: {
       type: DataTypes.STRING(255),

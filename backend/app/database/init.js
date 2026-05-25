@@ -3,8 +3,7 @@ var DataTypes = require("sequelize").DataTypes;
 var _master_account = require("../models/master_account");
 var _master_user = require("../models/master_user");
 var _users = require("../models/users");
-var _species = require("../models/species");
-var _morph_groups = require("../models/morph_groups");
+
 var _topics = require("../models/topics");
 var _comments = require("../models/comments");
 var _topic_likes = require("../models/topic_likes");
@@ -16,14 +15,14 @@ var _carts = require("../models/carts");
 var _chats = require("../models/chats");
 var _chat_messages = require("../models/chat_messages");
 var _notifications = require("../models/notifications");
+var _bids = require("../models/bids");
 
 
 function initModels(sequelize) {
   var master_user = _master_user(sequelize, DataTypes);
   var master_account = _master_account(sequelize, DataTypes);
   var users = _users(sequelize, DataTypes);
-  var species = _species(sequelize, DataTypes);
-  var morph_groups = _morph_groups(sequelize, DataTypes);
+
   var topics = _topics(sequelize, DataTypes);
   var comments = _comments(sequelize, DataTypes);
   var topic_likes = _topic_likes(sequelize, DataTypes);
@@ -35,9 +34,10 @@ function initModels(sequelize) {
   var chats = _chats(sequelize, DataTypes);
   var chat_messages = _chat_messages(sequelize, DataTypes);
   var notifications = _notifications(sequelize, DataTypes);
+  var bids = _bids(sequelize, DataTypes);
 
-  morph_groups.belongsTo(species, { as: "species", foreignKey: "species_id"});
-  species.hasMany(morph_groups, { as: "morph_groups", foreignKey: "species_id"});
+
+
   
   topics.belongsTo(users, { as: "author", foreignKey: "user_id"});
   users.hasMany(topics, { as: "topics", foreignKey: "user_id"});
@@ -95,13 +95,19 @@ function initModels(sequelize) {
   notifications.belongsTo(users, { as: "user", foreignKey: "user_id" });
   users.hasMany(notifications, { as: "notifications", foreignKey: "user_id" });
 
+  bids.belongsTo(listings, { as: "listing", foreignKey: "listing_id" });
+  listings.hasMany(bids, { as: "bids", foreignKey: "listing_id" });
+
+  bids.belongsTo(users, { as: "bidder", foreignKey: "user_id" });
+  users.hasMany(bids, { as: "bids", foreignKey: "user_id" });
+
+
   return {
 
     master_user,
     master_account,
     users,
-    species,
-    morph_groups,
+
     topics,
     comments,
     topic_likes,
@@ -112,7 +118,8 @@ function initModels(sequelize) {
     carts,
     chats,
     chat_messages,
-    notifications
+    notifications,
+    bids
   };
 }
 

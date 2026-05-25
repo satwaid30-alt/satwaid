@@ -32,7 +32,7 @@ export default function PengaturanLayout({ children }) {
     return (
         <div className="min-h-screen bg-zinc-950 text-white flex flex-col md:flex-row">
             <UserSidebar />
-            
+
             <div className="flex-1 flex flex-col min-h-screen overflow-hidden">
                 <UserNavbar />
 
@@ -40,10 +40,10 @@ export default function PengaturanLayout({ children }) {
                     <div className="max-w-4xl mx-auto flex-1 w-full">
                         {children}
                     </div>
-                    
+
                     <footer className="mt-20 py-8 border-t border-zinc-800 text-center text-zinc-500 text-sm font-medium">
                         <p>
-                            © 2026 DuniaReptile. Hak Cipta Dilindungi.
+                            © 2026 SatwaiD. All rights reserved.
                         </p>
                     </footer>
                 </main>

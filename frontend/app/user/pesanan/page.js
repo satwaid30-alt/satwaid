@@ -31,6 +31,7 @@ import {
 import Image from "next/image";
 import ActionModal from "@/components/ActionModal";
 import { io } from "socket.io-client";
+import { getApiUrl, getSocketUrl } from "@/app/utils/api";
 
 export default function PesananPage() {
     const [activeTab, setActiveTab] = useState("semua");
@@ -75,14 +76,14 @@ export default function PesananPage() {
     const fetchOrders = async () => {
         setIsLoading(true);
         const userStr = localStorage.getItem("user");
-        if (!userStr || !process.env.NEXT_PUBLIC_API_URL) {
+        if (!userStr) {
             setIsLoading(false);
             return;
         }
 
         try {
             const user = JSON.parse(userStr);
-            const url = `${process.env.NEXT_PUBLIC_API_URL}/orders/user/${user.id}`;
+            const url = `${getApiUrl()}/orders/user/${user.id}`;
             const response = await fetch(url);
             const result = await response.json();
 
@@ -92,7 +93,7 @@ export default function PesananPage() {
                 console.error("Failed to fetch orders:", result.message);
             }
         } catch (err) {
-            console.error("Error fetching orders from", process.env.NEXT_PUBLIC_API_URL, err);
+            console.error("Error fetching orders from", getApiUrl(), err);
         } finally {
             setIsLoading(false);
         }
@@ -100,17 +101,17 @@ export default function PesananPage() {
 
     const fetchCartItems = async () => {
         const userStr = localStorage.getItem("user");
-        if (!userStr || !process.env.NEXT_PUBLIC_API_URL) return;
+        if (!userStr) return;
         try {
             const user = JSON.parse(userStr);
-            const url = `${process.env.NEXT_PUBLIC_API_URL}/cart/${user.id}`;
+            const url = `${getApiUrl()}/cart/${user.id}`;
             const response = await fetch(url);
             const result = await response.json();
             if (response.ok) {
                 setCartItems(result.data || []);
             }
         } catch (err) {
-            console.error("Error fetching cart from", process.env.NEXT_PUBLIC_API_URL, err);
+            console.error("Error fetching cart from", getApiUrl(), err);
         }
     };
 
@@ -133,9 +134,14 @@ export default function PesananPage() {
         if (userStr) {
             try {
                 const userData = JSON.parse(userStr);
-                socket = io(process.env.NEXT_PUBLIC_API_URL);
+                const token = typeof window !== 'undefined' ? localStorage.getItem("token") : null;
+                socket = io(getSocketUrl(), {
+                    auth: {
+                        token: token ? `Bearer ${token}` : null
+                    }
+                });
                 socket.emit("join_user", userData.id);
-                
+
                 socket.on("new_notification", () => {
                     fetchOrders(); // Auto-refresh when status changes
                     fetchCartItems();
@@ -159,7 +165,7 @@ export default function PesananPage() {
             confirmText: 'Ya, Hapus',
             onConfirm: async () => {
                 try {
-                    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/cart/${cartId}`, {
+                    const response = await fetch(`${getApiUrl()}/cart/${cartId}`, {
                         method: 'DELETE'
                     });
                     if (response.ok) {
@@ -187,7 +193,7 @@ export default function PesananPage() {
 
                 setActionModal(prev => ({ ...prev, isLoading: true }));
                 try {
-                    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/orders/${orderId}/cancel`, {
+                    const response = await fetch(`${getApiUrl()}/orders/${orderId}/cancel`, {
                         method: 'PUT',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({
@@ -230,7 +236,7 @@ export default function PesananPage() {
     const submitRating = async () => {
         setRatingModal(prev => ({ ...prev, isLoading: true }));
         try {
-            const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/orders/${ratingModal.orderId}/resolve-complaint`, {
+            const response = await fetch(`${getApiUrl()}/orders/${ratingModal.orderId}/resolve-complaint`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -270,7 +276,7 @@ export default function PesananPage() {
             onConfirm: async () => {
                 setActionModal(prev => ({ ...prev, isLoading: true }));
                 try {
-                    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/orders/${orderId}/history`, {
+                    const response = await fetch(`${getApiUrl()}/orders/${orderId}/history`, {
                         method: 'DELETE'
                     });
 
@@ -315,7 +321,7 @@ export default function PesananPage() {
 
         setActionModal(prev => ({ ...prev, isLoading: true }));
         try {
-            const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/orders`, {
+            const response = await fetch(`${getApiUrl()}/orders`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
@@ -328,7 +334,7 @@ export default function PesananPage() {
 
             if (response.ok) {
                 // Remove from cart after successful order
-                await fetch(`${process.env.NEXT_PUBLIC_API_URL}/cart/${item.id}`, { method: 'DELETE' });
+                await fetch(`${getApiUrl()}/cart/${item.id}`, { method: 'DELETE' });
                 fetchOrders();
                 fetchCartItems();
                 setActiveTab("pending_shipping_info");
@@ -362,7 +368,7 @@ export default function PesananPage() {
 
         setIsUpdatingShipping(true);
         try {
-            const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/orders/${selectedOrder.id}/shipping-info`, {
+            const response = await fetch(`${getApiUrl()}/orders/${selectedOrder.id}/shipping-info`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(shippingForm)
@@ -551,7 +557,7 @@ export default function PesananPage() {
                             key={tab.id}
                             onClick={() => setActiveTab(tab.id)}
                             className={`flex items-center justify-center gap-3 px-4 md:px-6 py-3.5 md:py-3 rounded-2xl text-[10px] md:text-[11px] font-black uppercase tracking-wider transition-all border ${activeTab === tab.id
-                                ? "bg-emerald-500 border-emerald-400 text-zinc-950 shadow-xl shadow-emerald-500/20"
+                                ? "bg-emerald-500 border-emerald-400 text-zinc-950"
                                 : "bg-zinc-900/50 border-zinc-800 text-zinc-500 hover:text-zinc-200 hover:border-zinc-700"} ${tab.id === "cancelled" ? "col-span-2 sm:col-span-1" : ""}`}
                         >
                             <span className="shrink-0">{tab.icon}</span>
@@ -586,8 +592,8 @@ export default function PesananPage() {
                                     </div>
                                 )}
                                 {filteredCart.map((item) => (
-                                    <div key={item.id} className="bg-zinc-900/20 border border-zinc-800 hover:border-emerald-500/30 rounded-3xl overflow-hidden transition-all group p-6 flex flex-col md:flex-row items-center gap-6 animate-in slide-in-from-bottom-2 duration-500 shadow-xl">
-                                        <div className="w-24 h-24 rounded-2xl overflow-hidden bg-zinc-800 shrink-0 border border-zinc-700 shadow-inner">
+                                    <div key={item.id} className="bg-zinc-900/20 border border-zinc-800 hover:border-emerald-500/30 rounded-3xl overflow-hidden transition-all group p-6 flex flex-col md:flex-row items-center gap-6 animate-in slide-in-from-bottom-2 duration-500">
+                                        <div className="w-24 h-24 rounded-2xl overflow-hidden bg-zinc-800 shrink-0 border border-zinc-700">
                                             <img src={item.product?.images?.[0]} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
                                         </div>
                                         <div className="flex-1 min-w-0 text-center md:text-left">
@@ -606,14 +612,14 @@ export default function PesananPage() {
                                         <div className="flex items-center gap-3 w-full md:w-auto">
                                             <Link
                                                 href={`/user/pesanan/detail-pesanan/${item.id}?source=cart`}
-                                                className="p-4 bg-zinc-950 text-zinc-400 hover:text-white hover:bg-zinc-800 rounded-2xl border border-zinc-800 transition-all shadow-inner"
+                                                className="p-4 bg-zinc-950 text-zinc-400 hover:text-white hover:bg-zinc-800 rounded-2xl border border-zinc-800 transition-all"
                                                 title="Lihat Detail Produk"
                                             >
                                                 <Eye size={20} />
                                             </Link>
                                             <button
                                                 onClick={() => handleRemoveFromCart(item.id)}
-                                                className="p-4 bg-zinc-950 text-zinc-600 hover:text-red-500 hover:bg-red-500/10 rounded-2xl border border-zinc-800 transition-all shadow-inner"
+                                                className="p-4 bg-zinc-950 text-zinc-600 hover:text-red-500 hover:bg-red-500/10 rounded-2xl border border-zinc-800 transition-all"
                                                 title="Hapus dari Keranjang"
                                             >
                                                 <Trash2 size={20} />
@@ -621,7 +627,7 @@ export default function PesananPage() {
                                             <button
                                                 onClick={() => handleCheckoutCart(item)}
                                                 disabled={isProcessingCart}
-                                                className="flex-1 md:flex-none px-8 py-4 bg-emerald-500 hover:bg-emerald-400 text-zinc-950 font-black rounded-2xl transition-all flex items-center justify-center gap-3 shadow-lg shadow-emerald-500/20 active:scale-95 disabled:opacity-50 h-[54px]"
+                                                className="flex-1 md:flex-none px-8 py-4 bg-emerald-500 hover:bg-emerald-400 text-zinc-950 font-black rounded-2xl transition-all flex items-center justify-center gap-3 active:scale-95 disabled:opacity-50 h-[54px]"
                                             >
                                                 {isProcessingCart ? (
                                                     <div className="w-5 h-5 border-2 border-zinc-950 border-t-transparent rounded-full animate-spin"></div>
@@ -651,7 +657,7 @@ export default function PesananPage() {
                                     filteredOrders.map((order) => (
                                         <div
                                             key={order.id}
-                                            className="bg-zinc-900/20 border border-zinc-800 hover:border-zinc-700 rounded-3xl overflow-hidden transition-all group shadow-xl"
+                                            className="bg-zinc-900/20 border border-zinc-800 hover:border-zinc-700 rounded-3xl overflow-hidden transition-all group"
                                         >
                                             {/* Card Header */}
                                             <div className="px-4 md:px-6 py-3 md:py-4 border-b border-zinc-800 flex flex-wrap items-center justify-between gap-3 bg-zinc-900/40">
@@ -699,7 +705,7 @@ export default function PesananPage() {
 
                                                         return (
                                                             <div key={s.id} className="flex-1 flex flex-col gap-1.5">
-                                                                <div className={`h-1 rounded-full transition-all duration-500 ${isDone ? "bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.4)]" : "bg-zinc-800"} ${isCurrent ? "animate-pulse" : ""}`}></div>
+                                                                <div className={`h-1 rounded-full transition-all duration-500 ${isDone ? "bg-emerald-500" : "bg-zinc-800"} ${isCurrent ? "animate-pulse" : ""}`}></div>
                                                                 <span className={`text-[7px] font-black uppercase tracking-tighter text-center ${isDone ? "text-emerald-500" : "text-zinc-600"} ${isCurrent ? "animate-pulse" : ""}`}>
                                                                     {s.label}
                                                                 </span>
@@ -711,7 +717,7 @@ export default function PesananPage() {
 
                                             {/* Card Body */}
                                             <div className="p-4 md:p-6 flex flex-col md:flex-row items-center md:items-start gap-4 md:gap-6">
-                                                <div className="w-24 h-24 rounded-2xl overflow-hidden bg-zinc-800 shrink-0 border border-zinc-700 shadow-inner mx-auto md:mx-0">
+                                                <div className="w-24 h-24 rounded-2xl overflow-hidden bg-zinc-800 shrink-0 border border-zinc-700 mx-auto md:mx-0">
                                                     <img src={order.product?.images?.[0]} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
                                                 </div>
                                                 <div className="flex-1 min-w-0 text-center md:text-left">
@@ -734,11 +740,11 @@ export default function PesananPage() {
                                                         <>
                                                             <Link
                                                                 href={`/user/pesanan/transaksi/${order.id}`}
-                                                                className="w-full sm:w-auto px-6 py-3 bg-emerald-500 hover:bg-emerald-400 text-zinc-950 rounded-2xl transition-all text-xs font-black flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/20"
+                                                                className="w-full sm:w-auto px-6 py-3 bg-emerald-500 hover:bg-emerald-400 text-zinc-950 rounded-2xl transition-all text-xs font-black flex items-center justify-center gap-2"
                                                             >
                                                                 <ShoppingBag size={14} /> Proses Transaksi
                                                             </Link>
-                                                            {!['processing', 'payment_verified', 'waiting_shipment', 'shipped', 'complained'].includes(order.status) && (
+                                                            {order.product?.type === 'sell' && !['processing', 'payment_verified', 'waiting_shipment', 'shipped', 'complained'].includes(order.status) && (
                                                                 <button
                                                                     onClick={() => handleCancelOrder(order.id)}
                                                                     className="w-full sm:w-auto px-6 py-3 bg-red-500/10 hover:bg-red-500 text-red-500 hover:text-white border border-red-500/20 rounded-2xl transition-all text-xs font-black flex items-center justify-center gap-2"
@@ -777,7 +783,7 @@ export default function PesananPage() {
                                 ) : (
                                     activeTab !== "semua" && (
                                         <div className="py-20 flex flex-col items-center text-center space-y-6 bg-zinc-900/20 border border-zinc-800 rounded-[3rem] border-dashed">
-                                            <div className="w-24 h-24 bg-zinc-900 rounded-full flex items-center justify-center text-zinc-700 shadow-inner">
+                                            <div className="w-24 h-24 bg-zinc-900 rounded-full flex items-center justify-center text-zinc-700">
                                                 <ShoppingBag size={48} />
                                             </div>
                                             <div className="space-y-2">
@@ -793,7 +799,7 @@ export default function PesananPage() {
                         {/* Global Empty State for 'Semua' */}
                         {activeTab === "semua" && filteredCart.length === 0 && filteredOrders.length === 0 && (
                             <div className="py-20 flex flex-col items-center text-center space-y-6 bg-zinc-900/20 border border-zinc-800 rounded-[3rem] border-dashed">
-                                <div className="w-24 h-24 bg-zinc-900 rounded-full flex items-center justify-center text-zinc-700 shadow-inner">
+                                <div className="w-24 h-24 bg-zinc-900 rounded-full flex items-center justify-center text-zinc-700">
                                     <ShoppingBag size={48} />
                                 </div>
                                 <div className="space-y-2">
@@ -802,7 +808,7 @@ export default function PesananPage() {
                                 </div>
                                 <Link
                                     href="/toko"
-                                    className="bg-emerald-500 hover:bg-emerald-400 text-zinc-950 font-black px-8 py-3 rounded-2xl transition-all shadow-lg shadow-emerald-500/20 active:scale-95"
+                                    className="bg-emerald-500 hover:bg-emerald-400 text-zinc-950 font-black px-8 py-3 rounded-2xl transition-all active:scale-95"
                                 >
                                     Mulai Belanja
                                 </Link>
@@ -840,9 +846,9 @@ export default function PesananPage() {
             {ratingModal.isOpen && (
                 <div className="fixed inset-0 z-[120] flex items-center justify-center p-4">
                     <div className="absolute inset-0 bg-zinc-950/80 backdrop-blur-sm animate-in fade-in duration-300" onClick={() => !ratingModal.isLoading && setRatingModal(prev => ({ ...prev, isOpen: false }))}></div>
-                    <div className="relative w-full max-w-md bg-zinc-900 border border-zinc-800 rounded-[2.5rem] p-8 shadow-2xl animate-in zoom-in-95 duration-300 overflow-hidden">
+                    <div className="relative w-full max-w-md bg-zinc-900 border border-zinc-800 rounded-[2.5rem] p-8 animate-in zoom-in-95 duration-300 overflow-hidden">
                         <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-emerald-500 to-emerald-400"></div>
-                        
+
                         <div className="text-center space-y-4">
                             <div className="w-16 h-16 bg-emerald-500/10 rounded-2xl flex items-center justify-center text-emerald-500 mx-auto mb-4">
                                 <Star size={32} fill="currentColor" />
@@ -880,7 +886,7 @@ export default function PesananPage() {
                                 <button
                                     onClick={submitRating}
                                     disabled={ratingModal.isLoading}
-                                    className="px-6 py-4 bg-emerald-500 hover:bg-emerald-400 text-zinc-950 rounded-2xl font-black text-xs uppercase tracking-widest transition-all shadow-lg shadow-emerald-500/20 disabled:opacity-50 flex items-center justify-center gap-2"
+                                    className="px-6 py-4 bg-emerald-500 hover:bg-emerald-400 text-zinc-950 rounded-2xl font-black text-xs uppercase tracking-widest transition-all disabled:opacity-50 flex items-center justify-center gap-2"
                                 >
                                     {ratingModal.isLoading ? (
                                         <div className="w-4 h-4 border-2 border-zinc-950 border-t-transparent rounded-full animate-spin"></div>

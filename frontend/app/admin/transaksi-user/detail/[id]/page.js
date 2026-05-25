@@ -25,7 +25,8 @@ import {
     ShieldCheck,
     ArrowRight,
     Smartphone,
-    Download
+    Download,
+    ScrollText
 } from "lucide-react";
 import OrderStepper from "@/components/OrderStepper";
 import OrderTimeline from "@/components/OrderTimeline";
@@ -37,9 +38,11 @@ export default function AdminTransactionDetailPage({ params }) {
     const [order, setOrder] = useState(null);
     const [loading, setLoading] = useState(true);
     const [copySuccess, setCopySuccess] = useState(null);
-    const [openProductAccordion, setOpenProductAccordion] = useState(false);
+    const [openProductAccordion, setOpenProductAccordion] = useState(true);
     const [showConfirmModal, setShowConfirmModal] = useState(false);
     const [isConfirming, setIsConfirming] = useState(false);
+    const [showManualCompleteModal, setShowManualCompleteModal] = useState(false);
+    const [isCompleting, setIsCompleting] = useState(false);
 
     useEffect(() => {
         fetchOrderDetails();
@@ -104,6 +107,34 @@ export default function AdminTransactionDetailPage({ params }) {
             alert("Terjadi kesalahan koneksi");
         } finally {
             setIsConfirming(false);
+        }
+    };
+
+    const handleManualCompleteOrder = async () => {
+        setIsCompleting(true);
+        try {
+            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/orders/${id}/complete`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    rating: 5,
+                    review: "Selesai secara manual oleh Admin atas pengajuan Penjual."
+                })
+            });
+            const result = await res.json();
+            if (res.ok) {
+                setShowManualCompleteModal(false);
+                fetchOrderDetails();
+            } else {
+                alert(result.message || "Gagal menyelesaikan transaksi");
+            }
+        } catch (err) {
+            console.error("Error completing transaction:", err);
+            alert("Terjadi kesalahan koneksi");
+        } finally {
+            setIsCompleting(false);
         }
     };
 
@@ -300,16 +331,17 @@ export default function AdminTransactionDetailPage({ params }) {
 
                                     <div className="space-y-8 flex-1">
                                         <div className="space-y-4">
-                                            <div className="flex items-center gap-3">
+                                            <div className="flex items-center gap-3 flex-wrap">
                                                 <span className="px-4 py-1.5 bg-emerald-500/10 border border-emerald-500/20 rounded-full text-[9px] font-black text-emerald-500 uppercase tracking-[0.3em] italic">
                                                     {order.product?.species || 'REPTIL'}
                                                 </span>
+                                                {order.product?.product_id && (
+                                                    <span className="px-4 py-1.5 bg-zinc-950 border border-zinc-800 rounded-full text-[9px] font-mono font-black text-zinc-400 uppercase tracking-wider">
+                                                        ID: {order.product.product_id}
+                                                    </span>
+                                                )}
                                             </div>
                                             <h4 className="text-3xl font-black text-white tracking-tighter leading-none">{order.product?.name}</h4>
-                                            <div
-                                                className="text-xs text-zinc-400 font-medium leading-relaxed prose prose-invert max-w-none pt-4 italic border-t border-zinc-800"
-                                                dangerouslySetInnerHTML={{ __html: order.product?.description || 'Tidak ada deskripsi.' }}
-                                            />
                                         </div>
 
                                         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -319,22 +351,41 @@ export default function AdminTransactionDetailPage({ params }) {
                                                 { label: 'Gender', value: order.product?.sex?.toUpperCase() || '-' },
                                                 { label: 'Stock', value: order.product?.stock || '0', color: 'text-emerald-500' }
                                             ].map((stat, i) => (
-                                                <div key={i} className="bg-zinc-950 p-5 rounded-2xl border border-zinc-800">
+                                                <div key={i} className="bg-zinc-950 p-5 rounded-2xl border border-zinc-800 shadow-inner">
                                                     <p className="text-[8px] font-black text-zinc-600 uppercase tracking-widest italic mb-1.5">{stat.label}</p>
                                                     <p className={`text-sm font-black ${stat.color || 'text-white'} tracking-tight`}>{stat.value}</p>
                                                 </div>
                                             ))}
                                         </div>
 
-                                        <div className="p-6 bg-zinc-950 border border-zinc-800 rounded-[2rem] space-y-3 relative overflow-hidden group/ship">
-                                            <div className="flex items-center gap-2.5 text-emerald-500">
-                                                <Truck size={16} />
-                                                <p className="text-[10px] font-black uppercase tracking-[0.2em] italic">Catatan Pengiriman</p>
+                                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                                            {/* Deskripsi Card */}
+                                            <div className="p-6 bg-zinc-950 border border-zinc-800 rounded-[2rem] space-y-4 relative overflow-hidden group/desc flex flex-col justify-between shadow-inner">
+                                                <div className="space-y-3">
+                                                    <div className="flex items-center gap-2.5 text-emerald-500">
+                                                        <ScrollText size={16} />
+                                                        <p className="text-[10px] font-black uppercase tracking-[0.2em] italic">Deskripsi Produk</p>
+                                                    </div>
+                                                    <div
+                                                        className="text-xs text-zinc-400 font-medium leading-relaxed description-content italic border-l-2 border-zinc-900 pl-6 ml-1.5"
+                                                        dangerouslySetInnerHTML={{ __html: order.product?.description || 'Tidak ada deskripsi.' }}
+                                                    />
+                                                </div>
                                             </div>
-                                            <div
-                                                className="text-xs text-zinc-400 font-medium leading-relaxed italic border-l-2 border-zinc-900 pl-6 ml-1.5 prose prose-invert max-w-none"
-                                                dangerouslySetInnerHTML={{ __html: order.product?.shipping_description || "N/A" }}
-                                            />
+
+                                            {/* Catatan Pengiriman Card */}
+                                            <div className="p-6 bg-zinc-950 border border-zinc-800 rounded-[2rem] space-y-4 relative overflow-hidden group/ship flex flex-col justify-between shadow-inner">
+                                                <div className="space-y-3">
+                                                    <div className="flex items-center gap-2.5 text-emerald-500">
+                                                        <Truck size={16} />
+                                                        <p className="text-[10px] font-black uppercase tracking-[0.2em] italic">Catatan Pengiriman</p>
+                                                    </div>
+                                                    <div
+                                                        className="text-xs text-zinc-400 font-medium leading-relaxed description-content italic border-l-2 border-zinc-900 pl-6 ml-1.5"
+                                                        dangerouslySetInnerHTML={{ __html: order.product?.shipping_description || "N/A" }}
+                                                    />
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -465,6 +516,14 @@ export default function AdminTransactionDetailPage({ params }) {
                                 >
                                     Konfirmasi Saldo <ShieldCheck size={18} />
                                 </button>
+                                {['shipped', 'complained'].includes(order.status) && (
+                                    <button 
+                                        onClick={() => setShowManualCompleteModal(true)}
+                                        className="w-full py-4 bg-amber-500 hover:bg-amber-400 text-zinc-950 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] transition-all flex items-center justify-center gap-3 shadow-xl shadow-amber-500/20"
+                                    >
+                                        Selesaikan Transaksi (Manual) <CheckCircle2 size={18} />
+                                    </button>
+                                )}
                             </div>
                         </div>
 
@@ -516,6 +575,73 @@ export default function AdminTransactionDetailPage({ params }) {
                     </div>
                 </div>
             )}
+
+            {/* CUSTOM MANUAL COMPLETE CONFIRMATION MODAL */}
+            {showManualCompleteModal && (
+                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+                    <div className="absolute inset-0 bg-zinc-950/80 backdrop-blur-md" onClick={() => !isCompleting && setShowManualCompleteModal(false)}></div>
+                    <div className="bg-zinc-900 border border-zinc-800 w-full max-w-md rounded-[2.5rem] p-10 relative z-10 shadow-3xl animate-in zoom-in duration-300">
+                        <div className="flex flex-col items-center text-center space-y-6">
+                            <div className="w-20 h-20 rounded-3xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-500 shadow-inner">
+                                <CheckCircle2 size={40} />
+                            </div>
+                            
+                            <div className="space-y-2">
+                                <h2 className="text-xl font-black text-white tracking-tight uppercase">Selesaikan Transaksi</h2>
+                                <p className="text-[11px] text-zinc-500 font-bold italic leading-relaxed">
+                                    Apakah Anda yakin ingin menyelesaikan transaksi ini secara manual atas pengajuan Penjual? Pembayaran akan dilepaskan ke saldo Penjual dengan rating 5-bintang otomatis. Tindakan ini tidak dapat dibatalkan.
+                                </p>
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-4 w-full pt-4">
+                                <button
+                                    onClick={() => setShowManualCompleteModal(false)}
+                                    disabled={isCompleting}
+                                    className="py-4 bg-zinc-800 hover:bg-zinc-700 text-zinc-400 font-black text-[10px] uppercase tracking-widest rounded-2xl transition-all"
+                                >
+                                    Batal
+                                </button>
+                                <button
+                                    onClick={handleManualCompleteOrder}
+                                    disabled={isCompleting}
+                                    className="py-4 bg-amber-500 hover:bg-amber-400 disabled:opacity-50 disabled:cursor-not-allowed text-zinc-950 font-black text-[10px] uppercase tracking-widest rounded-2xl transition-all shadow-lg shadow-amber-500/20 flex items-center justify-center gap-2"
+                                >
+                                    {isCompleting ? (
+                                        <>
+                                            <div className="w-3 h-3 border-2 border-zinc-950 border-t-transparent rounded-full animate-spin"></div>
+                                            Memproses...
+                                        </>
+                                    ) : (
+                                        "Ya, Selesaikan"
+                                    )}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            <style jsx global>{`
+                .description-content ul {
+                    list-style-type: disc !important;
+                    margin-left: 1.5rem !important;
+                    margin-top: 0.5rem !important;
+                    margin-bottom: 0.5rem !important;
+                }
+                .description-content ol {
+                    list-style-type: decimal !important;
+                    margin-left: 1.5rem !important;
+                    margin-top: 0.5rem !important;
+                    margin-bottom: 0.5rem !important;
+                }
+                .description-content li {
+                    display: list-item !important;
+                    margin-bottom: 0.25rem !important;
+                }
+                .description-content p {
+                    margin-bottom: 0.5rem !important;
+                }
+            `}</style>
         </div>
     );
 }

@@ -19,6 +19,7 @@ import {
     AlertCircle
 } from "lucide-react";
 import ActionModal from "@/components/ActionModal";
+import { getApiUrl, getLogoUrl } from "@/app/utils/api";
 
 const ReactQuill = dynamic(() => import("react-quill-new"), { ssr: false });
 
@@ -79,7 +80,7 @@ export default function EditTokoPage() {
             try {
                 const parsed = JSON.parse(userData);
                 // 1. Fetch User Profile for bank accounts
-                fetch(`${process.env.NEXT_PUBLIC_API_URL}/users/${parsed.id}`)
+                fetch(`${getApiUrl()}/users/${parsed.id}`)
                     .then(res => res.json())
                     .then(res => {
                         if (res.data && res.data.bank_accounts) {
@@ -89,7 +90,7 @@ export default function EditTokoPage() {
                     .catch(err => console.error("Error fetching user profile:", err));
 
                 // 2. Fetch Shop Data
-                fetch(`${process.env.NEXT_PUBLIC_API_URL}/shops/user/${parsed.id}`)
+                fetch(`${getApiUrl()}/shops/user/${parsed.id}`)
                     .then(res => res.json())
                     .then(res => {
                         if (res.data) {
@@ -171,7 +172,7 @@ export default function EditTokoPage() {
         setIsSubmitting(true);
 
         try {
-            const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/shops/${shopData.id}`, {
+            const response = await fetch(`${getApiUrl()}/shops/${shopData.id}`, {
                 method: "PUT",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(shopData)
@@ -260,14 +261,14 @@ export default function EditTokoPage() {
                                     <label className="text-[10px] sm:text-xs font-black text-zinc-500 uppercase tracking-widest ml-1 group-focus-within:text-emerald-500 transition-colors">Nama Toko</label>
                                     <div className="relative">
                                         <i className="fa-solid fa-store absolute left-4 top-1/2 -translate-y-1/2 text-zinc-600"></i>
-                                            <input
-                                                type="text"
-                                                className="w-full bg-zinc-950/30 border border-zinc-800/50 text-zinc-500 rounded-2xl pl-12 pr-4 py-3.5 sm:py-4 focus:outline-none transition-all font-bold placeholder:text-zinc-800 shadow-inner text-sm sm:text-base cursor-not-allowed"
-                                                placeholder="Contoh: Reptile Zone Jakarta"
-                                                value={shopData.name || ""}
-                                                onChange={(e) => setShopData({ ...shopData, name: e.target.value })}
-                                                disabled
-                                            />
+                                        <input
+                                            type="text"
+                                            className="w-full bg-zinc-950/30 border border-zinc-800/50 text-zinc-500 rounded-2xl pl-12 pr-4 py-3.5 sm:py-4 focus:outline-none transition-all font-bold placeholder:text-zinc-800 text-sm sm:text-base cursor-not-allowed"
+                                            placeholder="Contoh: Reptile Zone Jakarta"
+                                            value={shopData.name || ""}
+                                            onChange={(e) => setShopData({ ...shopData, name: e.target.value })}
+                                            disabled
+                                        />
                                     </div>
                                 </div>
                                 <div className="space-y-3 group">
@@ -277,7 +278,7 @@ export default function EditTokoPage() {
                                         <input
                                             type="text"
                                             placeholder="16 digit NIK sesuai KTP"
-                                            className="w-full bg-zinc-950/30 border border-zinc-800/50 text-zinc-500 rounded-2xl pl-12 pr-4 py-3.5 sm:py-4 focus:outline-none transition-all font-bold placeholder:text-zinc-800 shadow-inner tracking-widest text-sm sm:text-base cursor-not-allowed"
+                                            className="w-full bg-zinc-950/30 border border-zinc-800/50 text-zinc-500 rounded-2xl pl-12 pr-4 py-3.5 sm:py-4 focus:outline-none transition-all font-bold placeholder:text-zinc-800 tracking-widest text-sm sm:text-base cursor-not-allowed"
                                             value={shopData.nik || ""}
                                             onChange={(e) => setShopData({ ...shopData, nik: e.target.value })}
                                             disabled
@@ -306,7 +307,7 @@ export default function EditTokoPage() {
                                         </div>
                                         <input
                                             type="tel"
-                                            className="w-full bg-zinc-950/30 border border-zinc-800/50 text-zinc-500 rounded-2xl pl-20 sm:pl-24 pr-4 py-3.5 sm:py-4 focus:outline-none transition-all font-bold placeholder:text-zinc-800 shadow-inner text-sm sm:text-base cursor-not-allowed"
+                                            className="w-full bg-zinc-950/30 border border-zinc-800/50 text-zinc-500 rounded-2xl pl-20 sm:pl-24 pr-4 py-3.5 sm:py-4 focus:outline-none transition-all font-bold placeholder:text-zinc-800 text-sm sm:text-base cursor-not-allowed"
                                             placeholder="8123456789"
                                             value={shopData.whatsapp || ""}
                                             onChange={(e) => setShopData({ ...shopData, whatsapp: e.target.value })}
@@ -320,7 +321,7 @@ export default function EditTokoPage() {
                                         <i className="fa-solid fa-map absolute left-4 top-1/2 -translate-y-1/2 text-zinc-600"></i>
                                         <input
                                             type="text"
-                                            className="w-full bg-zinc-950/30 border border-zinc-800/50 text-zinc-500 rounded-2xl pl-12 pr-4 py-3.5 sm:py-4 focus:outline-none transition-all font-bold placeholder:text-zinc-800 shadow-inner text-sm sm:text-base cursor-not-allowed"
+                                            className="w-full bg-zinc-950/30 border border-zinc-800/50 text-zinc-500 rounded-2xl pl-12 pr-4 py-3.5 sm:py-4 focus:outline-none transition-all font-bold placeholder:text-zinc-800 text-sm sm:text-base cursor-not-allowed"
                                             placeholder="Ketik untuk mencari provinsi..."
                                             value={provinceSearch || shopData.province || ""}
                                             onChange={(e) => {
@@ -336,7 +337,7 @@ export default function EditTokoPage() {
                                             disabled
                                         />
                                         {showProvinceDropdown && (
-                                            <div className="absolute z-50 w-full mt-2 bg-zinc-900 border border-zinc-800 rounded-2xl shadow-2xl max-h-60 overflow-y-auto custom-scrollbar">
+                                            <div className="absolute z-50 w-full mt-2 bg-zinc-900 border border-zinc-800 rounded-2xl max-h-60 overflow-y-auto custom-scrollbar">
                                                 {provinces
                                                     .filter(p => p.name.toLowerCase().includes((provinceSearch || "").toLowerCase()))
                                                     .map(p => (
@@ -366,7 +367,7 @@ export default function EditTokoPage() {
                                         <i className="fa-solid fa-city absolute left-4 top-1/2 -translate-y-1/2 text-zinc-600"></i>
                                         <input
                                             type="text"
-                                            className="w-full bg-zinc-950/30 border border-zinc-800/50 text-zinc-500 rounded-2xl pl-12 pr-4 py-3.5 sm:py-4 focus:outline-none transition-all font-bold placeholder:text-zinc-800 shadow-inner text-sm sm:text-base cursor-not-allowed"
+                                            className="w-full bg-zinc-950/30 border border-zinc-800/50 text-zinc-500 rounded-2xl pl-12 pr-4 py-3.5 sm:py-4 focus:outline-none transition-all font-bold placeholder:text-zinc-800 text-sm sm:text-base cursor-not-allowed"
                                             placeholder={shopData.province ? "Ketik untuk mencari kota..." : "Pilih provinsi terlebih dahulu"}
                                             value={citySearch || shopData.city || ""}
                                             disabled={true}
@@ -379,7 +380,7 @@ export default function EditTokoPage() {
                                             autoComplete="off"
                                         />
                                         {showCityDropdown && cities.length > 0 && (
-                                            <div className="absolute z-50 w-full mt-2 bg-zinc-900 border border-zinc-800 rounded-2xl shadow-2xl max-h-60 overflow-y-auto custom-scrollbar">
+                                            <div className="absolute z-50 w-full mt-2 bg-zinc-900 border border-zinc-800 rounded-2xl max-h-60 overflow-y-auto custom-scrollbar">
                                                 {cities
                                                     .filter(c => c.name.toLowerCase().includes((citySearch || "").toLowerCase()))
                                                     .map(c => (
@@ -409,7 +410,7 @@ export default function EditTokoPage() {
                                     <i className="fa-solid fa-location-dot absolute left-4 top-4 text-zinc-600"></i>
                                     <textarea
                                         rows="2"
-                                        className="w-full bg-zinc-950/30 border border-zinc-800/50 text-zinc-500 rounded-2xl pl-12 pr-4 py-3.5 sm:py-4 focus:outline-none transition-all font-bold placeholder:text-zinc-800 shadow-inner resize-none text-sm sm:text-base cursor-not-allowed"
+                                        className="w-full bg-zinc-950/30 border border-zinc-800/50 text-zinc-500 rounded-2xl pl-12 pr-4 py-3.5 sm:py-4 focus:outline-none transition-all font-bold placeholder:text-zinc-800 resize-none text-sm sm:text-base cursor-not-allowed"
                                         placeholder="Tuliskan alamat lengkap toko fisik atau rumah Anda..."
                                         value={shopData.address || ""}
                                         onChange={(e) => setShopData({ ...shopData, address: e.target.value })}
@@ -435,7 +436,7 @@ export default function EditTokoPage() {
                                 {bankAccounts.length > 0 ? (
                                     bankAccounts.map((bank, idx) => (
                                         <div key={idx} className="bg-zinc-950/30 border border-zinc-800/50 p-4 rounded-2xl flex items-center gap-4 group hover:border-emerald-500/30 transition-all">
-                                            <div className="w-10 h-10 bg-emerald-500/10 text-emerald-500 rounded-xl flex items-center justify-center font-black text-xs uppercase shadow-inner">
+                                            <div className="w-10 h-10 bg-emerald-500/10 text-emerald-500 rounded-xl flex items-center justify-center font-black text-xs uppercase">
                                                 {(bank.bank_name || bank.bankName || "").substring(0, 3)}
                                             </div>
                                             <div className="flex-1">
@@ -473,7 +474,7 @@ export default function EditTokoPage() {
                                     <div className="relative shrink-0">
                                         <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl overflow-hidden bg-zinc-900 border-2 border-zinc-800 flex items-center justify-center relative">
                                             {shopData.logo_url ? (
-                                                <img src={shopData.logo_url} className="w-full h-full object-cover transition-transform duration-700 group-hover/card:scale-110" alt="Logo Toko" />
+                                                <img src={getLogoUrl(shopData.logo_url)} className="w-full h-full object-cover transition-transform duration-700 group-hover/card:scale-110" alt="Logo Toko" />
                                             ) : (
                                                 <div className="flex flex-col items-center gap-1 text-zinc-700">
                                                     <ImageIcon size={22} />
@@ -499,7 +500,7 @@ export default function EditTokoPage() {
                                             />
                                         </div>
                                         {shopData.logo_url && (
-                                            <button type="button" onClick={() => setShopData({ ...shopData, logo_url: "" })} className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white rounded-full flex items-center justify-center shadow-lg hover:bg-red-400 z-20">
+                                            <button type="button" onClick={() => setShopData({ ...shopData, logo_url: "" })} className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white rounded-full flex items-center justify-center hover:bg-red-400 z-20">
                                                 <XCircle size={12} />
                                             </button>
                                         )}
@@ -566,7 +567,7 @@ export default function EditTokoPage() {
                             <button
                                 type="submit"
                                 disabled={isSubmitting}
-                                className="flex-[1.5] bg-emerald-500 hover:bg-emerald-400 text-zinc-950 font-black py-4 sm:py-5 rounded-xl sm:rounded-2xl shadow-2xl shadow-emerald-500/20 transition-all flex items-center justify-center gap-3 group disabled:opacity-50 disabled:cursor-not-allowed text-sm sm:text-base"
+                                className="flex-[1.5] bg-emerald-500 hover:bg-emerald-400 text-zinc-950 font-black py-4 sm:py-5 rounded-xl sm:rounded-2xl transition-all flex items-center justify-center gap-3 group disabled:opacity-50 disabled:cursor-not-allowed text-sm sm:text-base"
                             >
                                 {isSubmitting ? (
                                     <i className="fa-solid fa-circle-notch fa-spin text-xl"></i>

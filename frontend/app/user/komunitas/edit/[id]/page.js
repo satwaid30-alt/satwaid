@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { ArrowLeft, ImageIcon, Save } from "lucide-react";
 import Link from "next/link";
+import { getApiUrl } from "@/app/utils/api";
 
 export default function EditKomunitasPage() {
     const router = useRouter();
@@ -29,7 +30,7 @@ export default function EditKomunitasPage() {
 
     const fetchTopic = async (topicId) => {
         try {
-            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/topics`);
+            const res = await fetch(`${getApiUrl()}/topics`);
             const data = await res.json();
             if (res.ok) {
                 const topic = data.data.find(t => t.id === topicId);
@@ -39,9 +40,10 @@ export default function EditKomunitasPage() {
                         category: topic.category,
                         description: topic.description,
                         date: new Date(topic.date).toISOString().split('T')[0],
-                        image: topic.image || ""});
+                        image: topic.image || ""
+                    });
                     if (topic.image) {
-                        setSelectedImage(topic.image.startsWith('http') ? topic.image : `${process.env.NEXT_PUBLIC_API_URL}${topic.image}`);
+                        setSelectedImage(topic.image.startsWith('http') ? topic.image : `${getApiUrl()}${topic.image}`);
                     }
                 }
             }
@@ -67,7 +69,7 @@ export default function EditKomunitasPage() {
         const formDataObj = new FormData();
         formDataObj.append("image", file);
         try {
-            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/upload`, {
+            const res = await fetch(`${getApiUrl()}/upload`, {
                 method: "POST",
                 body: formDataObj
             });
@@ -88,10 +90,10 @@ export default function EditKomunitasPage() {
         try {
             // Ketika user mengedit topik, otomatis status dikembalikan ke 'Pending' untuk di-review ulang
             const payload = { ...formData, status: "Pending", rejection_reason: null };
-            
-            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/topics/${id}`, {
+
+            const res = await fetch(`${getApiUrl()}/topics/${id}`, {
                 method: "PUT",
-                headers: { "Content-Type": "application/json"},
+                headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(payload)
             });
 
@@ -135,11 +137,11 @@ export default function EditKomunitasPage() {
             <form onSubmit={handleSubmit} className="bg-zinc-900 border border-zinc-800 rounded-2xl p-6 sm:p-8 space-y-6">
                 <div className="space-y-2">
                     <label className="text-sm font-semibold text-zinc-300">Judul Topik</label>
-                    <input 
-                        type="text" 
+                    <input
+                        type="text"
                         required
                         value={formData.title}
-                        onChange={(e) => setFormData({...formData, title: e.target.value})}
+                        onChange={(e) => setFormData({ ...formData, title: e.target.value })}
                         className="w-full bg-zinc-950 border border-zinc-800 text-white rounded-xl px-4 py-3 focus:outline-none focus:border-emerald-500 transition-colors"
                         placeholder="Contoh: Cara merawat Leopard Gecko yang mogok makan"
                     />
@@ -147,9 +149,9 @@ export default function EditKomunitasPage() {
 
                 <div className="space-y-2">
                     <label className="text-sm font-semibold text-zinc-300">Kategori Topik</label>
-                    <select 
+                    <select
                         value={formData.category}
-                        onChange={(e) => setFormData({...formData, category: e.target.value})}
+                        onChange={(e) => setFormData({ ...formData, category: e.target.value })}
                         className="w-full bg-zinc-950 border border-zinc-800 text-white rounded-xl px-4 py-3 focus:outline-none focus:border-emerald-500 transition-colors appearance-none"
                     >
                         <option value="Diskusi Umum">Diskusi Umum</option>
@@ -159,11 +161,11 @@ export default function EditKomunitasPage() {
 
                 <div className="space-y-2">
                     <label className="text-sm font-semibold text-zinc-300">Isi / Deskripsi Topik</label>
-                    <textarea 
+                    <textarea
                         required
                         rows="8"
                         value={formData.description}
-                        onChange={(e) => setFormData({...formData, description: e.target.value})}
+                        onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                         className="w-full bg-zinc-950 border border-zinc-800 text-white rounded-xl px-4 py-3 focus:outline-none focus:border-emerald-500 transition-colors resize-none"
                         placeholder="Tuliskan isi diskusi Anda secara detail..."
                     ></textarea>
@@ -172,11 +174,11 @@ export default function EditKomunitasPage() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                     <div className="space-y-2">
                         <label className="text-sm font-semibold text-zinc-300">Tanggal Topik</label>
-                        <input 
-                            type="date" 
+                        <input
+                            type="date"
                             required
                             value={formData.date}
-                            onChange={(e) => setFormData({...formData, date: e.target.value})}
+                            onChange={(e) => setFormData({ ...formData, date: e.target.value })}
                             className="w-full bg-zinc-950 border border-zinc-800 text-white rounded-xl px-4 py-3 focus:outline-none focus:border-emerald-500 transition-colors"
                             style={{ colorScheme: 'dark' }}
                         />
@@ -184,8 +186,8 @@ export default function EditKomunitasPage() {
                     <div className="space-y-2">
                         <label className="text-sm font-semibold text-zinc-300">Gambar Pendukung (Opsional)</label>
                         <div className="relative">
-                            <input 
-                                type="file" 
+                            <input
+                                type="file"
                                 accept="image/*"
                                 onChange={handleImageUpload}
                                 className="hidden"
@@ -224,7 +226,7 @@ export default function EditKomunitasPage() {
             {/* Modal Error */}
             {errorModal.isOpen && (
                 <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-zinc-950/80 backdrop-blur-sm animate-in fade-in zoom-in-95 duration-200">
-                    <div className="bg-zinc-900 border border-red-500/30 rounded-3xl w-full max-w-sm overflow-hidden shadow-2xl shadow-red-500/10">
+                    <div className="bg-zinc-900 border border-red-500/30 rounded-3xl w-full max-w-sm overflow-hidden">
                         <div className="p-6 flex flex-col items-center text-center space-y-4">
                             <div className="w-16 h-16 bg-red-500/10 text-red-500 rounded-full flex items-center justify-center shrink-0">
                                 <span className="text-3xl">⚠️</span>
@@ -237,7 +239,7 @@ export default function EditKomunitasPage() {
                             </div>
                         </div>
                         <div className="p-4 bg-zinc-950/50 border-t border-zinc-800 flex justify-center">
-                            <button 
+                            <button
                                 onClick={() => setErrorModal({ isOpen: false, message: "" })}
                                 className="w-full px-6 py-3 bg-zinc-800 hover:bg-zinc-700 text-white font-bold rounded-xl transition-all"
                             >

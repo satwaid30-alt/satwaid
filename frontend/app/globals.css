@@ -112,15 +112,15 @@ body {
    ====================================== */
 .description-content ul {
     list-style-type: disc;
-    list-style-position: inside;
-    padding-left: 0.25rem;
+    list-style-position: outside;
+    padding-left: 1.5rem;
     margin-bottom: 0.75rem;
 }
 
 .description-content ol {
     list-style-type: decimal;
-    list-style-position: inside;
-    padding-left: 0.25rem;
+    list-style-position: outside;
+    padding-left: 1.5rem;
     margin-bottom: 0.75rem;
 }
 
@@ -139,16 +139,16 @@ body {
 .shop-quill-editor .ql-editor ul,
 .ql-editor ul {
     list-style-type: disc;
-    list-style-position: inside;
-    padding-left: 0.25rem;
+    list-style-position: outside;
+    padding-left: 1.5rem;
     margin-bottom: 0.75rem;
 }
 
 .shop-quill-editor .ql-editor ol,
 .ql-editor ol {
     list-style-type: decimal;
-    list-style-position: inside;
-    padding-left: 0.25rem;
+    list-style-position: outside;
+    padding-left: 1.5rem;
     margin-bottom: 0.75rem;
 }
 

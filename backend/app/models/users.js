@@ -117,6 +117,14 @@ module.exports = function (sequelize, DataTypes) {
       type: DataTypes.STRING,
       allowNull: true
     },
+    reset_password_token: {
+      type: DataTypes.STRING(255),
+      allowNull: true
+    },
+    reset_password_expires: {
+      type: DataTypes.DATE,
+      allowNull: true
+    },
     status: {
       type: DataTypes.STRING,
       allowNull: true,
@@ -142,24 +150,32 @@ module.exports = function (sequelize, DataTypes) {
     ],
     hooks: {
       beforeCreate: async function (user) {
-        // const salt = await bcrypt.genSalt(10, 'a');
-        user.password = hashPasswordWithMD5(user.password);
+        if (user.password) {
+          const salt = await bcrypt.genSalt(10);
+          user.password = await bcrypt.hash(user.password, salt);
+        }
       },
       beforeUpdate: async function (user) {
         if (user.changed('password')) {
-          // const salt = await bcrypt.genSalt(10, 'a');
-          user.password = hashPasswordWithMD5(user.get('password'));
+          const salt = await bcrypt.genSalt(10);
+          user.password = await bcrypt.hash(user.get('password'), salt);
         }
       },
     },
   });
 
   masterAccount.prototype.validPassword = async function (password) {
-    return await bcrypt.compare(password, this.password);
+    if (this.password && this.password.startsWith('$2')) {
+      return await bcrypt.compare(password, this.password);
+    }
+    // Fallback to legacy MD5 for older users
+    return hashPasswordWithMD5(password) === this.password;
   }
 
   masterAccount.prototype.validPasswordMD5 = async function (password) {
-    console.log(this.password, password, hashPasswordWithMD5(password));
+    if (this.password && this.password.startsWith('$2')) {
+      return await bcrypt.compare(password, this.password);
+    }
     return hashPasswordWithMD5(password) === this.password;
   }
 

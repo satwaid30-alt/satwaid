@@ -3,10 +3,9 @@ const express = require('express');
 const router = express.Router();
 // const refController = require('../controllers/Ref.controller');
 // const registrationController = require('../controllers/Registration.controller');
-const speciesController = require('../controllers/Species.controller');
+
 const authController = require('../controllers/Auth.controller');
 const uploadController = require('../controllers/Upload.controller');
-const morphController = require('../controllers/MorphGroup.controller');
 const usersController = require('../controllers/Users.controller');
 const topicsController = require('../controllers/Topics.controller');
 const commentsController = require('../controllers/Comments.controller');
@@ -18,9 +17,13 @@ const cartController = require('../controllers/Cart.controller');
 const notificationsController = require('../controllers/Notifications.controller');
 const adminController = require('../controllers/Admin.controller');
 const chatController = require('../controllers/Chat.controller');
+const bidsController = require('../controllers/Bids.controller');
+
 
 // Admin Routes
 router.get('/admin/stats', adminController.getDashboardStats);
+
+
 
 // Shops Routes
 router.get('/shops', shopsController.getAllShops);
@@ -37,6 +40,13 @@ router.get('/listings/:id', listingsController.getListingById);
 router.post('/listings', listingsController.createListing);
 router.put('/listings/:id', listingsController.updateListing);
 router.delete('/listings/:id', listingsController.deleteListing);
+
+// Bidding Routes
+router.get('/listings/:listing_id/bids', bidsController.getBidsByListing);
+router.post('/listings/:listing_id/bids', bidsController.createBid);
+router.get('/bids/user/:user_id', bidsController.getUserBids);
+
+
 
 // Orders Routes
 router.get('/orders', ordersController.getAllOrders);
@@ -56,6 +66,8 @@ router.put('/orders/:order_id/resolve-complaint', ordersController.resolveCompla
 router.put('/orders/:order_id/reset-payment', ordersController.resetPayment);
 router.put('/orders/:order_id/cancel', ordersController.cancelOrder);
 router.put('/orders/:order_id/request-disbursement', ordersController.requestDisbursement);
+router.post('/orders/bulk-request-disbursement', ordersController.bulkRequestDisbursement);
+router.post('/orders/bulk-disburse', ordersController.bulkDisburseOrders);
 router.put('/orders/:order_id/disburse', ordersController.disburseOrder);
 router.put('/orders/:order_id/dismiss-cancellation', ordersController.dismissCancellation);
 router.delete('/orders/:order_id/history', ordersController.deleteOrderHistory);
@@ -89,13 +101,6 @@ router.put('/users/reset-password/:id', usersController.resetPassword);
 router.put('/users/email/:id', usersController.updateEmail);
 router.delete('/users/:id', usersController.deleteUser);
 
-// Morph Group Routes
-router.get('/morph-groups', morphController.getMorphGroups);
-router.get('/morph-groups/:id', morphController.getMorphGroupById);
-router.post('/morph-groups', morphController.createMorphGroup);
-router.put('/morph-groups/:id', morphController.updateMorphGroup);
-router.delete('/morph-groups/:id', morphController.deleteMorphGroup);
-
 // Topics Routes
 router.get('/topics', topicsController.getTopics);
 router.get('/topics/:id', topicsController.getTopicById);
@@ -114,6 +119,7 @@ router.get('/chats/seller/:seller_id', chatController.getSellerChats);
 router.get('/chats/product/:product_id', chatController.getProductChatCount);
 router.get('/chats/user/:user_id', chatController.getUserChats);
 router.get('/chats/:chat_id/messages', chatController.getChatMessages);
+router.put('/chats/:chat_id/read', chatController.markAsRead);
 router.get('/chats/listing/:product_id', chatController.getProductChatCount); // Alias or additional route if needed
 
 
@@ -133,17 +139,13 @@ const { validate, verify, checkFileSize, closeRoute } = require('@middlewares/Va
 router.post('/login', authController.login);
 router.post('/register', authController.register);
 router.post('/forgot-password', authController.forgotPassword);
+router.post('/reset-password', authController.resetPassword);
 router.post('/change-password', authController.changePassword);
 router.post('/upload', uploadController.uploadImage);
 
 
 
-// Species CMS Routes
-router.get('/species', speciesController.getSpecies);
-router.get('/species/:slug', speciesController.getSpeciesBySlug);
-router.post('/species', validate("create_species"), verify, speciesController.createSpecies);
-router.put('/species/:id', validate("update_species"), verify, speciesController.updateSpecies);
-router.delete('/species/:id', verify, speciesController.deleteSpecies);
+
 
 
 //exports

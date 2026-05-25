@@ -75,6 +75,14 @@ module.exports = function (sequelize, DataTypes) {
       type: DataTypes.BIGINT,
       allowNull: true
     },
+    bin_price: {
+      type: DataTypes.BIGINT,
+      allowNull: true
+    },
+    start_date: {
+      type: DataTypes.DATE,
+      allowNull: true
+    },
     end_date: {
       type: DataTypes.DATE,
       allowNull: true

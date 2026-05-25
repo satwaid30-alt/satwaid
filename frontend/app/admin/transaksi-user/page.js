@@ -21,6 +21,7 @@ import {
     ShieldAlert,
     MapPin
 } from "lucide-react";
+import { io } from "socket.io-client";
 
 export default function AdminTransactionPage() {
     const [orders, setOrders] = useState([]);
@@ -35,6 +36,45 @@ export default function AdminTransactionPage() {
 
     useEffect(() => {
         fetchOrders();
+
+        // Setup Socket.io for Real-time Transaction Updates
+        let socket;
+        try {
+            const token = typeof window !== 'undefined' ? localStorage.getItem("token") : null;
+            socket = io(process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000", {
+                auth: {
+                    token: token ? `Bearer ${token}` : null
+                }
+            });
+
+            socket.on("connect", () => {
+                console.log("[Socket] Admin Transactions Connected");
+                // Join the admin room to receive admin-specific notifications
+                socket.emit("join_admin");
+            });
+
+            // Listen to admin notifications and order updates to refresh the list instantly
+            socket.on("admin_notification", (data) => {
+                console.log("[Socket] Received admin notification:", data);
+                fetchOrders();
+            });
+
+            socket.on("order_updated_admin", (data) => {
+                console.log("[Socket] Received order updated admin event:", data);
+                fetchOrders();
+            });
+
+            socket.on("new_notification", (data) => {
+                console.log("[Socket] Received general notification:", data);
+                fetchOrders();
+            });
+        } catch (e) {
+            console.error("Socket connection error:", e);
+        }
+
+        return () => {
+            if (socket) socket.disconnect();
+        };
     }, []);
 
     const fetchOrders = async () => {

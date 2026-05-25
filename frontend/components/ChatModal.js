@@ -3,8 +3,9 @@
 import { useState, useEffect, useRef } from "react";
 import { Send, MessageSquare, X, User } from "lucide-react";
 import { io } from "socket.io-client";
+import { getApiUrl, getSocketUrl } from "@/app/utils/api";
 
-export default function ChatModal({ isOpen, onClose, sellerId, buyerId, sellerName, buyerName, productId, topicId }) {
+export default function ChatModal({ isOpen, onClose, sellerId, buyerId, sellerName, buyerName, productId, topicId, initialMessage }) {
     const [messages, setMessages] = useState([]);
     const [newMessage, setNewMessage] = useState("");
     const [socket, setSocket] = useState(null);
@@ -12,6 +13,14 @@ export default function ChatModal({ isOpen, onClose, sellerId, buyerId, sellerNa
     const [currentUser, setCurrentUser] = useState(null);
     const [isLoading, setIsLoading] = useState(false);
     const messagesEndRef = useRef(null);
+
+    useEffect(() => {
+        if (isOpen && initialMessage) {
+            setNewMessage(initialMessage);
+        } else if (!isOpen) {
+            setNewMessage("");
+        }
+    }, [isOpen, initialMessage]);
 
     useEffect(() => {
         // RESET state when props change to avoid showing old data
@@ -31,9 +40,9 @@ export default function ChatModal({ isOpen, onClose, sellerId, buyerId, sellerNa
         const initChat = async () => {
             setIsLoading(true);
             try {
-                const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/chats/start`, {
+                const res = await fetch(`${getApiUrl()}/chats/start`, {
                     method: "POST",
-                    headers: { "Content-Type": "application/json"},
+                    headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({
                         buyer_id: buyerId,
                         seller_id: sellerId,
@@ -59,13 +68,31 @@ export default function ChatModal({ isOpen, onClose, sellerId, buyerId, sellerNa
 
         fetchMessages(realTopicId);
 
-        const newSocket = io(process.env.NEXT_PUBLIC_API_URL);
+        const token = localStorage.getItem("token");
+        const newSocket = io(getSocketUrl(), {
+            auth: {
+                token: token ? `Bearer ${token}` : null
+            }
+        });
         setSocket(newSocket);
         newSocket.emit("join_topic", realTopicId);
 
         newSocket.on("receive_message", (msg) => {
             setMessages(prev => [...prev, msg]);
             scrollToBottom();
+
+            // Pro-actively mark incoming message as read in DB if we are the recipient
+            const userRaw = localStorage.getItem("user");
+            if (userRaw) {
+                const u = JSON.parse(userRaw);
+                if (msg.sender_id !== u.id) {
+                    fetch(`${getApiUrl()}/chats/${realTopicId}/read?user_id=${u.id}`, { method: 'PUT' })
+                        .then(() => {
+                            window.dispatchEvent(new CustomEvent("sync_notifications"));
+                        })
+                        .catch(console.error);
+                }
+            }
         });
 
         return () => { newSocket.disconnect(); };
@@ -75,9 +102,14 @@ export default function ChatModal({ isOpen, onClose, sellerId, buyerId, sellerNa
         if (!tId || tId === 'undefined') return;
         setIsLoading(true);
         try {
-            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/chats/${tId}/messages`);
+            const userRaw = localStorage.getItem("user");
+            const userId = userRaw ? JSON.parse(userRaw).id : '';
+            const res = await fetch(`${getApiUrl()}/chats/${tId}/messages?user_id=${userId}`);
             const data = await res.json();
-            if (res.ok) setMessages(data.data || []);
+            if (res.ok) {
+                setMessages(data.data || []);
+                window.dispatchEvent(new CustomEvent("sync_notifications"));
+            }
             scrollToBottom();
         } catch (err) {
             console.error("Error fetching messages:", err);
@@ -138,7 +170,7 @@ export default function ChatModal({ isOpen, onClose, sellerId, buyerId, sellerNa
                             <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">Online</p>
                         </div>
                     </div>
-                    <button 
+                    <button
                         onClick={onClose}
                         className="w-10 h-10 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-zinc-400 hover:text-white transition-all flex items-center justify-center border border-zinc-700"
                     >

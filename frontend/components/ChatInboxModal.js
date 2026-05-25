@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { MessageSquare, X, ChevronRight, User, ShoppingBag } from "lucide-react";
+import { getApiUrl } from "@/app/utils/api";
 
 export default function ChatInboxModal({ isOpen, onClose, onSelectChat }) {
     const [chats, setChats] = useState([]);
@@ -21,7 +22,7 @@ export default function ChatInboxModal({ isOpen, onClose, onSelectChat }) {
             const userData = JSON.parse(userRaw);
 
             // Fetch chats as seller
-            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/chats/seller/${userData.id}`);
+            const res = await fetch(`${getApiUrl()}/chats/seller/${userData.id}`);
             const result = await res.json();
 
             if (res.ok) {

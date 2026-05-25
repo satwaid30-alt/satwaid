@@ -26,46 +26,50 @@ module.exports.getNotificationCounts = async (req, res, next) => {
         let incomingOrdersCount = 0;
         if (shopId) {
             incomingOrdersCount = await models.orders.count({
-                where: { 
-                    shop_id: shopId, 
-                    status: { [Op.notIn]: ['completed', 'cancelled', 'cancelled_dismissed', 'disbursement_requested', 'disbursed'] } 
+                where: {
+                    shop_id: shopId,
+                    status: { [Op.notIn]: ['completed', 'cancelled', 'cancelled_dismissed', 'disbursement_requested', 'disbursed'] }
                 }
             });
         }
 
         const myOrdersCount = await models.orders.count({
-            where: { 
-                user_id, 
-                status: { [Op.notIn]: ['completed', 'cancelled', 'cancelled_dismissed', 'disbursement_requested', 'disbursed'] } 
+            where: {
+                user_id,
+                status: { [Op.notIn]: ['completed', 'cancelled', 'cancelled_dismissed', 'disbursement_requested', 'disbursed'] }
             }
         });
 
-        // Only count comments on community topics (exclude Chat category)
-        const userCommunityTopics = await models.topics.findAll({
-            where: { user_id, category: { [Op.ne]: 'Chat' } },
-            attributes: ['id']
+        const communityCount = await models.notifications.count({
+            where: {
+                user_id,
+                type: 'community',
+                is_read: false
+            }
         });
-        const communityTopicIds = userCommunityTopics.map(t => t.id);
-
-        let communityCount = 0;
-        if (communityTopicIds.length > 0) {
-            communityCount = await models.comments.count({
-                where: {
-                    topic_id: { [Op.in]: communityTopicIds },
-                    user_id: { [Op.ne]: user_id },
-                    is_read: false
-                }
-            });
-        }
 
         const chatCount = await models.chats.count({
+            distinct: true,
+            col: 'id',
+            include: [{
+                model: models.chat_messages,
+                as: 'messages',
+                where: {
+                    sender_id: { [Op.ne]: user_id },
+                    is_read: false
+                }
+            }],
             where: {
                 [Op.or]: [{ buyer_id: user_id }, { seller_id: user_id }]
             }
         });
 
         const systemNotifCount = await models.notifications.count({
-            where: { user_id, is_read: false }
+            where: {
+                user_id,
+                type: { [Op.ne]: 'community' },
+                is_read: false
+            }
         });
 
         res.status(200).json({
@@ -87,6 +91,14 @@ module.exports.getNotificationCounts = async (req, res, next) => {
 module.exports.markCommunityAsRead = async (req, res, next) => {
     try {
         const { user_id } = req.params;
+
+        // 1. Mark community notifications in notifications table as read
+        await models.notifications.update(
+            { is_read: true },
+            { where: { user_id, type: 'community', is_read: false } }
+        );
+
+        // 2. Mark community comments as read
         const userTopics = await models.topics.findAll({
             where: { user_id, category: { [Op.ne]: 'Chat' } },
             attributes: ['id']
@@ -108,7 +120,7 @@ module.exports.markCommunityAsRead = async (req, res, next) => {
 module.exports.markAllAsRead = async (req, res, next) => {
     try {
         const { user_id } = req.params;
-        
+
         // 1. Mark system notifications as read
         await models.notifications.update(
             { is_read: true },
@@ -138,7 +150,7 @@ module.exports.markAllAsRead = async (req, res, next) => {
 module.exports.deleteAll = async (req, res, next) => {
     try {
         const { user_id } = req.params;
-        
+
         // Physically delete system notifications for this user
         await models.notifications.destroy({
             where: { user_id }
@@ -211,34 +223,7 @@ module.exports.getNotificationsList = async (req, res, next) => {
             });
         });
 
-        // 4. Community Comments
-        const userCommunityTopics = await models.topics.findAll({
-            where: { user_id, category: { [Op.ne]: 'Chat' } },
-            attributes: ['id', 'title']
-        });
-        const communityTopicIds = userCommunityTopics.map(t => t.id);
 
-        if (communityTopicIds.length > 0) {
-            const comments = await models.comments.findAll({
-                where: { topic_id: { [Op.in]: communityTopicIds }, user_id: { [Op.ne]: user_id } },
-                include: [{ model: models.users, as: 'author', attributes: ['name', 'username'] }],
-                limit: 5,
-                order: [['created_at', 'DESC']]
-            });
-            console.log(`Found ${comments.length} community comments`);
-            comments.forEach(comment => {
-                const topic = userCommunityTopics.find(t => t.id === comment.topic_id);
-                notifications.push({
-                    id: `comm_${comment.id}`,
-                    type: 'community',
-                    title: 'Komentar Komunitas',
-                    message: `${comment.author?.name || comment.author?.username} mengomentari "${topic?.title || 'diskusi Anda'}"`,
-                    link: `/komunitas/${comment.topic_id}`,
-                    time: comment.created_at,
-                    is_read: comment.is_read || false
-                });
-            });
-        }
 
         // 5. Product Chats (New Separate Table)
         const chatList = await models.chats.findAll({
@@ -248,7 +233,16 @@ module.exports.getNotificationsList = async (req, res, next) => {
             include: [
                 { model: models.users, as: 'buyer', attributes: ['name', 'username'] },
                 { model: models.users, as: 'seller', attributes: ['name', 'username'] },
-                { model: models.listings, as: 'product', attributes: ['name'] }
+                { model: models.listings, as: 'product', attributes: ['name'] },
+                {
+                    model: models.chat_messages,
+                    as: 'messages',
+                    where: {
+                        sender_id: { [Op.ne]: user_id },
+                        is_read: false
+                    },
+                    required: false
+                }
             ],
             limit: 5,
             order: [[Sequelize.literal('COALESCE("chats"."updated_at", "chats"."created_at")'), 'DESC']]
@@ -258,7 +252,8 @@ module.exports.getNotificationsList = async (req, res, next) => {
             const isSeller = chat.seller_id === user_id;
             const partner = isSeller ? chat.buyer : chat.seller;
             const senderName = partner?.name || partner?.username || 'Seseorang';
-            
+            const hasUnread = chat.messages && chat.messages.length > 0;
+
             notifications.push({
                 id: `chat_${chat.id}`,
                 type: 'chat',
@@ -273,7 +268,7 @@ module.exports.getNotificationsList = async (req, res, next) => {
                     productId: chat.listing_id
                 },
                 time: chat.updated_at || chat.created_at,
-                is_read: false
+                is_read: !hasUnread
             });
         });
 
