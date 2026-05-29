@@ -124,9 +124,10 @@ module.exports = {
 
     createTopic: async (req, res) => {
         try {
-            const { user_id, title, category, description, date, image } = req.body;
+            const user_id = req.user_data.id;
+            const { title, category, description, date, image } = req.body;
             
-            if (!user_id || !title || !category || !description) {
+            if (!title || !category || !description) {
                 return res.status(400).json({ message: "Mohon lengkapi data topik" });
             }
 
@@ -155,14 +156,20 @@ module.exports = {
             const topic = await models.topics.findByPk(id);
             if (!topic) return res.status(404).json({ message: "Topik tidak ditemukan" });
 
+            // Ownership / Admin check
+            const isAdmin = req.user_data.level !== 8 || req.user_data.role === 'admin';
+            if (topic.user_id !== req.user_data.id && !isAdmin) {
+                return res.status(403).json({ message: "Anda tidak memiliki akses untuk mengubah topik ini" });
+            }
+
             await topic.update({
                 title: title !== undefined ? title : topic.title,
                 category: category !== undefined ? category : topic.category,
                 description: description !== undefined ? description : topic.description,
                 date: date !== undefined ? date : topic.date,
                 image: image !== undefined ? image : topic.image,
-                status: status !== undefined ? status : topic.status,
-                rejection_reason: rejection_reason !== undefined ? rejection_reason : topic.rejection_reason
+                status: (isAdmin && status !== undefined) ? status : topic.status,
+                rejection_reason: (isAdmin && rejection_reason !== undefined) ? rejection_reason : topic.rejection_reason
             });
 
             res.status(200).json({ message: "Topik berhasil diupdate", data: topic });
@@ -177,6 +184,12 @@ module.exports = {
             const { id } = req.params;
             const topic = await models.topics.findByPk(id);
             if (!topic) return res.status(404).json({ message: "Topik tidak ditemukan" });
+
+            // Ownership / Admin check
+            const isAdmin = req.user_data.level !== 8 || req.user_data.role === 'admin';
+            if (topic.user_id !== req.user_data.id && !isAdmin) {
+                return res.status(403).json({ message: "Anda tidak memiliki akses untuk menghapus topik ini" });
+            }
 
             // Delete related comments first
             await models.comments.destroy({ where: { topic_id: id } });
@@ -197,9 +210,7 @@ module.exports = {
     toggleLike: async (req, res) => {
         try {
             const { topic_id } = req.params;
-            const { user_id } = req.body;
-
-            if (!user_id) return res.status(400).json({ message: "User ID dibutuhkan" });
+            const user_id = req.user_data.id;
 
             const topic = await models.topics.findByPk(topic_id);
             if (!topic) return res.status(404).json({ message: "Topik tidak ditemukan" });

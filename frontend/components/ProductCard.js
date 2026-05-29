@@ -9,6 +9,9 @@ import {
   Truck,
   Package,
   Gavel,
+  Mars,
+  Venus,
+  HelpCircle,
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { getLogoUrl } from "@/app/utils/api";
@@ -102,9 +105,39 @@ export default function ProductCard({ product }) {
             </span>
             {product.sex && (
               <span
-                className={`bg-white/90 backdrop-blur-sm text-[9px] sm:text-[10px] font-bold px-2 py-1 rounded shadow-sm border border-white/20 ${product.sex === "Jantan" ? "text-blue-600" : product.sex === "Betina" ? "text-pink-600" : "text-zinc-500"}`}
+                className={`bg-white/90 backdrop-blur-sm text-[9px] sm:text-[10px] font-bold px-2 py-1 rounded shadow-sm border border-white/20 flex items-center gap-1 ${
+                  product.sex === "Jantan" || product.sex?.toLowerCase() === "male"
+                    ? "text-blue-600"
+                    : product.sex === "Betina" || product.sex?.toLowerCase() === "female"
+                    ? "text-pink-600"
+                    : "text-zinc-500"
+                }`}
               >
-                {product.sex}
+                {(() => {
+                  const sexLower = product.sex?.toLowerCase();
+                  if (sexLower === "jantan" || sexLower === "male") {
+                    return (
+                      <>
+                        <Mars size={12} className="w-3 h-3" />
+                        <span className="hidden sm:inline">Jantan</span>
+                      </>
+                    );
+                  } else if (sexLower === "betina" || sexLower === "female") {
+                    return (
+                      <>
+                        <Venus size={12} className="w-3 h-3" />
+                        <span className="hidden sm:inline">Betina</span>
+                      </>
+                    );
+                  } else {
+                    return (
+                      <>
+                        <HelpCircle size={12} className="w-3 h-3" />
+                        <span className="hidden sm:inline">{product.sex}</span>
+                      </>
+                    );
+                  }
+                })()}
               </span>
             )}
           </div>

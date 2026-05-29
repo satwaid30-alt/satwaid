@@ -82,12 +82,15 @@ export default function DetailPembayaranPage({ params: paramsPromise }) {
 
         setIsSubmittingBulk(true);
         try {
+            const token = localStorage.getItem("token");
+
             // 1. Upload proof file
             const formData = new FormData();
             formData.append('image', selectedFile);
 
             const uploadRes = await fetch(`${getApiUrl()}/upload`, {
                 method: 'POST',
+                headers: token ? { 'Authorization': `Bearer ${token}` } : {},
                 body: formData
             });
 
@@ -99,7 +102,10 @@ export default function DetailPembayaranPage({ params: paramsPromise }) {
             // 2. Call bulk disburse API
             const disburseRes = await fetch(`${getApiUrl()}/orders/bulk-disburse`, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'Authorization': token ? `Bearer ${token}` : ""
+                },
                 body: JSON.stringify({
                     order_ids: selectedOrders,
                     disbursement_proof: fileUrl,
@@ -331,7 +337,8 @@ export default function DetailPembayaranPage({ params: paramsPromise }) {
                             {formatPrice(orders.filter(o => o.disbursed_at || o.disbursement_proof).reduce((acc, curr) => {
                                 const total = (Number(curr.price || 0) * Number(curr.quantity || 1)) +
                                     Number(curr.shipping_cost || 0) +
-                                    Number(curr.packing_cost || 0);
+                                    Number(curr.packing_cost || 0) -
+                                    Number(curr.additional_fee || 0);
                                 return acc + total;
                             }, 0))}
                         </h3>
@@ -528,14 +535,20 @@ export default function DetailPembayaranPage({ params: paramsPromise }) {
                                             )}
                                         </td>
                                         <td className="px-8 py-6">
-                                            <div className="flex flex-col items-end">
+                                            <div className="flex flex-col">
                                                 <span className="text-sm font-black text-emerald-500">
                                                     {formatPrice(
                                                         (Number(order.price || 0) * Number(order.quantity || 1)) +
                                                         Number(order.shipping_cost || 0) +
-                                                        Number(order.packing_cost || 0)
+                                                        Number(order.packing_cost || 0) -
+                                                        Number(order.additional_fee || 0)
                                                     )}
                                                 </span>
+                                                {order.additional_fee > 0 && (
+                                                    <span className="text-[9px] font-bold text-red-400/80 italic mt-0.5">
+                                                        Pot. Admin: -{formatPrice(order.additional_fee)}
+                                                    </span>
+                                                )}
                                                 <span className="text-[9px] font-bold text-zinc-600">Disbursement</span>
                                             </div>
                                         </td>
@@ -662,12 +675,18 @@ export default function DetailPembayaranPage({ params: paramsPromise }) {
                         {/* Summary Block */}
                         <div className="bg-zinc-950/50 border border-zinc-800 p-5 rounded-2xl space-y-3">
                             <div className="flex items-center justify-between">
-                                <span className="text-xs text-zinc-500 font-bold uppercase tracking-wider">Total Dana Bersih</span>
+                                <span className="text-xs text-zinc-500 font-bold uppercase tracking-wider">Total Dana Kotor</span>
                                 <span className="text-sm font-black text-white">{formatPrice(totalAccumulatedAmount)}</span>
                             </div>
+                            {additionalFee > 0 && (
+                                <div className="flex items-center justify-between">
+                                    <span className="text-xs text-red-400 font-bold uppercase tracking-wider">Biaya Tambahan</span>
+                                    <span className="text-sm font-black text-red-400">-{formatPrice(Number(additionalFee))}</span>
+                                </div>
+                            )}
                             <div className="flex items-center justify-between border-t border-zinc-800 pt-3">
-                                <span className="text-xs text-emerald-400 font-black uppercase tracking-wider">Total Yang Harus Ditransfer</span>
-                                <span className="text-base font-black text-emerald-400">{formatPrice(totalAccumulatedAmount)}</span>
+                                <span className="text-xs text-emerald-400 font-black uppercase tracking-wider">Total Harus Ditransfer</span>
+                                <span className="text-base font-black text-emerald-400">{formatPrice(totalAccumulatedAmount - (Number(additionalFee) || 0))}</span>
                             </div>
                         </div>
 
@@ -698,6 +717,26 @@ export default function DetailPembayaranPage({ params: paramsPromise }) {
                                     <input type="file" accept="image/*" className="hidden" onChange={handleFileChange} />
                                 </label>
                             )}
+                        </div>
+
+                        {/* Biaya Tambahan */}
+                        <div className="space-y-2">
+                            <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest block flex items-center gap-2">
+                                <span className="w-2 h-2 rounded-full bg-red-500 inline-block"></span>
+                                Biaya Tambahan / Potongan (Opsional)
+                            </label>
+                            <div className="relative">
+                                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500 font-black text-sm select-none">Rp</span>
+                                <input
+                                    type="number"
+                                    min="0"
+                                    value={additionalFee}
+                                    onChange={(e) => setAdditionalFee(Math.max(0, Number(e.target.value)))}
+                                    className="w-full bg-zinc-950 border border-zinc-800 rounded-xl py-3 pl-10 pr-4 text-xs text-white font-bold placeholder:text-zinc-700 outline-none focus:border-red-500/50 transition-all"
+                                    placeholder="0"
+                                />
+                            </div>
+                            <p className="text-[9px] text-zinc-600 font-bold ml-1 italic">* Misal: biaya transfer antar bank. Kosongkan jika tidak ada.</p>
                         </div>
 
                         {/* Notes Section */}

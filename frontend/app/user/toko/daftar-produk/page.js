@@ -169,8 +169,12 @@ export default function DaftarJualanPage() {
     const handleDismissCancellation = async (orderId, listingId) => {
         if (!orderId) return;
         try {
+            const token = typeof window !== 'undefined' ? localStorage.getItem("token") : null;
             const res = await fetch(`${getApiUrl()}/orders/${encodeURIComponent(orderId)}/dismiss-cancellation`, {
-                method: 'PUT'
+                method: 'PUT',
+                headers: {
+                    'Authorization': token ? `Bearer ${token}` : ''
+                }
             });
             if (res.ok) {
                 const result = await res.json();

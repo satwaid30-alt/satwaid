@@ -94,9 +94,13 @@ export default function PengajuanPencairanPage({ params }) {
     const handleSubmit = async () => {
         setIsSubmitting(true);
         try {
+            const token = localStorage.getItem("token");
             const res = await fetch(`${getApiUrl()}/orders/${id}/request-disbursement`, {
                 method: 'PUT',
-                headers: { 'Content-Type': 'application/json' }
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'Authorization': token ? `Bearer ${token}` : ""
+                }
             });
 
             const result = await res.json();

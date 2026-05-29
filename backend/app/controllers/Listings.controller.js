@@ -7,6 +7,7 @@ const ListingsController = {
     // 1. Create (POST)
     createListing: async (req, res) => {
         try {
+            const user_id = req.user_data.id;
             const {
                 name,
                 species,
@@ -21,7 +22,6 @@ const ListingsController = {
                 bin_price,
                 start_date,
                 end_date,
-                user_id,
                 is_free_shipping,
                 is_free_packing,
                 shipping_type,
@@ -694,6 +694,12 @@ const ListingsController = {
              });
              if (!listing) return res.status(404).json({ message: "Iklan tidak ditemukan" });
  
+             // Ownership / Admin check
+             const isAdmin = req.user_data.level !== 8 || req.user_data.role === 'admin';
+             if (listing.user_id !== req.user_data.id && !isAdmin) {
+                 return res.status(403).json({ message: "Anda tidak memiliki akses untuk mengubah iklan ini" });
+             }
+
              // Check if shop is suspended (only if it's a seller update, i.e. content is changed)
              const contentFields = ['name', 'species', 'price', 'sex', 'description', 'shipping_description', 'images', 'start_bid', 'multiple', 'bin_price', 'start_date', 'end_date', 'is_free_shipping', 'is_free_packing', 'shipping_type'];
              const isContentUpdated = contentFields.some(field => req.body[field] !== undefined);
@@ -728,7 +734,7 @@ const ListingsController = {
             // If content is updated, force status to 'pending' for re-verification
             if (isContentUpdated) {
                 updateData.status = 'pending';
-            } else if (status !== undefined) {
+            } else if (status !== undefined && isAdmin) {
                 // If only status/rejection is updated (e.g. by admin), use the provided status
                 updateData.status = status;
             }
@@ -810,6 +816,12 @@ const ListingsController = {
             const { id } = req.params;
             const listing = await models.listings.findByPk(id);
             if (!listing) return res.status(404).json({ message: "Iklan tidak ditemukan" });
+ 
+            // Ownership / Admin check
+            const isAdmin = req.user_data.level !== 8 || req.user_data.role === 'admin';
+            if (listing.user_id !== req.user_data.id && !isAdmin) {
+                return res.status(403).json({ message: "Anda tidak memiliki akses untuk menghapus iklan ini" });
+            }
 
             // Check if there are associated orders
             const orderCount = await models.orders.count({ where: { listing_id: id } });

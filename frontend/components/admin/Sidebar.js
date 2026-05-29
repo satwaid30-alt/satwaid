@@ -19,7 +19,8 @@ import {
     ChevronDown,
     ChevronUp,
     Package,
-    Receipt
+    Receipt,
+    Sliders
 } from "lucide-react";
 
 const MENU_ITEMS = [
@@ -38,6 +39,7 @@ const MENU_ITEMS = [
     { name: "Verifikasi Komunitas", href: "/admin/komunitas", icon: MessageSquare },
     { name: "Keuangan Toko", href: "/admin/keuangan", icon: BookOpen },
     { name: "Daftar Pengguna", href: "/admin/users", icon: Users },
+    { name: "Kontrol Menu", href: "/admin/control-menu", icon: Sliders },
     { name: "Pengaturan", href: "/admin/settings", icon: Settings },
 ];
 

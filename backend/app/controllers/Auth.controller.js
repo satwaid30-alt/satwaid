@@ -41,9 +41,17 @@ module.exports.login = async (req, res, next) => {
             level: 0 // Default for admin login if level not in model
         }, process.env.JWT_CONF_TOKEN, { expiresIn: '1d' });
 
+        // Set HttpOnly cookie for JWT
+        res.cookie('token', token, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'strict',
+            maxAge: 24 * 60 * 60 * 1000 // 1 hari
+        });
+
         res.status(200).json({
             message: "Login successful",
-            token: token,
+            token: token, // keep sending token for backward compatibility
             user: {
                 id: user.id,
                 username: user.username,
@@ -60,6 +68,20 @@ module.exports.login = async (req, res, next) => {
         });
     } catch (err) {
         console.error(err);
+        next(err);
+    }
+}
+
+module.exports.logout = async (req, res, next) => {
+    try {
+        res.clearCookie('token', {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'strict'
+        });
+        res.status(200).json({ message: "Logout successful" });
+    } catch (err) {
+        console.error("Error during logout:", err);
         next(err);
     }
 }
@@ -125,17 +147,21 @@ module.exports.forgotPassword = async (req, res, next) => {
 
         const user = await models.users.findOne({ where: { email } });
 
+        // Generic success message to prevent email enumeration
+        const genericSuccessMessage = "Jika email Anda terdaftar di sistem kami, instruksi reset password telah dikirim ke email Anda. Silakan periksa kotak masuk.";
+
         if (!user) {
-            return res.status(404).json({ message: "Email tidak terdaftar di sistem kami" });
+            return res.status(200).json({ message: genericSuccessMessage });
         }
 
-        // 1. Generate secure random token
+        // 1. Generate secure random token and hash it for DB storage
         const resetToken = crypto.randomBytes(32).toString('hex');
+        const hashedToken = crypto.createHash('sha256').update(resetToken).digest('hex');
         const resetExpires = new Date(Date.now() + 15 * 60 * 1000); // 15 menit
 
-        // 2. Simpan token ke DB
+        // 2. Simpan token ter-hash ke DB (Mencegah pencurian token via kebocoran DB)
         await user.update({
-            reset_password_token: resetToken,
+            reset_password_token: hashedToken,
             reset_password_expires: resetExpires
         });
 
@@ -152,19 +178,16 @@ module.exports.forgotPassword = async (req, res, next) => {
         // Cek jika masih menggunakan placeholder default di .env (mode simulasi)
         const isDevSimulated = !mailUser || mailUser.includes('alamat_email_anda') || !mailPass || mailPass.includes('sandi_aplikasi_anda');
 
-        // if (isDevSimulated) {
-        //     console.log("\n========================================================");
-        //     console.log("🔒 [SIMULASI RESET PASSWORD SATWA ID]");
-        //     console.log(`Untuk User: ${user.username} (${user.email})`);
-        //     console.log(`Link Reset Password: ${resetUrl}`);
-        //     console.log("========================================================\n");
+        if (isDevSimulated) {
+            console.log("\n========================================================");
+            console.log("🔒 [SIMULASI RESET PASSWORD SATWA ID]");
+            console.log(`Untuk User: ${user.username} (${user.email})`);
+            console.log(`Link Reset Password: ${resetUrl}`);
+            console.log("========================================================\n");
 
-        //     return res.status(200).json({
-        //         message: "Instruksi reset password berhasil dibuat.",
-        //         dev_simulated: true,
-        //         reset_url: resetUrl
-        //     });
-        // }
+            // Mencegah kebocoran token di API response pada mode dev/simulasi
+            return res.status(200).json({ message: genericSuccessMessage });
+        }
 
         // Kirim email asli via SMTP
         const transporter = nodemailer.createTransport({
@@ -199,9 +222,7 @@ module.exports.forgotPassword = async (req, res, next) => {
 
         await transporter.sendMail(mailOptions);
 
-        res.status(200).json({
-            message: "Instruksi reset password telah dikirim ke email Anda. Silakan periksa kotak masuk."
-        });
+        res.status(200).json({ message: genericSuccessMessage });
     } catch (err) {
         console.error("Error forgot password:", err);
         next(err);
@@ -216,14 +237,17 @@ module.exports.resetPassword = async (req, res, next) => {
             return res.status(400).json({ message: "Token dan password baru wajib diisi" });
         }
 
-        if (new_password.length < 4) {
-            return res.status(400).json({ message: "Password minimal 4 karakter" });
+        if (new_password.length < 8) {
+            return res.status(400).json({ message: "Password baru minimal 8 karakter demi keamanan" });
         }
 
-        // Cari user dengan token reset yang cocok dan masih aktif
+        // Hash token yang masuk dari request untuk mencocokkan dengan hash di DB
+        const hashedToken = crypto.createHash('sha256').update(token).digest('hex');
+
+        // Cari user dengan token reset yang cocok dan belum kedaluwarsa
         const user = await models.users.findOne({
             where: {
-                reset_password_token: token,
+                reset_password_token: hashedToken,
                 reset_password_expires: {
                     [Op.gt]: new Date()
                 }

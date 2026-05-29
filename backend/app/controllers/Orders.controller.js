@@ -386,6 +386,11 @@ const OrdersController = {
             // Emit Notification to Seller
             const io = req.app.get('socketio');
             if (io) {
+                console.log(`[Socket] Broadcasting listing_stock_updated for listing ${listing.id}: stock=${newStock}`);
+                io.emit('listing_stock_updated', {
+                    listing_id: listing.id,
+                    stock: newStock
+                });
                 io.to('admin_room').emit('order_updated_admin', { order_id: orderId, status: 'pending_shipping_info' });
                 const shop = await models.shops.findByPk(listing.shop_id);
                 if (shop) {
@@ -992,13 +997,15 @@ const OrdersController = {
             }
 
             // Kembalikan stok jika pesanan dibatalkan
+            let newStock = null;
             if (order.listing_id) {
                 const listing = await models.listings.findByPk(order.listing_id);
                 if (listing) {
                     // Jika sebelumnya listing ditandai 'sold' karena stok 0, kembalikan ke 'active'
                     const newStatus = listing.status === 'sold' ? 'active' : listing.status;
+                    newStock = listing.stock + order.quantity;
                     await listing.update({
-                        stock: listing.stock + order.quantity,
+                        stock: newStock,
                         status: newStatus,
                         updated_at: new Date()
                     });
@@ -1018,6 +1025,13 @@ const OrdersController = {
             // Emit Notification to Buyer
             const io = req.app.get('socketio');
             if (io) {
+                if (newStock !== null) {
+                    console.log(`[Socket] Broadcasting listing_stock_updated (on cancel) for listing ${order.listing_id}: stock=${newStock}`);
+                    io.emit('listing_stock_updated', {
+                        listing_id: order.listing_id,
+                        stock: newStock
+                    });
+                }
                 io.to('admin_room').emit('order_updated_admin', { order_id: order.order_id, status: order.status });
                 io.to(`user_${order.user_id}`).emit('new_notification', {
                     type: 'order_buyer',

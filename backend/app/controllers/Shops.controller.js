@@ -153,7 +153,8 @@ module.exports.getShopByUserId = async (req, res, next) => {
 
 module.exports.createShop = async (req, res, next) => {
     try {
-        const { user_id, name, description, address, city, province, whatsapp, logo_url, banner_url, nik, shipping_policy, warranty_policy } = req.body;
+        const user_id = req.user_data.id;
+        const { name, description, address, city, province, whatsapp, logo_url, banner_url, nik, shipping_policy, warranty_policy } = req.body;
 
         // Check if user already has a shop
         const existingShop = await models.shops.findOne({ where: { user_id } });
@@ -200,6 +201,12 @@ module.exports.updateShop = async (req, res, next) => {
             return res.status(404).json({ message: "Shop not found" });
         }
 
+        // Ownership / Admin check
+        const isAdmin = req.user_data.level !== 8 || req.user_data.role === 'admin';
+        if (shop.user_id !== req.user_data.id && !isAdmin) {
+            return res.status(403).json({ message: "Anda tidak memiliki akses untuk mengubah toko ini" });
+        }
+
         await shop.update({
             name,
             description,
@@ -210,15 +217,15 @@ module.exports.updateShop = async (req, res, next) => {
             logo_url,
             banner_url,
             nik,
-            status,
-            rejection_reason,
+            status: isAdmin ? status : shop.status, // Only admin can moderate status
+            rejection_reason: isAdmin ? rejection_reason : shop.rejection_reason,
             shipping_policy,
             warranty_policy,
             updated_at: new Date()
         });
 
-        // Cascade status update to the user if status is provided
-        if (status) {
+        // Cascade status update to the user if status is provided by Admin
+        if (isAdmin && status) {
             await models.users.update(
                 { status: status },
                 { where: { id: shop.user_id } }
@@ -278,6 +285,12 @@ module.exports.deleteShop = async (req, res, next) => {
         const shop = await models.shops.findByPk(id);
         if (!shop) {
             return res.status(404).json({ message: "Shop not found" });
+        }
+
+        // Ownership / Admin check
+        const isAdmin = req.user_data.level !== 8 || req.user_data.role === 'admin';
+        if (shop.user_id !== req.user_data.id && !isAdmin) {
+            return res.status(403).json({ message: "Anda tidak memiliki akses untuk menghapus toko ini" });
         }
 
         // 1. Delete all listings associated with this shop

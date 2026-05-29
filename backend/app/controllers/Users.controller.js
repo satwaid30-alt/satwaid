@@ -7,6 +7,11 @@ module.exports.getUsers = async (req, res, next) => {
     try {
         const users = await models.users.findAll({
             attributes: ['id', 'name', 'username', 'email', 'role', 'created_at', 'phone', 'address', 'city', 'province', 'bank_accounts', 'avatar_url'],
+            include: [{
+                model: models.shops,
+                as: 'shop',
+                attributes: ['id', 'name', 'status']
+            }],
             order: [['created_at', 'DESC']]
         });
 
@@ -36,6 +41,7 @@ module.exports.getUserCount = async (req, res, next) => {
 module.exports.getUserById = async (req, res, next) => {
     try {
         const { id } = req.params;
+
         const user = await models.users.findOne({
             where: { id },
             attributes: ['id', 'name', 'username', 'email', 'role', 'phone', 'address', 'city', 'province', 'bank_accounts', 'avatar_url']
@@ -72,6 +78,12 @@ module.exports.updateProfile = async (req, res, next) => {
     try {
         const { id } = req.params;
         const { name, phone, address, city, province, bankAccounts, avatar_url } = req.body;
+
+        // Ownership / Admin check
+        const isAdmin = req.user_data.level !== 8 || req.user_data.role === 'admin';
+        if (req.user_data.id !== id && !isAdmin) {
+            return res.status(403).json({ message: "Anda tidak memiliki akses untuk mengubah profil ini" });
+        }
 
         const user = await models.users.findByPk(id);
         if (!user) {
@@ -115,6 +127,12 @@ module.exports.updateEmail = async (req, res, next) => {
         const { id } = req.params;
         const { new_email } = req.body;
 
+        // Ownership / Admin check
+        const isAdmin = req.user_data.level !== 8 || req.user_data.role === 'admin';
+        if (req.user_data.id !== id && !isAdmin) {
+            return res.status(403).json({ message: "Anda tidak memiliki akses untuk mengubah email ini" });
+        }
+
         if (!new_email || !new_email.includes('@')) {
             return res.status(400).json({ message: "Email tidak valid" });
         }
@@ -148,6 +166,12 @@ module.exports.resetPassword = async (req, res, next) => {
         const { id } = req.params;
         const { new_password } = req.body;
 
+        // Ownership / Admin check
+        const isAdmin = req.user_data.level !== 8 || req.user_data.role === 'admin';
+        if (req.user_data.id !== id && !isAdmin) {
+            return res.status(403).json({ message: "Anda tidak memiliki akses untuk mereset password ini" });
+        }
+
         if (!new_password || new_password.length < 4) {
             return res.status(400).json({ message: "Password baru minimal 4 karakter" });
         }
@@ -177,6 +201,12 @@ module.exports.resetPassword = async (req, res, next) => {
 module.exports.deleteUser = async (req, res, next) => {
     try {
         const { id } = req.params;
+
+        // Ownership / Admin check
+        const isAdmin = req.user_data.level !== 8 || req.user_data.role === 'admin';
+        if (!isAdmin) {
+            return res.status(403).json({ message: "Hanya Administrator yang diperbolehkan menghapus pengguna" });
+        }
 
         const user = await models.users.findByPk(id);
         if (!user) {

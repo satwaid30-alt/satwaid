@@ -33,12 +33,13 @@ module.exports = {
   createBid: async (req, res) => {
     try {
       const { listing_id } = req.params;
-      const { user_id, bid_amount } = req.body;
+      const user_id = req.user_data.id;
+      const { bid_amount } = req.body;
 
-      if (!user_id || !bid_amount) {
+      if (!bid_amount) {
         return res
           .status(400)
-          .json({ message: "User ID dan nominal tawaran wajib diisi" });
+          .json({ message: "Nominal tawaran wajib diisi" });
       }
 
       // Fetch listing

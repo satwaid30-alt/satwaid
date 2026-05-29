@@ -16,6 +16,7 @@ var _chats = require("../models/chats");
 var _chat_messages = require("../models/chat_messages");
 var _notifications = require("../models/notifications");
 var _bids = require("../models/bids");
+var _menu_controls = require("../models/menu_controls");
 
 
 function initModels(sequelize) {
@@ -35,6 +36,7 @@ function initModels(sequelize) {
   var chat_messages = _chat_messages(sequelize, DataTypes);
   var notifications = _notifications(sequelize, DataTypes);
   var bids = _bids(sequelize, DataTypes);
+  var menu_controls = _menu_controls(sequelize, DataTypes);
 
 
 
@@ -119,7 +121,8 @@ function initModels(sequelize) {
     chats,
     chat_messages,
     notifications,
-    bids
+    bids,
+    menu_controls
   };
 }
 

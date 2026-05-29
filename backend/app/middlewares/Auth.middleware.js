@@ -4,24 +4,28 @@ const { getRoles, getPolicies } = require('../services/FetchData');
 const { sendError } = require('../handlers/Response.handler');
 
 exports.checkAuth = (req, res, next) => {
-    var headers = req.headers;
-    if (typeof headers['authorization'] !== 'undefined') {
-        if (headers['authorization'].search("Bearer ") > -1) {
-            jwt.verify(headers['authorization'].split(";")[0].replace("Bearer ", ""), process.env.JWT_CONF_TOKEN, (err, decoded) => {
-                if (!err) {
-                    req.user_data = decoded;
-                    return next();
-                } else {
-                    res.status(403).send({ message: 'Not Authorized' })
-                }
-            });
-        } else {
-            res.status(400).send({ message: 'Auth detected, but no token detected' })
-        }
+    let token = null;
+    const headers = req.headers;
+
+    if (typeof headers['authorization'] !== 'undefined' && headers['authorization'].search("Bearer ") > -1) {
+        token = headers['authorization'].split(";")[0].replace("Bearer ", "");
+    } else if (req.cookies && req.cookies.token) {
+        token = req.cookies.token;
+    }
+
+    if (token) {
+        jwt.verify(token, process.env.JWT_CONF_TOKEN, (err, decoded) => {
+            if (!err) {
+                req.user_data = decoded;
+                return next();
+            } else {
+                return res.status(403).send({ message: 'Not Authorized' });
+            }
+        });
     } else {
-        res.status(401).send({
+        return res.status(401).send({
             message: "Token Required"
-        })
+        });
     }
 }
 

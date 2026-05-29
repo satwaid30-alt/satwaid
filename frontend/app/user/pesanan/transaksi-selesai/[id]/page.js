@@ -126,9 +126,13 @@ export default function TransactionCompletePage({ params }) {
         e.preventDefault();
         setIsSubmitting(true);
         try {
+            const token = typeof window !== 'undefined' ? localStorage.getItem("token") : null;
             const res = await fetch(`${getApiUrl()}/orders/${id}/complete`, {
                 method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': token ? `Bearer ${token}` : ''
+                },
                 body: JSON.stringify({ rating, review })
             });
             if (res.ok) {
@@ -180,9 +184,13 @@ export default function TransactionCompletePage({ params }) {
                 }
             }
 
+            const token = typeof window !== 'undefined' ? localStorage.getItem("token") : null;
             const res = await fetch(`${getApiUrl()}/orders/${id}/complain`, {
                 method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': token ? `Bearer ${token}` : ''
+                },
                 body: JSON.stringify({
                     complaint_description: complaintDesc,
                     complaint_image: imageUrl

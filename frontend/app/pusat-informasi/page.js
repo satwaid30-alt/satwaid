@@ -2,7 +2,8 @@
 
 import { useState, useEffect, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
-import { HelpCircle, ShieldCheck, FileText, Search, ChevronDown, MessageCircle, BookOpen, HeartHandshake, ArrowRight, ShieldAlert, AlertCircle, Scale, Lock, UserCheck, Info } from "lucide-react";
+import Link from "next/link";
+import { HelpCircle, ShieldCheck, FileText, Search, ChevronDown, MessageCircle, BookOpen, HeartHandshake, ArrowRight, ArrowLeft, ShieldAlert, AlertCircle, Scale, Lock, UserCheck, Info } from "lucide-react";
 
 // FAQ Data structure
 const FAQ_CATEGORIES = [
@@ -88,9 +89,19 @@ function PusatInformasiContent() {
   return (
     <div className="min-h-screen bg-zinc-950 text-white font-sans selection:bg-emerald-500 selection:text-zinc-950">
       {/* Premium Hero Header with dynamic glow */}
-      <div className="relative overflow-hidden pt-28 pb-16 md:pt-36 md:pb-24 bg-gradient-to-b from-emerald-950/20 via-zinc-950 to-zinc-950">
+      <div className="relative overflow-hidden pt-20 pb-16 md:pt-28 md:pb-24 bg-gradient-to-b from-emerald-950/20 via-zinc-950 to-zinc-950">
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[500px] h-[500px] bg-emerald-500/10 rounded-full blur-[120px] pointer-events-none"></div>
         <div className="absolute top-0 right-10 w-72 h-72 bg-blue-500/5 rounded-full blur-[100px] pointer-events-none"></div>
+
+        {/* Back Navigation Bar */}
+        <div className="max-w-7xl mx-auto px-6 mb-8 flex justify-start relative z-10">
+          <Link
+            href="/"
+            className="inline-flex items-center gap-2 px-4 py-2 bg-zinc-900/50 hover:bg-zinc-800/80 backdrop-blur-md border border-zinc-800/80 rounded-xl text-zinc-400 hover:text-white text-xs font-bold uppercase tracking-wider transition-all duration-200 active:scale-95 shadow-lg"
+          >
+            <ArrowLeft size={14} className="text-emerald-500" /> Kembali ke Beranda
+          </Link>
+        </div>
 
         <div className="max-w-7xl mx-auto px-6 text-center space-y-6 relative z-10">
           <div className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-500/10 border border-emerald-500/20 rounded-full text-emerald-400 text-xs font-bold uppercase tracking-wider">
@@ -388,7 +399,7 @@ function PusatInformasiContent() {
                 <h3 className="text-lg md:text-xl font-black uppercase tracking-tight text-white flex items-center gap-3">
                   <span className="text-emerald-500">2.</span> Peraturan Lelang & Bidding
                 </h3>
-                <p>SatwaiD memfasilitasi lelang online satwa eksotis. Aturan ketat berikut berlaku bagi seluruh partisipan:</p>
+                <p>SatwaiD memfasilitasi lelang Hewan online. Aturan ketat berikut berlaku bagi seluruh partisipan:</p>
                 <ul className="space-y-3 pl-4 list-none text-zinc-400">
                   <li className="flex items-start gap-3">
                     <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full shrink-0 mt-2"></span>

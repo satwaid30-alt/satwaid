@@ -10,11 +10,19 @@ const apm = require('elastic-apm-node').start({
 
 const express = require('express');
 const app = express();
+const helmet = require('helmet');
+
+// Secure HTTP headers with helmet and allow cross-origin resources
+app.use(helmet({
+    crossOriginResourcePolicy: { policy: "cross-origin" }
+}));
+
 const fs = require('fs'); 
 const useragent = require('express-useragent');
 const fileupload = require('express-fileupload');
 const cors = require('cors');
 const bodyParser = require('body-parser');
+const cookieParser = require('cookie-parser');
 
 require('moment/locale/id.js');
 require('module-alias/register');
@@ -55,6 +63,9 @@ try {
 // User Agent
 app.use(useragent.express());
 
+// Cookie Parser
+app.use(cookieParser());
+
 //Body-Parser using for catching body parser (just in case needed)
 app.use(bodyParser.urlencoded({limit: "50mb", extended: false, parameterLimit:50000}));
 app.use(bodyParser.json({limit: "50mb"}));
@@ -67,8 +78,25 @@ app.use(express.static(app_path.join(__dirname, 'public')));
 
 
 //CORS using for cross origin
-app.use(cors());
-app.options('*', cors());
+const allowedOrigins = process.env.ALLOWED_ORIGINS
+    ? process.env.ALLOWED_ORIGINS.split(',').map(o => o.trim())
+    : [process.env.FRONTEND_URL || 'http://localhost:3000'];
+
+const corsOptions = {
+    origin: (origin, callback) => {
+        // Izinkan request tanpa origin (Postman, server-to-server, dll)
+        if (!origin) return callback(null, true);
+        if (allowedOrigins.includes(origin)) {
+            return callback(null, true);
+        }
+        return callback(new Error(`CORS: Origin "${origin}" tidak diizinkan`), false);
+    },
+    credentials: true
+};
+
+app.use(cors(corsOptions));
+app.options('*', cors(corsOptions));
+
 
 //Run Docs
 setupDocs(app, app_path);

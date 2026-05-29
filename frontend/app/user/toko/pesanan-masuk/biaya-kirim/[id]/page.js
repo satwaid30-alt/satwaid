@@ -165,11 +165,15 @@ export default function InputShippingCostPage({ params }) {
           : parseInt(costForm.packing_cost) || 0,
       };
 
+      const token = typeof window !== 'undefined' ? localStorage.getItem("token") : null;
       const response = await fetch(
         `${getApiUrl()}/orders/${id}/shipping-cost`,
         {
           method: "PUT",
-          headers: { "Content-Type": "application/json" },
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": token ? `Bearer ${token}` : "",
+          },
           body: JSON.stringify(payload),
         },
       );

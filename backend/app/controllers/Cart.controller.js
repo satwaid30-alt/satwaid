@@ -7,10 +7,11 @@ const CartController = {
     // Add to Cart
     addToCart: async (req, res) => {
         try {
-            const { user_id, listing_id, quantity } = req.body;
+            const user_id = req.user_data.id;
+            const { listing_id, quantity } = req.body;
 
-            if (!user_id || !listing_id) {
-                return res.status(400).json({ message: "User ID and Listing ID are required" });
+            if (!listing_id) {
+                return res.status(400).json({ message: "Listing ID is required" });
             }
 
             // Get Listing info
@@ -73,6 +74,7 @@ const CartController = {
     getCart: async (req, res) => {
         try {
             const { user_id } = req.params;
+
             const cartItems = await models.carts.findAll({
                 where: { user_id },
                 include: [
@@ -128,7 +130,18 @@ const CartController = {
     removeFromCart: async (req, res) => {
         try {
             const { id } = req.params;
-            await models.carts.destroy({ where: { id } });
+            const cartItem = await models.carts.findByPk(id);
+            if (!cartItem) {
+                return res.status(404).json({ message: "Item tidak ditemukan di keranjang." });
+            }
+
+            // Ownership / Admin check
+            const isAdmin = req.user_data.level !== 8 || req.user_data.role === 'admin';
+            if (cartItem.user_id !== req.user_data.id && !isAdmin) {
+                return res.status(403).json({ message: "Anda tidak memiliki akses untuk menghapus item ini dari keranjang" });
+            }
+
+            await cartItem.destroy();
             return res.status(200).json({ message: "Item removed from cart" });
         } catch (err) {
             return res.status(500).json({ message: err.message });
@@ -139,6 +152,13 @@ const CartController = {
     clearCart: async (req, res) => {
         try {
             const { user_id } = req.params;
+
+            // Ownership / Admin check
+            const isAdmin = req.user_data.level !== 8 || req.user_data.role === 'admin';
+            if (req.user_data.id !== user_id && !isAdmin) {
+                return res.status(403).json({ message: "Anda tidak memiliki akses untuk mengosongkan keranjang ini" });
+            }
+
             await models.carts.destroy({ where: { user_id } });
             return res.status(200).json({ message: "Cart cleared" });
         } catch (err) {

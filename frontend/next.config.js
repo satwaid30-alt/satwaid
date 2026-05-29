@@ -1,5 +1,11 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+    // Izinkan akses dev dari perangkat lain di jaringan lokal (HP/tablet via LAN)
+    allowedDevOrigins: [
+        'http://10.10.11.202:3000',
+        'http://10.10.11.202',
+    ],
+
     images: {
         remotePatterns: [
             {
@@ -21,8 +27,6 @@ const nextConfig = {
             },
         ],
     },
-
-
 };
 
 export default nextConfig;

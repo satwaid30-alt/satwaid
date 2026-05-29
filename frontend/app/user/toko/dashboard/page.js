@@ -157,11 +157,15 @@ export default function SellerDashboardPage() {
     if (!selectedOrder) return;
     setIsUpdatingCost(true);
     try {
+      const token = typeof window !== 'undefined' ? localStorage.getItem("token") : null;
       const response = await fetch(
         `${getApiUrl()}/orders/${selectedOrder.id}/shipping-cost`,
         {
           method: "PUT",
-          headers: { "Content-Type": "application/json" },
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": token ? `Bearer ${token}` : "",
+          },
           body: JSON.stringify(costForm),
         },
       );
@@ -318,15 +322,6 @@ export default function SellerDashboardPage() {
                   return sum + netPrice;
                 }, 0);
 
-              if (total === 0) return "Rp 0";
-              if (total >= 1000000000)
-                return (
-                  (total / 1000000000).toFixed(1).replace(/\.0$/, "") + "M"
-                );
-              if (total >= 1000000)
-                return (total / 1000000).toFixed(1).replace(/\.0$/, "") + " Jt";
-              if (total >= 1000)
-                return (total / 1000).toFixed(1).replace(/\.0$/, "") + " Rb";
               return formatPrice(total);
             })(),
             icon: DollarSign,

@@ -148,12 +148,15 @@ export default function UploadFinanceDocPage({ params }) {
         setIsUploading(true);
 
         try {
+            const token = localStorage.getItem("token");
+
             // 1. Upload the file first to get the URL
             const formData = new FormData();
             formData.append('image', selectedFile);
 
             const uploadRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/upload`, {
                 method: 'POST',
+                headers: token ? { 'Authorization': `Bearer ${token}` } : {},
                 body: formData
             });
 
@@ -165,7 +168,10 @@ export default function UploadFinanceDocPage({ params }) {
             // 2. Call the disburse API
             const disburseRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/orders/${id}/disburse`, {
                 method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'Authorization': token ? `Bearer ${token}` : ""
+                },
                 body: JSON.stringify({
                     disbursement_proof: fileUrl,
                     disbursement_notes: notes,
@@ -353,6 +359,26 @@ export default function UploadFinanceDocPage({ params }) {
 
 
 
+                                        {/* Biaya Tambahan */}
+                                        <div className="space-y-2">
+                                            <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest ml-1 flex items-center gap-2">
+                                                <span className="w-2 h-2 rounded-full bg-red-500 inline-block"></span>
+                                                Biaya Tambahan (Potongan)
+                                            </label>
+                                            <div className="relative">
+                                                <span className="absolute left-5 top-1/2 -translate-y-1/2 text-zinc-500 font-black text-sm select-none">Rp</span>
+                                                <input
+                                                    type="number"
+                                                    min="0"
+                                                    value={additionalFee}
+                                                    onChange={(e) => setAdditionalFee(Math.max(0, Number(e.target.value)))}
+                                                    className="w-full bg-zinc-950 border border-zinc-800 rounded-2xl py-4 pl-12 pr-6 text-white text-sm font-bold focus:outline-none focus:border-red-500/60 transition-all shadow-inner"
+                                                    placeholder="0"
+                                                />
+                                            </div>
+                                            <p className="text-[9px] text-zinc-600 font-bold ml-1 italic">* Isi jika ada potongan biaya transfer antar bank. Kosongkan jika tidak ada.</p>
+                                        </div>
+
                                         <div className="space-y-2">
                                             <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest ml-1">Catatan Tambahan</label>
                                             <textarea
@@ -459,7 +485,7 @@ export default function UploadFinanceDocPage({ params }) {
                             <div className="flex justify-between items-center py-2">
                                 <span className="text-sm font-black text-white uppercase tracking-widest">Dana Dicairkan</span>
                                 <span className="text-2xl font-black text-emerald-500 tracking-tighter">
-                                    {formatPrice(totalDisbursement)}
+                                    {formatPrice(totalDisbursement - (Number(additionalFee) || 0))}
                                 </span>
                             </div>
                         </div>

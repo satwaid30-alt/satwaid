@@ -34,7 +34,8 @@ import Link from "next/link";
 import ActionModal from "../../../components/ActionModal";
 import ChatModal from "../../../components/ChatModal";
 import { copyToClipboard } from "../../utils/clipboard";
-import { getApiUrl, getLogoUrl } from "@/app/utils/api";
+import { getApiUrl, getLogoUrl, getSocketUrl } from "@/app/utils/api";
+import { io } from "socket.io-client";
 
 function DetailContent() {
   const searchParams = useSearchParams();
@@ -120,6 +121,59 @@ function DetailContent() {
     }
   }, [productId]);
 
+  useEffect(() => {
+    if (!productId) return;
+
+    // Socket.IO Setup
+    const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
+    const socket = io(getSocketUrl(), {
+      auth: {
+        token: token ? `Bearer ${token}` : null,
+      },
+    });
+
+    console.log("[Detail Socket] Connecting for product:", productId);
+
+    socket.on("connect", () => {
+      console.log("[Detail Socket] Connected:", socket.id);
+    });
+
+    // Listen to real-time stock updates
+    socket.on("listing_stock_updated", (data) => {
+      console.log("[Detail Socket] listing_stock_updated received:", data);
+      if (String(data.listing_id) === String(productId)) {
+        setSelectedProduct((prev) => {
+          if (!prev) return prev;
+          return { ...prev, stock: data.stock };
+        });
+      }
+    });
+
+    // Listen to listing status updates (like when status becomes 'sold' or edited)
+    socket.on("listing_status_updated", (data) => {
+      console.log("[Detail Socket] listing_status_updated received:", data);
+      const dataId = data.id || data.listing_id;
+      if (String(dataId) === String(productId)) {
+        setSelectedProduct((prev) => {
+          if (!prev) return prev;
+          if (data.listing) {
+            return {
+              ...prev,
+              stock: data.listing.stock !== undefined ? data.listing.stock : prev.stock,
+              status: data.listing.status || prev.status,
+            };
+          }
+          return { ...prev, status: data.status || prev.status };
+        });
+      }
+    });
+
+    return () => {
+      console.log("[Detail Socket] Disconnecting...");
+      socket.disconnect();
+    };
+  }, [productId]);
+
   const fetchProductDetail = async (id) => {
     try {
       const response = await fetch(
@@ -160,16 +214,17 @@ function DetailContent() {
       onConfirm: executePurchase,
     });
   };
-
   const executePurchase = async () => {
     setActionModal((prev) => ({ ...prev, isLoading: true }));
     try {
+      const token = localStorage.getItem("token");
       const response = await fetch(
         `${getApiUrl()}/orders`,
         {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
+            "Authorization": token ? `Bearer ${token}` : ""
           },
           body: JSON.stringify({
             user_id: currentUser.id,
@@ -178,7 +233,6 @@ function DetailContent() {
           }),
         },
       );
-
       if (response.ok) {
         // Tampilkan sukses dulu sebentar sebelum redirect
         setActionModal({
@@ -557,7 +611,8 @@ function DetailContent() {
                   {!(
                     currentUser && selectedProduct.user_id === currentUser.id
                   ) &&
-                    selectedProduct.stock > 0 && (
+                    selectedProduct.stock > 0 &&
+                    selectedProduct.status !== "sold" && (
                       <div className="flex flex-col sm:flex-row items-start gap-4 w-full sm:w-auto">
                         <div className="flex flex-col gap-1 w-full sm:w-auto">
                           <div className="flex items-center bg-white border border-zinc-200 rounded-lg overflow-hidden h-12 w-full">
@@ -718,7 +773,7 @@ function DetailContent() {
                   <div className="w-full bg-zinc-100 text-zinc-400 font-black py-6 rounded-[2rem] border border-zinc-200 flex items-center justify-center gap-3 cursor-not-allowed uppercase tracking-widest text-xs">
                     <XCircle size={24} /> Ini Adalah Produk Anda
                   </div>
-                ) : selectedProduct.stock <= 0 ? (
+                ) : selectedProduct.stock <= 0 || selectedProduct.status === "sold" ? (
                   <div className="w-full bg-red-50 text-red-500 font-black py-6 rounded-[2rem] border border-red-100 flex items-center justify-center gap-3 cursor-not-allowed uppercase tracking-widest text-xs">
                     <AlertCircle size={24} /> Stok Habis
                   </div>

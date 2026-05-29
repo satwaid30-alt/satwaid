@@ -6,10 +6,11 @@ var models = initModels(sequelize);
 module.exports = {
     findOrCreateChat: async (req, res) => {
         try {
-            const { buyer_id, seller_id, product_id } = req.body;
-
-            if (!buyer_id || !seller_id || !product_id) {
-                return res.status(400).json({ message: "Buyer ID, Seller ID, and Product ID are required" });
+            const buyer_id = req.user_data.id;
+            const { seller_id, product_id } = req.body;
+ 
+            if (!seller_id || !product_id) {
+                return res.status(400).json({ message: "Seller ID and Product ID are required" });
             }
 
             // Look for an existing chat for this specific product, buyer and seller
@@ -46,7 +47,7 @@ module.exports = {
         try {
             const { chat_id } = req.params;
             const { user_id } = req.query;
-
+ 
             // Mark incoming messages as read if user_id is provided
             if (user_id) {
                 await models.chat_messages.update(
@@ -135,10 +136,12 @@ module.exports = {
     markAsRead: async (req, res) => {
         try {
             const { chat_id } = req.params;
-            const { user_id } = req.query;
+            const user_id = req.user_data.id;
 
-            if (!user_id) {
-                return res.status(400).json({ message: "User ID is required" });
+            const chat = await models.chats.findByPk(chat_id);
+            const isAdmin = req.user_data.level !== 8 || req.user_data.role === 'admin';
+            if (!chat || (req.user_data.id !== chat.buyer_id && req.user_data.id !== chat.seller_id && !isAdmin)) {
+                return res.status(403).json({ message: "Anda tidak memiliki akses ke percakapan ini" });
             }
 
             await models.chat_messages.update(

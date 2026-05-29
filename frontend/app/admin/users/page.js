@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
-import { Search, User, Mail, Shield, Clock, Eye, X, MapPin, Phone, CreditCard, KeyRound, EyeOff, Check, AlertTriangle, Trash2 } from "lucide-react";
+import { Search, User, Mail, Shield, Clock, Eye, X, MapPin, Phone, CreditCard, KeyRound, EyeOff, Check, AlertTriangle, Trash2, Store } from "lucide-react";
 
 export default function AdminUsersPage() {
     const [users, setUsers] = useState([]);
@@ -235,6 +235,7 @@ export default function AdminUsersPage() {
                                 <th className="p-5 text-sm font-bold text-zinc-400 uppercase tracking-wider">Pengguna</th>
                                 <th className="p-5 text-sm font-bold text-zinc-400 uppercase tracking-wider">Kontak (Email)</th>
                                 <th className="p-5 text-sm font-bold text-zinc-400 uppercase tracking-wider">Peran (Role)</th>
+                                <th className="p-5 text-sm font-bold text-zinc-400 uppercase tracking-wider">Toko</th>
                                 <th className="p-5 text-sm font-bold text-zinc-400 uppercase tracking-wider">Tanggal Bergabung</th>
                                 <th className="p-5 text-sm font-bold text-zinc-400 uppercase tracking-wider text-right">Aksi</th>
                             </tr>
@@ -242,7 +243,7 @@ export default function AdminUsersPage() {
                         <tbody className="divide-y divide-zinc-800">
                             {isLoading ? (
                                 <tr>
-                                    <td colSpan="5" className="p-10 text-center">
+                                    <td colSpan="6" className="p-10 text-center">
                                         <div className="flex flex-col items-center justify-center text-zinc-500">
                                             <div className="w-8 h-8 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin mb-4"></div>
                                             <p>Memuat data pengguna...</p>
@@ -251,7 +252,7 @@ export default function AdminUsersPage() {
                                 </tr>
                             ) : filteredUsers.length === 0 ? (
                                 <tr>
-                                    <td colSpan="5" className="p-10 text-center text-zinc-500">
+                                    <td colSpan="6" className="p-10 text-center text-zinc-500">
                                         Tidak ada pengguna yang ditemukan.
                                     </td>
                                 </tr>
@@ -284,6 +285,16 @@ export default function AdminUsersPage() {
                                                 <Shield size={12} />
                                                 {user.role ? user.role.toUpperCase() : "USER"}
                                             </span>
+                                        </td>
+                                        <td className="p-5">
+                                            {user.shop ? (
+                                                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-zinc-800 text-zinc-300 border border-zinc-700/60 max-w-[150px] truncate">
+                                                    <Store size={12} className="text-emerald-500 shrink-0" />
+                                                    {user.shop.name}
+                                                </span>
+                                            ) : (
+                                                <span className="text-zinc-650 font-bold">-</span>
+                                            )}
                                         </td>
                                         <td className="p-5">
                                             <div className="flex items-center gap-2 text-zinc-400 text-sm">
@@ -440,6 +451,35 @@ export default function AdminUsersPage() {
                                         </div>
                                     </div>
                                 </div>
+                            </div>
+
+                            {/* Section: Informasi Toko */}
+                            <div className="space-y-4 mb-6">
+                                <h5 className="text-sm font-bold text-zinc-400 uppercase tracking-wider flex items-center gap-2">
+                                    <Store size={16} className="text-emerald-500" /> Informasi Toko
+                                </h5>
+                                {selectedUser.shop ? (
+                                    <div className="bg-zinc-950/50 border border-zinc-800 rounded-xl p-4 flex items-center justify-between">
+                                        <div>
+                                            <p className="text-xs text-zinc-500 mb-0.5">Nama Toko</p>
+                                            <p className="text-sm font-black text-white">{selectedUser.shop.name}</p>
+                                        </div>
+                                        <div className="text-right">
+                                            <p className="text-xs text-zinc-500 mb-1">Status Toko</p>
+                                            <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${
+                                                selectedUser.shop.status === 'active' || selectedUser.shop.status === 'Aktif'
+                                                ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
+                                                : 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
+                                            }`}>
+                                                {selectedUser.shop.status || "Aktif"}
+                                            </span>
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <div className="bg-zinc-950/50 border border-zinc-850 border-dashed rounded-xl p-6 text-center text-zinc-500 text-sm">
+                                        Pengguna belum membuat toko.
+                                    </div>
+                                )}
                             </div>
 
                             {/* Section: Rekening Bank */}

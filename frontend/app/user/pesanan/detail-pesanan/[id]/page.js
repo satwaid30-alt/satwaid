@@ -128,10 +128,12 @@ export default function OrderDetailPage({ params }) {
       return;
 
     try {
+      const token = localStorage.getItem("token");
       const response = await fetch(
         `${getApiUrl()}/orders/${id}/cancel`,
         {
           method: "PUT",
+          headers: token ? { 'Authorization': `Bearer ${token}` } : {}
         },
       );
       if (response.ok) {
@@ -142,7 +144,7 @@ export default function OrderDetailPage({ params }) {
       }
     } catch (err) {
       console.error(err);
-      alert("Terjadi kesalahan saat membatalkan pesanan");
+      alert("Terjadi kesalahan saat mematalkan pesanan");
     }
   };
 
@@ -150,11 +152,15 @@ export default function OrderDetailPage({ params }) {
     e.preventDefault();
     setIsUpdatingShipping(true);
     try {
+      const token = localStorage.getItem("token");
       const response = await fetch(
         `${getApiUrl()}/orders/${id}/shipping-info`,
         {
           method: "PUT",
-          headers: { "Content-Type": "application/json" },
+          headers: { 
+            "Content-Type": "application/json",
+            "Authorization": token ? `Bearer ${token}` : ""
+          },
           body: JSON.stringify(shippingForm),
         },
       );
@@ -179,11 +185,15 @@ export default function OrderDetailPage({ params }) {
 
     setIsProcessingCart(true);
     try {
+      const token = localStorage.getItem("token");
       const response = await fetch(
         `${getApiUrl()}/orders`,
         {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: { 
+            "Content-Type": "application/json",
+            "Authorization": token ? `Bearer ${token}` : ""
+          },
           body: JSON.stringify({
             user_id: user.id,
             listing_id: item.listing_id,
@@ -197,6 +207,7 @@ export default function OrderDetailPage({ params }) {
         // Remove from cart after successful order
         await fetch(`${getApiUrl()}/cart/${item.id}`, {
           method: "DELETE",
+          headers: token ? { 'Authorization': `Bearer ${token}` } : {}
         });
         alert(
           "Berhasil membuat pesanan! Silakan lengkapi data pengiriman Anda.",

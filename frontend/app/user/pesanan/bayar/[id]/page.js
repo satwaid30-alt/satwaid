@@ -116,9 +116,13 @@ export default function PaymentPage({ params }) {
 
     setConfirming(true);
     try {
+      const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
       const res = await fetch(`${getApiUrl()}/orders/${id}/confirm-payment`, {
         method: "PUT",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": token ? `Bearer ${token}` : "",
+        },
         body: JSON.stringify({ payment_proof: paymentProof }),
       });
       if (res.ok) {
@@ -140,8 +144,12 @@ export default function PaymentPage({ params }) {
 
     setResetting(true);
     try {
+      const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
       const res = await fetch(`${getApiUrl()}/orders/${id}/reset-payment`, {
         method: "PUT",
+        headers: {
+          "Authorization": token ? `Bearer ${token}` : "",
+        },
       });
       if (res.ok) {
         fetchOrderDetails();

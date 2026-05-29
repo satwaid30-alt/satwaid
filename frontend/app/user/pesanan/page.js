@@ -165,8 +165,10 @@ export default function PesananPage() {
             confirmText: 'Ya, Hapus',
             onConfirm: async () => {
                 try {
+                    const token = localStorage.getItem("token");
                     const response = await fetch(`${getApiUrl()}/cart/${cartId}`, {
-                        method: 'DELETE'
+                        method: 'DELETE',
+                        headers: token ? { 'Authorization': `Bearer ${token}` } : {}
                     });
                     if (response.ok) {
                         fetchCartItems();
@@ -193,9 +195,13 @@ export default function PesananPage() {
 
                 setActionModal(prev => ({ ...prev, isLoading: true }));
                 try {
+                    const token = localStorage.getItem("token");
                     const response = await fetch(`${getApiUrl()}/orders/${orderId}/cancel`, {
                         method: 'PUT',
-                        headers: { 'Content-Type': 'application/json' },
+                        headers: { 
+                            'Content-Type': 'application/json',
+                            'Authorization': token ? `Bearer ${token}` : ""
+                        },
                         body: JSON.stringify({
                             user_id: user.id,
                             cancellation_reason: 'Dibatalkan oleh pembeli'
@@ -236,9 +242,13 @@ export default function PesananPage() {
     const submitRating = async () => {
         setRatingModal(prev => ({ ...prev, isLoading: true }));
         try {
+            const token = localStorage.getItem("token");
             const response = await fetch(`${getApiUrl()}/orders/${ratingModal.orderId}/resolve-complaint`, {
                 method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'Authorization': token ? `Bearer ${token}` : ""
+                },
                 body: JSON.stringify({
                     rating: ratingModal.rating,
                     review: ratingModal.review
@@ -276,8 +286,10 @@ export default function PesananPage() {
             onConfirm: async () => {
                 setActionModal(prev => ({ ...prev, isLoading: true }));
                 try {
+                    const token = localStorage.getItem("token");
                     const response = await fetch(`${getApiUrl()}/orders/${orderId}/history`, {
-                        method: 'DELETE'
+                        method: 'DELETE',
+                        headers: token ? { 'Authorization': `Bearer ${token}` } : {}
                     });
 
                     if (response.ok) {
@@ -321,9 +333,13 @@ export default function PesananPage() {
 
         setActionModal(prev => ({ ...prev, isLoading: true }));
         try {
+            const token = localStorage.getItem("token");
             const response = await fetch(`${getApiUrl()}/orders`, {
                 method: "POST",
-                headers: { "Content-Type": "application/json" },
+                headers: { 
+                    "Content-Type": "application/json",
+                    "Authorization": token ? `Bearer ${token}` : ""
+                },
                 body: JSON.stringify({
                     user_id: user.id,
                     listing_id: item.listing_id,
@@ -334,7 +350,10 @@ export default function PesananPage() {
 
             if (response.ok) {
                 // Remove from cart after successful order
-                await fetch(`${getApiUrl()}/cart/${item.id}`, { method: 'DELETE' });
+                await fetch(`${getApiUrl()}/cart/${item.id}`, { 
+                    method: 'DELETE',
+                    headers: token ? { 'Authorization': `Bearer ${token}` } : {}
+                });
                 fetchOrders();
                 fetchCartItems();
                 setActiveTab("pending_shipping_info");
@@ -368,9 +387,13 @@ export default function PesananPage() {
 
         setIsUpdatingShipping(true);
         try {
+            const token = localStorage.getItem("token");
             const response = await fetch(`${getApiUrl()}/orders/${selectedOrder.id}/shipping-info`, {
                 method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'Authorization': token ? `Bearer ${token}` : ""
+                },
                 body: JSON.stringify(shippingForm)
             });
 

@@ -1,6 +1,7 @@
 "use client";
 
 import Navbar from "../../components/Navbar";
+import MobileMenuGrid from "../../components/MobileMenuGrid";
 import ProductCard from "../../components/ProductCard";
 import Link from "next/link";
 import { useState, useEffect, useMemo, useRef } from "react";
@@ -15,6 +16,9 @@ import {
   TrendingUp,
   Zap,
   ArrowUpRight,
+  MessageSquare,
+  ShoppingBag,
+  Home,
 } from "lucide-react";
 
 export default function LelangPage() {
@@ -298,7 +302,7 @@ export default function LelangPage() {
       <Navbar theme="dark" />
 
       {/* Hero Section */}
-      <section className="relative pt-32 pb-20 lg:pt-40 lg:pb-28 overflow-hidden bg-zinc-900 border-b border-zinc-800">
+      <section className="relative pt-32 pb-20 lg:pt-40 lg:pb-28 overflow-hidden bg-zinc-900 border-b border-zinc-800 hidden md:block">
         <div className="absolute inset-0 z-0">
           <img
             src="/images/hero.png"
@@ -349,7 +353,102 @@ export default function LelangPage() {
         </div>
       </section>
 
-      <main className="max-w-7xl mx-auto px-6 py-10">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 pt-24 pb-16 md:py-10">
+        {/* Promo Banner Image Carousel for Mobile (Visible on mobile only, at the top) */}
+        {slides.length > 0 && (
+          <div className="block md:hidden mb-6 px-1">
+            <div
+              onTouchStart={handleTouchStart}
+              onTouchMove={handleTouchMove}
+              onTouchEnd={handleTouchEnd}
+              className="relative rounded-2xl overflow-hidden bg-zinc-900 text-white aspect-[2.1/1] min-h-[140px] flex items-center group shadow-md border border-zinc-100/10"
+            >
+              {slides.map((slide, idx) => {
+                const isActive = idx === activeAdIndex;
+                return (
+                  <div
+                    key={slide.id}
+                    className={`absolute inset-0 w-full h-full transition-all duration-1000 ease-out flex items-center p-4 ${
+                      isActive
+                        ? "opacity-100 scale-100 pointer-events-auto z-10"
+                        : "opacity-0 scale-105 pointer-events-none z-0"
+                    }`}
+                  >
+                    <img
+                      src={slide.mobile_image_url || slide.image_url}
+                      alt={slide.title}
+                      className="absolute inset-0 w-full h-full object-cover"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/40 to-transparent" />
+
+                    <div className="relative z-20 w-full text-left">
+                      {slide.badge && (
+                        <span className="inline-flex items-center gap-1 bg-amber-500/25 border border-amber-500/30 text-amber-300 px-2 py-0.5 rounded-lg text-[8px] font-black tracking-wider mb-1">
+                          <Gavel size={8} />
+                          {slide.badge}
+                        </span>
+                      )}
+                      {slide.title && (
+                        <h2 className="text-xs sm:text-sm font-black mb-0.5 leading-tight text-white">
+                          {slide.title}
+                        </h2>
+                      )}
+                      {slide.description && (
+                        <p className="text-zinc-300 text-[8px] sm:text-[10px] max-w-[70%] opacity-90 leading-normal line-clamp-1 mb-1.5">
+                          {slide.description}
+                        </p>
+                      )}
+                      {slide.buttonText && (
+                        <Link
+                          href={slide.link_url}
+                          className="inline-flex items-center gap-1 bg-white hover:bg-zinc-100 text-zinc-900 font-bold px-2.5 py-1 rounded-lg text-[8px] transition-all duration-300 shadow-sm"
+                        >
+                          {slide.buttonText}
+                          <ArrowUpRight size={10} />
+                        </Link>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+
+              {/* Dot Indicators */}
+              {slides.length > 1 && (
+                <div className="absolute bottom-2 left-1/2 -translate-x-1/2 z-20 flex gap-1">
+                  {slides.map((_, idx) => (
+                    <button
+                      key={idx}
+                      onClick={() => setActiveAdIndex(idx)}
+                      className={`h-0.5 rounded-full transition-all duration-300 ${
+                        activeAdIndex === idx ? "w-3 bg-amber-500" : "w-1 bg-white/30"
+                      }`}
+                      aria-label={`Go to slide ${idx + 1}`}
+                    />
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Mobile Menu Grid (Visible on mobile/handphones only, white cards) */}
+        <MobileMenuGrid className="mb-6 px-1" />
+
+        {/* Search Input for Mobile (Visible on mobile only, below menu) */}
+        <div className="block md:hidden w-full mb-6 px-1 group">
+          <div className="relative w-full">
+            <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none text-zinc-400 group-focus-within:text-amber-500 transition-colors">
+              <Search size={16} />
+            </div>
+            <input
+              type="text"
+              placeholder="Cari produk lelang atau nama toko..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full bg-white border border-zinc-200 text-zinc-900 font-bold py-3 pl-11 pr-4 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-amber-500/10 focus:border-amber-500 transition-all placeholder:text-zinc-400"
+            />
+          </div>
+        </div>
         {/* Time Filter Tabs */}
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-8 gap-4">
           <div>
@@ -405,25 +504,54 @@ export default function LelangPage() {
 
         {/* Product Grid */}
         {isLoading ? (
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 sm:gap-6">
-            {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((i) => (
-              <div
-                key={i}
-                className="bg-white rounded-2xl h-[340px] animate-pulse border border-zinc-100"
-              >
-                <div className="w-full h-1/2 bg-zinc-100 rounded-t-2xl" />
-                <div className="p-4 space-y-3">
-                  <div className="h-3 bg-zinc-100 w-1/3 rounded" />
-                  <div className="h-4 bg-zinc-100 w-3/4 rounded" />
-                  <div className="h-3 bg-zinc-100 w-1/2 rounded" />
-                  <div className="flex gap-1">
-                    <div className="h-6 bg-amber-100 w-8 rounded-lg" />
-                    <div className="h-6 bg-amber-100 w-8 rounded-lg" />
-                    <div className="h-6 bg-amber-100 w-8 rounded-lg" />
+          <div className="space-y-8">
+            {/* Inline loading indicator */}
+            <div className="flex flex-col items-center justify-center py-12 gap-4">
+              {/* Spinner */}
+              <div className="relative">
+                <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center shadow-lg shadow-amber-500/30">
+                  <Gavel size={24} className="text-white" />
+                </div>
+                <div className="absolute -inset-1.5 rounded-[18px] border-2 border-amber-400/40 animate-spin border-t-amber-500" />
+              </div>
+              <div className="text-center">
+                <p className="text-sm font-black text-zinc-700">Memuat Lelang</p>
+                <p className="text-xs text-zinc-400 mt-0.5">Menunggu lelang terbaru dari server…</p>
+              </div>
+              {/* Dot bounce */}
+              <div className="flex items-center gap-1.5">
+                {[0, 1, 2].map((i) => (
+                  <span
+                    key={i}
+                    className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-bounce"
+                    style={{ animationDelay: `${i * 120}ms` }}
+                  />
+                ))}
+              </div>
+            </div>
+
+            {/* Skeleton cards below the spinner */}
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 sm:gap-6">
+              {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((i) => (
+                <div
+                  key={i}
+                  className="bg-white rounded-2xl h-[340px] animate-pulse border border-zinc-100"
+                  style={{ animationDelay: `${(i - 1) * 60}ms` }}
+                >
+                  <div className="w-full h-1/2 bg-zinc-100 rounded-t-2xl" />
+                  <div className="p-4 space-y-3">
+                    <div className="h-3 bg-zinc-100 w-1/3 rounded" />
+                    <div className="h-4 bg-zinc-100 w-3/4 rounded" />
+                    <div className="h-3 bg-zinc-100 w-1/2 rounded" />
+                    <div className="flex gap-1">
+                      <div className="h-6 bg-zinc-100 w-8 rounded-lg" />
+                      <div className="h-6 bg-zinc-100 w-8 rounded-lg" />
+                      <div className="h-6 bg-zinc-100 w-8 rounded-lg" />
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
         ) : (
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 sm:gap-6">
@@ -585,7 +713,7 @@ export default function LelangPage() {
 
         {/* Promo Banner Image Carousel - only render when there are active ads */}
         {slides.length > 0 && (
-          <section className="mt-10">
+          <section className="mt-10 hidden md:block">
             <div
               onTouchStart={handleTouchStart}
               onTouchMove={handleTouchMove}

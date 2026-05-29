@@ -164,9 +164,13 @@ export default function TransactionProcessPage({ params }) {
 
         setIsCancelling(true);
         try {
+            const token = localStorage.getItem("token");
             const response = await fetch(`${getApiUrl()}/orders/${id}/cancel`, {
                 method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'Authorization': token ? `Bearer ${token}` : ""
+                },
                 body: JSON.stringify({
                     user_id: user.id,
                     cancellation_reason: 'Dibatalkan oleh pembeli'
@@ -191,9 +195,13 @@ export default function TransactionProcessPage({ params }) {
         e.preventDefault();
         setIsUpdatingShipping(true);
         try {
+            const token = localStorage.getItem("token");
             const response = await fetch(`${getApiUrl()}/orders/${id}/shipping-info`, {
                 method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'Authorization': token ? `Bearer ${token}` : ""
+                },
                 body: JSON.stringify({
                     receiver_name: shippingForm.receiver_name,
                     phone_number: shippingForm.phone_number,

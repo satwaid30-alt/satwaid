@@ -453,12 +453,14 @@ function DetailContent() {
 
     setIsSubmittingBid(true);
     try {
+      const token = localStorage.getItem("token");
       const response = await fetch(
         `${getApiUrl()}/listings/${productId}/bids`,
         {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
+            "Authorization": token ? `Bearer ${token}` : ""
           },
           body: JSON.stringify({
             user_id: currentUser.id,
@@ -522,12 +524,14 @@ function DetailContent() {
   const executeBINPurchase = async () => {
     setActionModal((prev) => ({ ...prev, isLoading: true }));
     try {
+      const token = localStorage.getItem("token");
       const response = await fetch(
         `${getApiUrl()}/orders`,
         {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
+            "Authorization": token ? `Bearer ${token}` : ""
           },
           body: JSON.stringify({
             user_id: currentUser.id,
@@ -586,12 +590,14 @@ function DetailContent() {
     if (!currentUser || !selectedProduct) return;
     setIsBuying(true);
     try {
+      const token = localStorage.getItem("token");
       const response = await fetch(
         `${getApiUrl()}/orders`,
         {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
+            "Authorization": token ? `Bearer ${token}` : ""
           },
           body: JSON.stringify({
             user_id: currentUser.id,

@@ -31,9 +31,13 @@ export default function RiwayatTransaksiSeller() {
     if (selectedOrders.length === 0) return;
     setIsSubmittingBulk(true);
     try {
+      const token = localStorage.getItem("token");
       const res = await fetch(`${getApiUrl()}/orders/bulk-request-disbursement`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { 
+          "Content-Type": "application/json",
+          "Authorization": token ? `Bearer ${token}` : ""
+        },
         body: JSON.stringify({ order_ids: selectedOrders }),
       });
       const result = await res.json();
@@ -640,7 +644,8 @@ export default function RiwayatTransaksiSeller() {
               <div className="flex items-center justify-between gap-4 pt-1">
                 <div className="space-y-0.5">
                   <p className="text-[8px] font-black text-zinc-500 uppercase tracking-widest">Pencairan Dana</p>
-                  <p className="text-sm font-black text-emerald-500">{formatPrice(Number(order.price) * Number(order.quantity) + Number(order.shipping_cost) + Number(order.packing_cost))}</p>
+                  <p className="text-sm font-black text-emerald-500">{formatPrice(Number(order.price) * Number(order.quantity) + Number(order.shipping_cost) + Number(order.packing_cost) - (Number(order.additional_fee) || 0))}</p>
+                  {order.additional_fee > 0 && <p className="text-[9px] font-bold text-red-500/70 italic">Potongan: {formatPrice(order.additional_fee)}</p>}
                 </div>
                 <div className="flex-1 max-w-[180px]">
                   {order.disbursed_at || order.disbursement_proof ? (

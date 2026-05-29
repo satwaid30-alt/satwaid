@@ -24,37 +24,41 @@ import {
   Package,
   CreditCard,
   Gavel,
+  Wrench,
+  Code
 } from "lucide-react";
 import { io } from "socket.io-client";
 import { getApiUrl, getSocketUrl } from "@/app/utils/api";
 
 const MENU_ITEMS = [
-  { name: "Beranda Website", href: "/", icon: Home },
-  { name: "Pengaturan Profil", href: "/user/pengaturan", icon: User },
-  { name: "Komunitas Saya", href: "/user/komunitas", icon: MessageSquare },
+  { key: "beranda", name: "Beranda Website", href: "/", icon: Home },
+  { key: "profil", name: "Pengaturan Profil", href: "/user/pengaturan", icon: User },
+  { key: "komunitas", name: "Komunitas Saya", href: "/user/komunitas", icon: MessageSquare },
   {
+    key: "pesanan",
     name: "Pesanan Saya",
     icon: ShoppingBag,
     submenu: [
-      { name: "Pesanan Aktif", href: "/user/pesanan" },
-      { name: "Lelang Aktif", href: "/user/pesanan/lelang" },
-      { name: "Riwayat Pesanan", href: "/user/pesanan/riwayat-pembelian" },
+      { key: "pesanan_aktif", name: "Pesanan Aktif", href: "/user/pesanan" },
+      { key: "lelang_aktif", name: "Lelang Aktif", href: "/user/pesanan/lelang" },
+      { key: "riwayat_pesanan", name: "Riwayat Pesanan", href: "/user/pesanan/riwayat-pembelian" },
     ],
   },
   {
+    key: "toko",
     name: "Dashboard Seller",
     icon: Store,
     submenu: [
-      { name: "Dashboard Utama", href: "/user/toko/dashboard" },
-      { name: "Profil Toko", href: "/user/toko" },
-      { name: "Jual Langsung", href: "/user/toko/jual-produk" },
-      { name: "Lelang Produk", href: "/user/toko/lelang-produk" },
-      { name: "Daftar Produk", href: "/user/toko/daftar-produk" },
-      { name: "Pesanan Masuk", href: "/user/toko/pesanan-masuk" },
-      { name: "Pengajuan Keuangan", href: "/user/toko/pengajuan-keuangan" },
+      { key: "toko_dashboard", name: "Dashboard Utama", href: "/user/toko/dashboard" },
+      { key: "toko_profil", name: "Profil Toko", href: "/user/toko" },
+      { key: "toko_jual", name: "Jual Langsung", href: "/user/toko/jual-produk" },
+      { key: "toko_lelang", name: "Lelang Produk", href: "/user/toko/lelang-produk" },
+      { key: "toko_produk", name: "Daftar Produk", href: "/user/toko/daftar-produk" },
+      { key: "toko_pesanan", name: "Pesanan Masuk", href: "/user/toko/pesanan-masuk" },
+      { key: "toko_keuangan", name: "Pengajuan Keuangan", href: "/user/toko/pengajuan-keuangan" },
     ],
   },
-  { name: "Keamanan Akun", href: "/user/pengaturan/keamanan", icon: Settings },
+  { key: "keamanan", name: "Keamanan Akun", href: "/user/pengaturan/keamanan", icon: Settings },
 ];
 
 const isSubmenuActive = (subHref, pathname) => {
@@ -94,6 +98,8 @@ export default function UserSidebar() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [openSubmenus, setOpenSubmenus] = useState({});
+  const [menuStatuses, setMenuStatuses] = useState({});
+  const [maintenanceModal, setMaintenanceModal] = useState(null);
   const [notifications, setNotifications] = useState({
     incoming_orders: 0,
     my_orders: 0,
@@ -130,6 +136,67 @@ export default function UserSidebar() {
       setIsLoaded(true);
     }
   }, []);
+
+  const fetchMenuStatuses = async () => {
+    try {
+      const res = await fetch(`${getApiUrl()}/menu-controls`);
+      const result = await res.json();
+      if (res.ok && result.success && result.data) {
+        const statusMap = {};
+        result.data.forEach((item) => {
+          statusMap[item.menu_key] = {
+            status: item.status,
+            message: item.message
+          };
+        });
+        setMenuStatuses(statusMap);
+      }
+    } catch (err) {
+      console.error("Error fetching menu statuses", err);
+    }
+  };
+
+  // Load menu control statuses from backend
+  useEffect(() => {
+    fetchMenuStatuses();
+  }, []);
+
+  const handleMenuClick = (e, key, name) => {
+    const config = menuStatuses[key];
+    if (config && (config.status === "maintenance" || config.status === "development")) {
+      e.preventDefault();
+      setMaintenanceModal({
+        name,
+        status: config.status,
+        message: config.message
+      });
+      setIsMobileMenuOpen(false);
+      return true; // blocked
+    }
+    return false; // allowed
+  };
+
+  const getActiveMenuConfig = (currentPath) => {
+    for (const item of MENU_ITEMS) {
+      if (item.submenu) {
+        for (const sub of item.submenu) {
+          if (isSubmenuActive(sub.href, currentPath)) {
+            return { key: sub.key, name: sub.name };
+          }
+        }
+      } else if (item.href) {
+        const isActive = item.href === "/user/pengaturan"
+          ? currentPath === item.href
+          : item.href === "/"
+            ? currentPath === "/"
+            : currentPath.startsWith(item.href);
+        if (isActive) {
+          return { key: item.key, name: item.name };
+        }
+      }
+    }
+    return null;
+  };
 
   const fetchShopStatus = async (userId) => {
     setIsLoadingShop(true);
@@ -262,6 +329,10 @@ export default function UserSidebar() {
       fetchDetailedNotifications(); // Refresh list
     });
 
+    newSocket.on("menu_controls_updated", () => {
+      fetchMenuStatuses();
+    });
+
     return () => newSocket.disconnect();
   }, [user?.id]);
 
@@ -295,6 +366,60 @@ export default function UserSidebar() {
       [name]: !prev[name],
     }));
   };
+
+  const activeMenu = getActiveMenuConfig(pathname);
+  const activeStatus = activeMenu ? menuStatuses[activeMenu.key]?.status : 'active';
+  const activeMessage = activeMenu ? menuStatuses[activeMenu.key]?.message : '';
+
+  if (activeStatus === 'maintenance' || activeStatus === 'development') {
+    return (
+      <div className="fixed inset-0 bg-zinc-950 flex flex-col items-center justify-center p-8 text-white z-[9999] animate-in fade-in duration-200">
+        <div className="max-w-md w-full bg-zinc-900 border border-zinc-800 p-8 rounded-[2rem] shadow-2xl text-center animate-in scale-in-95 duration-200">
+          {activeStatus === "maintenance" ? (
+            <div className="w-20 h-20 rounded-3xl bg-amber-500/10 text-amber-500 flex items-center justify-center mx-auto mb-6 border border-amber-500/20 animate-pulse">
+              <Wrench size={40} />
+            </div>
+          ) : (
+            <div className="w-20 h-20 rounded-3xl bg-blue-500/10 text-blue-500 flex items-center justify-center mx-auto mb-6 border border-blue-500/20">
+              <Code size={40} />
+            </div>
+          )}
+
+          <h1 className="text-3xl font-black mb-2">
+            {activeStatus === "maintenance" ? "Pemeliharaan Sistem" : "Tahap Pengembangan"}
+          </h1>
+          
+          <p className="text-zinc-400 font-medium text-sm mb-6">
+            Halaman <span className="text-white font-bold">{activeMenu.name}</span> sedang dalam status {activeStatus === "maintenance" ? "pemeliharaan" : "pengembangan"}.
+          </p>
+
+          <div className="w-full bg-zinc-950 border border-zinc-850 p-5 rounded-2xl mb-8 text-left">
+            <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-1.5">Informasi Perbaikan</p>
+            <p className="text-zinc-350 text-xs leading-relaxed font-semibold">
+              {activeMessage || (activeStatus === "maintenance" 
+                ? "Tim kami sedang melakukan pemeliharaan pada halaman ini untuk meningkatkan layanan. Silakan kembali beberapa saat lagi." 
+                : "Halaman ini sedang dalam tahap perancangan aktif dan akan segera hadir.")}
+            </p>
+          </div>
+
+          <div className="flex flex-col gap-3">
+            <button
+              onClick={() => router.push("/")}
+              className="w-full py-3 bg-emerald-500 hover:bg-emerald-400 text-zinc-950 font-black rounded-xl transition-all shadow-[0_0_20px_rgba(16,185,129,0.2)] active:scale-[0.98]"
+            >
+              Kembali ke Beranda
+            </button>
+            <button
+              onClick={() => router.back()}
+              className="w-full py-3 bg-zinc-800 hover:bg-zinc-700 text-white font-bold rounded-xl transition-all border border-zinc-800 active:scale-[0.98]"
+            >
+              Halaman Sebelumnya
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <>
@@ -364,6 +489,9 @@ export default function UserSidebar() {
             <div className="h-4"></div>
           )}
           {MENU_ITEMS.map((item) => {
+            const parentStatus = menuStatuses[item.key]?.status || 'active';
+            if (parentStatus === 'hidden') return null;
+
             const Icon = item.icon;
             const hasSubmenu = item.submenu && item.submenu.length > 0;
             const isSubmenuOpen = openSubmenus[item.name];
@@ -389,8 +517,18 @@ export default function UserSidebar() {
                     <Icon size={20} className="shrink-0" />
                     {!isCollapsed && (
                       <>
-                        <span className="flex-1 text-left truncate">
+                        <span className="flex-1 text-left truncate flex items-center">
                           {item.name}
+                          {parentStatus === "maintenance" && (
+                            <span className="ml-2 px-1.5 py-0.5 rounded text-[8px] font-black uppercase bg-amber-500/10 text-amber-500 border border-amber-500/20 shrink-0">
+                              Maint
+                            </span>
+                          )}
+                          {parentStatus === "development" && (
+                            <span className="ml-2 px-1.5 py-0.5 rounded text-[8px] font-black uppercase bg-blue-500/10 text-blue-500 border border-blue-500/20 shrink-0">
+                              Dev
+                            </span>
+                          )}
                         </span>
                         {item.name === "Pesanan Saya" &&
                           notifications.my_orders > 0 && (
@@ -415,6 +553,7 @@ export default function UserSidebar() {
                   <Link
                     href={item.href}
                     title={isCollapsed ? item.name : ""}
+                    onClick={(e) => handleMenuClick(e, item.key, item.name)}
                     className={`flex items-center gap-4 ${isCollapsed ? "px-0 justify-center" : "px-4"} py-3 rounded-xl font-semibold transition-all group ${
                       isActive
                         ? "bg-emerald-500 text-zinc-950 shadow-lg shadow-emerald-500/20"
@@ -426,7 +565,19 @@ export default function UserSidebar() {
                       className={`shrink-0 ${isActive ? "" : "group-hover:scale-110 transition-transform"}`}
                     />
                     {!isCollapsed && (
-                      <span className="flex-1 truncate">{item.name}</span>
+                      <span className="flex-1 truncate flex items-center">
+                        {item.name}
+                        {parentStatus === "maintenance" && (
+                          <span className="ml-2 px-1.5 py-0.5 rounded text-[8px] font-black uppercase bg-amber-500/10 text-amber-500 border border-amber-500/20 shrink-0">
+                            Maint
+                          </span>
+                        )}
+                        {parentStatus === "development" && (
+                          <span className="ml-2 px-1.5 py-0.5 rounded text-[8px] font-black uppercase bg-blue-500/10 text-blue-500 border border-blue-500/20 shrink-0">
+                            Dev
+                          </span>
+                        )}
+                      </span>
                     )}
                     {!isCollapsed &&
                       item.name === "Komunitas Saya" &&
@@ -458,6 +609,9 @@ export default function UserSidebar() {
                 {hasSubmenu && isSubmenuOpen && !isCollapsed && (
                   <div className="ml-12 space-y-1 animate-in slide-in-from-top-2 duration-200">
                     {item.submenu.map((sub) => {
+                      const subStatus = menuStatuses[sub.key]?.status || 'active';
+                      if (subStatus === 'hidden') return null;
+
                       const hasNoShop =
                         !isLoadingShop && (shopStatus === "none" || !shopId);
                       const isLocked =
@@ -499,13 +653,26 @@ export default function UserSidebar() {
                               ? `/user/toko/detail-toko/${shopId}`
                               : sub.href
                           }
+                          onClick={(e) => handleMenuClick(e, sub.key, sub.name)}
                           className={`flex items-center justify-between px-4 py-2 rounded-lg text-sm font-medium transition-all ${
                             isSubmenuActive(sub.href, pathname)
                               ? "text-emerald-500 font-bold bg-emerald-500/5"
                               : "text-zinc-500 hover:text-zinc-300"
                           }`}
                         >
-                          <span>{sub.name}</span>
+                          <span className="flex items-center">
+                            {sub.name}
+                            {subStatus === "maintenance" && (
+                              <span className="px-1.5 py-0.5 rounded text-[8px] font-black uppercase bg-amber-500/10 text-amber-500 border border-amber-500/20 shrink-0 ml-1.5">
+                                Maint
+                              </span>
+                            )}
+                            {subStatus === "development" && (
+                              <span className="px-1.5 py-0.5 rounded text-[8px] font-black uppercase bg-blue-500/10 text-blue-500 border border-blue-500/20 shrink-0 ml-1.5">
+                                Dev
+                              </span>
+                            )}
+                          </span>
                           {sub.name === "Pesanan Masuk" &&
                             notifications.incoming_orders > 0 && (
                               <span className="bg-emerald-500 text-zinc-950 text-[9px] font-black px-1.5 py-0.5 rounded-md">
@@ -784,6 +951,9 @@ export default function UserSidebar() {
                 Menu Akun
               </p>
               {MENU_ITEMS.map((item) => {
+                const parentStatus = menuStatuses[item.key]?.status || 'active';
+                if (parentStatus === 'hidden') return null;
+
                 const Icon = item.icon;
                 const hasSubmenu = item.submenu && item.submenu.length > 0;
                 const isSubmenuOpen = openSubmenus[`mobile_${item.name}`];
@@ -816,7 +986,19 @@ export default function UserSidebar() {
                           }`}
                         >
                           <Icon size={20} />
-                          <span className="flex-1 text-left">{item.name}</span>
+                          <span className="flex-1 text-left flex items-center">
+                            {item.name}
+                            {parentStatus === "maintenance" && (
+                              <span className="ml-2 px-1.5 py-0.5 rounded text-[8px] font-black uppercase bg-amber-500/10 text-amber-500 border border-amber-500/20 shrink-0">
+                                Maint
+                              </span>
+                            )}
+                            {parentStatus === "development" && (
+                              <span className="ml-2 px-1.5 py-0.5 rounded text-[8px] font-black uppercase bg-blue-500/10 text-blue-500 border border-blue-500/20 shrink-0">
+                                Dev
+                              </span>
+                            )}
+                          </span>
                           {item.name === "Pesanan Saya" &&
                             notifications.my_orders > 0 && (
                               <span className="mr-2 bg-red-500 text-white text-[10px] font-black px-2 py-0.5 rounded-full animate-pulse">
@@ -837,6 +1019,9 @@ export default function UserSidebar() {
                         {isSubmenuOpen && (
                           <div className="ml-10 space-y-1 animate-in slide-in-from-top-2 duration-200">
                             {item.submenu.map((sub) => {
+                              const subStatus = menuStatuses[sub.key]?.status || 'active';
+                              if (subStatus === 'hidden') return null;
+
                               const hasNoShop =
                                 !isLoadingShop &&
                                 (shopStatus === "none" || !shopId);
@@ -882,14 +1067,29 @@ export default function UserSidebar() {
                                       ? `/user/toko/detail-toko/${shopId}`
                                       : sub.href
                                   }
-                                  onClick={() => setIsMobileMenuOpen(false)}
+                                  onClick={(e) => {
+                                    const blocked = handleMenuClick(e, sub.key, sub.name);
+                                    if (!blocked) setIsMobileMenuOpen(false);
+                                  }}
                                   className={`flex items-center justify-between px-4 py-2 rounded-lg text-sm font-medium transition-all ${
                                     isSubmenuActive(sub.href, pathname)
                                       ? "text-emerald-500 font-bold"
                                       : "text-zinc-500 hover:text-zinc-300"
                                   }`}
                                 >
-                                  <span>{sub.name}</span>
+                                  <span className="flex items-center">
+                                    {sub.name}
+                                    {subStatus === "maintenance" && (
+                                      <span className="px-1.5 py-0.5 rounded text-[8px] font-black uppercase bg-amber-500/10 text-amber-500 border border-amber-500/20 shrink-0 ml-1.5">
+                                        Maint
+                                      </span>
+                                    )}
+                                    {subStatus === "development" && (
+                                      <span className="px-1.5 py-0.5 rounded text-[8px] font-black uppercase bg-blue-500/10 text-blue-500 border border-blue-500/20 shrink-0 ml-1.5">
+                                        Dev
+                                      </span>
+                                    )}
+                                  </span>
                                   {sub.name === "Pesanan Masuk" &&
                                     notifications.incoming_orders > 0 && (
                                       <span className="bg-emerald-500 text-zinc-950 text-[9px] font-black px-1.5 py-0.5 rounded-md">
@@ -912,7 +1112,10 @@ export default function UserSidebar() {
                     ) : (
                       <Link
                         href={item.href}
-                        onClick={() => setIsMobileMenuOpen(false)}
+                        onClick={(e) => {
+                          const blocked = handleMenuClick(e, item.key, item.name);
+                          if (!blocked) setIsMobileMenuOpen(false);
+                        }}
                         className={`flex items-center gap-4 px-4 py-3 rounded-xl font-semibold transition-all ${
                           isActive
                             ? "bg-emerald-500 text-zinc-950 shadow-lg shadow-emerald-500/20"
@@ -920,7 +1123,19 @@ export default function UserSidebar() {
                         }`}
                       >
                         <Icon size={20} />
-                        <span className="flex-1 truncate">{item.name}</span>
+                        <span className="flex-1 truncate flex items-center">
+                          {item.name}
+                          {parentStatus === "maintenance" && (
+                            <span className="ml-2 px-1.5 py-0.5 rounded text-[8px] font-black uppercase bg-amber-500/10 text-amber-500 border border-amber-500/20 shrink-0">
+                              Maint
+                            </span>
+                          )}
+                          {parentStatus === "development" && (
+                            <span className="ml-2 px-1.5 py-0.5 rounded text-[8px] font-black uppercase bg-blue-500/10 text-blue-500 border border-blue-500/20 shrink-0">
+                              Dev
+                            </span>
+                          )}
+                        </span>
                         {item.name === "Komunitas Saya" &&
                           notifications.community > 0 && (
                             <span className="bg-red-500 text-white text-[10px] font-black px-2 py-0.5 rounded-full animate-bounce">
@@ -954,6 +1169,46 @@ export default function UserSidebar() {
           </div>
         )}
       </div>
+      {/* --- MAINTENANCE MODAL --- */}
+      {maintenanceModal && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-zinc-955/80 backdrop-blur-md animate-in fade-in duration-200">
+          <div className="bg-zinc-900 border border-zinc-800 p-8 rounded-[2rem] max-w-md w-full shadow-2xl relative animate-in scale-in-95 duration-200 text-white">
+            <div className="flex flex-col items-center text-center">
+              {maintenanceModal.status === "maintenance" ? (
+                <div className="w-16 h-16 rounded-2xl bg-amber-500/10 text-amber-500 flex items-center justify-center mb-6 border border-amber-500/20 animate-pulse">
+                  <Wrench size={32} />
+                </div>
+              ) : (
+                <div className="w-16 h-16 rounded-2xl bg-blue-500/10 text-blue-500 flex items-center justify-center mb-6 border border-blue-500/20">
+                  <Code size={32} />
+                </div>
+              )}
+              
+              <h3 className="text-2xl font-black text-white mb-2">
+                {maintenanceModal.status === "maintenance" ? "Pemeliharaan Sistem" : "Tahap Pengembangan"}
+              </h3>
+              
+              <p className="text-zinc-400 font-medium text-sm mb-4">
+                Menu <span className="text-white font-bold">{maintenanceModal.name}</span> sedang dalam status {maintenanceModal.status === "maintenance" ? "pemeliharaan" : "pengembangan"}.
+              </p>
+              
+              <div className="w-full bg-zinc-950 border border-zinc-850 p-4 rounded-2xl mb-8 text-left">
+                <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-1.5">Pesan Admin</p>
+                <p className="text-zinc-350 text-xs leading-relaxed font-semibold">
+                  {maintenanceModal.message || (maintenanceModal.status === "maintenance" ? "Tim kami sedang melakukan pembaruan rutin pada menu ini. Silakan coba lagi nanti." : "Fitur ini sedang dirancang dan akan segera hadir untuk meningkatkan pengalaman Anda.")}
+                </p>
+              </div>
+              
+              <button
+                onClick={() => setMaintenanceModal(null)}
+                className="w-full py-3 bg-zinc-800 hover:bg-zinc-700 text-white font-bold rounded-xl transition-all active:scale-[0.98]"
+              >
+                Tutup Peringatan
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 }
