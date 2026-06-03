@@ -39,6 +39,13 @@ const quillFormats = [
     'blockquote', 'code-block'
 ];
 
+const formatRupiah = (value) => {
+    if (value === null || value === undefined) return "";
+    const clean = value.toString().replace(/\D/g, "");
+    if (!clean) return "";
+    return new Intl.NumberFormat("id-ID").format(parseInt(clean, 10));
+};
+
 export default function EditListingPage({ params }) {
     const { id } = use(params);
     const router = useRouter();
@@ -80,13 +87,13 @@ export default function EditListingPage({ params }) {
                 setReptileData({
                     name: data.name || "",
                     species: data.species || "",
-                    price: data.price || "",
+                    price: data.price ? formatRupiah(data.price) : "",
                     description: data.description || "",
                     sex: data.sex || "",
                     shipping_description: data.shipping_description || "",
                     images: data.images || [],
-                    start_bid: data.start_bid || "",
-                    multiple: data.multiple || "",
+                    start_bid: data.start_bid ? formatRupiah(data.start_bid) : "",
+                    multiple: data.multiple ? formatRupiah(data.multiple) : "",
                     end_date: data.end_date ? new Date(data.end_date).toISOString().slice(0, 16) : "",
                     status: data.status || "active",
                     is_free_shipping: data.is_free_shipping || false,
@@ -136,9 +143,9 @@ export default function EditListingPage({ params }) {
                 type: listingType,
                 status: "pending", // Always set to pending on edit for re-verification
                 // Sanitize numeric fields to null if empty string
-                price: listingType === "sell" ? (reptileData.price || null) : null,
-                start_bid: listingType === "auction" ? (reptileData.start_bid || null) : null,
-                multiple: listingType === "auction" ? (reptileData.multiple || null) : null,
+                price: listingType === "sell" && reptileData.price ? parseInt(reptileData.price.toString().replace(/\D/g, ""), 10) : null,
+                start_bid: listingType === "auction" && reptileData.start_bid ? parseInt(reptileData.start_bid.toString().replace(/\D/g, ""), 10) : null,
+                multiple: listingType === "auction" && reptileData.multiple ? parseInt(reptileData.multiple.toString().replace(/\D/g, ""), 10) : null,
                 end_date: listingType === "auction" ? (reptileData.end_date || null) : null,
             };
 
@@ -294,12 +301,13 @@ export default function EditListingPage({ params }) {
                                         <div className="relative">
                                             <span className="absolute left-5 top-1/2 -translate-y-1/2 text-zinc-600 font-black">Rp</span>
                                             <input
-                                                type="number"
+                                                type="text"
+                                                inputMode="numeric"
                                                 required
-                                                placeholder="Contoh: 1500000"
+                                                placeholder="Contoh: 1.500.000"
                                                 className="w-full bg-zinc-950 border border-zinc-800 text-white rounded-2xl pl-14 pr-5 py-4 focus:outline-none focus:border-emerald-500 transition-all font-bold placeholder:text-zinc-700"
                                                 value={reptileData.price}
-                                                onChange={(e) => setReptileData(prev => ({ ...prev, price: e.target.value }))}
+                                                onChange={(e) => setReptileData(prev => ({ ...prev, price: formatRupiah(e.target.value) }))}
                                             />
                                         </div>
                                         <div className="px-1 py-1">
@@ -356,19 +364,21 @@ export default function EditListingPage({ params }) {
                                     <div className="space-y-2">
                                         <label className="text-xs font-black text-zinc-300 uppercase tracking-widest ml-1">OB / Start Bid (Rp) <span className="text-red-500">*</span></label>
                                         <input
-                                            type="number"
+                                            type="text"
+                                            inputMode="numeric"
                                             className="w-full bg-zinc-950 border border-zinc-800 text-white rounded-2xl px-5 py-4 focus:outline-none focus:border-amber-500 transition-all font-bold"
                                             value={reptileData.start_bid}
-                                            onChange={(e) => setReptileData(prev => ({ ...prev, start_bid: e.target.value }))}
+                                            onChange={(e) => setReptileData(prev => ({ ...prev, start_bid: formatRupiah(e.target.value) }))}
                                         />
                                     </div>
                                     <div className="space-y-2">
                                         <label className="text-xs font-black text-zinc-300 uppercase tracking-widest ml-1">Kelipatan / Multiple (Rp) <span className="text-red-500">*</span></label>
                                         <input
-                                            type="number"
+                                            type="text"
+                                            inputMode="numeric"
                                             className="w-full bg-zinc-950 border border-zinc-800 text-white rounded-2xl px-5 py-4 focus:outline-none focus:border-amber-500 transition-all font-bold"
                                             value={reptileData.multiple}
-                                            onChange={(e) => setReptileData(prev => ({ ...prev, multiple: e.target.value }))}
+                                            onChange={(e) => setReptileData(prev => ({ ...prev, multiple: formatRupiah(e.target.value) }))}
                                         />
                                     </div>
                                     <div className="space-y-2">
@@ -505,7 +515,7 @@ export default function EditListingPage({ params }) {
                                             onChange={(e) => {
                                                 const file = e.target.files[0];
                                                 if (!file) return;
-                                                if (file.size > 500 * 1024) {
+                                                if (file.size > 1 * 1024 * 1024) {
                                                     setShowErrorModal(true);
                                                     return;
                                                 }
@@ -529,7 +539,7 @@ export default function EditListingPage({ params }) {
                             </div>
                             <div className="px-1">
                                 <p className="text-[11px] font-bold text-amber-500/80 italic">
-                                    * Ukuran foto maksimal 500KB per file. Pastikan foto jelas dan terang (Maks 3 Foto).
+                                    * Ukuran foto maksimal 1MB per file. Pastikan foto jelas dan terang (Maks 3 Foto).
                                 </p>
                             </div>
                         </div>
@@ -623,7 +633,7 @@ export default function EditListingPage({ params }) {
                             </div>
                             <h3 className="text-3xl font-black text-white mb-4">File Terlalu Besar!</h3>
                             <p className="text-zinc-400 mb-10 leading-relaxed font-medium">
-                                Ukuran foto tidak boleh melebihi <span className="text-red-500 font-black">500KB</span>. Silakan kompres foto Anda.
+                                Ukuran foto tidak boleh melebihi <span className="text-red-500 font-black">1MB</span>. Silakan kompres foto Anda.
                             </p>
                             <button
                                 onClick={() => setShowErrorModal(false)}

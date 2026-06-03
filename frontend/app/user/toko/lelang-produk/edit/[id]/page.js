@@ -1078,7 +1078,7 @@ export default function EditLelangListingPage({ params }) {
                       const file = e.target.files[0];
                       if (!file) return;
 
-                      if (file.size > 500 * 1024) {
+                      if (file.size > 1 * 1024 * 1024) {
                         setShowErrorModal(true);
                         return;
                       }
@@ -1104,7 +1104,7 @@ export default function EditLelangListingPage({ params }) {
             </div>
             <div className="px-1">
               <p className="text-[10px] font-bold text-amber-500/80 italic">
-                * Ukuran foto maksimal 500KB per file. Pastikan foto jelas dan
+                * Ukuran foto maksimal 1MB per file. Pastikan foto jelas dan
                 terang (Maks 3 Foto).
               </p>
             </div>
@@ -1288,7 +1288,7 @@ export default function EditLelangListingPage({ params }) {
               File Terlalu Besar!
             </h3>
             <p className="text-zinc-400 mb-10 leading-relaxed font-medium">
-              Ukuran foto tidak boleh melebihi <strong>500KB</strong>. Silakan
+              Ukuran foto tidak boleh melebihi <strong>1MB</strong>. Silakan
               kompres foto Anda terlebih dahulu.
             </p>
             <button

@@ -3,7 +3,14 @@
 import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { getApiUrl, getSocketUrl } from "@/app/utils/api";
-import { ShoppingBag, MapPin, DollarSign, Clock, CheckCircle2, AlertCircle, X, XCircle, Search, Filter, Package, Truck, Info, ChevronRight, Store, ScrollText, CreditCard, Hash, MessageCircle, ShieldAlert, Calendar } from "lucide-react";
+import { ShoppingBag, MapPin, DollarSign, Clock, CheckCircle2, AlertCircle, X, XCircle, Search, Filter, Package, Truck, Info, ChevronRight, ChevronLeft, Store, ScrollText, CreditCard, Hash, MessageCircle, ShieldAlert, Calendar } from "lucide-react";
+
+const getPaginationRange = (currentPage, totalPages) => {
+  if (totalPages <= 5) return Array.from({ length: totalPages }, (_, i) => i + 1);
+  if (currentPage <= 3) return [1, 2, 3, "...", totalPages];
+  if (currentPage >= totalPages - 2) return [1, "...", totalPages - 2, totalPages - 1, totalPages];
+  return [1, "...", currentPage - 1, currentPage, currentPage + 1, "...", totalPages];
+};
 import { io } from "socket.io-client";
 
 export default function PesananMasukPage() {
@@ -13,6 +20,8 @@ export default function PesananMasukPage() {
   const [activeTab, setActiveTab] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [socket, setSocket] = useState(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
 
   // Success Message state
   const [successMessage, setSuccessMessage] = useState("");
@@ -246,6 +255,17 @@ export default function PesananMasukPage() {
     return matchesSearch && matchesTab;
   });
 
+  // Pagination logic
+  const totalPages = Math.ceil(filteredOrders.length / itemsPerPage);
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentItems = filteredOrders.slice(indexOfFirstItem, indexOfLastItem);
+
+  // Reset to page 1 when search or tab changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery, activeTab]);
+
   if (isLoading && orders.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[400px] gap-4">
@@ -380,8 +400,8 @@ export default function PesananMasukPage() {
 
       {/* Orders List */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8">
-        {filteredOrders.length > 0 ? (
-          filteredOrders.map((order) => (
+        {currentItems.length > 0 ? (
+          currentItems.map((order) => (
             <div key={order.id} className="bg-zinc-900/20 backdrop-blur-md border border-zinc-800 rounded-[2rem] md:rounded-[2.5rem] overflow-hidden hover:border-zinc-700 hover:-translate-y-1 transition-all duration-300 group flex flex-col">
               {/* Card Header */}
               <div className="px-4 md:px-6 py-4 md:py-5 border-b border-zinc-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-zinc-900/50">
@@ -610,7 +630,7 @@ export default function PesananMasukPage() {
             </div>
           ))
         ) : (
-          <div className="py-32 flex flex-col items-center text-center space-y-6 bg-zinc-900/20 border border-zinc-800 rounded-[4rem] border-dashed">
+          <div className="col-span-1 lg:col-span-2 py-32 flex flex-col items-center justify-center text-center space-y-6 bg-zinc-900/20 border border-zinc-800 rounded-[4rem] border-dashed">
             <div className="w-32 h-32 bg-zinc-900 rounded-[2.5rem] flex items-center justify-center text-zinc-700">
               <ShoppingBag size={64} />
             </div>
@@ -618,12 +638,55 @@ export default function PesananMasukPage() {
               <h3 className="text-3xl font-black text-white tracking-tight uppercase">Belum Ada Pesanan</h3>
               <p className="text-zinc-500 max-w-sm mx-auto font-medium">Pesanan dari pelanggan tokomu akan muncul di sini secara otomatis.</p>
             </div>
-            <button className="text-emerald-500 font-black text-xs uppercase tracking-widest flex items-center gap-2 hover:gap-3 transition-all">
+            <button onClick={() => { if (shop?.id) fetchOrders(shop.id); }} className="text-emerald-500 font-black text-xs uppercase tracking-widest flex items-center gap-2 hover:gap-3 transition-all">
               Refresh Data <Clock size={14} />
             </button>
           </div>
         )}
       </div>
+
+      {/* Pagination Controls */}
+      {totalPages > 1 && (
+        <div className="flex flex-col md:flex-row items-center justify-between gap-4 bg-zinc-900/50 border border-zinc-800 p-6 rounded-[2rem]">
+          <p className="text-[10px] md:text-xs font-black text-zinc-500 uppercase tracking-widest">
+            Menampilkan {indexOfFirstItem + 1} - {Math.min(indexOfLastItem, filteredOrders.length)} dari {filteredOrders.length} Pesanan
+          </p>
+          <div className="flex items-center">
+            <div className="inline-flex rounded-xl border border-zinc-800 bg-zinc-950 divide-x divide-zinc-800 overflow-hidden">
+              <button
+                onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+                disabled={currentPage === 1}
+                className="w-10 h-10 flex items-center justify-center text-zinc-400 hover:text-white hover:bg-zinc-900/50 disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-transparent transition-all"
+              >
+                <ChevronLeft size={16} />
+              </button>
+              {getPaginationRange(currentPage, totalPages).map((page, idx) => (
+                <button
+                  key={idx}
+                  onClick={() => typeof page === "number" && setCurrentPage(page)}
+                  disabled={page === "..."}
+                  className={`w-10 h-10 flex items-center justify-center text-xs font-bold transition-all ${
+                    page === currentPage
+                      ? "bg-zinc-800 text-white font-black"
+                      : page === "..."
+                      ? "text-zinc-500 cursor-default bg-zinc-950"
+                      : "text-zinc-400 hover:text-white hover:bg-zinc-900/50 bg-zinc-950"
+                  }`}
+                >
+                  {page}
+                </button>
+              ))}
+              <button
+                onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+                disabled={currentPage === totalPages}
+                className="w-10 h-10 flex items-center justify-center text-zinc-400 hover:text-white hover:bg-zinc-900/50 disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-transparent transition-all"
+              >
+                <ChevronRight size={16} />
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Cancellation Modal */}
       {cancellingOrder && (

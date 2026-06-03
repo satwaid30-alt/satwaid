@@ -74,6 +74,16 @@ module.exports = function (sequelize, DataTypes) {
       type: DataTypes.TEXT,
       allowNull: true
     },
+    listing_limit: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      defaultValue: 500
+    },
+    membership_level: {
+      type: DataTypes.STRING(50),
+      allowNull: false,
+      defaultValue: 'Standard Seller'
+    },
     created_at: {
       type: DataTypes.DATE,
       allowNull: true,

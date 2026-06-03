@@ -181,11 +181,24 @@ export default function ShippingConfirmationPage({ params }) {
         setIsSubmitting(true);
         try {
             const token = typeof window !== 'undefined' ? localStorage.getItem("token") : null;
+
+            if (!token) {
+                setModalConfig({
+                    isOpen: true,
+                    type: "danger",
+                    title: "Sesi Tidak Ditemukan",
+                    message: "Sesi login Anda tidak ditemukan. Silakan login ulang terlebih dahulu.",
+                    onConfirm: () => router.replace("/login")
+                });
+                setIsSubmitting(false);
+                return;
+            }
+
             const response = await fetch(`${getApiUrl()}/orders/${id}/ship-order`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': token ? `Bearer ${token}` : ''
+                    'Authorization': `Bearer ${token}`
                 },
                 body: JSON.stringify(form)
             });
@@ -197,6 +210,17 @@ export default function ShippingConfirmationPage({ params }) {
                     title: "Pengiriman Terkirim!",
                     message: "Informasi pengiriman berhasil disimpan. Pembeli akan segera menerima notifikasi nomor resi Anda.",
                     onConfirm: () => router.replace("/user/toko/pesanan-masuk")
+                });
+            } else if (response.status === 401 || response.status === 403) {
+                // Token expired atau tidak valid — arahkan ke login
+                localStorage.removeItem("token");
+                localStorage.removeItem("user");
+                setModalConfig({
+                    isOpen: true,
+                    type: "warning",
+                    title: "Sesi Habis",
+                    message: "Sesi login Anda telah habis. Silakan login ulang untuk melanjutkan.",
+                    onConfirm: () => router.replace("/login")
                 });
             } else {
                 const result = await response.json();

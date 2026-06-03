@@ -35,7 +35,12 @@ export default function AdminDashboard() {
     const fetchStats = async () => {
         try {
             const apiUrl = getApiUrl();
-            const response = await fetch(`${apiUrl}/admin/stats`);
+            const token = localStorage.getItem("admin_token");
+            const response = await fetch(`${apiUrl}/admin/stats`, {
+                headers: {
+                    Authorization: token ? `Bearer ${token}` : ""
+                }
+            });
             if (!response.ok) throw new Error("Gagal mengambil data dari server");
             const data = await response.json();
             if (data.success) {

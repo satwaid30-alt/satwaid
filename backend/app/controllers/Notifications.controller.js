@@ -23,20 +23,24 @@ module.exports.getNotificationCounts = async (req, res, next) => {
         const shop = await models.shops.findOne({ where: { user_id } });
         const shopId = shop ? shop.id : null;
 
+        // Count unread order notifications (seller) from notifications table
         let incomingOrdersCount = 0;
         if (shopId) {
-            incomingOrdersCount = await models.orders.count({
+            incomingOrdersCount = await models.notifications.count({
                 where: {
-                    shop_id: shopId,
-                    status: { [Op.notIn]: ['completed', 'cancelled', 'cancelled_dismissed', 'disbursement_requested', 'disbursed'] }
+                    user_id,
+                    type: 'order_seller',
+                    is_read: false
                 }
             });
         }
 
-        const myOrdersCount = await models.orders.count({
+        // Count unread order notifications (buyer) from notifications table
+        const myOrdersCount = await models.notifications.count({
             where: {
                 user_id,
-                status: { [Op.notIn]: ['completed', 'cancelled', 'cancelled_dismissed', 'disbursement_requested', 'disbursed'] }
+                type: 'order_buyer',
+                is_read: false
             }
         });
 
@@ -67,7 +71,7 @@ module.exports.getNotificationCounts = async (req, res, next) => {
         const systemNotifCount = await models.notifications.count({
             where: {
                 user_id,
-                type: { [Op.ne]: 'community' },
+                type: { [Op.notIn]: ['community', 'order_seller', 'order_buyer'] },
                 is_read: false
             }
         });

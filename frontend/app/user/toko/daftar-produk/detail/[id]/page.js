@@ -97,6 +97,10 @@ export default function ListingDetailPage({ params }) {
             const res = await fetch(`${getApiUrl()}/listings/${id}`);
             const result = await res.json();
             if (res.ok && result.data) {
+                if (result.data.status?.toLowerCase() === 'history') {
+                    router.replace("/user/toko/daftar-produk");
+                    return;
+                }
                 if (result.data.type === 'auction') {
                     router.replace(`/user/toko/lelang-produk/detail/${id}`);
                     return;
@@ -118,8 +122,12 @@ export default function ListingDetailPage({ params }) {
         if (!confirm("Apakah Anda yakin ingin menghapus iklan ini?")) return;
 
         try {
+            const token = localStorage.getItem("token");
             const res = await fetch(`${getApiUrl()}/listings/${id}`, {
-                method: "DELETE"
+                method: "DELETE",
+                headers: {
+                    'Authorization': token ? `Bearer ${token}` : ''
+                }
             });
             if (res.ok) {
                 alert("Iklan berhasil dihapus");

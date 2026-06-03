@@ -35,6 +35,11 @@ module.exports.getAllShops = async (req, res, next) => {
                     model: models.listings,
                     as: 'listings',
                     attributes: ['id']
+                },
+                {
+                    model: models.shop_upgrades,
+                    as: 'upgrades',
+                    attributes: ['id', 'plan_name', 'status', 'unique_code', 'created_at']
                 }
             ]
         });
@@ -194,7 +199,7 @@ module.exports.createShop = async (req, res, next) => {
 module.exports.updateShop = async (req, res, next) => {
     try {
         const { id } = req.params;
-        const { name, description, address, city, province, whatsapp, logo_url, banner_url, nik, status, rejection_reason, shipping_policy, warranty_policy } = req.body;
+        const { name, description, address, city, province, whatsapp, logo_url, banner_url, nik, status, rejection_reason, shipping_policy, warranty_policy, listing_limit, membership_level } = req.body;
 
         const shop = await models.shops.findByPk(id);
         if (!shop) {
@@ -205,6 +210,25 @@ module.exports.updateShop = async (req, res, next) => {
         const isAdmin = req.user_data.level !== 8 || req.user_data.role === 'admin';
         if (shop.user_id !== req.user_data.id && !isAdmin) {
             return res.status(403).json({ message: "Anda tidak memiliki akses untuk mengubah toko ini" });
+        }
+
+        let validatedListingLimit = shop.listing_limit;
+        if (isAdmin && listing_limit !== undefined) {
+            const parsedLimit = parseInt(listing_limit, 10);
+            if (isNaN(parsedLimit) || parsedLimit < 0) {
+                return res.status(400).json({ message: "Batas kuota tidak valid" });
+            }
+            
+            // Count current listings of this shop
+            const currentListingsCount = await models.listings.count({
+                where: { shop_id: id }
+            });
+            if (parsedLimit < currentListingsCount) {
+                return res.status(400).json({ 
+                    message: `Batas kuota tidak boleh kurang dari kuota terpakai (${currentListingsCount} listing)` 
+                });
+            }
+            validatedListingLimit = parsedLimit;
         }
 
         await shop.update({
@@ -219,10 +243,39 @@ module.exports.updateShop = async (req, res, next) => {
             nik,
             status: isAdmin ? status : shop.status, // Only admin can moderate status
             rejection_reason: isAdmin ? rejection_reason : shop.rejection_reason,
+            listing_limit: validatedListingLimit,
+            membership_level: isAdmin && membership_level !== undefined ? membership_level : shop.membership_level,
             shipping_policy,
             warranty_policy,
             updated_at: new Date()
         });
+
+        // If membership_level is downgraded to "Standard Seller", expire all approved upgrades
+        if (isAdmin && membership_level === "Standard Seller") {
+            await models.shop_upgrades.update(
+                { status: "expired", updated_at: new Date() },
+                { where: { shop_id: shop.id, status: "approved" } }
+            );
+        }
+
+        // Emit Socket Event for Quota/Membership Update
+        if (isAdmin && (validatedListingLimit !== undefined || membership_level !== undefined)) {
+            const io = req.app.get('socketio');
+            if (io) {
+                if (validatedListingLimit !== undefined) {
+                    io.to(`user_${shop.user_id}`).emit('shop_quota_updated', {
+                        shop_id: shop.id,
+                        listing_limit: validatedListingLimit
+                    });
+                }
+                if (membership_level !== undefined) {
+                    io.to(`user_${shop.user_id}`).emit('shop_membership_updated', {
+                        shop_id: shop.id,
+                        membership_level: membership_level
+                    });
+                }
+            }
+        }
 
         // Cascade status update to the user if status is provided by Admin
         if (isAdmin && status) {

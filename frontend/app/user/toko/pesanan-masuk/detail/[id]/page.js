@@ -204,30 +204,31 @@ export default function OrderDetailPage({ params }) {
         <div className="lg:col-span-8 space-y-8">
           {/* Main Order Card (Accordion) */}
           <div className="bg-zinc-900 border border-zinc-800 rounded-[2.5rem] overflow-hidden">
-            <button onClick={() => setIsProductCardOpen(!isProductCardOpen)} className="w-full flex items-center justify-between p-8 hover:bg-zinc-800/50 transition-all border-b border-zinc-800/50">
-              <div className="flex items-center gap-4">
-                <div className={`w-12 h-12 rounded-2xl flex items-center justify-center transition-all ${isProductCardOpen ? "bg-emerald-500 text-zinc-950" : "bg-zinc-800 text-zinc-500"}`}>
-                  <ShoppingBag size={24} />
+            <button onClick={() => setIsProductCardOpen(!isProductCardOpen)} className="w-full flex items-center justify-between p-4 md:p-8 hover:bg-zinc-800/50 transition-all border-b border-zinc-800/50">
+              <div className="flex items-center gap-3 md:gap-4">
+                <div className={`w-10 h-10 md:w-12 md:h-12 rounded-xl md:rounded-2xl flex items-center justify-center transition-all shrink-0 ${isProductCardOpen ? "bg-emerald-500 text-zinc-950" : "bg-zinc-800 text-zinc-500"}`}>
+                  <ShoppingBag size={20} className="md:hidden" />
+                  <ShoppingBag size={24} className="hidden md:block" />
                 </div>
-                <div className="text-left">
-                  <h2 className={`text-xl font-black uppercase tracking-tight ${isProductCardOpen ? "text-emerald-500" : "text-white"}`}>Rincian Produk & Pembeli</h2>
+                <div className="text-left min-w-0">
+                  <h2 className={`text-sm sm:text-base md:text-xl font-black uppercase tracking-tight truncate ${isProductCardOpen ? "text-emerald-500" : "text-white"}`}>Rincian Produk & Pembeli</h2>
                   <div className="flex items-center gap-2 mt-0.5">
-                    <p className="text-zinc-500 text-[10px] font-black uppercase tracking-widest">
+                    <p className="text-zinc-500 text-[8px] sm:text-[10px] font-black uppercase tracking-widest truncate max-w-[140px] sm:max-w-[200px] md:max-w-none">
                       {order.order_id} • {order.product?.name}
                     </p>
                     {order.product?.type === "auction" ? (
-                      <span className="px-1.5 py-0.5 bg-purple-500/10 text-[8px] text-purple-400 rounded font-black uppercase tracking-widest border border-purple-500/20">Lelang</span>
+                      <span className="px-1.5 py-0.5 bg-purple-500/10 text-[8px] text-purple-400 rounded font-black uppercase tracking-widest border border-purple-500/20 shrink-0">Lelang</span>
                     ) : (
-                      <span className="px-1.5 py-0.5 bg-sky-500/10 text-[8px] text-sky-400 rounded font-black uppercase tracking-widest border border-sky-500/20">Jual</span>
+                      <span className="px-1.5 py-0.5 bg-sky-500/10 text-[8px] text-sky-400 rounded font-black uppercase tracking-widest border border-sky-500/20 shrink-0">Jual</span>
                     )}
                   </div>
                 </div>
               </div>
-              <ChevronDown size={24} className={`text-emerald-500 transition-transform duration-500 ${isProductCardOpen ? "rotate-180" : ""}`} />
+              <ChevronDown size={20} className={`text-emerald-500 transition-transform duration-500 shrink-0 ${isProductCardOpen ? "rotate-180" : ""}`} />
             </button>
 
             {isProductCardOpen && (
-              <div className="p-8 space-y-8 animate-in slide-in-from-top-4 duration-500">
+              <div className="p-4 md:p-8 space-y-8 animate-in slide-in-from-top-4 duration-500">
                 <div className="flex flex-col md:flex-row gap-8">
                   {/* Product Image */}
                   <div className="w-full md:w-64 aspect-square rounded-[2rem] overflow-hidden bg-zinc-950 border border-zinc-800 relative group">
@@ -270,7 +271,7 @@ export default function OrderDetailPage({ params }) {
                         <span className="px-2 py-0.5 bg-emerald-500/10 text-[9px] text-emerald-500 rounded font-black uppercase tracking-widest border border-emerald-500/20">{order.product?.species}</span>
                         <span className="px-2 py-0.5 bg-zinc-800 text-[9px] text-zinc-400 rounded font-black uppercase tracking-widest border border-zinc-700">ID Produk: {order.product?.product_id || "-"}</span>
                       </div>
-                      <h1 className="text-3xl font-black text-white leading-tight">{order.product?.name}</h1>
+                      <h1 className="text-xl sm:text-2xl md:text-3xl font-black text-white leading-tight">{order.product?.name}</h1>
                     </div>
 
                     <div className="grid grid-cols-2 gap-4">
@@ -340,7 +341,7 @@ export default function OrderDetailPage({ params }) {
 
         {/* RIGHT: Transaction Summary & Action */}
         <div className="lg:col-span-4 space-y-6 sticky top-24">
-          <div className="bg-zinc-900 border border-zinc-800 rounded-[2.5rem] p-8 space-y-8">
+          <div className="bg-zinc-900 border border-zinc-800 rounded-3xl md:rounded-[2.5rem] p-4 md:p-8 space-y-6 md:space-y-8">
             <h3 className="text-xs font-black text-zinc-500 uppercase tracking-widest flex items-center gap-2">
               <CreditCard size={16} className="text-emerald-500" /> Rincian Pembayaran
             </h3>
@@ -407,7 +408,7 @@ export default function OrderDetailPage({ params }) {
           </div>
 
           {/* Shipping Details Moved Here - Inside the same sidebar column */}
-          <div className="bg-zinc-900 border border-zinc-800 rounded-[2.5rem] p-8 space-y-6">
+          <div className="bg-zinc-900 border border-zinc-800 rounded-3xl md:rounded-[2.5rem] p-4 md:p-8 space-y-6">
             <h3 className="text-[10px] font-black text-zinc-500 uppercase tracking-widest flex items-center gap-2">
               <MapPin size={14} className="text-pink-500" /> Informasi Pengiriman
             </h3>

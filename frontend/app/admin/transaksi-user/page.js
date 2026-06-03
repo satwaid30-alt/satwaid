@@ -40,7 +40,7 @@ export default function AdminTransactionPage() {
         // Setup Socket.io for Real-time Transaction Updates
         let socket;
         try {
-            const token = typeof window !== 'undefined' ? localStorage.getItem("token") : null;
+            const token = typeof window !== 'undefined' ? localStorage.getItem("admin_token") : null;
             socket = io(process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000", {
                 auth: {
                     token: token ? `Bearer ${token}` : null
@@ -79,7 +79,12 @@ export default function AdminTransactionPage() {
 
     const fetchOrders = async () => {
         try {
-            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/orders`);
+            const token = localStorage.getItem("admin_token");
+            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/orders`, {
+                headers: {
+                    Authorization: token ? `Bearer ${token}` : ""
+                }
+            });
             const result = await res.json();
             if (res.ok) {
                 setOrders(result.data);

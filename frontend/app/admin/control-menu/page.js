@@ -88,10 +88,12 @@ export default function ControlMenuPage() {
         message: m.message
       }));
 
+      const token = localStorage.getItem("admin_token");
       const res = await fetch(`${getApiUrl()}/menu-controls/bulk`, {
         method: "PUT",
         headers: {
-          "Content-Type": "application/json"
+          "Content-Type": "application/json",
+          Authorization: token ? `Bearer ${token}` : ""
         },
         body: JSON.stringify({ updates })
       });

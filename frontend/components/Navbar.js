@@ -164,58 +164,6 @@ export default function Navbar({ theme = "dark", onNotification }) {
         </div>
 
         <div className="flex items-center gap-4 relative">
-          {!isLoaded ? (
-            <div className="hidden sm:block h-10 w-24 bg-zinc-800/10 dark:bg-white/10 rounded-full animate-pulse"></div>
-          ) : user ? (
-            <div className="hidden sm:block relative">
-              <button
-                onClick={() => {
-                  setIsDropdownOpen(!isDropdownOpen);
-                  setIsChatOpen(false);
-                }}
-                className={`flex items-center gap-2 px-4 py-2 rounded-full font-bold transition-all border shadow-sm ${isLightText ? "bg-white/10 text-white border-white/20 hover:bg-white/20" : "bg-white text-zinc-900 border-zinc-200 hover:border-emerald-500 hover:shadow-lg hover:shadow-emerald-500/10"}`}
-              >
-                <div className="w-7 h-7 rounded-full overflow-hidden flex-shrink-0 ring-2 ring-emerald-500/50">
-                  {user.avatar_url ? <img src={`${getApiUrl()}${user.avatar_url}`} alt={user.username} className="w-full h-full object-cover" /> : <div className="w-full h-full bg-emerald-500 flex items-center justify-center text-white text-xs font-bold">{user.username ? user.username.charAt(0).toUpperCase() : "U"}</div>}
-                </div>
-                <span>{user.username}</span>
-              </button>
-
-              {/* Dropdown Menu */}
-              {isDropdownOpen && (
-                <div className="absolute right-0 mt-3 w-56 bg-white border border-zinc-100 rounded-2xl shadow-xl py-2 overflow-hidden animate-in slide-in-from-top-2 fade-in duration-200 z-50">
-                  <div className="px-4 py-3 border-b border-zinc-100 mb-2 bg-zinc-50/50 flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-full overflow-hidden flex-shrink-0 ring-2 ring-emerald-500/30">
-                      {user.avatar_url ? <img src={`${getApiUrl()}${user.avatar_url}`} alt={user.username} className="w-full h-full object-cover" /> : <div className="w-full h-full bg-emerald-500 flex items-center justify-center text-white text-sm font-bold">{user.username ? user.username.charAt(0).toUpperCase() : "U"}</div>}
-                    </div>
-                    <div className="min-w-0">
-                      <p className="text-sm font-bold text-zinc-800 truncate">{user.name || user.username}</p>
-                      <p className="text-xs text-zinc-500 truncate">{shopName || user.email || "User"}</p>
-                    </div>
-                  </div>
-                  <Link href="/user/pengaturan" className="flex items-center px-4 py-2 text-sm font-medium text-zinc-700 hover:bg-emerald-50 hover:text-emerald-600 transition-colors" onClick={() => setIsDropdownOpen(false)}>
-                    Pengaturan Akun
-                  </Link>
-                  <Link href="/user/pesanan" className="flex items-center px-4 py-2 text-sm font-medium text-zinc-700 hover:bg-emerald-50 hover:text-emerald-600 transition-colors" onClick={() => setIsDropdownOpen(false)}>
-                    Pesanan saya
-                  </Link>
-                  <Link href="/user/toko/dashboard" className="flex items-center px-4 py-2 text-sm font-medium text-zinc-700 hover:bg-emerald-50 hover:text-emerald-600 transition-colors" onClick={() => setIsDropdownOpen(false)}>
-                    Dashboard Seller
-                  </Link>
-                  <div className="border-t border-zinc-100 mt-2 pt-2">
-                    <button onClick={handleLogout} className="w-full text-left px-4 py-2 text-sm font-bold text-red-600 hover:bg-red-50 transition-colors">
-                      Keluar
-                    </button>
-                  </div>
-                </div>
-              )}
-            </div>
-          ) : (
-            <Link href="/login" className="hidden sm:block bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-2.5 rounded-full font-semibold transition-all hover:scale-105 active:scale-95 shadow-lg shadow-emerald-500/20">
-              Masuk
-            </Link>
-          )}
-
           {user && (
             <div className="relative">
               <Link
@@ -366,6 +314,58 @@ export default function Navbar({ theme = "dark", onNotification }) {
                 </div>
               )}
             </div>
+          )}
+
+          {!isLoaded ? (
+            <div className="hidden sm:block h-10 w-24 bg-zinc-800/10 dark:bg-white/10 rounded-full animate-pulse"></div>
+          ) : user ? (
+            <div className="hidden sm:block relative">
+              <button
+                onClick={() => {
+                  setIsDropdownOpen(!isDropdownOpen);
+                  setIsChatOpen(false);
+                }}
+                className={`flex items-center gap-2 px-4 py-2 rounded-full font-bold transition-all border shadow-sm ${isLightText ? "bg-white/10 text-white border-white/20 hover:bg-white/20" : "bg-white text-zinc-900 border-zinc-200 hover:border-emerald-500 hover:shadow-lg hover:shadow-emerald-500/10"}`}
+              >
+                <div className="w-7 h-7 rounded-full overflow-hidden flex-shrink-0 ring-2 ring-emerald-500/50">
+                  {user.avatar_url ? <img src={`${getApiUrl()}${user.avatar_url}`} alt={user.username} className="w-full h-full object-cover" /> : <div className="w-full h-full bg-emerald-500 flex items-center justify-center text-white text-xs font-bold">{user.username ? user.username.charAt(0).toUpperCase() : "U"}</div>}
+                </div>
+                <span>{user.username}</span>
+              </button>
+
+              {/* Dropdown Menu */}
+              {isDropdownOpen && (
+                <div className="absolute right-0 mt-3 w-56 bg-white border border-zinc-100 rounded-2xl shadow-xl py-2 overflow-hidden animate-in slide-in-from-top-2 fade-in duration-200 z-50">
+                  <div className="px-4 py-3 border-b border-zinc-100 mb-2 bg-zinc-50/50 flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-full overflow-hidden flex-shrink-0 ring-2 ring-emerald-500/30">
+                      {user.avatar_url ? <img src={`${getApiUrl()}${user.avatar_url}`} alt={user.username} className="w-full h-full object-cover" /> : <div className="w-full h-full bg-emerald-500 flex items-center justify-center text-white text-sm font-bold">{user.username ? user.username.charAt(0).toUpperCase() : "U"}</div>}
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-sm font-bold text-zinc-800 truncate">{user.name || user.username}</p>
+                      <p className="text-xs text-zinc-500 truncate">{shopName || user.email || "User"}</p>
+                    </div>
+                  </div>
+                  <Link href="/user/pengaturan" className="flex items-center px-4 py-2 text-sm font-medium text-zinc-700 hover:bg-emerald-50 hover:text-emerald-600 transition-colors" onClick={() => setIsDropdownOpen(false)}>
+                    Pengaturan Akun
+                  </Link>
+                  <Link href="/user/pesanan" className="flex items-center px-4 py-2 text-sm font-medium text-zinc-700 hover:bg-emerald-50 hover:text-emerald-600 transition-colors" onClick={() => setIsDropdownOpen(false)}>
+                    Pesanan saya
+                  </Link>
+                  <Link href="/user/toko/dashboard" className="flex items-center px-4 py-2 text-sm font-medium text-zinc-700 hover:bg-emerald-50 hover:text-emerald-600 transition-colors" onClick={() => setIsDropdownOpen(false)}>
+                    Dashboard Seller
+                  </Link>
+                  <div className="border-t border-zinc-100 mt-2 pt-2">
+                    <button onClick={handleLogout} className="w-full text-left px-4 py-2 text-sm font-bold text-red-600 hover:bg-red-50 transition-colors">
+                      Keluar
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          ) : (
+            <Link href="/login" className="hidden sm:block bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-2.5 rounded-full font-semibold transition-all hover:scale-105 active:scale-95 shadow-lg shadow-emerald-500/20">
+              Masuk
+            </Link>
           )}
 
           {/* Mobile Menu Button */}

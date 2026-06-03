@@ -3,7 +3,7 @@
 import { useState, useEffect, use } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { AlertCircle, ShoppingBag, MapPin, Truck, CreditCard, Clock, Package, ChevronLeft, Wallet, Copy, Banknote, Receipt, Info, X, CheckCircle2, Eye } from "lucide-react";
+import { AlertCircle, ShoppingBag, MapPin, Truck, CreditCard, Clock, Package, ChevronLeft, Wallet, Copy, Banknote, Receipt, Info, X, CheckCircle2, Eye, QrCode } from "lucide-react";
 import OrderStepper from "@/components/OrderStepper";
 import OrderTimeline from "@/components/OrderTimeline";
 import { copyToClipboard } from "@/app/utils/clipboard";
@@ -21,7 +21,8 @@ export default function PaymentPage({ params }) {
   const [paymentProof, setPaymentProof] = useState("");
   const [uploading, setUploading] = useState(false);
   const [resetting, setResetting] = useState(false);
-  const [isPreviewOpen, setIsPreviewOpen] = useState(false);
+  const [previewImage, setPreviewImage] = useState(null);
+  const [paymentMethod, setPaymentMethod] = useState("qris");
 
   useEffect(() => {
     fetchOrderDetails();
@@ -121,7 +122,7 @@ export default function PaymentPage({ params }) {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
-          "Authorization": token ? `Bearer ${token}` : "",
+          Authorization: token ? `Bearer ${token}` : "",
         },
         body: JSON.stringify({ payment_proof: paymentProof }),
       });
@@ -148,7 +149,7 @@ export default function PaymentPage({ params }) {
       const res = await fetch(`${getApiUrl()}/orders/${id}/reset-payment`, {
         method: "PUT",
         headers: {
-          "Authorization": token ? `Bearer ${token}` : "",
+          Authorization: token ? `Bearer ${token}` : "",
         },
       });
       if (res.ok) {
@@ -204,6 +205,177 @@ export default function PaymentPage({ params }) {
     }
   };
 
+  const renderPaymentCard = (isMobile = false) => {
+    return (
+      <div className={`relative overflow-hidden rounded-[2rem] border transition-all duration-300 ${isMobile ? "w-full border-zinc-800/60 bg-zinc-950/20 p-4 sm:p-6" : "bg-zinc-900/60 backdrop-blur-xl border border-zinc-800/80 p-6 lg:p-8 shadow-2xl group"}`}>
+        {/* Ambient glow effect for desktop */}
+        {!isMobile && <div className="absolute -top-10 -right-10 w-40 h-40 bg-emerald-500/5 rounded-full blur-3xl group-hover:bg-emerald-500/10 transition-all duration-700 pointer-events-none"></div>}
+
+        <div className="relative z-10 space-y-6">
+          {/* Header */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-zinc-800/60 pb-4">
+            <div className="space-y-1">
+              <h3 className="text-xs font-black text-white uppercase tracking-widest flex items-center gap-2">
+                <Wallet size={16} className="text-emerald-500 animate-pulse" />
+                Metode Pembayaran (Admin)
+              </h3>
+              <p className="text-[10px] text-zinc-400 font-medium leading-relaxed">Silakan pilih salah satu metode pembayaran di bawah ini.</p>
+            </div>
+            <div className="self-start sm:self-center px-2.5 py-1 bg-emerald-500/10 border border-emerald-500/20 rounded-full shrink-0 flex items-center gap-1.5">
+              <span className="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-ping"></span>
+              <span className="text-[8px] font-black text-emerald-400 uppercase tracking-widest">Verifikasi Instan</span>
+            </div>
+          </div>
+
+          {/* Payment Method Selector */}
+          <div className="grid grid-cols-2 gap-3 p-1 bg-zinc-950 border border-zinc-850 rounded-2xl">
+            <button
+              type="button"
+              onClick={() => setPaymentMethod("qris")}
+              className={`py-3 px-4 rounded-xl text-xs font-black uppercase tracking-wider transition-all flex items-center justify-center gap-2 active:scale-95 ${
+                paymentMethod === "qris"
+                  ? "bg-emerald-500 text-zinc-950 shadow-lg shadow-emerald-500/10"
+                  : "bg-transparent text-zinc-500 hover:text-white"
+              }`}
+            >
+              <QrCode size={14} />
+              QRIS
+            </button>
+            <button
+              type="button"
+              onClick={() => setPaymentMethod("bca")}
+              className={`py-3 px-4 rounded-xl text-xs font-black uppercase tracking-wider transition-all flex items-center justify-center gap-2 active:scale-95 ${
+                paymentMethod === "bca"
+                  ? "bg-emerald-500 text-zinc-950 shadow-lg shadow-emerald-500/10"
+                  : "bg-transparent text-zinc-500 hover:text-white"
+              }`}
+            >
+              <CreditCard size={14} />
+              Transfer BCA
+            </button>
+          </div>
+
+          {paymentMethod === "qris" ? (
+            /* QRIS Content */
+            <div className="flex flex-col md:grid md:grid-cols-12 gap-6 items-center animate-in fade-in duration-300">
+              {/* Left/Middle: QR Container */}
+              <div className="md:col-span-5 w-full flex flex-col items-center gap-3">
+                <div className="relative w-full max-w-[200px] aspect-square overflow-hidden rounded-2xl bg-black border-2 border-zinc-800 p-2.5 group/qr shadow-lg shadow-black/40">
+                  {/* Scanner Target corners */}
+                  <div className="absolute top-2 left-2 w-3 h-3 border-t-2 border-l-2 border-emerald-500 rounded-tl-sm"></div>
+                  <div className="absolute top-2 right-2 w-3 h-3 border-t-2 border-r-2 border-emerald-500 rounded-tr-sm"></div>
+                  <div className="absolute bottom-2 left-2 w-3 h-3 border-b-2 border-l-2 border-emerald-500 rounded-bl-sm"></div>
+                  <div className="absolute bottom-2 right-2 w-3 h-3 border-b-2 border-r-2 border-emerald-500 rounded-br-sm"></div>
+
+                  <img src="/images/Pembayaran.jpeg" alt="QRIS Payment Details" className="w-full h-full object-contain rounded-lg transition-transform duration-500 group-hover/qr:scale-105" />
+                </div>
+
+                {/* Action Buttons */}
+                <div className="w-full max-w-[200px]">
+                  <button type="button" onClick={() => setPreviewImage("/images/Pembayaran.jpeg")} className="w-full py-1.5 px-2 bg-emerald-500 hover:bg-emerald-400 text-zinc-950 rounded-lg text-[9px] font-black uppercase tracking-wider flex items-center justify-center gap-1 active:scale-95 transition-all">
+                    <Eye size={10} /> Perbesar Kode QR
+                  </button>
+                </div>
+              </div>
+
+              {/* Right: Payment Instructions & Details */}
+              <div className="md:col-span-7 w-full space-y-4">
+                <div className="space-y-2">
+                  <p className="text-[9px] font-black text-zinc-500 uppercase tracking-widest">Petunjuk Pembayaran QRIS</p>
+                  <div className="space-y-2 text-xs">
+                    <div className="flex gap-2">
+                      <span className="flex items-center justify-center w-5 h-5 rounded-full bg-zinc-950 border border-zinc-800 text-[10px] text-zinc-400 font-bold shrink-0">1</span>
+                      <p className="text-zinc-400 text-[10px] leading-relaxed">Pindai kode QRIS dengan aplikasi pembayaran pilihan Anda.</p>
+                    </div>
+                    <div className="flex gap-2">
+                      <span className="flex items-center justify-center w-5 h-5 rounded-full bg-zinc-950 border border-zinc-800 text-[10px] text-zinc-400 font-bold shrink-0">2</span>
+                      <p className="text-zinc-400 text-[10px] leading-relaxed">
+                        Masukkan nominal transfer persis sesuai tagihan: <span className="text-emerald-400 font-black">{formatPrice(order.total_price)}</span>.
+                      </p>
+                    </div>
+                    <div className="flex gap-2">
+                      <span className="flex items-center justify-center w-5 h-5 rounded-full bg-zinc-950 border border-zinc-800 text-[10px] text-zinc-400 font-bold shrink-0">3</span>
+                      <p className="text-zinc-400 text-[10px] leading-relaxed">Simpan bukti pembayaran, lalu unggah di bawah.</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          ) : (
+            /* BCA Bank Transfer Content */
+            <div className="flex flex-col md:grid md:grid-cols-12 gap-6 items-center animate-in fade-in duration-300">
+              {/* Left/Middle: BCA Details Container */}
+              <div className="md:col-span-5 w-full flex flex-col items-center gap-3">
+                <div className="w-full max-w-[200px] bg-zinc-950 border-2 border-zinc-800 rounded-2xl p-6 text-center space-y-4 shadow-lg shadow-black/40 relative">
+                  <div className="inline-flex items-center justify-center px-4 py-1.5 bg-blue-500/10 border border-blue-500/20 rounded-xl text-blue-400 text-xs font-black tracking-wider uppercase">
+                    BCA
+                  </div>
+                  <div className="space-y-1">
+                    <p className="text-[9px] font-black text-zinc-500 uppercase tracking-widest">Nomor Rekening</p>
+                    <p className="text-sm font-black text-white tracking-widest font-mono">8480483953</p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => handleCopy("8480483953", "bca_account")}
+                    className="relative w-full py-2.5 bg-zinc-900 text-zinc-300 hover:text-white hover:bg-zinc-800 border border-zinc-800 rounded-xl text-[10px] font-black uppercase tracking-wider flex items-center justify-center gap-2 transition-all active:scale-95"
+                  >
+                    <Copy size={13} />
+                    <span>Salin Rekening</span>
+                    {copySuccess === "bca_account" && (
+                      <span className="absolute -top-10 left-1/2 -translate-x-1/2 bg-emerald-500 text-zinc-950 text-[9px] font-black px-2.5 py-1.5 rounded-lg border border-emerald-400 animate-in fade-in slide-in-from-bottom-2 whitespace-nowrap">
+                        No. Rekening Disalin!
+                      </span>
+                    )}
+                  </button>
+                </div>
+              </div>
+
+              {/* Right: Payment Instructions & Details */}
+              <div className="md:col-span-7 w-full space-y-4">
+                <div className="space-y-3">
+                  <div>
+                    <p className="text-[9px] font-black text-zinc-500 uppercase tracking-widest mb-0.5">Nama Pemilik Rekening</p>
+                    <p className="text-xs font-black text-white">Oky Hari Anfianto</p>
+                  </div>
+                  <div>
+                    <p className="text-[9px] font-black text-zinc-500 uppercase tracking-widest mb-0.5">Nominal Transfer</p>
+                    <p className="text-sm font-black text-emerald-400 font-mono">{formatPrice(order.total_price)}</p>
+                  </div>
+                </div>
+
+                <div className="space-y-2 pt-2 border-t border-zinc-800/60">
+                  <p className="text-[9px] font-black text-zinc-500 uppercase tracking-widest">Petunjuk Pembayaran Transfer</p>
+                  <div className="space-y-2 text-xs">
+                    <div className="flex gap-2">
+                      <span className="flex items-center justify-center w-5 h-5 rounded-full bg-zinc-950 border border-zinc-800 text-[10px] text-zinc-400 font-bold shrink-0">1</span>
+                      <p className="text-zinc-400 text-[10px] leading-relaxed">Lakukan transfer ke rekening BCA Oky Hari Anfianto di atas.</p>
+                    </div>
+                    <div className="flex gap-2">
+                      <span className="flex items-center justify-center w-5 h-5 rounded-full bg-zinc-950 border border-zinc-800 text-[10px] text-zinc-400 font-bold shrink-0">2</span>
+                      <p className="text-zinc-400 text-[10px] leading-relaxed">
+                        Pastikan nominal persis sesuai tagihan: <span className="text-emerald-400 font-black">{formatPrice(order.total_price)}</span>.
+                      </p>
+                    </div>
+                    <div className="flex gap-2">
+                      <span className="flex items-center justify-center w-5 h-5 rounded-full bg-zinc-950 border border-zinc-800 text-[10px] text-zinc-400 font-bold shrink-0">3</span>
+                      <p className="text-zinc-400 text-[10px] leading-relaxed">Simpan struk/bukti transfer Anda, lalu unggah di bawah.</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Warning / Note */}
+          <div className="p-3 bg-amber-500/5 border border-amber-500/10 rounded-xl flex items-start gap-2">
+            <Info size={12} className="text-amber-500 shrink-0 mt-0.5" />
+            <p className="text-[9px] text-amber-500/80 font-medium leading-relaxed italic">PENTING: Pastikan nominal transfer sesuai dengan total tagihan invoice agar proses verifikasi berjalan lancar.</p>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   if (loading) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[600px] gap-4 bg-black">
@@ -253,52 +425,7 @@ export default function PaymentPage({ params }) {
         {/* Left Column: Bank Info & Timeline (Desktop Left, Mobile Bottom) */}
         <div className="lg:col-span-7 flex flex-col gap-8 order-2 lg:order-1 w-full">
           {/* Admin Payment Methods Card */}
-          <div className="hidden lg:block bg-zinc-900/60 backdrop-blur-xl border border-zinc-800/80 rounded-[2rem] p-6 lg:p-8 relative overflow-hidden group shadow-2xl">
-            <div className="absolute -top-10 -right-10 w-40 h-40 bg-emerald-500/5 rounded-full blur-3xl group-hover:bg-emerald-500/10 transition-all duration-700"></div>
-
-            <div className="relative z-10 space-y-6">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-zinc-800/60 pb-4">
-                <div className="space-y-1">
-                  <h3 className="text-xs font-black text-white uppercase tracking-widest flex items-center gap-2">
-                    <Wallet size={16} className="text-emerald-500" /> Rekening Pembayaran (Admin)
-                  </h3>
-                  <p className="text-[9px] text-zinc-500 font-medium italic">Silahkan lakukan transfer ke rekening resmi berikut</p>
-                </div>
-                <div className="self-start sm:self-center px-3 py-1 bg-emerald-500/10 border border-emerald-500/20 rounded-full shrink-0">
-                  <span className="text-[8px] font-black text-emerald-500 uppercase tracking-widest">Verifikasi Manual</span>
-                </div>
-              </div>
-
-              <div className="flex justify-center md:justify-start">
-                {[{ bank: "BCA", acc: "8480483953", name: "Oky Hari Anfianto" }].map((method, idx) => (
-                  <div key={idx} className="relative overflow-hidden bg-gradient-to-br from-zinc-950 to-zinc-900/40 border border-zinc-800/60 p-5 rounded-2xl hover:border-emerald-500/20 transition-all group/item flex flex-col justify-between min-h-[140px] w-full max-w-sm">
-                    <div className="absolute top-0 right-0 w-24 h-24 bg-emerald-500/[0.02] rounded-full blur-2xl group-hover/item:bg-emerald-500/[0.04] transition-all"></div>
-
-                    <div className="flex justify-between items-start gap-4">
-                      <div className="space-y-1">
-                        <span className="text-[10px] font-black text-emerald-400 uppercase tracking-widest bg-emerald-500/10 border border-emerald-500/20 px-2.5 py-0.5 rounded-md">{method.bank}</span>
-                        <p className="text-[8px] text-zinc-500 font-bold uppercase tracking-wider pt-1.5">REKENING TRANSAKSI</p>
-                      </div>
-                      <button onClick={() => handleCopy(method.acc, method.bank)} className="shrink-0 p-2.5 bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 hover:border-zinc-700 rounded-xl text-zinc-400 hover:text-white transition-all active:scale-90 relative">
-                        {copySuccess === method.bank ? <CheckCircle2 size={14} className="text-emerald-400" /> : <Copy size={14} />}
-                        {copySuccess === method.bank && <span className="absolute -top-8 left-1/2 -translate-x-1/2 bg-emerald-500 text-zinc-950 text-[8px] font-black px-2 py-0.5 rounded animate-in fade-in slide-in-from-bottom-1 whitespace-nowrap">Disalin!</span>}
-                      </button>
-                    </div>
-
-                    <div className="mt-4 space-y-1">
-                      <p className="text-xl font-black text-white tracking-widest font-mono select-all">{method.acc}</p>
-                      <p className="text-[9px] text-zinc-400 font-bold uppercase tracking-wider">a/n {method.name}</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-
-              <div className="p-4 bg-amber-500/5 border border-amber-500/10 rounded-2xl flex items-start gap-3">
-                <Info size={14} className="text-amber-500 shrink-0 mt-0.5" />
-                <p className="text-[9px] text-amber-500/80 font-medium leading-relaxed italic">PENTING: Pastikan nominal transfer sesuai dengan total tagihan invoice agar proses verifikasi berjalan dengan lancar.</p>
-              </div>
-            </div>
-          </div>
+          <div className="hidden lg:block w-full">{renderPaymentCard(false)}</div>
 
           {/* Timeline / Riwayat Perjalanan */}
           <div>
@@ -384,34 +511,7 @@ export default function PaymentPage({ params }) {
               </div>
 
               {/* Bank Info block inside Invoice Card - visible only on mobile/tablet */}
-              <div className="block lg:hidden w-full space-y-4 pt-4 border-t border-zinc-800/60">
-                <div className="space-y-1">
-                  <p className="text-[10px] font-black text-zinc-500 uppercase tracking-[0.2em] italic">Rekening Pembayaran (Admin)</p>
-                </div>
-                <div className="flex justify-center">
-                  {[{ bank: "BCA", acc: "8480483953", name: "Oky Hari Anfianto" }].map((method, idx) => (
-                    <div key={idx} className="relative overflow-hidden bg-gradient-to-br from-zinc-950 to-zinc-900/40 border border-zinc-800/60 p-5 rounded-2xl flex flex-col justify-between min-h-[130px] w-full max-w-sm">
-                      <div className="absolute top-0 right-0 w-24 h-24 bg-emerald-500/[0.02] rounded-full blur-2xl"></div>
-
-                      <div className="flex justify-between items-start gap-4">
-                        <div className="space-y-1">
-                          <span className="text-[9px] font-black text-emerald-400 uppercase tracking-widest bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded">{method.bank}</span>
-                          <p className="text-[8px] text-zinc-500 font-bold uppercase tracking-wider pt-1">REKENING TRANSAKSI</p>
-                        </div>
-                        <button onClick={() => handleCopy(method.acc, method.bank)} className="shrink-0 p-2 bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 rounded-lg text-zinc-400 hover:text-white transition-all active:scale-90 relative">
-                          {copySuccess === method.bank ? <CheckCircle2 size={12} className="text-emerald-400" /> : <Copy size={12} />}
-                          {copySuccess === method.bank && <span className="absolute -top-7 left-1/2 -translate-x-1/2 bg-emerald-500 text-zinc-950 text-[8px] font-black px-1.5 py-0.5 rounded shadow-lg animate-in fade-in slide-in-from-bottom-1 whitespace-nowrap">Disalin!</span>}
-                        </button>
-                      </div>
-
-                      <div className="mt-3 space-y-0.5">
-                        <p className="text-lg font-black text-white tracking-widest font-mono select-all">{method.acc}</p>
-                        <p className="text-[9px] text-zinc-400 font-bold uppercase tracking-wider">a/n {method.name}</p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
+              <div className="block lg:hidden w-full pt-4 border-t border-zinc-800/60">{renderPaymentCard(true)}</div>
             </div>
           </div>
 
@@ -438,7 +538,7 @@ export default function PaymentPage({ params }) {
 
                         {/* Floating Action Bar */}
                         <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex items-center gap-2 bg-zinc-950/90 backdrop-blur-md px-3 py-1.5 rounded-full border border-white/10">
-                          <button type="button" onClick={() => setIsPreviewOpen(true)} className="px-3 py-1.5 bg-emerald-500 hover:bg-emerald-400 text-zinc-950 rounded-lg text-[9px] font-black uppercase tracking-wider flex items-center gap-1.5 active:scale-95 transition-all">
+                          <button type="button" onClick={() => setPreviewImage(paymentProof)} className="px-3 py-1.5 bg-emerald-500 hover:bg-emerald-400 text-zinc-950 rounded-lg text-[9px] font-black uppercase tracking-wider flex items-center gap-1.5 active:scale-95 transition-all">
                             <Eye size={12} /> Lihat
                           </button>
                           <button type="button" onClick={() => setPaymentProof("")} className="px-3 py-1.5 bg-red-500 hover:bg-red-400 text-white rounded-lg text-[9px] font-black uppercase tracking-wider flex items-center gap-1.5 active:scale-95 transition-all">
@@ -507,14 +607,14 @@ export default function PaymentPage({ params }) {
       </div>
 
       {/* LIGHTBOX PREVIEW MODAL */}
-      {isPreviewOpen && paymentProof && (
-        <div className="fixed inset-0 z-[150] flex items-center justify-center p-4 bg-zinc-950/90 backdrop-blur-xl animate-in fade-in duration-300">
-          <button type="button" onClick={() => setIsPreviewOpen(false)} className="absolute top-6 right-6 w-12 h-12 bg-zinc-900 hover:bg-zinc-800 text-zinc-400 hover:text-white rounded-full border border-zinc-800 flex items-center justify-center transition-all z-10">
+      {previewImage && (
+        <div className="fixed inset-0 z-[150] flex items-center justify-center p-4 bg-zinc-950/90 backdrop-blur-xl animate-in fade-in duration-300 animate-out fade-out duration-200">
+          <button type="button" onClick={() => setPreviewImage(null)} className="absolute top-6 right-6 w-12 h-12 bg-zinc-900 hover:bg-zinc-800 text-zinc-400 hover:text-white rounded-full border border-zinc-800 flex items-center justify-center transition-all z-10">
             <X size={24} />
           </button>
 
           <div className="relative max-w-4xl max-h-[85vh] w-full h-full flex items-center justify-center animate-in zoom-in duration-300">
-            <img src={paymentProof} alt="Bukti Transfer Review" className="max-w-full max-h-full object-contain rounded-2xl border border-zinc-800" />
+            <img src={previewImage} alt="Review Image" className="max-w-full max-h-full object-contain rounded-2xl border border-zinc-800 shadow-2xl" />
           </div>
         </div>
       )}

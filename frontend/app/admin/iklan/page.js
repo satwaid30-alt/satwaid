@@ -192,9 +192,13 @@ export default function ManageAds() {
                 : `${process.env.NEXT_PUBLIC_API_URL}/advertisements`;
             const method = editingAd ? "PUT" : "POST";
 
+            const token = localStorage.getItem("admin_token");
             const res = await fetch(url, {
                 method,
-                headers: { "Content-Type": "application/json"},
+                headers: { 
+                    "Content-Type": "application/json",
+                    Authorization: token ? `Bearer ${token}` : ""
+                },
                 body: JSON.stringify(formData)
             });
 
@@ -220,8 +224,13 @@ export default function ManageAds() {
     const handleDelete = async () => {
         const id = deleteConfirm.id;
         try {
+            const token = localStorage.getItem("admin_token");
             const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/advertisements/${id}`, {
-                method: "DELETE"});
+                method: "DELETE",
+                headers: {
+                    Authorization: token ? `Bearer ${token}` : ""
+                }
+            });
             if (res.ok) {
                 setDeleteConfirm({ show: false, id: null });
                 fetchAds();

@@ -17,6 +17,8 @@ var _chat_messages = require("../models/chat_messages");
 var _notifications = require("../models/notifications");
 var _bids = require("../models/bids");
 var _menu_controls = require("../models/menu_controls");
+var _shop_upgrades = require("../models/shop_upgrades");
+var _shop_upgrade_plans = require("../models/shop_upgrade_plans");
 
 
 function initModels(sequelize) {
@@ -37,6 +39,8 @@ function initModels(sequelize) {
   var notifications = _notifications(sequelize, DataTypes);
   var bids = _bids(sequelize, DataTypes);
   var menu_controls = _menu_controls(sequelize, DataTypes);
+  var shop_upgrades = _shop_upgrades(sequelize, DataTypes);
+  var shop_upgrade_plans = _shop_upgrade_plans(sequelize, DataTypes);
 
 
 
@@ -103,6 +107,9 @@ function initModels(sequelize) {
   bids.belongsTo(users, { as: "bidder", foreignKey: "user_id" });
   users.hasMany(bids, { as: "bids", foreignKey: "user_id" });
 
+  shop_upgrades.belongsTo(shops, { as: "shop", foreignKey: "shop_id" });
+  shops.hasMany(shop_upgrades, { as: "upgrades", foreignKey: "shop_id" });
+
 
   return {
 
@@ -122,7 +129,9 @@ function initModels(sequelize) {
     chat_messages,
     notifications,
     bids,
-    menu_controls
+    menu_controls,
+    shop_upgrades,
+    shop_upgrade_plans
   };
 }
 

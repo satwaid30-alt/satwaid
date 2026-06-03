@@ -19,6 +19,7 @@ const adminController = require('../controllers/Admin.controller');
 const chatController = require('../controllers/Chat.controller');
 const bidsController = require('../controllers/Bids.controller');
 const menuControlsController = require('../controllers/MenuControls.controller');
+const shopUpgradesController = require('../controllers/ShopUpgrades.controller');
 const { checkAuth, checkAuthAdmin } = require('@middlewares/Auth.middleware');
 
 
@@ -40,13 +41,27 @@ router.post('/shops', checkAuth, shopsController.createShop);
 router.put('/shops/:id', checkAuth, shopsController.updateShop);
 router.delete('/shops/:id', checkAuth, shopsController.deleteShop);
 
+// Shop Upgrade Routes
+router.get('/shop-upgrades', checkAuthAdmin, shopUpgradesController.getAllUpgradeRequests);
+router.get('/shop-upgrades/pending', checkAuth, shopUpgradesController.getPendingUpgradeRequest);
+router.post('/shop-upgrades', checkAuth, shopUpgradesController.createUpgradeRequest);
+router.put('/shop-upgrades/:id/status', checkAuthAdmin, shopUpgradesController.updateUpgradeStatus);
+router.delete('/shop-upgrades/pending', checkAuth, shopUpgradesController.cancelPendingUpgradeRequest);
+router.delete('/shop-upgrades/:id', checkAuthAdmin, shopUpgradesController.deleteUpgradeRequest);
+router.get('/shop-upgrades/plans', shopUpgradesController.getAllPlans);
+router.post('/shop-upgrades/plans', checkAuthAdmin, shopUpgradesController.createPlan);
+router.put('/shop-upgrades/plans/:id', checkAuthAdmin, shopUpgradesController.updatePlan);
+router.delete('/shop-upgrades/plans/:id', checkAuthAdmin, shopUpgradesController.deletePlan);
+
 // Listings Routes
 router.get('/listings', listingsController.getListings);
 router.get('/listings/shop/:shopId', listingsController.getListingsByShop);
+router.get('/listings/quota/:shopId', listingsController.getShopQuota);
 router.get('/listings/:id', listingsController.getListingById);
 router.post('/listings', checkAuth, listingsController.createListing);
 router.put('/listings/:id', checkAuth, listingsController.updateListing);
 router.delete('/listings/:id', checkAuth, listingsController.deleteListing);
+
 
 // Bidding Routes
 router.get('/listings/:listing_id/bids', bidsController.getBidsByListing);

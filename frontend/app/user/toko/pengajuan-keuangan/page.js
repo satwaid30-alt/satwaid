@@ -1,15 +1,32 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Search, Filter, Download, FileText, CheckCircle2, Clock, DollarSign, Calendar, ShoppingBag, Eye, Receipt, AlertCircle, Info, ChevronRight, ArrowUpRight } from "lucide-react";
+import { Search, Filter, Download, FileText, CheckCircle2, Clock, DollarSign, Calendar, ShoppingBag, Eye, Receipt, AlertCircle, Info, ChevronLeft, ChevronRight, ArrowUpRight } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { io } from "socket.io-client";
 import ActionModal from "@/components/ActionModal";
 import { getApiUrl, getSocketUrl } from "@/app/utils/api";
 
+const getPaginationRange = (currentPage, totalPages) => {
+  if (totalPages <= 5) {
+    return Array.from({ length: totalPages }, (_, i) => i + 1);
+  }
+
+  if (currentPage <= 3) {
+    return [1, 2, 3, "...", totalPages];
+  }
+
+  if (currentPage >= totalPages - 2) {
+    return [1, "...", totalPages - 2, totalPages - 1, totalPages];
+  }
+
+  return [1, "...", currentPage - 1, currentPage, currentPage + 1, "...", totalPages];
+};
+
 export default function RiwayatTransaksiSeller() {
   const [orders, setOrders] = useState([]);
+  const [shop, setShop] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
@@ -34,9 +51,9 @@ export default function RiwayatTransaksiSeller() {
       const token = localStorage.getItem("token");
       const res = await fetch(`${getApiUrl()}/orders/bulk-request-disbursement`, {
         method: "POST",
-        headers: { 
+        headers: {
           "Content-Type": "application/json",
-          "Authorization": token ? `Bearer ${token}` : ""
+          Authorization: token ? `Bearer ${token}` : "",
         },
         body: JSON.stringify({ order_ids: selectedOrders }),
       });
@@ -80,6 +97,7 @@ export default function RiwayatTransaksiSeller() {
       const shopData = await shopRes.json();
 
       if (shopRes.ok && shopData.data) {
+        setShop(shopData.data);
         const res = await fetch(`${getApiUrl()}/orders/shop/${shopData.data.id}`);
         const result = await res.json();
         if (res.ok) {
@@ -677,26 +695,27 @@ export default function RiwayatTransaksiSeller() {
           <p className="text-[10px] md:text-xs font-black text-zinc-500 uppercase tracking-widest">
             Menampilkan {indexOfFirstItem + 1} - {Math.min(indexOfLastItem, filteredOrders.length)} dari {filteredOrders.length} Transaksi
           </p>
-          <div className="flex items-center gap-2">
-            <button onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))} disabled={currentPage === 1} className="px-4 py-2 bg-zinc-950 border border-zinc-800 rounded-xl text-[10px] font-black uppercase tracking-widest text-zinc-400 hover:text-white disabled:opacity-30 disabled:cursor-not-allowed transition-all">
-              Sebelumnya
-            </button>
+          <div className="flex items-center">
+            <div className="inline-flex rounded-xl border border-zinc-800 bg-zinc-950 divide-x divide-zinc-800 overflow-hidden">
+              <button onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))} disabled={currentPage === 1} className="w-10 h-10 flex items-center justify-center text-zinc-400 hover:text-white hover:bg-zinc-900/50 disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-transparent transition-all">
+                <ChevronLeft size={16} />
+              </button>
 
-            <div className="flex items-center gap-1">
-              {[...Array(totalPages)].map((_, i) => (
-                <button key={i + 1} onClick={() => setCurrentPage(i + 1)} className={`w-10 h-10 rounded-xl text-[10px] font-black transition-all ${currentPage === i + 1 ? "bg-emerald-500 text-zinc-950" : "bg-zinc-950 border border-zinc-800 text-zinc-500 hover:text-white"}`}>
-                  {i + 1}
+              {getPaginationRange(currentPage, totalPages).map((page, idx) => (
+                <button
+                  key={idx}
+                  onClick={() => typeof page === "number" && setCurrentPage(page)}
+                  disabled={page === "..."}
+                  className={`w-10 h-10 flex items-center justify-center text-xs font-bold transition-all ${page === currentPage ? "bg-zinc-800 text-white font-black" : page === "..." ? "text-zinc-500 cursor-default bg-zinc-950" : "text-zinc-400 hover:text-white hover:bg-zinc-900/50 bg-zinc-950"}`}
+                >
+                  {page}
                 </button>
               ))}
-            </div>
 
-            <button
-              onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
-              disabled={currentPage === totalPages}
-              className="px-4 py-2 bg-zinc-950 border border-zinc-800 rounded-xl text-[10px] font-black uppercase tracking-widest text-zinc-400 hover:text-white disabled:opacity-30 disabled:cursor-not-allowed transition-all"
-            >
-              Selanjutnya
-            </button>
+              <button onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))} disabled={currentPage === totalPages} className="w-10 h-10 flex items-center justify-center text-zinc-400 hover:text-white hover:bg-zinc-900/50 disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-transparent transition-all">
+                <ChevronRight size={16} />
+              </button>
+            </div>
           </div>
         </div>
       )}
@@ -709,7 +728,16 @@ export default function RiwayatTransaksiSeller() {
           </div>
           <div className="space-y-2">
             <h4 className="text-sm font-black text-white uppercase tracking-wider">Kapan Dana Saya Cair?</h4>
-            <p className="text-xs text-zinc-500 leading-relaxed font-medium">Dana akan diproses oleh Admin segera setelah pembeli mengonfirmasi pesanan diterima atau saat transaksi dinyatakan selesai. Proses transfer biasanya memakan waktu 1-3 hari kerja.</p>
+            <p className="text-xs text-zinc-500 leading-relaxed font-medium">
+              Dana akan diproses oleh Admin segera setelah pembeli mengonfirmasi pesanan diterima atau saat transaksi dinyatakan selesai.{" "}
+              {shop && shop.membership_level === "Enterprise Seller" ? (
+                <span className="text-purple-400 font-semibold">Karena toko Anda telah diupgrade (Enterprise Seller), proses pencairan dana diprioritaskan selesai dalam 1 hari kerja.</span>
+              ) : shop && shop.membership_level === "Pro Seller" ? (
+                <span className="text-emerald-400 font-semibold">Karena toko Anda telah diupgrade (Pro Seller), proses pencairan dana diprioritaskan selesai dalam 1-2 hari kerja.</span>
+              ) : (
+                "Proses transfer biasanya memakan waktu 3-5 hari kerja."
+              )}
+            </p>
           </div>
         </div>
         <div className="p-8 bg-zinc-900 border border-zinc-800 rounded-[2.5rem] flex gap-6 items-start group hover:border-blue-500/30 transition-all">

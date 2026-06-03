@@ -33,7 +33,8 @@ const MENU_ITEMS = [
         icon: Store,
         subMenu: [
             { name: "Daftar Toko", href: "/admin/toko-user", icon: Store },
-            { name: "Detail Produk", href: "/admin/toko-user/detail-produk", icon: Package }
+            { name: "Detail Produk", href: "/admin/toko-user/detail-produk", icon: Package },
+            { name: "Upgrade Toko", href: "/admin/upgrade-toko", icon: Sliders }
         ]
     },
     { name: "Verifikasi Komunitas", href: "/admin/komunitas", icon: MessageSquare },

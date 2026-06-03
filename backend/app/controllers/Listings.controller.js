@@ -28,6 +28,26 @@ const ListingsController = {
                 stock
             } = req.body;
 
+            // Validate image sizes (Max 1MB per image)
+            if (images && Array.isArray(images)) {
+                const getBase64SizeInBytes = (base64Str) => {
+                    if (!base64Str || typeof base64Str !== 'string') return 0;
+                    if (!base64Str.startsWith('data:') || !base64Str.includes(';base64,')) {
+                        return 0; // Skip validation for normal URLs
+                    }
+                    const base64Data = base64Str.split(',')[1] || base64Str;
+                    const stringLength = base64Data.length - (base64Data.match(/=/g) || []).length;
+                    return stringLength * 0.75;
+                };
+
+                for (const img of images) {
+                    const size = getBase64SizeInBytes(img);
+                    if (size > 1 * 1024 * 1024) {
+                        return res.status(400).json({ message: "Ukuran foto produk tidak boleh melebihi 1MB" });
+                    }
+                }
+            }
+
             // Generate Slug
             const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '') + '-' + Math.random().toString(36).substring(2, 7);
 
@@ -45,6 +65,20 @@ const ListingsController = {
 
             if (userShop.status?.toLowerCase() === 'pending') {
                 return res.status(403).json({ message: "Toko Anda belum diverifikasi oleh admin. Silakan tunggu hingga toko diaktifkan untuk mulai berjualan." });
+            }
+
+            // === QUOTA CHECK: Max lifetime listings per shop ===
+            const LISTING_QUOTA_LIMIT = userShop.listing_limit || 500;
+            const usedQuota = await models.listings.count({
+                where: {
+                    shop_id: userShop.id
+                }
+            });
+            if (usedQuota >= LISTING_QUOTA_LIMIT) {
+                return res.status(403).json({
+                    message: `Kuota produk Anda telah penuh. Maksimal ${LISTING_QUOTA_LIMIT} listing per toko.`,
+                    quota: { used: usedQuota, limit: LISTING_QUOTA_LIMIT, remaining: 0 }
+                });
             }
 
             // Generate Unique Product ID (e.g. RH-A1B2C3)
@@ -84,6 +118,7 @@ const ListingsController = {
                     include: [{ model: models.shops, as: 'shop' }]
                 });
                 io.to('admin_room').emit('new_listing_admin', listingWithShop);
+                io.to(`user_${user_id}`).emit('new_listing_created', { id: newListing.id });
             }
 
             return res.status(201).json({
@@ -247,7 +282,7 @@ const ListingsController = {
             const { Op } = require('sequelize');
             const where = {
                 shop_id: shopId,
-                status: { [Op.notIn]: ['deleted', 'Deleted'] }
+                status: { [Op.notIn]: ['deleted', 'Deleted', 'history', 'History'] }
             };
 
             // If not requested 'all' (admin/owner view), only show active and in-stock
@@ -688,7 +723,27 @@ const ListingsController = {
                 shipping_type,
                 stock
             } = req.body;
- 
+
+            // Validate image sizes (Max 1MB per image)
+            if (images && Array.isArray(images)) {
+                const getBase64SizeInBytes = (base64Str) => {
+                    if (!base64Str || typeof base64Str !== 'string') return 0;
+                    if (!base64Str.startsWith('data:') || !base64Str.includes(';base64,')) {
+                        return 0; // Skip validation for normal URLs
+                    }
+                    const base64Data = base64Str.split(',')[1] || base64Str;
+                    const stringLength = base64Data.length - (base64Data.match(/=/g) || []).length;
+                    return stringLength * 0.75;
+                };
+
+                for (const img of images) {
+                    const size = getBase64SizeInBytes(img);
+                    if (size > 1 * 1024 * 1024) {
+                        return res.status(400).json({ message: "Ukuran foto produk tidak boleh melebihi 1MB" });
+                    }
+                }
+            }
+
              const listing = await models.listings.findByPk(id, {
                  include: [{ model: models.shops, as: 'shop' }]
              });
@@ -828,8 +883,8 @@ const ListingsController = {
 
             if (orderCount > 0) {
                 // If there are orders, we cannot hard delete due to foreign key constraint
-                // So we do a "Soft Delete" by changing the status
-                await listing.update({ status: 'deleted' });
+                // So we do a "Soft Delete" by changing the status to history
+                await listing.update({ status: 'history' });
 
                 const io = req.app.get('socketio');
                 if (io) {
@@ -838,7 +893,7 @@ const ListingsController = {
                     io.emit('listing_deleted', { id });
                 }
 
-                return res.status(200).json({ message: "Iklan berhasil diarsipkan (soft delete) karena memiliki data transaksi" });
+                return res.status(200).json({ message: "Iklan berhasil diarsipkan sebagai history karena memiliki data transaksi" });
             }
 
             // For auction listings, delete associated bids first to avoid FK constraint error
@@ -854,8 +909,8 @@ const ListingsController = {
                 await models.chats.destroy({ where: { listing_id: id } });
             }
 
-            // If no orders, we can safely delete
-            await listing.destroy();
+            // Instead of hard-deleting, we now ALWAYS soft-delete to 'deleted' status to preserve quota history
+            await listing.update({ status: 'deleted' });
 
             const io = req.app.get('socketio');
             if (io) {
@@ -864,9 +919,47 @@ const ListingsController = {
                 io.emit('listing_deleted', { id });
             }
 
-            return res.status(200).json({ message: "Iklan berhasil dihapus secara permanen" });
+            return res.status(200).json({ message: "Iklan berhasil dihapus" });
         } catch (err) {
             console.error("Error deleting listing:", err);
+            return res.status(500).json({ message: err.message });
+        }
+    },
+
+    // === QUOTA: Get shop listing quota ===
+    getShopQuota: async (req, res) => {
+        try {
+            const { shopId } = req.params;
+            const { Op } = require('sequelize');
+            const shop = await models.shops.findByPk(shopId);
+            const limit = shop ? (shop.listing_limit || 500) : 500;
+
+            const used = await models.listings.count({
+                where: {
+                    shop_id: shopId
+                }
+            });
+
+            // Breakdown by status for detail info
+            const activeCount = await models.listings.count({
+                where: {
+                    shop_id: shopId,
+                    status: { [Op.in]: ['active', 'pending'] }
+                }
+            });
+
+            return res.status(200).json({
+                message: "Quota data retrieved",
+                data: {
+                    used,
+                    limit,
+                    remaining: Math.max(0, limit - used),
+                    active: activeCount,
+                    percentage: Math.min(100, Math.round((used / limit) * 100))
+                }
+            });
+        } catch (err) {
+            console.error("Error getting shop quota:", err);
             return res.status(500).json({ message: err.message });
         }
     }

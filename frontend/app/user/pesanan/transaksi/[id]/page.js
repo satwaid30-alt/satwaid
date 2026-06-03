@@ -4,385 +4,429 @@ import { useState, useEffect, use } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { io } from "socket.io-client";
-import { getApiUrl, getSocketUrl } from "@/app/utils/api";
-import {
-    Package,
-    MapPin,
-    Truck,
-    CreditCard,
-    CheckCircle2,
-    Clock,
-    ChevronLeft,
-    AlertCircle,
-    Info,
-    Calendar,
-    ShoppingBag,
-    XCircle,
-    ChevronRight,
-    ShieldAlert
-} from "lucide-react";
+import { getApiUrl, getSocketUrl, getLogoUrl } from "@/app/utils/api";
+import { Package, MapPin, Truck, CreditCard, CheckCircle2, Clock, ChevronLeft, AlertCircle, Info, Calendar, ShoppingBag, XCircle, ChevronRight, ShieldAlert, Store, MessageCircle } from "lucide-react";
 import OrderStepper from "@/components/OrderStepper";
 import OrderTimeline from "@/components/OrderTimeline";
 import ShippingInfo from "@/components/ShippingInfo";
 
 export default function TransactionProcessPage({ params }) {
-    const { id } = use(params);
-    const router = useRouter();
+  const { id } = use(params);
+  const router = useRouter();
 
-    const [order, setOrder] = useState(null);
-    const [loading, setLoading] = useState(true);
-    const [showShippingModal, setShowShippingModal] = useState(false);
-    const [isUpdatingShipping, setIsUpdatingShipping] = useState(false);
-    const [shippingForm, setShippingForm] = useState({
-        receiver_name: "",
-        phone_number: "",
-        shipping_address: "",
-        bank_name: "",
-        bank_account: "",
-        bank_holder: ""
-    });
-    const [isProfileComplete, setIsProfileComplete] = useState(true);
-    const [showProfileWarning, setShowProfileWarning] = useState(false);
+  const [order, setOrder] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [showShippingModal, setShowShippingModal] = useState(false);
+  const [isUpdatingShipping, setIsUpdatingShipping] = useState(false);
+  const [shippingForm, setShippingForm] = useState({
+    receiver_name: "",
+    phone_number: "",
+    shipping_address: "",
+    bank_name: "",
+    bank_account: "",
+    bank_holder: "",
+  });
+  const [isProfileComplete, setIsProfileComplete] = useState(true);
+  const [showProfileWarning, setShowProfileWarning] = useState(false);
 
-    // Cancel Confirmation Modal State
-    const [showCancelModal, setShowCancelModal] = useState(false);
-    // Success Modal State
-    const [showSuccessModal, setShowSuccessModal] = useState(false);
-    const [isCancelling, setIsCancelling] = useState(false);
+  // Cancel Confirmation Modal State
+  const [showCancelModal, setShowCancelModal] = useState(false);
+  // Success Modal State
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [isCancelling, setIsCancelling] = useState(false);
 
-    useEffect(() => {
-        fetchOrderDetail();
+  useEffect(() => {
+    fetchOrderDetail();
 
-        // Setup Socket.io for Real-time Updates
-        const userStr = localStorage.getItem("user");
-        let socket;
-        if (userStr) {
-            try {
-                const userData = JSON.parse(userStr);
-                const token = typeof window !== 'undefined' ? localStorage.getItem("token") : null;
-                socket = io(getSocketUrl(), {
-                    auth: {
-                        token: token ? `Bearer ${token}` : null
-                    }
-                });
+    // Setup Socket.io for Real-time Updates
+    const userStr = localStorage.getItem("user");
+    let socket;
+    if (userStr) {
+      try {
+        const userData = JSON.parse(userStr);
+        const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
+        socket = io(getSocketUrl(), {
+          auth: {
+            token: token ? `Bearer ${token}` : null,
+          },
+        });
 
-                socket.on("connect", () => {
-                    console.log("[Socket] Connected successfully with ID:", socket.id);
-                    socket.emit("join_user", userData.id);
-                    socket.emit("join_order", id);
-                });
+        socket.on("connect", () => {
+          console.log("[Socket] Connected successfully with ID:", socket.id);
+          socket.emit("join_user", userData.id);
+          socket.emit("join_order", id);
+        });
 
-                socket.on("connect_error", (err) => {
-                    console.error("[Socket] Connection error:", err.message);
-                });
+        socket.on("connect_error", (err) => {
+          console.error("[Socket] Connection error:", err.message);
+        });
 
-                socket.on("new_notification", (notif) => {
-                    console.log("[Socket] Received new_notification:", notif);
-                    fetchOrderDetail(); // Auto-refresh when status changes
-                });
+        socket.on("new_notification", (notif) => {
+          console.log("[Socket] Received new_notification:", notif);
+          fetchOrderDetail(); // Auto-refresh when status changes
+        });
 
-                socket.on("order_updated", (update) => {
-                    console.log("[Socket] Received order_updated:", update);
-                    fetchOrderDetail(); // Auto-refresh when transaction changes
-                });
-            } catch (e) {
-                console.error("Socket connection error", e);
-            }
-        }
-
-        return () => {
-            if (socket) socket.disconnect();
-        };
-    }, [id]);
-
-    const fetchOrderDetail = async () => {
-        try {
-            const res = await fetch(`${getApiUrl()}/orders/${id}`);
-            const result = await res.json();
-            if (res.ok && result.data) {
-                const orderData = result.data;
-                setOrder(orderData);
-
-                // Pre-fill from order if exists, otherwise fetch from user profile
-                if (orderData.receiver_name && orderData.phone_number && orderData.shipping_address) {
-                    setShippingForm(prev => ({
-                        ...prev,
-                        receiver_name: orderData.receiver_name,
-                        phone_number: orderData.phone_number,
-                        shipping_address: orderData.shipping_address,
-                        bank_name: orderData.bank_name || prev.bank_name,
-                        bank_account: orderData.bank_account || prev.bank_account,
-                        bank_holder: orderData.bank_holder || prev.bank_holder
-                    }));
-                }
-
-                // Always fetch user profile to get latest bank info if not in order
-                const userStr = localStorage.getItem("user");
-                if (userStr && (!orderData.bank_account)) {
-                    const user = JSON.parse(userStr);
-                    const userRes = await fetch(`${getApiUrl()}/users/${user.id}`);
-                    const userResult = await userRes.json();
-                    if (userRes.ok && userResult.data) {
-                        const userData = userResult.data;
-                        const mainBank = userData.bank_accounts?.[0] || {};
-
-                        // Check if profile is complete
-                        const isComplete = !!(userData.address && userData.phone && userData.city && userData.province);
-                        setIsProfileComplete(isComplete);
-
-                        setShippingForm(prev => ({
-                            ...prev,
-                            receiver_name: "", // Wajib kosongkan sesuai request
-                            phone_number: prev.phone_number || userData.phone || "",
-                            shipping_address: prev.shipping_address || userData.address || "",
-                            bank_name: mainBank.bankName || "",
-                            bank_account: mainBank.accountNumber || "",
-                            bank_holder: mainBank.accountName || ""
-                        }));
-                    }
-                }
-            } else {
-                alert("Gagal memuat detail transaksi");
-                router.push("/user/pesanan");
-            }
-        } catch (err) {
-            console.error("Error fetching detail:", err);
-            alert("Terjadi kesalahan koneksi");
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    const handleCancelOrder = () => {
-        setShowCancelModal(true);
-    };
-
-    const confirmCancelOrder = async () => {
-        const userStr = localStorage.getItem("user");
-        if (!userStr) return;
-        const user = JSON.parse(userStr);
-
-        setIsCancelling(true);
-        try {
-            const token = localStorage.getItem("token");
-            const response = await fetch(`${getApiUrl()}/orders/${id}/cancel`, {
-                method: 'PUT',
-                headers: { 
-                    'Content-Type': 'application/json',
-                    'Authorization': token ? `Bearer ${token}` : ""
-                },
-                body: JSON.stringify({
-                    user_id: user.id,
-                    cancellation_reason: 'Dibatalkan oleh pembeli'
-                })
-            });
-            if (response.ok) {
-                setShowCancelModal(false);
-                router.push("/user/pesanan");
-            } else {
-                const err = await response.json();
-                alert(err.message || "Gagal membatalkan transaksi");
-            }
-        } catch (err) {
-            console.error(err);
-            alert("Terjadi kesalahan koneksi");
-        } finally {
-            setIsCancelling(false);
-        }
-    };
-
-    const handleShippingSubmit = async (e) => {
-        e.preventDefault();
-        setIsUpdatingShipping(true);
-        try {
-            const token = localStorage.getItem("token");
-            const response = await fetch(`${getApiUrl()}/orders/${id}/shipping-info`, {
-                method: 'PUT',
-                headers: { 
-                    'Content-Type': 'application/json',
-                    'Authorization': token ? `Bearer ${token}` : ""
-                },
-                body: JSON.stringify({
-                    receiver_name: shippingForm.receiver_name,
-                    phone_number: shippingForm.phone_number,
-                    shipping_address: shippingForm.shipping_address,
-                    bank_name: shippingForm.bank_name,
-                    bank_account: shippingForm.bank_account,
-                    bank_holder: shippingForm.bank_holder
-                })
-            });
-            if (response.ok) {
-                setShowShippingModal(false);
-                setShowSuccessModal(true);
-                fetchOrderDetail();
-            } else {
-                alert("Gagal menyimpan data pengiriman");
-            }
-        } catch (err) {
-            console.error(err);
-            alert("Terjadi kesalahan koneksi");
-        } finally {
-            setIsUpdatingShipping(false);
-        }
-    };
-
-    const formatPrice = (price) => {
-        return new Intl.NumberFormat("id-ID", {
-            style: "currency",
-            currency: "IDR",
-            minimumFractionDigits: 0
-        }).format(price || 0);
-    };
-
-    if (loading) {
-        return (
-            <div className="flex flex-col items-center justify-center min-h-[600px] gap-4">
-                <div className="w-12 h-12 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin"></div>
-                <p className="text-zinc-500 font-bold animate-pulse">Memuat proses transaksi...</p>
-            </div>
-        );
+        socket.on("order_updated", (update) => {
+          console.log("[Socket] Received order_updated:", update);
+          fetchOrderDetail(); // Auto-refresh when transaction changes
+        });
+      } catch (e) {
+        console.error("Socket connection error", e);
+      }
     }
 
-    if (!order) return null;
+    return () => {
+      if (socket) socket.disconnect();
+    };
+  }, [id]);
 
+  const fetchOrderDetail = async () => {
+    try {
+      const res = await fetch(`${getApiUrl()}/orders/${id}`);
+      const result = await res.json();
+      if (res.ok && result.data) {
+        const orderData = result.data;
+        setOrder(orderData);
+
+        // Pre-fill from order if exists, otherwise fetch from user profile
+        if (orderData.receiver_name && orderData.phone_number && orderData.shipping_address) {
+          setShippingForm((prev) => ({
+            ...prev,
+            receiver_name: orderData.receiver_name,
+            phone_number: orderData.phone_number,
+            shipping_address: orderData.shipping_address,
+            bank_name: orderData.bank_name || prev.bank_name,
+            bank_account: orderData.bank_account || prev.bank_account,
+            bank_holder: orderData.bank_holder || prev.bank_holder,
+          }));
+        }
+
+        // Always fetch user profile to get latest bank info if not in order
+        const userStr = localStorage.getItem("user");
+        if (userStr && !orderData.bank_account) {
+          const user = JSON.parse(userStr);
+          const userRes = await fetch(`${getApiUrl()}/users/${user.id}`);
+          const userResult = await userRes.json();
+          if (userRes.ok && userResult.data) {
+            const userData = userResult.data;
+            const mainBank = userData.bank_accounts?.[0] || {};
+
+            // Check if profile is complete
+            const isComplete = !!(userData.address && userData.phone && userData.city && userData.province);
+            setIsProfileComplete(isComplete);
+
+            setShippingForm((prev) => ({
+              ...prev,
+              receiver_name: "", // Wajib kosongkan sesuai request
+              phone_number: prev.phone_number || userData.phone || "",
+              shipping_address: prev.shipping_address || userData.address || "",
+              bank_name: mainBank.bankName || "",
+              bank_account: mainBank.accountNumber || "",
+              bank_holder: mainBank.accountName || "",
+            }));
+          }
+        }
+      } else {
+        alert("Gagal memuat detail transaksi");
+        router.push("/user/pesanan");
+      }
+    } catch (err) {
+      console.error("Error fetching detail:", err);
+      alert("Terjadi kesalahan koneksi");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleCancelOrder = () => {
+    setShowCancelModal(true);
+  };
+
+  const confirmCancelOrder = async () => {
+    const userStr = localStorage.getItem("user");
+    if (!userStr) return;
+    const user = JSON.parse(userStr);
+
+    setIsCancelling(true);
+    try {
+      const token = localStorage.getItem("token");
+      const response = await fetch(`${getApiUrl()}/orders/${id}/cancel`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: token ? `Bearer ${token}` : "",
+        },
+        body: JSON.stringify({
+          user_id: user.id,
+          cancellation_reason: "Dibatalkan oleh pembeli",
+        }),
+      });
+      if (response.ok) {
+        setShowCancelModal(false);
+        router.push("/user/pesanan");
+      } else {
+        const err = await response.json();
+        alert(err.message || "Gagal membatalkan transaksi");
+      }
+    } catch (err) {
+      console.error(err);
+      alert("Terjadi kesalahan koneksi");
+    } finally {
+      setIsCancelling(false);
+    }
+  };
+
+  const handleShippingSubmit = async (e) => {
+    e.preventDefault();
+    setIsUpdatingShipping(true);
+    try {
+      const token = localStorage.getItem("token");
+      const response = await fetch(`${getApiUrl()}/orders/${id}/shipping-info`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: token ? `Bearer ${token}` : "",
+        },
+        body: JSON.stringify({
+          receiver_name: shippingForm.receiver_name,
+          phone_number: shippingForm.phone_number,
+          shipping_address: shippingForm.shipping_address,
+          bank_name: shippingForm.bank_name,
+          bank_account: shippingForm.bank_account,
+          bank_holder: shippingForm.bank_holder,
+        }),
+      });
+      if (response.ok) {
+        setShowShippingModal(false);
+        setShowSuccessModal(true);
+        fetchOrderDetail();
+      } else {
+        alert("Gagal menyimpan data pengiriman");
+      }
+    } catch (err) {
+      console.error(err);
+      alert("Terjadi kesalahan koneksi");
+    } finally {
+      setIsUpdatingShipping(false);
+    }
+  };
+
+  const formatPrice = (price) => {
+    return new Intl.NumberFormat("id-ID", {
+      style: "currency",
+      currency: "IDR",
+      minimumFractionDigits: 0,
+    }).format(price || 0);
+  };
+
+  const getWhatsAppLink = () => {
+    if (!order?.shop?.whatsapp) return "";
+    let number = order.shop.whatsapp.replace(/\D/g, "");
+    if (number.startsWith("0")) {
+      number = "62" + number.slice(1);
+    }
+    const message = encodeURIComponent(`Halo ${order.shop.name || ""}, saya ingin bertanya mengenai pesanan saya dengan Invoice: ${order.order_id || ""}`);
+    return `https://wa.me/${number}?text=${message}`;
+  };
+
+  if (loading) {
     return (
-        <div className="max-w-7xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700 pb-20">
-            {/* Header Navigation */}
-            <div className="flex items-center justify-between">
-                <Link
-                    href="/user/pesanan"
-                    className="flex items-center gap-2 text-zinc-400 hover:text-white transition-colors group"
-                >
-                    <div className="w-8 h-8 rounded-lg bg-zinc-900 border border-zinc-800 flex items-center justify-center group-hover:bg-zinc-800 transition-all">
-                        <ChevronLeft size={18} />
-                    </div>
-                    <span className="text-sm font-bold">Kembali</span>
-                </Link>
+      <div className="flex flex-col items-center justify-center min-h-[600px] gap-4">
+        <div className="w-12 h-12 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin"></div>
+        <p className="text-zinc-500 font-bold animate-pulse">Memuat proses transaksi...</p>
+      </div>
+    );
+  }
+
+  if (!order) return null;
+
+  return (
+    <div className="max-w-7xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700 pb-20">
+      {/* Header Navigation */}
+      <div className="flex items-center justify-between">
+        <Link href="/user/pesanan" className="flex items-center gap-2 text-zinc-400 hover:text-white transition-colors group">
+          <div className="w-8 h-8 rounded-lg bg-zinc-900 border border-zinc-800 flex items-center justify-center group-hover:bg-zinc-800 transition-all">
+            <ChevronLeft size={18} />
+          </div>
+          <span className="text-sm font-bold">Kembali</span>
+        </Link>
+      </div>
+
+      {/* Stepper Section */}
+      <OrderStepper order={order} />
+
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 lg:gap-8 items-start">
+        {/* Main Action Area */}
+        <div className="lg:col-span-8 space-y-4 lg:space-y-8">
+          {/* Timeline for Mobile - Top */}
+          <div className="block lg:hidden">
+            <OrderTimeline order={order} formatPrice={formatPrice} />
+          </div>
+          {/* Dynamic Action Card based on Status */}
+          <div className="bg-zinc-900 border border-zinc-800 rounded-[3rem] p-10 relative overflow-hidden">
+            <div className="flex flex-col md:flex-row items-center gap-8">
+              <div className="w-24 h-24 bg-emerald-500/10 text-emerald-500 rounded-[2rem] flex items-center justify-center shrink-0 border border-emerald-500/20">
+                {["completed", "disbursement_requested", "disbursed"].includes(order.status) ? <CheckCircle2 size={48} /> : order.status === "complained" ? <ShieldAlert size={48} className="text-red-500" /> : <Info size={48} />}
+              </div>
+              <div className="flex-1 text-center md:text-left space-y-2">
+                <h2 className="text-2xl font-black text-white uppercase tracking-tight">
+                  {order.status === "pending_shipping_info"
+                    ? "Lengkapi Data Pengiriman"
+                    : order.status === "waiting_shipping_cost"
+                      ? "Menunggu Input Ongkir"
+                      : order.status === "waiting_payment"
+                        ? "Selesaikan Pembayaran"
+                        : order.status === "processing"
+                          ? "Menunggu Verifikasi"
+                          : ["waiting_shipment", "payment_verified"].includes(order.status)
+                            ? "Pesanan Sedang Diproses"
+                            : order.status === "shipped"
+                              ? "Pesanan Sedang Dikirim"
+                              : order.status === "complained"
+                                ? "Pesanan Dikomplain"
+                                : ["completed", "disbursement_requested", "disbursed"].includes(order.status)
+                                  ? "Transaksi Selesai"
+                                  : "Status Unknown"}
+                </h2>
+                <p className="text-zinc-400 font-medium leading-relaxed max-w-xl text-[14px] ">
+                  {order.status === "pending_shipping_info"
+                    ? "Silakan masukkan detail penerima dan alamat lengkap agar penjual bisa menentukan biaya pengiriman."
+                    : order.status === "waiting_shipping_cost"
+                      ? "Penjual sedang menghitung biaya pengiriman dan packing. Anda akan menerima notifikasi jika invoice sudah siap."
+                      : order.status === "waiting_payment"
+                        ? "Biaya pengiriman sudah ditentukan. Silakan lakukan pembayaran agar pesanan bisa segera diproses."
+                        : order.status === "processing"
+                          ? "Pembayaran Anda telah diterima. Admin sedang memverifikasi data transaksi Anda."
+                          : ["waiting_shipment", "payment_verified"].includes(order.status)
+                            ? "Pembayaran terverifikasi! Penjual sedang menyiapkan paket Anda untuk segera dikirim."
+                            : order.status === "shipped"
+                              ? "Pesanan Anda sedang dalam proses pengiriman dan dapat dipantau melalui nomor resi yang tersedia."
+                              : order.status === "complained"
+                                ? "Anda telah mengajukan komplain untuk pesanan ini. Mohon tunggu tanggapan dari penjual atau bantuan admin."
+                                : ["completed", "disbursement_requested", "disbursed"].includes(order.status)
+                                  ? "Terima kasih telah berbelanja! Pesanan Anda telah sampai dan transaksi dinyatakan selesai."
+                                  : ""}
+                </p>
+              </div>
+              <div className="shrink-0 w-full md:w-auto flex flex-col gap-3">
+                {order.status === "pending_shipping_info" && (
+                  <button
+                    onClick={() => {
+                      if (!isProfileComplete) {
+                        setShowProfileWarning(true);
+                      } else {
+                        setShowShippingModal(true);
+                      }
+                    }}
+                    className="w-full md:w-auto px-10 py-5 bg-emerald-500 hover:bg-emerald-400 text-zinc-950 font-black rounded-2xl transition-all active:scale-95 flex items-center justify-center gap-3"
+                  >
+                    Lengkapi Sekarang <MapPin size={20} />
+                  </button>
+                )}
+                {order.status === "waiting_payment" && (
+                  <Link href={`/user/pesanan/bayar/${id}`} className="w-full md:w-auto px-10 py-5 bg-emerald-500 hover:bg-emerald-400 text-zinc-950 font-black rounded-2xl transition-all active:scale-95 flex items-center justify-center gap-3">
+                    Bayar Sekarang <CreditCard size={20} />
+                  </Link>
+                )}
+                {order.status === "shipped" && (
+                  <Link href={`/user/pesanan/transaksi-selesai/${id}`} replace className="w-full md:w-auto px-10 py-5 bg-blue-500 hover:bg-blue-400 text-zinc-950 font-black rounded-2xl transition-all active:scale-95 flex items-center justify-center gap-3">
+                    Pesanan Diterima <CheckCircle2 size={20} />
+                  </Link>
+                )}
+                {order.product?.type === "sell" && ["pending_shipping_info", "waiting_shipping_cost", "waiting_payment"].includes(order.status) && (
+                  <button onClick={handleCancelOrder} className="w-full md:w-auto px-10 py-4 bg-red-500/10 hover:bg-red-500 text-red-500 hover:text-white font-black rounded-2xl transition-all border border-red-500/20 flex items-center justify-center gap-3 active:scale-95">
+                    Batalkan Transaksi <XCircle size={18} />
+                  </button>
+                )}
+              </div>
             </div>
+          </div>
 
-            {/* Stepper Section */}
-            <OrderStepper order={order} />
+          {/* Shipping Info Component (For Shipped/Completed Status) */}
+          <ShippingInfo order={order} />
 
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-                {/* Main Action Area */}
-                <div className="lg:col-span-8 space-y-8">
-                    {/* Timeline for Mobile - Top */}
-                    <div className="block lg:hidden">
-                        <OrderTimeline order={order} formatPrice={formatPrice} />
+          {/* Timeline / Riwayat Perjalanan - Bottom for Desktop */}
+          <OrderTimeline order={order} formatPrice={formatPrice} className="hidden lg:block" />
+        </div>
+
+        {/* Sidebar Summary */}
+        <div className="lg:col-span-4 space-y-4 lg:space-y-8 mt-[-8px] lg:mt-0">
+          {/* Kontak Penjual */}
+          <div className="bg-zinc-900 border border-zinc-800 rounded-[3rem] p-8 space-y-6">
+            <h3 className="text-[10px] font-black text-zinc-100 uppercase tracking-widest flex items-center gap-2">
+              <Store size={14} className="text-blue-500" /> Kontak Penjual
+            </h3>
+            <div className="p-5 bg-zinc-950/50 rounded-3xl border border-zinc-800/50 space-y-4">
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 bg-zinc-900 rounded-xl flex items-center justify-center text-emerald-500 shrink-0 border border-zinc-800 overflow-hidden">
+                  {order.shop?.logo_url ? (
+                    <img src={getLogoUrl(order.shop.logo_url)} className="w-full h-full object-cover" alt={order.shop?.name} />
+                  ) : (
+                    <Store size={24} />
+                  )}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-0.5">Nama Toko</p>
+                  <p className="text-sm font-black text-white truncate">{order.shop?.name || "Nama Toko"}</p>
+                </div>
+              </div>
+
+              {order.shop?.whatsapp ? (
+                <div className="space-y-3 pt-3 border-t border-zinc-800/50">
+                  <div className="flex items-center gap-2 text-zinc-400">
+                    <div className="w-6 h-6 rounded-lg bg-zinc-900 flex items-center justify-center border border-zinc-800">
+                      <svg className="w-3.5 h-3.5 fill-current text-emerald-500" viewBox="0 0 24 24">
+                        <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946C.06 5.348 5.397.01 12.008.01c3.202.001 6.212 1.246 8.477 3.514 2.266 2.268 3.507 5.28 3.505 8.484-.004 6.657-5.34 11.997-11.953 11.997-2.005-.001-3.973-.502-5.73-1.458L0 24zm6.59-4.846c1.6.95 3.188 1.449 4.825 1.451 5.436 0 9.86-4.37 9.864-9.799.002-2.63-1.023-5.101-2.885-6.967C16.68 1.973 14.198 1.94 11.99 1.94c-5.439 0-9.865 4.372-9.87 9.802 0 1.76.476 3.479 1.382 5.02L2.451 21.6l4.196-1.446zm11.393-5.263c-.293-.146-1.73-.853-1.998-.951-.267-.099-.462-.146-.657.146-.195.293-.756.951-.926 1.146-.17.195-.341.219-.634.073-.293-.146-1.238-.456-2.359-1.454-.872-.777-1.46-1.738-1.631-2.03-.17-.293-.018-.452.129-.597.132-.13.293-.341.439-.512.146-.17.195-.293.293-.488.097-.195.048-.366-.024-.512-.072-.146-.657-1.583-.9-2.17-.236-.57-.478-.492-.657-.502-.17-.008-.366-.01-.561-.01-.195 0-.512.073-.78.366-.268.293-1.024 1.001-1.024 2.441 0 1.439 1.048 2.83 1.195 3.025.147.195 2.062 3.149 4.996 4.417.697.302 1.24.482 1.66.617.7.223 1.338.192 1.843.117.563-.083 1.73-.707 1.976-1.39.244-.683.244-1.268.17-1.39-.074-.121-.268-.194-.561-.34z" />
+                      </svg>
                     </div>
-                    {/* Dynamic Action Card based on Status */}
-                    <div className="bg-zinc-900 border border-zinc-800 rounded-[3rem] p-10 relative overflow-hidden">
-                        <div className="flex flex-col md:flex-row items-center gap-8">
-                            <div className="w-24 h-24 bg-emerald-500/10 text-emerald-500 rounded-[2rem] flex items-center justify-center shrink-0 border border-emerald-500/20">
-                                {['completed', 'disbursement_requested', 'disbursed'].includes(order.status) ? <CheckCircle2 size={48} /> :
-                                    order.status === 'complained' ? <ShieldAlert size={48} className="text-red-500" /> :
-                                        <Info size={48} />}
-                            </div>
-                            <div className="flex-1 text-center md:text-left space-y-2">
-                                <h2 className="text-2xl font-black text-white uppercase tracking-tight">
-                                    {order.status === 'pending_shipping_info' ? "Lengkapi Data Pengiriman" :
-                                        order.status === 'waiting_shipping_cost' ? "Menunggu Input Ongkir" :
-                                            order.status === 'waiting_payment' ? "Selesaikan Pembayaran" :
-                                                order.status === 'processing' ? "Menunggu Verifikasi" :
-                                                    ['waiting_shipment', 'payment_verified'].includes(order.status) ? "Pesanan Sedang Diproses" :
-                                                        order.status === 'shipped' ? "Pesanan Sedang Dikirim" :
-                                                            order.status === 'complained' ? "Pesanan Dikomplain" :
-                                                                ['completed', 'disbursement_requested', 'disbursed'].includes(order.status) ? "Transaksi Selesai" : "Status Unknown"}
-                                </h2>
-                                <p className="text-zinc-400 font-medium leading-relaxed max-w-xl text-[14px] ">
-                                    {order.status === 'pending_shipping_info' ? "Silakan masukkan detail penerima dan alamat lengkap agar penjual bisa menentukan biaya pengiriman." :
-                                        order.status === 'waiting_shipping_cost' ? "Penjual sedang menghitung biaya pengiriman dan packing. Anda akan menerima notifikasi jika invoice sudah siap." :
-                                            order.status === 'waiting_payment' ? "Biaya pengiriman sudah ditentukan. Silakan lakukan pembayaran agar pesanan bisa segera diproses." :
-                                                order.status === 'processing' ? "Pembayaran Anda telah diterima. Admin sedang memverifikasi data transaksi Anda." :
-                                                    ['waiting_shipment', 'payment_verified'].includes(order.status) ? "Pembayaran terverifikasi! Penjual sedang menyiapkan paket Anda untuk segera dikirim." :
-                                                        order.status === 'shipped' ? "Pesanan Anda sedang dalam proses pengiriman dan dapat dipantau melalui nomor resi yang tersedia." :
-                                                            order.status === 'complained' ? "Anda telah mengajukan komplain untuk pesanan ini. Mohon tunggu tanggapan dari penjual atau bantuan admin." :
-                                                                ['completed', 'disbursement_requested', 'disbursed'].includes(order.status) ? "Terima kasih telah berbelanja! Pesanan Anda telah sampai dan transaksi dinyatakan selesai." : ""}
-                                </p>
-                            </div>
-                            <div className="shrink-0 w-full md:w-auto flex flex-col gap-3">
-                                {order.status === 'pending_shipping_info' && (
-                                    <button
-                                        onClick={() => {
-                                            if (!isProfileComplete) {
-                                                setShowProfileWarning(true);
-                                            } else {
-                                                setShowShippingModal(true);
-                                            }
-                                        }}
-                                        className="w-full md:w-auto px-10 py-5 bg-emerald-500 hover:bg-emerald-400 text-zinc-950 font-black rounded-2xl transition-all active:scale-95 flex items-center justify-center gap-3"
-                                    >
-                                        Lengkapi Sekarang <MapPin size={20} />
-                                    </button>
-                                )}
-                                {order.status === 'waiting_payment' && (
-                                    <Link
-                                        href={`/user/pesanan/bayar/${id}`}
-                                        className="w-full md:w-auto px-10 py-5 bg-emerald-500 hover:bg-emerald-400 text-zinc-950 font-black rounded-2xl transition-all active:scale-95 flex items-center justify-center gap-3"
-                                    >
-                                        Bayar Sekarang <CreditCard size={20} />
-                                    </Link>
-                                )}
-                                {order.status === 'shipped' && (
-                                    <Link
-                                        href={`/user/pesanan/transaksi-selesai/${id}`}
-                                        replace
-                                        className="w-full md:w-auto px-10 py-5 bg-blue-500 hover:bg-blue-400 text-zinc-950 font-black rounded-2xl transition-all active:scale-95 flex items-center justify-center gap-3"
-                                    >
-                                        Pesanan Diterima <CheckCircle2 size={20} />
-                                    </Link>
-                                )}
-                                {order.product?.type === 'sell' && ['pending_shipping_info', 'waiting_shipping_cost', 'waiting_payment'].includes(order.status) && (
-                                    <button
-                                        onClick={handleCancelOrder}
-                                        className="w-full md:w-auto px-10 py-4 bg-red-500/10 hover:bg-red-500 text-red-500 hover:text-white font-black rounded-2xl transition-all border border-red-500/20 flex items-center justify-center gap-3 active:scale-95"
-                                    >
-                                        Batalkan Transaksi <XCircle size={18} />
-                                    </button>
-                                )}
-                            </div>
-                        </div>
-                    </div>
+                    <p className="text-[12px] font-bold tracking-tight text-white">{order.shop.whatsapp}</p>
+                  </div>
+                  <a
+                    href={getWhatsAppLink()}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="w-full py-3 bg-gradient-to-r from-emerald-600 to-green-500 hover:from-emerald-500 hover:to-green-400 text-zinc-950 text-xs font-black rounded-2xl transition-all flex items-center justify-center gap-2 active:scale-95 shadow-[0_0_15px_rgba(16,185,129,0.2)] border border-emerald-400/20"
+                  >
+                    <MessageCircle size={14} /> Hubungi Penjual
+                  </a>
+                </div>
+              ) : (
+                <div className="pt-3 border-t border-zinc-800/50 text-center">
+                  <p className="text-[11px] text-zinc-500 font-bold">Nomor WA tidak tersedia</p>
+                </div>
+              )}
+            </div>
+          </div>
 
-                    {/* Shipping Info Component (For Shipped/Completed Status) */}
-                    <ShippingInfo order={order} />
-
-
-
-                    {/* Timeline / Riwayat Perjalanan - Bottom for Desktop */}
-                    <OrderTimeline order={order} formatPrice={formatPrice} className="hidden lg:block" />
+          {/* Alamat Pengiriman */}
+          <div className="bg-zinc-900 border border-zinc-800 rounded-[3rem] p-8 space-y-6">
+            <div className="flex items-center justify-between">
+              <h3 className="text-[10px] font-black text-zinc-100 uppercase tracking-widest flex items-center gap-2">
+                <MapPin size={14} className="text-pink-500" /> Alamat Pengiriman
+              </h3>
+              {order.status === "pending_shipping_info" && (
+                <button onClick={() => setShowShippingModal(true)} className="text-[10px] font-black text-emerald-500 hover:text-emerald-400 uppercase tracking-tighter underline">
+                  Ubah
+                </button>
+              )}
+            </div>
+            {order.shipping_address ? (
+              <div className="p-5 bg-zinc-950/50 rounded-3xl border border-zinc-800/50 space-y-4">
+                <div className="space-y-1">
+                  <p className="text-sm text-white font-black uppercase tracking-tight">{order.receiver_name || "Nama Belum Diisi"}</p>
+                  <p className="text-xs text-zinc-400 leading-relaxed font-medium line-clamp-3">{order.shipping_address || "Alamat belum dilengkapi"}</p>
                 </div>
 
-                {/* Sidebar Summary */}
-                <div className="lg:col-span-4 space-y-8">
-                    {/* Alamat Pengiriman */}
-                    <div className="bg-zinc-900 border border-zinc-800 rounded-[3rem] p-8 space-y-6">
-                        <div className="flex items-center justify-between">
-                            <h3 className="text-[10px] font-black text-zinc-100 uppercase tracking-widest flex items-center gap-2">
-                                <MapPin size={14} className="text-pink-500" /> Alamat Pengiriman
-                            </h3>
-                            {order.status === 'pending_shipping_info' && (
-                                <button onClick={() => setShowShippingModal(true)} className="text-[10px] font-black text-emerald-500 hover:text-emerald-400 uppercase tracking-tighter underline">Ubah</button>
-                            )}
-                        </div>
-                        {order.shipping_address ? (
-                            <div className="p-5 bg-zinc-950/50 rounded-3xl border border-zinc-800/50 space-y-4">
-                                <div className="space-y-1">
-                                    <p className="text-sm text-white font-black uppercase tracking-tight">{order.receiver_name || "Nama Belum Diisi"}</p>
-                                    <p className="text-xs text-zinc-400 leading-relaxed font-medium line-clamp-3">{order.shipping_address || "Alamat belum dilengkapi"}</p>
-                                </div>
+                <div className="space-y-2 pt-2 border-t border-zinc-800/50">
+                  <div className="flex items-center gap-2 text-zinc-500">
+                    <div className="w-6 h-6 rounded-lg bg-zinc-900 flex items-center justify-center border border-zinc-800">
+                      <Info size={12} className="text-zinc-400" />
+                    </div>
+                    <p className="text-[12px] font-bold tracking-tight text-zinc-400">{order.phone_number || "-"}</p>
+                  </div>
 
-
-                                <div className="space-y-2 pt-2 border-t border-zinc-800/50">
-                                    <div className="flex items-center gap-2 text-zinc-500">
-                                        <div className="w-6 h-6 rounded-lg bg-zinc-900 flex items-center justify-center border border-zinc-800">
-                                            <Info size={12} className="text-zinc-400" />
-                                        </div>
-                                        <p className="text-[12px] font-bold tracking-tight text-zinc-400">{order.phone_number || "-"}</p>
-                                    </div>
-
-                                    {/* Bank Info Integrated */}
-                                    {/* {(order.bank_account || shippingForm.bank_account) && (
+                  {/* Bank Info Integrated */}
+                  {/* {(order.bank_account || shippingForm.bank_account) && (
                                         <div className="flex items-center gap-2 text-emerald-500/80">
                                             <div className="w-6 h-6 rounded-lg bg-emerald-500/10 flex items-center justify-center border border-emerald-500/20">
                                                 <CreditCard size={12} />
@@ -397,290 +441,239 @@ export default function TransactionProcessPage({ params }) {
                                             </div>
                                         </div>
                                     )} */}
-                                </div>
-                            </div>
-                        ) : (
-                            <div className="py-8 flex flex-col items-center justify-center text-center space-y-3 bg-zinc-950/30 rounded-2xl border border-dashed border-zinc-800">
-                                <MapPin size={24} className="text-zinc-700 animate-pulse" />
-                                <p className="text-[10px] font-black text-zinc-600 uppercase tracking-widest">Belum Ada Alamat</p>
-                            </div>
-                        )}
-                    </div>
-
-                    {/* Ringkasan Biaya */}
-                    <div className="bg-zinc-900 border border-zinc-800 rounded-[3rem] p-8 space-y-8">
-                        <h3 className="text-[10px] font-black text-zinc-100 uppercase tracking-widest flex items-center gap-2">
-                            <CreditCard size={14} className="text-emerald-500" /> Ringkasan Pembayaran
-                        </h3>
-                        <div className="space-y-4">
-                            <div className="flex justify-between text-xs font-bold">
-                                <span className="text-zinc-100 uppercase tracking-tighter">Harga Produk</span>
-                                <span className="text-white">{formatPrice(order.price * order.quantity)}</span>
-                            </div>
-                            <div className="flex justify-between text-xs font-bold">
-                                <span className="text-zinc-100 uppercase tracking-tighter">Biaya Pengiriman</span>
-                                <span className="text-white font-bold">
-                                    {order.shipping_cost > 0 ? formatPrice(order.shipping_cost) : (order.product?.is_free_shipping ? <span className="text-emerald-500">Gratis</span> : formatPrice(0))}
-                                </span>
-                            </div>
-                            <div className="flex justify-between text-xs font-bold">
-                                <span className="text-zinc-100 uppercase tracking-tighter">Biaya Packing</span>
-                                <span className="text-white font-bold">
-                                    {order.packing_cost > 0 ? formatPrice(order.packing_cost) : (order.product?.is_free_packing ? <span className="text-emerald-500">Gratis</span> : formatPrice(0))}
-                                </span>
-                            </div>
-                            <div className="flex justify-between text-xs font-bold">
-                                <span className="text-zinc-100 uppercase tracking-tighter">Biaya Admin</span>
-                                <span className="text-white font-bold">
-                                    {formatPrice(order.admin_fee || 0)}
-                                </span>
-                            </div>
-                            <div className="h-px bg-zinc-800"></div>
-                            <div className="flex justify-between items-center pt-2">
-                                <span className="text-sm font-black text-white uppercase tracking-widest">Total Bayar</span>
-                                <span className="text-2xl font-black text-emerald-500 tracking-tighter">{formatPrice(order.total_price)}</span>
-                            </div>
-                        </div>
-                    </div>
                 </div>
+              </div>
+            ) : (
+              <div className="py-8 flex flex-col items-center justify-center text-center space-y-3 bg-zinc-950/30 rounded-2xl border border-dashed border-zinc-800">
+                <MapPin size={24} className="text-zinc-700 animate-pulse" />
+                <p className="text-[10px] font-black text-zinc-600 uppercase tracking-widest">Belum Ada Alamat</p>
+              </div>
+            )}
+          </div>
+
+          {/* Ringkasan Biaya */}
+          <div className="bg-zinc-900 border border-zinc-800 rounded-[3rem] p-8 space-y-8">
+            <h3 className="text-[10px] font-black text-zinc-100 uppercase tracking-widest flex items-center gap-2">
+              <CreditCard size={14} className="text-emerald-500" /> Ringkasan Pembayaran
+            </h3>
+            <div className="space-y-4">
+              <div className="flex justify-between text-xs font-bold">
+                <span className="text-zinc-100 uppercase tracking-tighter">Harga Produk</span>
+                <span className="text-white">{formatPrice(order.price * order.quantity)}</span>
+              </div>
+              <div className="flex justify-between text-xs font-bold">
+                <span className="text-zinc-100 uppercase tracking-tighter">Biaya Pengiriman</span>
+                <span className="text-white font-bold">{order.shipping_cost > 0 ? formatPrice(order.shipping_cost) : order.product?.is_free_shipping ? <span className="text-emerald-500">Gratis</span> : formatPrice(0)}</span>
+              </div>
+              <div className="flex justify-between text-xs font-bold">
+                <span className="text-zinc-100 uppercase tracking-tighter">Biaya Packing</span>
+                <span className="text-white font-bold">{order.packing_cost > 0 ? formatPrice(order.packing_cost) : order.product?.is_free_packing ? <span className="text-emerald-500">Gratis</span> : formatPrice(0)}</span>
+              </div>
+              <div className="flex justify-between text-xs font-bold">
+                <span className="text-zinc-100 uppercase tracking-tighter">Biaya Admin</span>
+                <span className="text-white font-bold">{formatPrice(order.admin_fee || 0)}</span>
+              </div>
+              <div className="h-px bg-zinc-800"></div>
+              <div className="flex justify-between items-center pt-2">
+                <span className="text-sm font-black text-white uppercase tracking-widest">Total Bayar</span>
+                <span className="text-2xl font-black text-emerald-500 tracking-tighter">{formatPrice(order.total_price)}</span>
+              </div>
             </div>
-
-            {/* Shipping Modal */}
-            {showShippingModal && (
-                <div className="fixed inset-0 z-[150] flex items-center justify-center p-4 overflow-y-auto">
-                    <div className="absolute inset-0 bg-zinc-950/90 backdrop-blur-md animate-in fade-in duration-300" onClick={() => !isUpdatingShipping && setShowShippingModal(false)}></div>
-                    <div className="bg-zinc-900 border border-zinc-800 w-full max-w-lg rounded-[2rem] lg:rounded-[2.5rem] relative z-10 overflow-hidden animate-in zoom-in-95 duration-300 my-auto max-h-[90vh] flex flex-col">
-                        <div className="p-6 lg:p-8 space-y-6 lg:space-y-8 overflow-y-auto custom-scrollbar">
-                            <div className="text-center space-y-2">
-                                <div className="w-12 h-12 lg:w-16 lg:h-16 bg-emerald-500/10 text-emerald-500 rounded-2xl flex items-center justify-center mx-auto mb-2 lg:mb-4">
-                                    <MapPin size={32} />
-                                </div>
-                                <h3 className="text-xl lg:text-2xl font-black text-white uppercase tracking-tight">Data Pengiriman</h3>
-                                <p className="text-zinc-500 text-[11px] lg:text-sm font-medium">Lengkapi detail tujuan pengiriman Anda</p>
-                            </div>
-
-                            <div className="bg-amber-500/10 border border-amber-500/20 rounded-2xl p-4 flex gap-3 items-start">
-                                <AlertCircle className="text-amber-500 shrink-0 mt-0.5" size={18} />
-                                <div className="space-y-1">
-                                    <p className="text-xs font-black text-amber-500 uppercase tracking-widest">Informasi Penting</p>
-                                    <p className="text-[12px] text-amber-500/80 font-medium leading-relaxed">
-                                        Pastikan alamat ditulis secara lengkap mencakup <span className="font-bold">Provinsi, Kota/Kabupaten, Kecamatan,</span> hingga <span className="font-bold">Kelurahan/Desa</span> untuk akurasi perhitungan ongkos kirim.
-                                    </p>
-                                </div>
-                            </div>
-
-                            <form onSubmit={handleShippingSubmit} className="space-y-4">
-                                <div className="space-y-2">
-                                    <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest ml-1">Nama Penerima</label>
-                                    <input
-                                        required
-                                        type="text"
-                                        value={shippingForm.receiver_name}
-                                        onChange={(e) => setShippingForm({ ...shippingForm, receiver_name: e.target.value })}
-                                        className="w-full bg-zinc-950 border border-zinc-800 rounded-2xl py-4 px-6 text-white focus:outline-none focus:border-emerald-500 transition-all font-bold"
-                                        placeholder="Contoh: John Doe"
-                                    />
-                                </div>
-                                <div className="space-y-2">
-                                    <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest ml-1">Nomor WhatsApp</label>
-                                    <input
-                                        required
-                                        type="tel"
-                                        value={shippingForm.phone_number}
-                                        onChange={(e) => setShippingForm({ ...shippingForm, phone_number: e.target.value })}
-                                        className="w-full bg-zinc-950 border border-zinc-800 rounded-2xl py-4 px-6 text-white focus:outline-none focus:border-emerald-500 transition-all font-bold"
-                                        placeholder="Contoh: 08123456789"
-                                    />
-                                </div>
-                                <div className="space-y-2">
-                                    <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest ml-1">Alamat Lengkap</label>
-                                    <textarea
-                                        required
-                                        rows={3}
-                                        value={shippingForm.shipping_address}
-                                        onChange={(e) => setShippingForm({ ...shippingForm, shipping_address: e.target.value })}
-                                        className="w-full bg-zinc-950 border border-zinc-800 rounded-2xl py-4 px-6 text-white focus:outline-none focus:border-emerald-500 transition-all resize-none font-bold"
-                                        placeholder="Tuliskan alamat lengkap pengiriman..."
-                                    />
-                                </div>
-
-                                <div className="pt-4 border-t border-zinc-800 space-y-4">
-                                    <div className="flex items-center justify-between">
-                                        <div className="flex items-center gap-2">
-                                            <CreditCard size={14} className="text-emerald-500" />
-                                            <p className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">Informasi Rekening</p>
-                                        </div>
-                                        <Link
-                                            href="/user/pengaturan"
-                                            className="text-[8px] font-black text-emerald-500 hover:text-emerald-400 uppercase tracking-tighter underline flex items-center gap-1"
-                                        >
-                                            Ubah di Profil <ChevronRight size={10} />
-                                        </Link>
-                                    </div>
-
-                                    <div className="grid grid-cols-2 gap-4">
-                                        <div className="space-y-2">
-                                            <label className="text-[8px] font-black text-zinc-600 uppercase tracking-widest ml-1">Nama Bank</label>
-                                            <div className="w-full bg-zinc-950/50 border border-zinc-800/50 rounded-xl py-3 px-4 text-xs text-zinc-400 font-bold">
-                                                {shippingForm.bank_name || "-"}
-                                            </div>
-                                        </div>
-                                        <div className="space-y-2">
-                                            <label className="text-[8px] font-black text-zinc-600 uppercase tracking-widest ml-1">Nomor Rekening</label>
-                                            <div className="w-full bg-zinc-950/50 border border-zinc-800/50 rounded-xl py-3 px-4 text-xs text-zinc-400 font-bold">
-                                                {shippingForm.bank_account || "-"}
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div className="space-y-2">
-                                        <label className="text-[8px] font-black text-zinc-600 uppercase tracking-widest ml-1">Atas Nama</label>
-                                        <div className="w-full bg-zinc-950/50 border border-zinc-800/50 rounded-xl py-3 px-4 text-xs text-zinc-400 font-bold">
-                                            {shippingForm.bank_holder || "-"}
-                                        </div>
-                                    </div>
-
-                                    {!shippingForm.bank_account && (
-                                        <div className="p-3 bg-amber-500/5 border border-amber-500/10 rounded-xl flex gap-2 items-center">
-                                            <AlertCircle size={12} className="text-amber-500 shrink-0" />
-                                            <p className="text-[9px] text-amber-500/70 font-medium">Data rekening belum diatur. Disarankan mengisinya di profil untuk mempermudah refund/transaksi.</p>
-                                        </div>
-                                    )}
-                                </div>
-
-                                <div className="flex gap-4 pt-4">
-                                    <button
-                                        type="button"
-                                        disabled={isUpdatingShipping}
-                                        onClick={() => setShowShippingModal(false)}
-                                        className="flex-1 py-4 bg-zinc-800 hover:bg-zinc-700 text-white font-black rounded-2xl transition-all disabled:opacity-50"
-                                    >
-                                        Batal
-                                    </button>
-                                    <button
-                                        type="submit"
-                                        disabled={isUpdatingShipping}
-                                        className="flex-1 py-4 bg-emerald-500 hover:bg-emerald-400 text-zinc-950 font-black rounded-2xl transition-all disabled:opacity-50 flex items-center justify-center gap-2"
-                                    >
-                                        {isUpdatingShipping ? (
-                                            <>
-                                                <div className="w-4 h-4 border-2 border-zinc-950 border-t-transparent rounded-full animate-spin"></div>
-                                                Menyimpan...
-                                            </>
-                                        ) : "Simpan & Lanjut"}
-                                    </button>
-                                </div>
-                            </form>
-                        </div>
-                    </div>
-                </div>
-            )}
-            {/* Cancel Transaction Confirmation Modal */}
-            {showCancelModal && (
-                <div className="fixed inset-0 z-[200] flex items-center justify-center p-4">
-                    <div
-                        className="absolute inset-0 bg-zinc-950/80 backdrop-blur-md animate-in fade-in duration-300"
-                        onClick={() => !isCancelling && setShowCancelModal(false)}
-                    ></div>
-                    <div className="bg-zinc-900 border border-zinc-800 w-full max-w-md rounded-[2.5rem] relative z-10 overflow-hidden animate-in zoom-in-95 duration-300">
-                        <div className="p-8 space-y-6 text-center">
-                            <div className="w-20 h-20 bg-red-500/10 text-red-500 rounded-[2rem] flex items-center justify-center mx-auto mb-4 border border-red-500/20">
-                                <AlertCircle size={40} />
-                            </div>
-                            <div className="space-y-2">
-                                <h3 className="text-2xl font-black text-white uppercase tracking-tight">Batalkan Transaksi?</h3>
-                                <p className="text-zinc-500 text-sm font-medium leading-relaxed">
-                                    Apakah Anda yakin ingin membatalkan transaksi ini? <br />
-                                    <span className="text-red-500/70 font-bold">Stok produk akan dikembalikan ke penjual.</span>
-                                </p>
-                            </div>
-
-                            <div className="flex gap-4 pt-2">
-                                <button
-                                    disabled={isCancelling}
-                                    onClick={() => setShowCancelModal(false)}
-                                    className="flex-1 py-4 bg-zinc-800 hover:bg-zinc-700 text-white font-black rounded-2xl transition-all disabled:opacity-50"
-                                >
-                                    Tidak
-                                </button>
-                                <button
-                                    disabled={isCancelling}
-                                    onClick={confirmCancelOrder}
-                                    className="flex-1 py-4 bg-red-500 hover:bg-red-600 text-white font-black rounded-2xl transition-all disabled:opacity-50 flex items-center justify-center gap-2"
-                                >
-                                    {isCancelling ? (
-                                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                                    ) : (
-                                        "Ya, Batalkan"
-                                    )}
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            )}
-            {/* Success Notification Modal */}
-            {showSuccessModal && (
-                <div className="fixed inset-0 z-[250] flex items-center justify-center p-4">
-                    <div
-                        className="absolute inset-0 bg-zinc-950/80 backdrop-blur-md animate-in fade-in duration-500"
-                        onClick={() => setShowSuccessModal(false)}
-                    ></div>
-                    <div className="bg-zinc-900 border border-zinc-800 w-full max-w-sm rounded-[2.5rem] relative z-10 overflow-hidden animate-in zoom-in-95 duration-300">
-                        <div className="p-10 text-center space-y-6">
-                            <div className="w-20 h-20 bg-emerald-500/10 text-emerald-500 rounded-[2.2rem] flex items-center justify-center mx-auto border border-emerald-500/20">
-                                <CheckCircle2 size={44} className="animate-in zoom-in duration-700" />
-                            </div>
-                            <div className="space-y-2">
-                                <h3 className="text-2xl font-black text-white uppercase tracking-tight">Data Tersimpan!</h3>
-                                <p className="text-zinc-500 text-sm font-medium leading-relaxed">
-                                    Informasi pengiriman berhasil diperbarui. Silakan tunggu penjual menentukan biaya pengiriman.
-                                </p>
-                            </div>
-                            <button
-                                onClick={() => setShowSuccessModal(false)}
-                                className="w-full py-4 bg-emerald-500 hover:bg-emerald-400 text-zinc-950 font-black rounded-2xl transition-all active:scale-95"
-                            >
-                                Oke, Mengerti
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            )}
-
-            {/* Profile Incomplete Warning Modal */}
-            {showProfileWarning && (
-                <div className="fixed inset-0 z-[300] flex items-center justify-center p-4">
-                    <div className="absolute inset-0 bg-zinc-950/90 backdrop-blur-md animate-in fade-in duration-300" onClick={() => setShowProfileWarning(false)}></div>
-                    <div className="bg-zinc-900 border border-zinc-800 w-full max-w-md rounded-[2.5rem] relative z-10 overflow-hidden animate-in zoom-in-95 duration-300">
-                        <div className="p-8 lg:p-10 space-y-6 text-center">
-                            <div className="w-20 h-20 bg-amber-500/10 text-amber-500 rounded-[2rem] flex items-center justify-center mx-auto mb-4 border border-amber-500/20">
-                                <ShieldAlert size={40} />
-                            </div>
-                            <div className="space-y-2">
-                                <h3 className="text-2xl font-black text-white uppercase tracking-tight">Profil Belum Lengkap</h3>
-                                <p className="text-zinc-500 text-sm font-medium leading-relaxed">
-                                    Maaf, Anda harus melengkapi data <span className="text-white font-bold">Alamat, Kota, Provinsi, dan Nomor Telepon</span> di pengaturan profil terlebih dahulu sebelum dapat melanjutkan transaksi.
-                                </p>
-                            </div>
-
-                            <div className="flex flex-col gap-3 pt-2">
-                                <Link
-                                    href="/user/pengaturan"
-                                    className="w-full py-4 bg-emerald-500 hover:bg-emerald-400 text-zinc-950 font-black rounded-2xl transition-all active:scale-95 flex items-center justify-center gap-2"
-                                >
-                                    Lengkapi Profil Sekarang <ChevronRight size={18} />
-                                </Link>
-                                <button
-                                    onClick={() => setShowProfileWarning(false)}
-                                    className="w-full py-3 bg-zinc-800 hover:bg-zinc-700 text-zinc-400 font-bold rounded-2xl transition-all"
-                                >
-                                    Nanti Saja
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            )}
+          </div>
         </div>
-    );
+      </div>
+
+      {/* Shipping Modal */}
+      {showShippingModal && (
+        <div className="fixed inset-0 z-[150] flex items-center justify-center p-4 overflow-y-auto">
+          <div className="absolute inset-0 bg-zinc-950/90 backdrop-blur-md animate-in fade-in duration-300" onClick={() => !isUpdatingShipping && setShowShippingModal(false)}></div>
+          <div className="bg-zinc-900 border border-zinc-800 w-full max-w-lg rounded-[2rem] lg:rounded-[2.5rem] relative z-10 overflow-hidden animate-in zoom-in-95 duration-300 my-auto max-h-[90vh] flex flex-col">
+            <div className="p-6 lg:p-8 space-y-6 lg:space-y-8 overflow-y-auto custom-scrollbar">
+              <div className="text-center space-y-2">
+                <div className="w-12 h-12 lg:w-16 lg:h-16 bg-emerald-500/10 text-emerald-500 rounded-2xl flex items-center justify-center mx-auto mb-2 lg:mb-4">
+                  <MapPin size={32} />
+                </div>
+                <h3 className="text-xl lg:text-2xl font-black text-white uppercase tracking-tight">Data Pengiriman</h3>
+                <p className="text-zinc-500 text-[11px] lg:text-sm font-medium">Lengkapi detail tujuan pengiriman Anda</p>
+              </div>
+
+              <div className="bg-amber-500/10 border border-amber-500/20 rounded-2xl p-4 flex gap-3 items-start">
+                <AlertCircle className="text-amber-500 shrink-0 mt-0.5" size={18} />
+                <div className="space-y-1">
+                  <p className="text-xs font-black text-amber-500 uppercase tracking-widest">Informasi Penting</p>
+                  <p className="text-[12px] text-amber-500/80 font-medium leading-relaxed">
+                    Pastikan alamat ditulis secara lengkap mencakup <span className="font-bold">Provinsi, Kota/Kabupaten, Kecamatan,</span> hingga <span className="font-bold">Kelurahan/Desa</span> untuk akurasi perhitungan ongkos kirim.
+                  </p>
+                </div>
+              </div>
+
+              <form onSubmit={handleShippingSubmit} className="space-y-4">
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest ml-1">Nama Penerima</label>
+                  <input
+                    required
+                    type="text"
+                    value={shippingForm.receiver_name}
+                    onChange={(e) => setShippingForm({ ...shippingForm, receiver_name: e.target.value })}
+                    className="w-full bg-zinc-950 border border-zinc-800 rounded-2xl py-4 px-6 text-white focus:outline-none focus:border-emerald-500 transition-all font-bold"
+                    placeholder="Contoh: John Doe"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest ml-1">Nomor WhatsApp</label>
+                  <input
+                    required
+                    type="tel"
+                    value={shippingForm.phone_number}
+                    onChange={(e) => setShippingForm({ ...shippingForm, phone_number: e.target.value })}
+                    className="w-full bg-zinc-950 border border-zinc-800 rounded-2xl py-4 px-6 text-white focus:outline-none focus:border-emerald-500 transition-all font-bold"
+                    placeholder="Contoh: 08123456789"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest ml-1">Alamat Lengkap</label>
+                  <textarea
+                    required
+                    rows={3}
+                    value={shippingForm.shipping_address}
+                    onChange={(e) => setShippingForm({ ...shippingForm, shipping_address: e.target.value })}
+                    className="w-full bg-zinc-950 border border-zinc-800 rounded-2xl py-4 px-6 text-white focus:outline-none focus:border-emerald-500 transition-all resize-none font-bold"
+                    placeholder="Tuliskan alamat lengkap pengiriman..."
+                  />
+                </div>
+
+                <div className="pt-4 border-t border-zinc-800 space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <CreditCard size={14} className="text-emerald-500" />
+                      <p className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">Informasi Rekening</p>
+                    </div>
+                    <Link href="/user/pengaturan" className="text-[8px] font-black text-emerald-500 hover:text-emerald-400 uppercase tracking-tighter underline flex items-center gap-1">
+                      Ubah di Profil <ChevronRight size={10} />
+                    </Link>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <label className="text-[8px] font-black text-zinc-600 uppercase tracking-widest ml-1">Nama Bank</label>
+                      <div className="w-full bg-zinc-950/50 border border-zinc-800/50 rounded-xl py-3 px-4 text-xs text-zinc-400 font-bold">{shippingForm.bank_name || "-"}</div>
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-[8px] font-black text-zinc-600 uppercase tracking-widest ml-1">Nomor Rekening</label>
+                      <div className="w-full bg-zinc-950/50 border border-zinc-800/50 rounded-xl py-3 px-4 text-xs text-zinc-400 font-bold">{shippingForm.bank_account || "-"}</div>
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-[8px] font-black text-zinc-600 uppercase tracking-widest ml-1">Atas Nama</label>
+                    <div className="w-full bg-zinc-950/50 border border-zinc-800/50 rounded-xl py-3 px-4 text-xs text-zinc-400 font-bold">{shippingForm.bank_holder || "-"}</div>
+                  </div>
+
+                  {!shippingForm.bank_account && (
+                    <div className="p-3 bg-amber-500/5 border border-amber-500/10 rounded-xl flex gap-2 items-center">
+                      <AlertCircle size={12} className="text-amber-500 shrink-0" />
+                      <p className="text-[9px] text-amber-500/70 font-medium">Data rekening belum diatur. Disarankan mengisinya di profil untuk mempermudah refund/transaksi.</p>
+                    </div>
+                  )}
+                </div>
+
+                <div className="flex gap-4 pt-4">
+                  <button type="button" disabled={isUpdatingShipping} onClick={() => setShowShippingModal(false)} className="flex-1 py-4 bg-zinc-800 hover:bg-zinc-700 text-white font-black rounded-2xl transition-all disabled:opacity-50">
+                    Batal
+                  </button>
+                  <button type="submit" disabled={isUpdatingShipping} className="flex-1 py-4 bg-emerald-500 hover:bg-emerald-400 text-zinc-950 font-black rounded-2xl transition-all disabled:opacity-50 flex items-center justify-center gap-2">
+                    {isUpdatingShipping ? (
+                      <>
+                        <div className="w-4 h-4 border-2 border-zinc-950 border-t-transparent rounded-full animate-spin"></div>
+                        Menyimpan...
+                      </>
+                    ) : (
+                      "Simpan & Lanjut"
+                    )}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      )}
+      {/* Cancel Transaction Confirmation Modal */}
+      {showCancelModal && (
+        <div className="fixed inset-0 z-[200] flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-zinc-950/80 backdrop-blur-md animate-in fade-in duration-300" onClick={() => !isCancelling && setShowCancelModal(false)}></div>
+          <div className="bg-zinc-900 border border-zinc-800 w-full max-w-md rounded-[2.5rem] relative z-10 overflow-hidden animate-in zoom-in-95 duration-300">
+            <div className="p-8 space-y-6 text-center">
+              <div className="w-20 h-20 bg-red-500/10 text-red-500 rounded-[2rem] flex items-center justify-center mx-auto mb-4 border border-red-500/20">
+                <AlertCircle size={40} />
+              </div>
+              <div className="space-y-2">
+                <h3 className="text-2xl font-black text-white uppercase tracking-tight">Batalkan Transaksi?</h3>
+                <p className="text-zinc-500 text-sm font-medium leading-relaxed">
+                  Apakah Anda yakin ingin membatalkan transaksi ini? <br />
+                  <span className="text-red-500/70 font-bold">Stok produk akan dikembalikan ke penjual.</span>
+                </p>
+              </div>
+
+              <div className="flex gap-4 pt-2">
+                <button disabled={isCancelling} onClick={() => setShowCancelModal(false)} className="flex-1 py-4 bg-zinc-800 hover:bg-zinc-700 text-white font-black rounded-2xl transition-all disabled:opacity-50">
+                  Tidak
+                </button>
+                <button disabled={isCancelling} onClick={confirmCancelOrder} className="flex-1 py-4 bg-red-500 hover:bg-red-600 text-white font-black rounded-2xl transition-all disabled:opacity-50 flex items-center justify-center gap-2">
+                  {isCancelling ? <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div> : "Ya, Batalkan"}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+      {/* Success Notification Modal */}
+      {showSuccessModal && (
+        <div className="fixed inset-0 z-[250] flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-zinc-950/80 backdrop-blur-md animate-in fade-in duration-500" onClick={() => setShowSuccessModal(false)}></div>
+          <div className="bg-zinc-900 border border-zinc-800 w-full max-w-sm rounded-[2.5rem] relative z-10 overflow-hidden animate-in zoom-in-95 duration-300">
+            <div className="p-10 text-center space-y-6">
+              <div className="w-20 h-20 bg-emerald-500/10 text-emerald-500 rounded-[2.2rem] flex items-center justify-center mx-auto border border-emerald-500/20">
+                <CheckCircle2 size={44} className="animate-in zoom-in duration-700" />
+              </div>
+              <div className="space-y-2">
+                <h3 className="text-2xl font-black text-white uppercase tracking-tight">Data Tersimpan!</h3>
+                <p className="text-zinc-500 text-sm font-medium leading-relaxed">Informasi pengiriman berhasil diperbarui. Silakan tunggu penjual menentukan biaya pengiriman.</p>
+              </div>
+              <button onClick={() => setShowSuccessModal(false)} className="w-full py-4 bg-emerald-500 hover:bg-emerald-400 text-zinc-950 font-black rounded-2xl transition-all active:scale-95">
+                Oke, Mengerti
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Profile Incomplete Warning Modal */}
+      {showProfileWarning && (
+        <div className="fixed inset-0 z-[300] flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-zinc-950/90 backdrop-blur-md animate-in fade-in duration-300" onClick={() => setShowProfileWarning(false)}></div>
+          <div className="bg-zinc-900 border border-zinc-800 w-full max-w-md rounded-[2.5rem] relative z-10 overflow-hidden animate-in zoom-in-95 duration-300">
+            <div className="p-8 lg:p-10 space-y-6 text-center">
+              <div className="w-20 h-20 bg-amber-500/10 text-amber-500 rounded-[2rem] flex items-center justify-center mx-auto mb-4 border border-amber-500/20">
+                <ShieldAlert size={40} />
+              </div>
+              <div className="space-y-2">
+                <h3 className="text-2xl font-black text-white uppercase tracking-tight">Profil Belum Lengkap</h3>
+                <p className="text-zinc-500 text-sm font-medium leading-relaxed">
+                  Maaf, Anda harus melengkapi data <span className="text-white font-bold">Alamat, Kota, Provinsi, dan Nomor Telepon</span> di pengaturan profil terlebih dahulu sebelum dapat melanjutkan transaksi.
+                </p>
+              </div>
+
+              <div className="flex flex-col gap-3 pt-2">
+                <Link href="/user/pengaturan" className="w-full py-4 bg-emerald-500 hover:bg-emerald-400 text-zinc-950 font-black rounded-2xl transition-all active:scale-95 flex items-center justify-center gap-2">
+                  Lengkapi Profil Sekarang <ChevronRight size={18} />
+                </Link>
+                <button onClick={() => setShowProfileWarning(false)} className="w-full py-3 bg-zinc-800 hover:bg-zinc-700 text-zinc-400 font-bold rounded-2xl transition-all">
+                  Nanti Saja
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
 }

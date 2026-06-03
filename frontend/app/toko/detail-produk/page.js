@@ -82,6 +82,7 @@ function DetailContent() {
   const [isBuying, setIsBuying] = useState(false);
   const [isAddingToCart, setIsAddingToCart] = useState(false);
   const [buyQuantity, setBuyQuantity] = useState(1);
+  const [isImageZoomed, setIsImageZoomed] = useState(false);
 
   const parsedImages = getParsedImages(selectedProduct?.images);
 
@@ -438,8 +439,9 @@ function DetailContent() {
             {parsedImages.length > 0 && parsedImages[activeImageIndex] ? (
               <img
                 src={parsedImages[activeImageIndex]}
-                className="w-full h-full object-contain p-8 lg:p-20 transition-transform duration-700 group-hover:scale-105 min-h-[350px] lg:min-h-0"
+                className="w-full h-full object-contain p-8 lg:p-20 transition-transform duration-700 group-hover:scale-105 min-h-[350px] lg:min-h-0 cursor-zoom-in"
                 alt={selectedProduct.name}
+                onClick={() => setIsImageZoomed(true)}
               />
             ) : (
               <div className="w-full h-full flex flex-col items-center justify-center text-zinc-400 bg-zinc-100">
@@ -600,10 +602,10 @@ function DetailContent() {
                                         </p> */}
                     <p className="text-3xl lg:text-3xl font-black text-emerald-600">
                       {formatPrice(
-                        selectedProduct.type === "sell"
+                        (selectedProduct.type === "sell"
                           ? selectedProduct.price
                           : selectedProduct.current_bid ||
-                              selectedProduct.start_bid,
+                            selectedProduct.start_bid) * buyQuantity,
                       )}
                     </p>
                   </div>
@@ -806,6 +808,27 @@ function DetailContent() {
         buyerName={chatConfig.buyerName}
         productId={chatConfig.productId}
       />
+
+      {isImageZoomed && parsedImages.length > 0 && (
+        <div 
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-md cursor-zoom-out select-none"
+          onClick={() => setIsImageZoomed(false)}
+        >
+          <div className="relative max-w-[90vw] max-h-[90vh]">
+            <img
+              src={parsedImages[activeImageIndex]}
+              className="max-w-full max-h-[90vh] object-contain rounded-xl"
+              alt={selectedProduct.name}
+            />
+            <button 
+              className="absolute top-4 right-4 text-white hover:text-zinc-300 transition-colors bg-white/10 hover:bg-white/20 p-2 rounded-full"
+              onClick={() => setIsImageZoomed(false)}
+            >
+              <XCircle size={24} />
+            </button>
+          </div>
+        </div>
+      )}
 
       <style jsx global>{`
         .description-content {

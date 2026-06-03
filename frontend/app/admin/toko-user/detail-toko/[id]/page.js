@@ -63,9 +63,13 @@ export default function AdminDetailTokoPage() {
 
     const handleUpdateStatus = async (status) => {
         try {
+            const token = localStorage.getItem("admin_token");
             const response = await fetch(`${getApiUrl()}/shops/${shop.id}`, {
                 method: "PUT",
-                headers: { "Content-Type": "application/json"},
+                headers: { 
+                    "Content-Type": "application/json",
+                    'Authorization': token ? `Bearer ${token}` : ''
+                },
                 body: JSON.stringify({ status })
             });
 
@@ -138,7 +142,7 @@ export default function AdminDetailTokoPage() {
                             </div>
                             <p className="text-zinc-500 mt-2 font-medium flex items-center gap-2">
                                 <Fingerprint size={14} className="text-emerald-500" />
-                                ID: <span className="text-zinc-300 font-bold tracking-widest">#{shop.id}</span>
+                                Kode Toko: <span className="text-zinc-300 font-bold tracking-widest">{shop.shop_code || `#${shop.id}`}</span>
                             </p>
                         </div>
                     </div>

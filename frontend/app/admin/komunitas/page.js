@@ -40,6 +40,7 @@ export default function AdminKomunitasPage() {
     const executeUpdateStatus = async () => {
         setIsProcessing(true);
         try {
+            const token = localStorage.getItem("admin_token");
             const bodyData = { status: statusModal.newStatus };
             if (statusModal.newStatus === 'Ditolak') {
                 bodyData.rejection_reason = statusModal.rejectionReason;
@@ -47,7 +48,10 @@ export default function AdminKomunitasPage() {
 
             const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/topics/${statusModal.topicId}`, {
                 method: "PUT",
-                headers: { "Content-Type": "application/json"},
+                headers: { 
+                    "Content-Type": "application/json",
+                    'Authorization': token ? `Bearer ${token}` : ''
+                },
                 body: JSON.stringify(bodyData)
             });
 
@@ -69,7 +73,13 @@ export default function AdminKomunitasPage() {
     const executeDelete = async () => {
         setIsProcessing(true);
         try {
-            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/topics/${deleteModal.topicId}`, { method: "DELETE"});
+            const token = localStorage.getItem("admin_token");
+            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/topics/${deleteModal.topicId}`, { 
+                method: "DELETE",
+                headers: {
+                    'Authorization': token ? `Bearer ${token}` : ''
+                }
+            });
             if (res.ok) {
                 alert("Topik berhasil dihapus permanen");
                 fetchTopics();

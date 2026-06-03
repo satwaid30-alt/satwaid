@@ -82,7 +82,7 @@ export default function DetailPembayaranPage({ params: paramsPromise }) {
 
         setIsSubmittingBulk(true);
         try {
-            const token = localStorage.getItem("token");
+            const token = localStorage.getItem("admin_token");
 
             // 1. Upload proof file
             const formData = new FormData();
@@ -153,8 +153,13 @@ export default function DetailPembayaranPage({ params: paramsPromise }) {
     const fetchData = async () => {
         setIsLoading(true);
         try {
+            const token = localStorage.getItem("admin_token");
+            const headers = {
+                'Authorization': token ? `Bearer ${token}` : ''
+            };
+
             // Fetch Shop Details
-            const shopRes = await fetch(`${getApiUrl()}/shops/${id}`);
+            const shopRes = await fetch(`${getApiUrl()}/shops/${id}`, { headers });
             const shopResult = await shopRes.json();
             if (shopRes.ok && shopResult.data) {
                 setShop(shopResult.data);
@@ -170,7 +175,7 @@ export default function DetailPembayaranPage({ params: paramsPromise }) {
             }
 
             // Fetch Orders for this Shop
-            const ordersRes = await fetch(`${getApiUrl()}/orders/shop/${id}`);
+            const ordersRes = await fetch(`${getApiUrl()}/orders/shop/${id}`, { headers });
             const ordersResult = await ordersRes.json();
             if (ordersRes.ok) {
                 setOrders(ordersResult.data || []);

@@ -38,12 +38,17 @@ export default function KeuanganAdminPage() {
     const fetchData = async () => {
         setIsLoading(true);
         try {
+            const token = localStorage.getItem("admin_token");
+            const headers = {
+                'Authorization': token ? `Bearer ${token}` : ''
+            };
+
             // Fetch all shops
-            const shopsRes = await fetch(`${getApiUrl()}/shops`);
+            const shopsRes = await fetch(`${getApiUrl()}/shops`, { headers });
             const shopsResult = await shopsRes.json();
 
             // Fetch all orders to calculate financial stats per shop
-            const ordersRes = await fetch(`${getApiUrl()}/orders`);
+            const ordersRes = await fetch(`${getApiUrl()}/orders`, { headers });
             const ordersResult = await ordersRes.json();
 
             if (shopsRes.ok) {
@@ -65,7 +70,7 @@ export default function KeuanganAdminPage() {
         // Setup Socket.io for Real-time Admin Finance Notifications
         let socket;
         try {
-            const token = typeof window !== 'undefined' ? localStorage.getItem("token") : null;
+            const token = typeof window !== 'undefined' ? localStorage.getItem("admin_token") : null;
             socket = io(getSocketUrl(), {
                 auth: {
                     token: token ? `Bearer ${token}` : null
@@ -496,6 +501,45 @@ export default function KeuanganAdminPage() {
                                                             <span className="w-1 h-1 bg-zinc-700 rounded-full"></span>
                                                             <span>{shop.city || "-"}</span>
                                                         </p>
+                                                        {/* Level Keanggotaan Badge */}
+                                                        {(() => {
+                                                            const level = shop.membership_level || 'Standard Seller';
+                                                            let badgeStyle = 'bg-zinc-700/50 text-zinc-400 border-zinc-600/50';
+                                                            if (level === 'Pro Seller') badgeStyle = 'bg-emerald-500/15 text-emerald-400 border-emerald-500/25';
+                                                            else if (level === 'Enterprise Seller') badgeStyle = 'bg-purple-500/15 text-purple-400 border-purple-500/25';
+                                                            return (
+                                                                <span className={`inline-block mt-1.5 px-2 py-0.5 rounded-md text-[9px] font-black uppercase tracking-widest border ${badgeStyle}`}>
+                                                                    {level}
+                                                                </span>
+                                                            );
+                                                        })()}
+                                                        {/* Status Upgrade Terbaru */}
+                                                        {(() => {
+                                                            const latestUpgrade = shop.upgrades && shop.upgrades.length > 0
+                                                                ? [...shop.upgrades].sort((a, b) => new Date(b.created_at) - new Date(a.created_at))[0]
+                                                                : null;
+                                                            if (!latestUpgrade) return null;
+                                                            if ((shop.membership_level || 'Standard Seller') === 'Standard Seller' && latestUpgrade.status !== 'pending_verification') {
+                                                                return null;
+                                                            }
+                                                            let upgradeStyle = 'bg-zinc-700/40 text-zinc-500 border-zinc-600/40';
+                                                            let upgradeLabel = latestUpgrade.status;
+                                                            if (latestUpgrade.status === 'pending_verification') {
+                                                                upgradeStyle = 'bg-amber-500/10 text-amber-400 border-amber-500/20';
+                                                                upgradeLabel = '⏳ Upgrade Pending';
+                                                            } else if (latestUpgrade.status === 'approved') {
+                                                                upgradeStyle = 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20';
+                                                                upgradeLabel = '✓ Upgrade Disetujui';
+                                                            } else if (latestUpgrade.status === 'rejected') {
+                                                                upgradeStyle = 'bg-red-500/10 text-red-400 border-red-500/20';
+                                                                upgradeLabel = '✕ Upgrade Ditolak';
+                                                            }
+                                                            return (
+                                                                <span className={`inline-block mt-1 px-2 py-0.5 rounded-md text-[9px] font-bold border ${upgradeStyle}`}>
+                                                                    {upgradeLabel} · {latestUpgrade.plan_name}
+                                                                </span>
+                                                            );
+                                                        })()}
                                                     </div>
                                                 </div>
                                             </td>

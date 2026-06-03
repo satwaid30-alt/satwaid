@@ -58,7 +58,7 @@ export default function OrderTimeline({ order, formatPrice, className = "" }) {
     return (
         <div className={`bg-zinc-900 border border-zinc-800 rounded-[2rem] lg:rounded-[3rem] p-6 lg:p-10 shadow-2xl space-y-8 ${className}`}>
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                <h3 className="text-sm font-black text-zinc-500 uppercase tracking-[0.2em] flex items-center gap-3 shrink-0">
+                <h3 className="text-sm font-semibold text-zinc-400 uppercase tracking-[0.1em] flex items-center gap-3 shrink-0">
                     <Clock size={18} className="text-emerald-500" /> Perjalanan Transaksi
                 </h3>
                 <div className="flex items-center gap-4 flex-1">
@@ -88,7 +88,7 @@ export default function OrderTimeline({ order, formatPrice, className = "" }) {
                             <div className="space-y-1 pt-0.5 flex-1">
                                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-1">
                                     <div className="flex items-center gap-2">
-                                        <p className={`text-xs font-black tracking-tight ${step.isCompleted ? "text-white" : "text-zinc-500"}`}>{step.label}</p>
+                                        <p className={`text-xs font-bold tracking-tight ${step.isCompleted ? "text-white" : "text-zinc-500"}`}>{step.label}</p>
                                         {isActive && (
                                             <span className="px-1.5 py-0.5 bg-emerald-500/10 border border-emerald-500/20 rounded-md text-[7px] font-black text-emerald-500 uppercase animate-pulse">Aktif</span>
                                         )}
@@ -99,7 +99,7 @@ export default function OrderTimeline({ order, formatPrice, className = "" }) {
                                         </span>
                                     )}
                                 </div>
-                                <p className="text-[10px] text-zinc-500 font-medium leading-relaxed italic">{step.sub}</p>
+                                <p className="text-[10px] text-zinc-400 font-medium leading-relaxed">{step.sub}</p>
                                 
                                 {step.id === 'shipping' && order.tracking_number && step.isCompleted && (
                                     <div className="mt-2 px-3 py-2 bg-zinc-950 border border-zinc-800 rounded-xl flex items-center justify-between">

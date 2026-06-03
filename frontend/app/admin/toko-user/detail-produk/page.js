@@ -14,6 +14,7 @@ import {
   MessageSquare,
   MoreVertical,
   Store,
+  RotateCcw,
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import Link from "next/link";
@@ -45,7 +46,7 @@ export default function AdminDetailProdukPage() {
   useEffect(() => {
     fetchListings();
 
-    const token = typeof window !== 'undefined' ? localStorage.getItem("token") : null;
+    const token = typeof window !== 'undefined' ? localStorage.getItem("admin_token") : null;
     const socket = io(
       getSocketUrl(),
       {
@@ -111,10 +112,14 @@ export default function AdminDetailProdukPage() {
   const processDelete = async (id) => {
     setActionModal((prev) => ({ ...prev, isLoading: true }));
     try {
+      const token = localStorage.getItem("admin_token");
       const response = await fetch(
         `${getApiUrl()}/listings/${id}`,
         {
           method: "DELETE",
+          headers: {
+            "Authorization": token ? `Bearer ${token}` : ""
+          }
         },
       );
       if (response.ok) {
@@ -133,6 +138,8 @@ export default function AdminDetailProdukPage() {
       item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       item.shop?.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       item.species.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (item.product_id &&
+        item.product_id.toLowerCase().includes(searchQuery.toLowerCase())) ||
       (item.latestOrderId &&
         item.latestOrderId.toLowerCase().includes(searchQuery.toLowerCase()));
     const matchesStatus =
@@ -170,6 +177,8 @@ export default function AdminDetailProdukPage() {
       case "pending":
         return "bg-amber-500/10 text-amber-500 border-amber-500/20";
       case "sold":
+        return "bg-zinc-500/10 text-zinc-400 border-zinc-500/20";
+      case "history":
         return "bg-zinc-500/10 text-zinc-400 border-zinc-500/20";
       default:
         return "bg-zinc-500/10 text-zinc-500 border-zinc-500/20";
@@ -222,7 +231,7 @@ export default function AdminDetailProdukPage() {
           />
           <input
             type="text"
-            placeholder="Cari produk, toko, invoice, atau spesies..."
+            placeholder="Cari ID produk, nama produk, toko, invoice, atau spesies..."
             className="w-full bg-zinc-900 border border-zinc-800 text-white pl-12 pr-4 py-4 rounded-2xl focus:outline-none focus:border-emerald-500 transition-all shadow-xl font-medium"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
@@ -249,6 +258,12 @@ export default function AdminDetailProdukPage() {
               label: "Ditolak",
               icon: XCircle,
               color: "text-red-500",
+            },
+            {
+              id: "history",
+              label: "History",
+              icon: RotateCcw,
+              color: "text-zinc-400",
             },
           ].map((tab) => (
             <button

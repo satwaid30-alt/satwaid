@@ -106,7 +106,11 @@ export default function UploadFinanceDocPage({ params }) {
     const fetchOrderDetail = async () => {
         setIsLoading(true);
         try {
-            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/orders/${id}`);
+            const token = localStorage.getItem("admin_token");
+            const headers = {
+                'Authorization': token ? `Bearer ${token}` : ''
+            };
+            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/orders/${id}`, { headers });
             const result = await res.json();
             if (res.ok && result.data) {
                 setOrder(result.data);
@@ -148,7 +152,7 @@ export default function UploadFinanceDocPage({ params }) {
         setIsUploading(true);
 
         try {
-            const token = localStorage.getItem("token");
+            const token = localStorage.getItem("admin_token");
 
             // 1. Upload the file first to get the URL
             const formData = new FormData();

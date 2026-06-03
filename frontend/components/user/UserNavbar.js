@@ -174,10 +174,18 @@ export default function UserNavbar() {
                             setShowNotifDropdown(!showNotifDropdown);
                             setShowProfileDropdown(false);
                             if (!showNotifDropdown) {
-                                setNotifCount(0);
+                                setNotifCount(0); // optimistic update
                                 if (user) {
-                                    fetch(`${getApiUrl()}/notifications/${user.id}/read-all`, { method: 'PUT' })
-                                        .then(() => fetchNotifications())
+                                    fetch(`${getApiUrl()}/notifications/${user.id}/read-all`, {
+                                        method: 'PUT',
+                                        headers: {
+                                            'Authorization': `Bearer ${localStorage.getItem('token') || ''}`
+                                        }
+                                    })
+                                        .then(() => {
+                                            fetchNotifications();
+                                            fetchCounts(); // re-sync badge from server
+                                        })
                                         .catch(console.error);
                                 } else {
                                     fetchNotifications();

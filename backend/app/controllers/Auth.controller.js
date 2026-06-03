@@ -39,7 +39,7 @@ module.exports.login = async (req, res, next) => {
             username: user.username,
             role: user.role,
             level: 0 // Default for admin login if level not in model
-        }, process.env.JWT_CONF_TOKEN, { expiresIn: '1d' });
+        }, process.env.JWT_CONF_TOKEN, { expiresIn: '7d' });
 
         // Set HttpOnly cookie for JWT
         res.cookie('token', token, {

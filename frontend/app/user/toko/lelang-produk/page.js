@@ -21,6 +21,8 @@ import {
   Tag,
 } from "lucide-react";
 import { getApiUrl } from "@/app/utils/api";
+import QuotaCard from "@/components/QuotaCard";
+import { useShopQuota } from "@/hooks/useShopQuota";
 
 // Import ReactQuill dynamically to avoid SSR errors
 const ReactQuill = dynamic(() => import("react-quill-new"), { ssr: false });
@@ -80,6 +82,8 @@ export default function LelangProdukPage() {
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [showErrorModal, setShowErrorModal] = useState(false);
   const [showRules, setShowRules] = useState(false);
+  const [shopId, setShopId] = useState(null);
+  const { quota, loading: quotaLoading } = useShopQuota(shopId);
 
   const [reptileData, setReptileData] = useState({ ...initialReptileData });
   const [isAgreed, setIsAgreed] = useState(false);
@@ -179,6 +183,7 @@ export default function LelangProdukPage() {
             if (res.data) {
               setHasShop(true);
               setShopStatus(res.data.status);
+              setShopId(res.data.id);
               // Pre-fill shipping policies from shop profile
               setReptileData((prev) => ({
                 ...prev,
@@ -307,11 +312,15 @@ export default function LelangProdukPage() {
       };
       delete payload.duration;
 
+      const token = typeof window !== 'undefined' ? localStorage.getItem("token") : null;
       const response = await fetch(
         `${getApiUrl()}/listings`,
         {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: { 
+            "Content-Type": "application/json",
+            "Authorization": token ? `Bearer ${token}` : ""
+          },
           body: JSON.stringify(payload),
         },
       );
@@ -325,6 +334,7 @@ export default function LelangProdukPage() {
         }
         setShowSuccessModal(true);
         resetForm();
+        window.dispatchEvent(new CustomEvent("sync_quota"));
       } else {
         alert(result.message || "Gagal memasang lelang");
       }
@@ -421,6 +431,24 @@ export default function LelangProdukPage() {
         </div>
       </div>
 
+      {/* Quota Card */}
+      <QuotaCard quota={quota} loading={quotaLoading} />
+
+      {/* Blocked state if quota is full */}
+      {quota && quota.remaining === 0 && (
+        <div className="bg-red-500/10 border border-red-500/20 rounded-2xl p-6 text-center space-y-3">
+          <AlertCircle size={32} className="text-red-400 mx-auto" />
+          <h3 className="text-lg font-black text-white">Kuota Produk Penuh</h3>
+          <p className="text-zinc-400 text-sm">Anda telah mencapai batas 500 listing. Hapus beberapa iklan lama untuk dapat membuka lelang baru.</p>
+          <Link href="/user/toko/daftar-produk" className="inline-flex items-center gap-2 px-6 py-3 bg-zinc-800 hover:bg-zinc-700 text-white font-black rounded-xl transition-all">
+            Kelola Daftar Produk
+          </Link>
+        </div>
+      )}
+
+      {/* Regulations + Form: only show when quota available */}
+      {(!quota || quota.remaining > 0) && (
+      <>
       {/* Regulations Section */}
       <div className="bg-amber-500/10 border border-amber-500/20 rounded-3xl overflow-hidden shadow-xl shadow-amber-500/5">
         <button
@@ -1109,7 +1137,7 @@ export default function LelangProdukPage() {
                     onChange={(e) => {
                       const file = e.target.files[0];
                       if (!file) return;
-                      if (file.size > 500 * 1024) {
+                      if (file.size > 1 * 1024 * 1024) {
                         setShowErrorModal(true);
                         return;
                       }
@@ -1135,7 +1163,7 @@ export default function LelangProdukPage() {
             </div>
             <div className="px-1">
               <p className="text-[10px] font-bold text-amber-500/80 italic">
-                * Ukuran foto maksimal 500KB per file. Pastikan foto jelas dan
+                * Ukuran foto maksimal 1MB per file. Pastikan foto jelas dan
                 terang (Maks 3 Foto).
               </p>
             </div>
@@ -1259,7 +1287,7 @@ export default function LelangProdukPage() {
             </h3>
             <p className="text-zinc-400 mb-10 leading-relaxed font-medium">
               Ukuran foto tidak boleh melebihi{" "}
-              <span className="text-red-500 font-black">500KB</span>. Silakan
+              <span className="text-red-500 font-black">1MB</span>. Silakan
               kompres foto Anda.
             </p>
             <button
@@ -1304,6 +1332,8 @@ export default function LelangProdukPage() {
           border-color: #18181b !important;
         }
       `}</style>
+      </>
+      )}
     </div>
   );
 }

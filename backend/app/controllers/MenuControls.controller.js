@@ -19,6 +19,7 @@ const DEFAULT_MENUS = [
   { menu_key: "toko_produk", name: "Daftar Produk", parent_key: "toko", status: "active", message: "" },
   { menu_key: "toko_pesanan", name: "Pesanan Masuk", parent_key: "toko", status: "active", message: "" },
   { menu_key: "toko_keuangan", name: "Pengajuan Keuangan", parent_key: "toko", status: "active", message: "" },
+  { menu_key: "upgrade_toko", name: "Upgrade Toko", parent_key: "toko", status: "active", message: "" },
   { menu_key: "keamanan", name: "Keamanan Akun", parent_key: null, status: "active", message: "" }
 ];
 
@@ -32,9 +33,15 @@ exports.getMenuControls = async (req, res) => {
             ]
         });
         
-        if (menus.length === 0) {
-            // Seed default menus
-            await models.menu_controls.bulkCreate(DEFAULT_MENUS);
+        // Seed default menus if empty, or automatically append missing menus
+        const existingKeys = menus.map(m => m.menu_key);
+        const missingMenus = DEFAULT_MENUS.filter(m => !existingKeys.includes(m.menu_key)).map(m => ({
+            id: require('crypto').randomUUID(),
+            ...m
+        }));
+        
+        if (missingMenus.length > 0) {
+            await models.menu_controls.bulkCreate(missingMenus);
             menus = await models.menu_controls.findAll({
                 order: [
                     [sequelize.literal(`CASE WHEN parent_key IS NULL THEN 0 ELSE 1 END`), 'ASC'],

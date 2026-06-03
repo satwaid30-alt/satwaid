@@ -48,7 +48,7 @@ const OrdersController = {
                     {
                         model: models.shops,
                         as: 'shop',
-                        attributes: ['id', 'name', 'city', 'address', 'logo_url', 'whatsapp'],
+                        attributes: ['id', 'name', 'city', 'address', 'logo_url', 'whatsapp', 'shop_code'],
                         include: [
                             {
                                 model: models.users,
@@ -130,7 +130,7 @@ const OrdersController = {
                     {
                         model: models.shops,
                         as: 'shop',
-                        attributes: ['id', 'name', 'city', 'address', 'logo_url', 'whatsapp']
+                        attributes: ['id', 'name', 'city', 'address', 'logo_url', 'whatsapp', 'shop_code']
                     }
                 ],
                 order: [['created_at', 'DESC']]
@@ -224,7 +224,7 @@ const OrdersController = {
                     {
                         model: models.shops,
                         as: 'shop',
-                        attributes: ['id', 'name', 'city', 'address', 'logo_url', 'whatsapp'],
+                        attributes: ['id', 'name', 'city', 'address', 'logo_url', 'whatsapp', 'shop_code'],
                         include: [
                             {
                                 model: models.users,
@@ -678,23 +678,53 @@ const OrdersController = {
             const { order_id } = req.params;
             const { tracking_number, shipping_proof } = req.body;
 
-            const order = await models.orders.findByPk(order_id);
+            console.log(`[shipOrder] Called by user_data:`, req.user_data);
+            console.log(`[shipOrder] order_id: ${order_id}, tracking: ${tracking_number}`);
+
+            if (!tracking_number) {
+                return res.status(400).json({ message: 'Nomor resi wajib diisi' });
+            }
+
+            const order = await models.orders.findByPk(order_id, {
+                include: [
+                    {
+                        model: models.shops,
+                        as: 'shop',
+                        attributes: ['id', 'user_id']
+                    }
+                ]
+            });
             if (!order) return res.status(404).json({ message: 'Pesanan tidak ditemukan' });
+
+            // Validasi status: hanya bisa ship jika payment_verified atau waiting_shipment
+            const allowedStatuses = ['payment_verified', 'waiting_shipment'];
+            if (!allowedStatuses.includes(order.status)) {
+                return res.status(400).json({
+                    message: `Status pesanan tidak valid untuk pengiriman. Status saat ini: ${order.status}`
+                });
+            }
+
+            // Validasi kepemilikan: hanya seller toko ini yang bisa kirim
+            const callerUserId = req.user_data?.id || req.user_data?.user_id;
+            if (order.shop && order.shop.user_id !== callerUserId) {
+                console.warn(`[shipOrder] Unauthorized: caller ${callerUserId} is not owner ${order.shop.user_id}`);
+                return res.status(403).json({ message: 'Anda tidak memiliki akses untuk pesanan ini' });
+            }
 
             await order.update({
                 tracking_number: tracking_number || null,
                 shipping_proof: shipping_proof || null,
                 status: 'shipped',
-                shipped_at: new Date(),   // ← otomatis
+                shipped_at: new Date(),
                 updated_at: new Date()
             });
 
             emitOrderUpdated(req, order);
 
-            // Emit to Buyer
+            // Emit to Buyer & Admin
             const io = req.app.get('socketio');
             if (io) {
-                io.to('admin_room').emit('order_updated_admin', { order_id: order.order_id, status: order.status });
+                io.to('admin_room').emit('order_updated_admin', { order_id: order.order_id, status: 'shipped' });
                 io.to(`user_${order.user_id}`).emit('new_notification', {
                     type: 'order_buyer',
                     title: 'Pesanan Dikirim',
@@ -704,9 +734,8 @@ const OrdersController = {
                 });
 
                 // Emit to Seller
-                const shop = await models.shops.findByPk(order.shop_id);
-                if (shop) {
-                    io.to(`user_${shop.user_id}`).emit('new_notification', {
+                if (order.shop) {
+                    io.to(`user_${order.shop.user_id}`).emit('new_notification', {
                         type: 'order_seller',
                         title: 'Pesanan Telah Dikirim',
                         message: `Anda telah menandai pesanan ${order.order_id} sebagai dikirim.`,

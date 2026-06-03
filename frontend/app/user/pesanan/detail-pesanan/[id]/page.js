@@ -5,24 +5,7 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { io } from "socket.io-client";
 import { getApiUrl, getSocketUrl, getLogoUrl } from "@/app/utils/api";
-import {
-  Package,
-  Info,
-  MapPin,
-  Store,
-  ScrollText,
-  Truck,
-  CreditCard,
-  CheckCircle2,
-  Clock,
-  ShoppingCart,
-  ShoppingBag,
-  ChevronLeft,
-  XCircle,
-  Calendar,
-  MessageCircle,
-  AlertCircle,
-} from "lucide-react";
+import { Package, Info, MapPin, Store, ScrollText, Truck, CreditCard, CheckCircle2, Clock, ShoppingCart, ShoppingBag, ChevronLeft, XCircle, Calendar, MessageCircle, AlertCircle } from "lucide-react";
 import ShippingInfo from "@/components/ShippingInfo";
 import OrderStepper from "@/components/OrderStepper";
 import OrderTimeline from "@/components/OrderTimeline";
@@ -54,11 +37,11 @@ export default function OrderDetailPage({ params }) {
     if (userStr && source !== "cart") {
       try {
         const userData = JSON.parse(userStr);
-        const token = typeof window !== 'undefined' ? localStorage.getItem("token") : null;
+        const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
         socket = io(getSocketUrl(), {
           auth: {
-            token: token ? `Bearer ${token}` : null
-          }
+            token: token ? `Bearer ${token}` : null,
+          },
         });
         socket.emit("join_user", userData.id);
 
@@ -77,10 +60,7 @@ export default function OrderDetailPage({ params }) {
 
   const fetchOrderDetail = async () => {
     try {
-      const url =
-        source === "cart"
-          ? `${getApiUrl()}/cart/item/${id}`
-          : `${getApiUrl()}/orders/${id}`;
+      const url = source === "cart" ? `${getApiUrl()}/cart/item/${id}` : `${getApiUrl()}/orders/${id}`;
 
       const res = await fetch(url);
       const result = await res.json();
@@ -104,11 +84,7 @@ export default function OrderDetailPage({ params }) {
           });
         }
       } else {
-        alert(
-          source === "cart"
-            ? "Gagal memuat detail keranjang"
-            : "Gagal memuat detail pesanan",
-        );
+        alert(source === "cart" ? "Gagal memuat detail keranjang" : "Gagal memuat detail pesanan");
         router.push("/user/pesanan");
       }
     } catch (err) {
@@ -120,22 +96,14 @@ export default function OrderDetailPage({ params }) {
   };
 
   const handleCancelOrder = async () => {
-    if (
-      !window.confirm(
-        "Apakah Anda yakin ingin membatalkan pesanan ini? Stok produk akan dikembalikan ke penjual.",
-      )
-    )
-      return;
+    if (!window.confirm("Apakah Anda yakin ingin membatalkan pesanan ini? Stok produk akan dikembalikan ke penjual.")) return;
 
     try {
       const token = localStorage.getItem("token");
-      const response = await fetch(
-        `${getApiUrl()}/orders/${id}/cancel`,
-        {
-          method: "PUT",
-          headers: token ? { 'Authorization': `Bearer ${token}` } : {}
-        },
-      );
+      const response = await fetch(`${getApiUrl()}/orders/${id}/cancel`, {
+        method: "PUT",
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+      });
       if (response.ok) {
         alert("Pesanan berhasil dibatalkan");
         fetchOrderDetail();
@@ -153,17 +121,14 @@ export default function OrderDetailPage({ params }) {
     setIsUpdatingShipping(true);
     try {
       const token = localStorage.getItem("token");
-      const response = await fetch(
-        `${getApiUrl()}/orders/${id}/shipping-info`,
-        {
-          method: "PUT",
-          headers: { 
-            "Content-Type": "application/json",
-            "Authorization": token ? `Bearer ${token}` : ""
-          },
-          body: JSON.stringify(shippingForm),
+      const response = await fetch(`${getApiUrl()}/orders/${id}/shipping-info`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: token ? `Bearer ${token}` : "",
         },
-      );
+        body: JSON.stringify(shippingForm),
+      });
       if (response.ok) {
         setShowShippingModal(false);
         fetchOrderDetail();
@@ -186,32 +151,27 @@ export default function OrderDetailPage({ params }) {
     setIsProcessingCart(true);
     try {
       const token = localStorage.getItem("token");
-      const response = await fetch(
-        `${getApiUrl()}/orders`,
-        {
-          method: "POST",
-          headers: { 
-            "Content-Type": "application/json",
-            "Authorization": token ? `Bearer ${token}` : ""
-          },
-          body: JSON.stringify({
-            user_id: user.id,
-            listing_id: item.listing_id,
-            quantity: item.quantity,
-            from_cart: true,
-          }),
+      const response = await fetch(`${getApiUrl()}/orders`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: token ? `Bearer ${token}` : "",
         },
-      );
+        body: JSON.stringify({
+          user_id: user.id,
+          listing_id: item.listing_id,
+          quantity: item.quantity,
+          from_cart: true,
+        }),
+      });
 
       if (response.ok) {
         // Remove from cart after successful order
         await fetch(`${getApiUrl()}/cart/${item.id}`, {
           method: "DELETE",
-          headers: token ? { 'Authorization': `Bearer ${token}` } : {}
+          headers: token ? { Authorization: `Bearer ${token}` } : {},
         });
-        alert(
-          "Berhasil membuat pesanan! Silakan lengkapi data pengiriman Anda.",
-        );
+        alert("Berhasil membuat pesanan! Silakan lengkapi data pengiriman Anda.");
         router.push("/user/pesanan?tab=pending_shipping_info");
       } else {
         const err = await response.json();
@@ -246,6 +206,8 @@ export default function OrderDetailPage({ params }) {
       case "shipped":
         return "Dalam Pengiriman";
       case "completed":
+      case "disbursement_requested":
+      case "disbursed":
         return "Selesai";
       case "cancelled":
         return "Dibatalkan";
@@ -267,6 +229,8 @@ export default function OrderDetailPage({ params }) {
       case "shipped":
         return "bg-purple-500/10 text-purple-500 border-purple-500/20";
       case "completed":
+      case "disbursement_requested":
+      case "disbursed":
         return "bg-emerald-500/10 text-emerald-500 border-emerald-500/20";
       case "cancelled":
         return "bg-red-500/10 text-red-500 border-red-500/20";
@@ -276,24 +240,15 @@ export default function OrderDetailPage({ params }) {
   };
 
   const handleWhatsAppChat = () => {
-    const message = encodeURIComponent(
-      source === "cart"
-        ? `Halo ${order.shop?.name}, saya berminat dengan produk ${order.product?.name}. Apakah masih tersedia?`
-        : `Halo ${order.shop?.name}, saya berminat dengan produk ${order.product?.name} (Invoice: ${order.order_id}). Apakah masih tersedia?`,
-    );
-    window.open(
-      `https://wa.me/62${order.shop?.whatsapp || ""}?text=${message}`,
-      "_blank",
-    );
+    const message = encodeURIComponent(source === "cart" ? `Halo ${order.shop?.name}, saya berminat dengan produk ${order.product?.name}. Apakah masih tersedia?` : `Halo ${order.shop?.name}, saya berminat dengan produk ${order.product?.name} (Invoice: ${order.order_id}). Apakah masih tersedia?`);
+    window.open(`https://wa.me/62${order.shop?.whatsapp || ""}?text=${message}`, "_blank");
   };
 
   if (loading) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[600px] gap-4">
         <div className="w-12 h-12 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin"></div>
-        <p className="text-zinc-500 font-bold animate-pulse">
-          Memuat detail pesanan...
-        </p>
+        <p className="text-zinc-500 font-bold animate-pulse">Memuat detail pesanan...</p>
       </div>
     );
   }
@@ -304,22 +259,15 @@ export default function OrderDetailPage({ params }) {
     <div className="max-w-7xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700 pb-20">
       {/* Header Navigation */}
       <div className="flex items-center justify-between">
-        <Link
-          href="/user/pesanan"
-          className="flex items-center gap-2 text-zinc-400 hover:text-white transition-colors group"
-        >
+        <Link href="/user/pesanan/riwayat-pembelian" className="flex items-center gap-2 text-zinc-400 hover:text-white transition-colors group">
           <div className="w-8 h-8 rounded-lg bg-zinc-900 border border-zinc-800 flex items-center justify-center group-hover:bg-zinc-800 transition-all">
             <ChevronLeft size={18} />
           </div>
           <span className="text-sm font-bold">Kembali ke Pesanan</span>
         </Link>
         <div className="text-right">
-          <p className="text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-1">
-            {source === "cart" ? "Status" : "Nomor Invoice"}
-          </p>
-          <p className="text-sm font-black text-white">
-            {source === "cart" ? "Keranjang Belanja" : order.order_id}
-          </p>
+          <p className="text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-1">{source === "cart" ? "Status" : "Nomor Invoice"}</p>
+          <p className="text-sm font-black text-white">{source === "cart" ? "Keranjang Belanja" : order.order_id}</p>
         </div>
       </div>
 
@@ -327,35 +275,29 @@ export default function OrderDetailPage({ params }) {
         {/* Main Detail Section */}
         <div className="lg:col-span-8 space-y-8">
           {/* Status Header */}
-          {!["completed", "cancelled"].includes(order.status) && (
-            <OrderStepper order={order} className="mb-8" />
-          )}
+          {!["completed", "cancelled", "disbursement_requested", "disbursed"].includes(order.status) && <OrderStepper order={order} className="mb-8" />}
 
-          <div
-            className={`p-8 rounded-[2.5rem] border flex items-center justify-between ${source === "cart" ? "bg-zinc-800 text-zinc-400 border-zinc-700" : getStatusStyle(order.status)}`}
-          >
+          <div className={`p-4 md:p-8 rounded-2xl md:rounded-[2.5rem] border flex items-center justify-between ${source === "cart" ? "bg-zinc-800 text-zinc-400 border-zinc-700" : getStatusStyle(order.status)}`}>
             <div className="space-y-1">
-              <p className="text-[10px] font-black uppercase tracking-widest opacity-70">
-                Status Terkini
-              </p>
-              <h2 className="text-2xl font-black">
-                {source === "cart"
-                  ? "Dalam Keranjang"
-                  : getStatusLabel(order.status)}
-              </h2>
+              <p className="text-[9px] md:text-[10px] font-black uppercase tracking-widest opacity-70">Status Terkini</p>
+              <h2 className="text-base md:text-2xl font-black">{source === "cart" ? "Dalam Keranjang" : getStatusLabel(order.status)}</h2>
             </div>
-            <div className="w-16 h-16 bg-white/10 rounded-3xl flex items-center justify-center">
-              {order.status === "completed" ? (
-                <CheckCircle2 size={32} />
+            <div className="w-10 h-10 md:w-16 md:h-16 bg-white/10 rounded-xl md:rounded-3xl flex items-center justify-center shrink-0">
+              {["completed", "disbursement_requested", "disbursed"].includes(order.status) ? (
+                <>
+                  <CheckCircle2 size={20} className="md:hidden" />
+                  <CheckCircle2 size={32} className="hidden md:block" />
+                </>
               ) : (
-                <Clock size={32} />
+                <>
+                  <Clock size={20} className="md:hidden" />
+                  <Clock size={32} className="hidden md:block" />
+                </>
               )}
             </div>
           </div>
 
-          {source !== "cart" && (
-            <OrderTimeline order={order} formatPrice={formatPrice} />
-          )}
+          {source !== "cart" && <OrderTimeline order={order} formatPrice={formatPrice} />}
 
           {/* Product & Order Info */}
           <div className="bg-zinc-900 border border-zinc-800 rounded-[2.5rem] overflow-hidden">
@@ -364,16 +306,11 @@ export default function OrderDetailPage({ params }) {
                 {/* Image Carousel */}
                 <div className="space-y-4">
                   <h3 className="text-xs font-black text-zinc-500 uppercase tracking-widest flex items-center gap-2">
-                    <Package size={14} className="text-emerald-500" /> Foto
-                    Produk
+                    <Package size={14} className="text-emerald-500" /> Foto Produk
                   </h3>
                   <div className="bg-zinc-950 border border-zinc-800 rounded-3xl overflow-hidden relative aspect-square group">
                     {order.product?.images?.length > 0 ? (
-                      <img
-                        src={order.product.images[activeImageIndex]}
-                        className="w-full h-full object-cover transition-all duration-500"
-                        alt={order.product.name}
-                      />
+                      <img src={order.product.images[activeImageIndex]} className="w-full h-full object-cover transition-all duration-500" alt={order.product.name} />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center text-zinc-800">
                         <Package size={48} />
@@ -382,11 +319,7 @@ export default function OrderDetailPage({ params }) {
                     {order.product?.images?.length > 1 && (
                       <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-1.5 px-3 py-1.5 bg-zinc-950/50 backdrop-blur-md rounded-full border border-white/10">
                         {order.product.images.map((_, i) => (
-                          <div
-                            key={i}
-                            onClick={() => setActiveImageIndex(i)}
-                            className={`w-1.5 h-1.5 rounded-full transition-all cursor-pointer ${activeImageIndex === i ? "bg-emerald-500 w-3" : "bg-white/30"}`}
-                          ></div>
+                          <div key={i} onClick={() => setActiveImageIndex(i)} className={`w-1.5 h-1.5 rounded-full transition-all cursor-pointer ${activeImageIndex === i ? "bg-emerald-500 w-3" : "bg-white/30"}`}></div>
                         ))}
                       </div>
                     )}
@@ -397,50 +330,31 @@ export default function OrderDetailPage({ params }) {
                 <div className="space-y-8">
                   <div className="space-y-4">
                     <h3 className="text-xs font-black text-zinc-500 uppercase tracking-widest flex items-center gap-2">
-                      <Info size={14} className="text-emerald-500" /> Informasi
-                      Produk
+                      <Info size={14} className="text-emerald-500" /> Informasi Produk
                     </h3>
                     <div>
-                      <h4 className="text-2xl font-black text-white mb-3">
-                        {order.product?.name}
-                      </h4>
+                      <h4 className="text-2xl font-black text-white mb-3">{order.product?.name}</h4>
                       <div className="flex flex-wrap gap-2">
-                        <span className="px-3 py-1 bg-zinc-800 text-[10px] text-zinc-300 rounded-lg border border-zinc-700 font-bold uppercase tracking-wider">
-                          {order.product?.species}
-                        </span>
+                        <span className="px-3 py-1 bg-zinc-800 text-[10px] text-zinc-300 rounded-lg border border-zinc-700 font-bold uppercase tracking-wider">{order.product?.species}</span>
                         <span
                           className={`px-3 py-1 text-[10px] rounded-lg border font-bold uppercase tracking-wider ${order.product?.sex === "Male" ? "bg-blue-500/10 text-blue-400 border-blue-500/20" : order.product?.sex === "Female" ? "bg-pink-500/10 text-pink-400 border-pink-500/20" : "bg-zinc-500/10 text-zinc-400 border-zinc-500/20"}`}
                         >
                           {order.product?.sex || "Unsex"}
                         </span>
-                        <span className="px-3 py-1 bg-emerald-500/10 text-emerald-400 rounded-lg border border-emerald-500/20 text-[10px] font-bold uppercase tracking-wider">
-                          {order.product?.type === "sell"
-                            ? "Jual Langsung"
-                            : "Lelang"}
-                        </span>
-                        <span className="px-3 py-1 bg-zinc-800 text-[10px] text-zinc-400 rounded-lg border border-zinc-700 font-bold uppercase tracking-wider">
-                          ID Produk: {order.product?.product_id || "-"}
-                        </span>
+                        <span className="px-3 py-1 bg-emerald-500/10 text-emerald-400 rounded-lg border border-emerald-500/20 text-[10px] font-bold uppercase tracking-wider">{order.product?.type === "sell" ? "Jual Langsung" : "Lelang"}</span>
+                        <span className="px-3 py-1 bg-zinc-800 text-[10px] text-zinc-400 rounded-lg border border-zinc-700 font-bold uppercase tracking-wider">ID Produk: {order.product?.product_id || "-"}</span>
                       </div>
                     </div>
                   </div>
 
                   <div className="grid grid-cols-2 gap-4 pt-6 border-t border-zinc-800">
                     <div>
-                      <p className="text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-1">
-                        Harga Satuan
-                      </p>
-                      <p className="text-lg font-black text-emerald-500">
-                        {formatPrice(order.price)}
-                      </p>
+                      <p className="text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-1">Harga Satuan</p>
+                      <p className="text-lg font-black text-emerald-500">{formatPrice(order.price)}</p>
                     </div>
                     <div>
-                      <p className="text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-1">
-                        Jumlah
-                      </p>
-                      <p className="text-lg font-black text-white">
-                        {order.quantity} Item
-                      </p>
+                      <p className="text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-1">Jumlah</p>
+                      <p className="text-lg font-black text-white">{order.quantity} Item</p>
                     </div>
                   </div>
 
@@ -450,40 +364,20 @@ export default function OrderDetailPage({ params }) {
                       <Truck size={20} />
                     </div>
                     <div>
-                      <p className="text-[9px] font-black text-zinc-500 uppercase tracking-widest leading-none mb-1">
-                        Jangkauan Pengiriman
-                      </p>
-                      <p className="text-sm font-black text-white">
-                        {order.product?.shipping_type || "Tidak ditentukan"}
-                      </p>
+                      <p className="text-[9px] font-black text-zinc-500 uppercase tracking-widest leading-none mb-1">Jangkauan Pengiriman</p>
+                      <p className="text-sm font-black text-white">{order.product?.shipping_type || "Tidak ditentukan"}</p>
                     </div>
                   </div>
 
                   <div className="p-6 bg-zinc-950/30 rounded-3xl border border-zinc-800 space-y-4">
                     <div className="flex items-center gap-4">
-                      <div className="w-12 h-12 bg-zinc-800 rounded-xl flex items-center justify-center text-emerald-500 shrink-0 border border-zinc-700 overflow-hidden">
-                        {order.shop?.logo_url ? (
-                          <img
-                            src={getLogoUrl(order.shop.logo_url)}
-                            className="w-full h-full object-cover"
-                          />
-                        ) : (
-                          <Store size={24} />
-                        )}
-                      </div>
+                      <div className="w-12 h-12 bg-zinc-800 rounded-xl flex items-center justify-center text-emerald-500 shrink-0 border border-zinc-700 overflow-hidden">{order.shop?.logo_url ? <img src={getLogoUrl(order.shop.logo_url)} className="w-full h-full object-cover" /> : <Store size={24} />}</div>
                       <div className="flex-1 min-w-0">
-                        <p className="text-xs font-black text-zinc-500 uppercase tracking-widest mb-0.5">
-                          Penjual
-                        </p>
-                        <p className="text-sm font-black text-white truncate">
-                          {order.shop?.name}
-                        </p>
+                        <p className="text-xs font-black text-zinc-500 uppercase tracking-widest mb-0.5">Penjual</p>
+                        <p className="text-sm font-black text-white truncate">{order.shop?.name}</p>
                       </div>
                     </div>
-                    <button
-                      onClick={handleWhatsAppChat}
-                      className="w-full py-3 bg-emerald-500/10 hover:bg-emerald-500 text-emerald-500 hover:text-zinc-950 text-xs font-black rounded-xl transition-all border border-emerald-500/20 flex items-center justify-center gap-2"
-                    >
+                    <button onClick={handleWhatsAppChat} className="w-full py-3 bg-emerald-500/10 hover:bg-emerald-500 text-emerald-500 hover:text-zinc-950 text-xs font-black rounded-xl transition-all border border-emerald-500/20 flex items-center justify-center gap-2">
                       <MessageCircle size={14} /> Chat Penjual
                     </button>
                   </div>
@@ -506,8 +400,7 @@ export default function OrderDetailPage({ params }) {
                   <div
                     className="text-sm text-zinc-400 leading-relaxed description-content font-medium prose prose-invert max-w-none"
                     dangerouslySetInnerHTML={{
-                      __html:
-                        order.product?.description || "Tidak ada deskripsi.",
+                      __html: order.product?.description || "Tidak ada deskripsi.",
                     }}
                   ></div>
                 </div>
@@ -524,9 +417,7 @@ export default function OrderDetailPage({ params }) {
                   <div
                     className="text-sm text-zinc-400 leading-relaxed description-content font-medium prose prose-invert max-w-none"
                     dangerouslySetInnerHTML={{
-                      __html:
-                        order.product?.shipping_description ||
-                        "Tidak ada informasi pengiriman.",
+                      __html: order.product?.shipping_description || "Tidak ada informasi pengiriman.",
                     }}
                   ></div>
                 </div>
@@ -540,58 +431,31 @@ export default function OrderDetailPage({ params }) {
           {/* Cost Summary */}
           <div className="bg-zinc-900 border border-zinc-800 rounded-[2.5rem] p-8 lg:p-10 space-y-8">
             <h3 className="text-xs font-black text-zinc-500 uppercase tracking-widest flex items-center gap-2">
-              <CreditCard size={14} className="text-emerald-500" /> Ringkasan
-              Biaya
+              <CreditCard size={14} className="text-emerald-500" /> Ringkasan Biaya
             </h3>
             <div className="space-y-4">
               <div className="flex justify-between text-sm">
-                <span className="text-zinc-400 font-medium">
-                  Subtotal Produk
-                </span>
-                <span className="text-white font-bold">
-                  {formatPrice(order.price * order.quantity)}
-                </span>
+                <span className="text-zinc-400 font-medium">Subtotal Produk</span>
+                <span className="text-white font-bold">{formatPrice(order.price * order.quantity)}</span>
               </div>
               <div className="flex justify-between text-sm">
                 <span className="text-zinc-400 font-medium">Biaya Kirim</span>
-                <span className="text-white font-black">
-                  {order.shipping_cost > 0 ? (
-                    formatPrice(order.shipping_cost)
-                  ) : order.product?.is_free_shipping ? (
-                    <span className="text-emerald-500">Gratis</span>
-                  ) : (
-                    formatPrice(0)
-                  )}
-                </span>
+                <span className="text-white font-black">{order.shipping_cost > 0 ? formatPrice(order.shipping_cost) : order.product?.is_free_shipping ? <span className="text-emerald-500">Gratis</span> : formatPrice(0)}</span>
               </div>
               <div className="flex justify-between text-sm">
                 <span className="text-zinc-400 font-medium">Biaya Packing</span>
-                <span className="text-white font-black">
-                  {order.packing_cost > 0 ? (
-                    formatPrice(order.packing_cost)
-                  ) : order.product?.is_free_packing ? (
-                    <span className="text-emerald-500">Gratis</span>
-                  ) : (
-                    formatPrice(0)
-                  )}
-                </span>
+                <span className="text-white font-black">{order.packing_cost > 0 ? formatPrice(order.packing_cost) : order.product?.is_free_packing ? <span className="text-emerald-500">Gratis</span> : formatPrice(0)}</span>
               </div>
               <div className="h-px bg-zinc-800 my-6"></div>
               <div className="flex justify-between items-center">
                 <span className="text-white font-black">Total Bayar</span>
-                <span className="text-3xl font-black text-emerald-500 tracking-tighter">
-                  {formatPrice(order.total_price)}
-                </span>
+                <span className="text-3xl font-black text-emerald-500 tracking-tighter">{formatPrice(order.total_price)}</span>
               </div>
             </div>
 
             <div className=" space-y-3">
               {source === "cart" && (
-                <button
-                  onClick={() => handleCheckoutCart(order)}
-                  disabled={isProcessingCart}
-                  className="w-full py-4 bg-emerald-500 hover:bg-emerald-400 text-zinc-950 rounded-2xl text-sm font-black transition-all active:scale-[0.98] flex items-center justify-center gap-2 disabled:opacity-50"
-                >
+                <button onClick={() => handleCheckoutCart(order)} disabled={isProcessingCart} className="w-full py-4 bg-emerald-500 hover:bg-emerald-400 text-zinc-950 rounded-2xl text-sm font-black transition-all active:scale-[0.98] flex items-center justify-center gap-2 disabled:opacity-50">
                   {isProcessingCart ? (
                     <div className="w-5 h-5 border-2 border-zinc-950 border-t-transparent rounded-full animate-spin"></div>
                   ) : (
@@ -601,11 +465,7 @@ export default function OrderDetailPage({ params }) {
                   )}
                 </button>
               )}
-              {order.status === "waiting_payment" && (
-                <button className="w-full py-4 bg-emerald-500 hover:bg-emerald-400 text-zinc-950 rounded-2xl text-sm font-black transition-all active:scale-[0.98]">
-                  Bayar Sekarang
-                </button>
-              )}
+              {order.status === "waiting_payment" && <button className="w-full py-4 bg-emerald-500 hover:bg-emerald-400 text-zinc-950 rounded-2xl text-sm font-black transition-all active:scale-[0.98]">Bayar Sekarang</button>}
             </div>
           </div>
 
@@ -613,38 +473,24 @@ export default function OrderDetailPage({ params }) {
           {source !== "cart" && (
             <div className="bg-zinc-900 border border-zinc-800 rounded-[2.5rem] p-8 lg:p-10 space-y-6">
               <h3 className="text-xs font-black text-zinc-500 uppercase tracking-widest flex items-center gap-2">
-                <MapPin size={14} className="text-emerald-500" /> Informasi
-                Pengiriman
+                <MapPin size={14} className="text-emerald-500" /> Informasi Pengiriman
               </h3>
               {order.shipping_address ? (
                 <div className="space-y-4">
                   <div className="p-5 bg-zinc-950/50 rounded-2xl border border-zinc-800">
-                    <p className="text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-2">
-                      Penerima
-                    </p>
-                    <p className="text-sm text-white font-bold">
-                      {order.receiver_name}
-                    </p>
-                    <p className="text-xs text-zinc-500 mt-1">
-                      {order.phone_number}
-                    </p>
+                    <p className="text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-2">Penerima</p>
+                    <p className="text-sm text-white font-bold">{order.receiver_name}</p>
+                    <p className="text-xs text-zinc-500 mt-1">{order.phone_number}</p>
                   </div>
                   <div className="p-5 bg-zinc-950/50 rounded-2xl border border-zinc-800">
-                    <p className="text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-2">
-                      Alamat Lengkap
-                    </p>
-                    <p className="text-sm text-zinc-300 leading-relaxed font-medium">
-                      {order.shipping_address}
-                    </p>
+                    <p className="text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-2">Alamat Lengkap</p>
+                    <p className="text-sm text-zinc-300 leading-relaxed font-medium">{order.shipping_address}</p>
                   </div>
                 </div>
               ) : (
                 <div className="p-8 text-center bg-zinc-950/50 rounded-3xl border border-dashed border-zinc-800 space-y-4">
                   <MapPin size={32} className="mx-auto text-zinc-700" />
-                  <p className="text-xs text-zinc-500 font-medium">
-                    Alamat belum dilengkapi. Silakan lengkapi untuk memproses
-                    pesanan.
-                  </p>
+                  <p className="text-xs text-zinc-500 font-medium">Alamat belum dilengkapi. Silakan lengkapi untuk memproses pesanan.</p>
                 </div>
               )}
             </div>
@@ -655,29 +501,20 @@ export default function OrderDetailPage({ params }) {
       {/* Shipping Modal */}
       {showShippingModal && (
         <div className="fixed inset-0 z-[150] flex items-center justify-center p-4">
-          <div
-            className="absolute inset-0 bg-zinc-950/80 backdrop-blur-md animate-in fade-in duration-300"
-            onClick={() => setShowShippingModal(false)}
-          ></div>
+          <div className="absolute inset-0 bg-zinc-950/80 backdrop-blur-md animate-in fade-in duration-300" onClick={() => setShowShippingModal(false)}></div>
           <div className="bg-zinc-900 border border-zinc-800 w-full max-w-lg rounded-[2.5rem] relative z-10 overflow-hidden animate-in zoom-in-95 duration-300">
             <div className="p-8 space-y-8">
               <div className="text-center space-y-2">
                 <div className="w-16 h-16 bg-emerald-500/10 text-emerald-500 rounded-2xl flex items-center justify-center mx-auto mb-4">
                   <MapPin size={32} />
                 </div>
-                <h3 className="text-2xl font-black text-white">
-                  Data Pengiriman
-                </h3>
-                <p className="text-zinc-500 font-medium">
-                  Lengkapi alamat untuk menghitung ongkos kirim
-                </p>
+                <h3 className="text-2xl font-black text-white">Data Pengiriman</h3>
+                <p className="text-zinc-500 font-medium">Lengkapi alamat untuk menghitung ongkos kirim</p>
               </div>
 
               <form onSubmit={handleShippingSubmit} className="space-y-4">
                 <div className="space-y-2">
-                  <label className="text-xs font-black text-zinc-500 uppercase tracking-widest ml-1">
-                    Nama Penerima
-                  </label>
+                  <label className="text-xs font-black text-zinc-500 uppercase tracking-widest ml-1">Nama Penerima</label>
                   <input
                     required
                     type="text"
@@ -693,9 +530,7 @@ export default function OrderDetailPage({ params }) {
                   />
                 </div>
                 <div className="space-y-2">
-                  <label className="text-xs font-black text-zinc-500 uppercase tracking-widest ml-1">
-                    Nomor WhatsApp
-                  </label>
+                  <label className="text-xs font-black text-zinc-500 uppercase tracking-widest ml-1">Nomor WhatsApp</label>
                   <input
                     required
                     type="tel"
@@ -711,9 +546,7 @@ export default function OrderDetailPage({ params }) {
                   />
                 </div>
                 <div className="space-y-2">
-                  <label className="text-xs font-black text-zinc-500 uppercase tracking-widest ml-1">
-                    Alamat Lengkap
-                  </label>
+                  <label className="text-xs font-black text-zinc-500 uppercase tracking-widest ml-1">Alamat Lengkap</label>
                   <textarea
                     required
                     rows={3}
@@ -730,18 +563,10 @@ export default function OrderDetailPage({ params }) {
                 </div>
 
                 <div className="flex gap-4 pt-4">
-                  <button
-                    type="button"
-                    onClick={() => setShowShippingModal(false)}
-                    className="flex-1 py-4 bg-zinc-800 hover:bg-zinc-700 text-white font-black rounded-2xl transition-all"
-                  >
+                  <button type="button" onClick={() => setShowShippingModal(false)} className="flex-1 py-4 bg-zinc-800 hover:bg-zinc-700 text-white font-black rounded-2xl transition-all">
                     Batal
                   </button>
-                  <button
-                    type="submit"
-                    disabled={isUpdatingShipping}
-                    className="flex-1 py-4 bg-emerald-500 hover:bg-emerald-400 text-zinc-950 font-black rounded-2xl transition-all disabled:opacity-50"
-                  >
+                  <button type="submit" disabled={isUpdatingShipping} className="flex-1 py-4 bg-emerald-500 hover:bg-emerald-400 text-zinc-950 font-black rounded-2xl transition-all disabled:opacity-50">
                     {isUpdatingShipping ? "Menyimpan..." : "Simpan & Lanjut"}
                   </button>
                 </div>

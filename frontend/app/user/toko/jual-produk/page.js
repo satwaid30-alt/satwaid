@@ -17,6 +17,8 @@ import {
     ScrollText, ArrowLeft
 } from "lucide-react";
 import { getApiUrl } from "@/app/utils/api";
+import QuotaCard from "@/components/QuotaCard";
+import { useShopQuota } from "@/hooks/useShopQuota";
 
 // Import ReactQuill dynamically to avoid SSR errors
 const ReactQuill = dynamic(() => import("react-quill-new"), { ssr: false });
@@ -37,6 +39,13 @@ const quillFormats = [
     'list',
     'blockquote', 'code-block'
 ];
+
+const formatRupiah = (value) => {
+    if (value === null || value === undefined) return "";
+    const clean = value.toString().replace(/\D/g, "");
+    if (!clean) return "";
+    return new Intl.NumberFormat("id-ID").format(parseInt(clean, 10));
+};
 
 const initialReptileData = {
     name: "",
@@ -61,6 +70,8 @@ export default function JualProdukPage() {
     const [showSuccessModal, setShowSuccessModal] = useState(false);
     const [showErrorModal, setShowErrorModal] = useState(false);
     const [showRules, setShowRules] = useState(false);
+    const [shopId, setShopId] = useState(null);
+    const { quota, loading: quotaLoading } = useShopQuota(shopId);
 
     const [reptileData, setReptileData] = useState({ ...initialReptileData });
     const [isAgreed, setIsAgreed] = useState(false);
@@ -86,6 +97,7 @@ export default function JualProdukPage() {
                         if (res.data) {
                             setHasShop(true);
                             setShopStatus(res.data.status);
+                            setShopId(res.data.id);
                             // Pre-fill shipping policies from shop profile
                             setReptileData(prev => ({
                                 ...prev,
@@ -136,15 +148,19 @@ export default function JualProdukPage() {
                 ...reptileData,
                 type: "sell",
                 user_id: userData.id,
-                price: (reptileData.price || null),
+                price: reptileData.price ? parseInt(reptileData.price.toString().replace(/\D/g, ""), 10) : null,
                 start_bid: null,
                 multiple: null,
                 end_date: null,
             };
 
+            const token = typeof window !== 'undefined' ? localStorage.getItem("token") : null;
             const response = await fetch(`${getApiUrl()}/listings`, {
                 method: "POST",
-                headers: { "Content-Type": "application/json" },
+                headers: { 
+                    "Content-Type": "application/json",
+                    "Authorization": token ? `Bearer ${token}` : ""
+                },
                 body: JSON.stringify(payload)
             });
 
@@ -154,6 +170,7 @@ export default function JualProdukPage() {
                 setSuccessMessage("Berhasil memasang jualan!");
                 setShowSuccessModal(true);
                 resetForm();
+                window.dispatchEvent(new CustomEvent("sync_quota"));
             } else {
                 alert(result.message || "Gagal memasang iklan");
             }
@@ -221,8 +238,8 @@ export default function JualProdukPage() {
         <div className="min-h-screen bg-zinc-950">
             <div className="max-w-5xl mx-auto py-6 sm:py-10 px-0 sm:px-6 lg:px-8 space-y-6 sm:space-y-10">
                 {/* Header */}
-                <div className="px-4 sm:px-0 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-                    <div>
+                <div className="px-0 sm:px-0 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                    <div className="px-4 sm:px-0">
                         <Link
                             href="/user/toko"
                             className="inline-flex items-center gap-2 text-zinc-500 hover:text-white transition-all mb-3 group font-black text-[10px] uppercase tracking-widest"
@@ -244,6 +261,26 @@ export default function JualProdukPage() {
                     </Link>
                 </div>
 
+                {/* Quota Card */}
+                <div className="px-0 sm:px-0">
+                    <QuotaCard quota={quota} loading={quotaLoading} />
+                </div>
+
+                {/* Blocked state if quota is full */}
+                {quota && quota.remaining === 0 && (
+                    <div className="px-4 sm:px-0 bg-red-500/10 border border-red-500/20 rounded-2xl p-6 text-center space-y-3">
+                        <AlertCircle size={32} className="text-red-400 mx-auto" />
+                        <h3 className="text-lg font-black text-white">Kuota Produk Penuh</h3>
+                        <p className="text-zinc-400 text-sm">Anda telah mencapai batas 500 listing. Hapus beberapa iklan lama untuk dapat menambah produk baru.</p>
+                        <Link href="/user/toko/daftar-produk" className="inline-flex items-center gap-2 px-6 py-3 bg-zinc-800 hover:bg-zinc-700 text-white font-black rounded-xl transition-all">
+                            Kelola Daftar Produk
+                        </Link>
+                    </div>
+                )}
+
+                {/* Regulations + Form: only show when quota is available */}
+                {(!quota || quota.remaining > 0) && (
+                <>
                 {/* Regulations Section */}
                 <div className="bg-amber-500/10 border border-amber-500/20 rounded-2xl sm:rounded-3xl overflow-hidden">
                     <button
@@ -493,12 +530,13 @@ export default function JualProdukPage() {
                                     <div className="relative">
                                         <span className="absolute left-5 top-1/2 -translate-y-1/2 text-zinc-600 font-black">Rp</span>
                                         <input
-                                            type="number"
+                                            type="text"
+                                            inputMode="numeric"
                                             required
-                                            placeholder="Contoh: 1500000"
+                                            placeholder="Contoh: 1.500.000"
                                             className="w-full bg-zinc-950 border border-zinc-800 text-white rounded-2xl pl-14 pr-5 py-4 focus:outline-none focus:border-emerald-500 transition-all font-bold placeholder:text-zinc-700"
                                             value={reptileData.price}
-                                            onChange={(e) => setReptileData({ ...reptileData, price: e.target.value })}
+                                            onChange={(e) => setReptileData({ ...reptileData, price: formatRupiah(e.target.value) })}
                                         />
                                     </div>
                                     <div className="px-1 py-1">
@@ -624,7 +662,7 @@ export default function JualProdukPage() {
                                             onChange={(e) => {
                                                 const file = e.target.files[0];
                                                 if (!file) return;
-                                                if (file.size > 500 * 1024) {
+                                                if (file.size > 1 * 1024 * 1024) {
                                                     setShowErrorModal(true);
                                                     return;
                                                 }
@@ -648,7 +686,7 @@ export default function JualProdukPage() {
                             </div>
                             <div className="px-1">
                                 <p className="text-[11px] font-bold text-amber-500/80 italic">
-                                    * Ukuran foto maksimal 500KB per file. Pastikan foto jelas dan terang (Maks 3 Foto).
+                                    * Ukuran foto maksimal 1MB per file. Pastikan foto jelas dan terang (Maks 3 Foto).
                                 </p>
                             </div>
                         </div>
@@ -735,7 +773,7 @@ export default function JualProdukPage() {
                             </div>
                             <h3 className="text-3xl font-black text-white mb-4">File Terlalu Besar!</h3>
                             <p className="text-zinc-400 mb-10 leading-relaxed font-medium">
-                                Ukuran foto tidak boleh melebihi <span className="text-red-500 font-black">500KB</span>. Silakan kompres foto Anda.
+                                Ukuran foto tidak boleh melebihi <span className="text-red-500 font-black">1MB</span>. Silakan kompres foto Anda.
                             </p>
                             <button
                                 onClick={() => setShowErrorModal(false)}
@@ -790,6 +828,8 @@ export default function JualProdukPage() {
                     display: inline !important;
                 }
             `}</style>
+            </>
+            )}
             </div>
         </div>
     );

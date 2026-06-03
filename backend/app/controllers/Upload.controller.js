@@ -10,6 +10,11 @@ module.exports.uploadImage = async (req, res, next) => {
 
         const image = req.files.image;
         
+        // Validate file size (Max 1MB)
+        if (image.size > 1 * 1024 * 1024) {
+            return res.status(400).json({ message: "Ukuran file tidak boleh melebihi 1MB" });
+        }
+
         // Ensure upload directory exists
         const uploadDir = path.join(__dirname, '../../public/uploads');
         if (!fs.existsSync(uploadDir)) {

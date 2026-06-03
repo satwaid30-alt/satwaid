@@ -87,6 +87,10 @@ export default function AuctionDetailPage({ params }) {
             const res = await fetch(`${getApiUrl()}/listings/${id}`);
             const result = await res.json();
             if (res.ok && result.data) {
+                if (result.data.status?.toLowerCase() === 'history') {
+                    router.replace("/user/toko/daftar-produk");
+                    return;
+                }
                 // If it is actually a sell listing, redirect to the normal detail page
                 if (result.data.type !== 'auction') {
                     router.replace(`/user/toko/daftar-produk/detail/${id}`);

@@ -67,9 +67,13 @@ export default function AdminUsersPage() {
         setIsResetting(true);
         setResetError("");
         try {
+            const token = localStorage.getItem("admin_token");
             const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/users/reset-password/${resetTarget.id}`, {
                 method: "PUT",
-                headers: { "Content-Type": "application/json"},
+                headers: { 
+                    "Content-Type": "application/json",
+                    Authorization: token ? `Bearer ${token}` : ""
+                },
                 body: JSON.stringify({ new_password: newPassword })
             });
             const data = await res.json();
@@ -108,9 +112,13 @@ export default function AdminUsersPage() {
         setIsUpdatingEmail(true);
         setEmailError("");
         try {
+            const token = localStorage.getItem("admin_token");
             const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/users/email/${emailTarget.id}`, {
                 method: "PUT",
-                headers: { "Content-Type": "application/json"},
+                headers: { 
+                    "Content-Type": "application/json",
+                    Authorization: token ? `Bearer ${token}` : ""
+                },
                 body: JSON.stringify({ new_email: newEmail })
             });
             const data = await res.json();
@@ -144,8 +152,12 @@ export default function AdminUsersPage() {
         setIsDeleting(true);
         setDeleteError("");
         try {
+            const token = localStorage.getItem("admin_token");
             const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/users/${deleteTarget.id}`, {
-                method: "DELETE"
+                method: "DELETE",
+                headers: {
+                    Authorization: token ? `Bearer ${token}` : ""
+                }
             });
             const data = await res.json();
             if (res.ok) {
@@ -164,7 +176,12 @@ export default function AdminUsersPage() {
     useEffect(() => {
         const fetchUsers = async () => {
             try {
-                const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/users`);
+                const token = localStorage.getItem("admin_token");
+                const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/users`, {
+                    headers: {
+                        Authorization: token ? `Bearer ${token}` : ""
+                    }
+                });
                 const result = await response.json();
                 if (response.ok) {
                     setUsers(result.data);
