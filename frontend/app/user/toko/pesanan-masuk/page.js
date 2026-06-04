@@ -32,7 +32,6 @@ export default function PesananMasukPage() {
   const [isCancelling, setIsCancelling] = useState(false);
   const [selectedImage, setSelectedImage] = useState(null);
   const [expandedComplaints, setExpandedComplaints] = useState({});
-
   const shopIdRef = useRef(null);
 
   const toggleComplaint = (orderId) => {
@@ -45,6 +44,8 @@ export default function PesananMasukPage() {
   useEffect(() => {
     shopIdRef.current = shop?.id;
   }, [shop?.id]);
+
+
 
   useEffect(() => {
     const userData = localStorage.getItem("user");
@@ -427,7 +428,17 @@ export default function PesananMasukPage() {
                     </span>
                   </div>
                 </div>
-                <div className={`px-4 py-1.5 rounded-xl border text-[9px] font-black uppercase tracking-widest self-start sm:self-auto ${getStatusStyle(order.status)}`}>{getStatusLabel(order.status)}</div>
+                <div className="flex flex-wrap items-center gap-2 self-start sm:self-auto">
+                  <div className={`px-4 py-1.5 rounded-xl border text-[9px] font-black uppercase tracking-widest ${getStatusStyle(order.status)}`}>
+                    {getStatusLabel(order.status)}
+                  </div>
+                  {order.status === "waiting_payment" && order.payment_rejection_reason && (
+                    <div className="px-4 py-1.5 rounded-xl border text-[9px] font-black uppercase tracking-widest bg-red-500/10 text-red-400 border-red-500/20 flex items-center gap-1">
+                      <AlertCircle size={10} className="shrink-0" />
+                      Pembayaran Ditolak Admin
+                    </div>
+                  )}
+                </div>
               </div>
 
               {/* Order Stepper */}
@@ -504,96 +515,68 @@ export default function PesananMasukPage() {
                   </div>
                 </div>
 
-                {/* Two-Column Internal Grid (Billing & Shipping) */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 items-start">
-                  {/* Left Column: Billing Details (Receipt) */}
-                  <div className="space-y-3">
-                    <div className="flex items-center gap-2 text-zinc-500">
-                      <DollarSign size={12} className="text-emerald-500" />
-                      <span className="text-[8px] font-black uppercase tracking-widest">Rincian Biaya</span>
+                {/* Billing Details (Receipt) & Actions */}
+                <div className="w-full space-y-3">
+                  <div className="flex items-center gap-2 text-zinc-500">
+                    <DollarSign size={12} className="text-emerald-500" />
+                    <span className="text-[8px] font-black uppercase tracking-widest">Rincian Biaya</span>
+                  </div>
+                  <div className="bg-zinc-950/40 rounded-2xl p-3.5 border border-zinc-800/40 space-y-2">
+                    <div className="flex justify-between items-center group/cost">
+                      <span className="text-[8px] font-bold text-zinc-500 uppercase tracking-tight">Harga Produk</span>
+                      <span className="text-[10px] font-black text-zinc-300 group-hover/cost:text-white transition-colors">{formatPrice(order.price * order.quantity)}</span>
                     </div>
-                    <div className="bg-zinc-950/40 rounded-2xl p-3.5 border border-zinc-800/40 space-y-2">
-                      <div className="flex justify-between items-center group/cost">
-                        <span className="text-[8px] font-bold text-zinc-500 uppercase tracking-tight">Harga Produk</span>
-                        <span className="text-[10px] font-black text-zinc-300 group-hover/cost:text-white transition-colors">{formatPrice(order.price * order.quantity)}</span>
-                      </div>
-                      <div className="flex justify-between items-center group/cost">
-                        <span className="text-[8px] font-bold text-zinc-500 uppercase tracking-tight">Biaya Admin</span>
-                        <span className="text-[10px] font-black text-zinc-300 group-hover/cost:text-white transition-colors">+{formatPrice(order.admin_fee || 5000)}</span>
-                      </div>
-                      <div className="flex justify-between items-center group/cost">
-                        <span className="text-[8px] font-bold text-zinc-500 uppercase tracking-tight">Ongkos Kirim</span>
-                        <span className="text-[10px] font-black text-zinc-300 group-hover/cost:text-white transition-colors">{order.product?.is_free_shipping ? <span className="text-emerald-500 uppercase text-[8px] font-black">Gratis</span> : `+${formatPrice(order.shipping_cost || 0)}`}</span>
-                      </div>
-                      <div className="flex justify-between items-center group/cost">
-                        <span className="text-[8px] font-bold text-zinc-500 uppercase tracking-tight">Biaya Packing</span>
-                        <span className="text-[10px] font-black text-zinc-300 group-hover/cost:text-white transition-colors">{order.product?.is_free_packing ? <span className="text-emerald-500 uppercase text-[8px] font-black">Gratis</span> : `+${formatPrice(order.packing_cost || 0)}`}</span>
-                      </div>
-                      <div className="h-px bg-gradient-to-r from-transparent via-zinc-800 to-transparent my-1"></div>
-                      <div className="flex justify-between items-center pt-0.5">
-                        <span className="text-[8px] font-black text-emerald-500 uppercase tracking-[0.2em]">Total Tagihan</span>
-                        <span className="text-xs md:text-sm font-black text-white tracking-tighter">{formatPrice(order.total_price)}</span>
-                      </div>
+                    <div className="flex justify-between items-center group/cost">
+                      <span className="text-[8px] font-bold text-zinc-500 uppercase tracking-tight">Biaya Admin</span>
+                      <span className="text-[10px] font-black text-zinc-300 group-hover/cost:text-white transition-colors">+{formatPrice(order.admin_fee || 5000)}</span>
                     </div>
-
-                    {/* Actions and CTAs inside Left Column */}
-                    <div className="space-y-2 pt-1">
-                      {order.status === "waiting_shipping_cost" && (
-                        <Link href={`/user/toko/pesanan-masuk/biaya-kirim/${order.id}`} className="w-full py-2 bg-emerald-500 hover:bg-emerald-400 text-zinc-950 rounded-xl transition-all font-black text-[9px] uppercase tracking-widest text-center active:scale-95 block">
-                          Input Ongkir
-                        </Link>
-                      )}
-                      {["waiting_shipment", "payment_verified"].includes(order.status) && (
-                        <Link href={`/user/toko/pesanan-masuk/pengiriman/${order.id}`} className="w-full py-2.5 bg-blue-500 hover:bg-blue-400 text-zinc-950 rounded-xl transition-all font-black text-[9px] uppercase tracking-widest text-center active:scale-95 block">
-                          Input Resi
-                        </Link>
-                      )}
-                      <div className="grid grid-cols-2 gap-2">
-                        <Link
-                          href={`/user/toko/pesanan-masuk/detail/${order.id}`}
-                          className="py-2 bg-emerald-500/10 hover:bg-emerald-500 text-emerald-400 hover:text-zinc-950 rounded-xl transition-all font-black text-[8px] uppercase tracking-widest text-center border border-emerald-500/20 hover:border-emerald-400 flex items-center justify-center gap-1"
-                        >
-                          <CheckCircle2 size={10} /> Proses
-                        </Link>
-                        <a
-                          href={`https://wa.me/${order.phone_number?.replace(/^0/, "62")}?text=Halo ${order.user?.username}, saya penjual dari toko ${shop?.name}. Terkait pesanan ${order.order_id}, ...`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="py-2 bg-zinc-800/50 hover:bg-zinc-800 text-white rounded-xl transition-all font-black text-[8px] uppercase tracking-widest text-center border border-zinc-800 flex items-center justify-center gap-1 hover:border-zinc-700"
-                        >
-                          <MessageCircle size={10} className="text-emerald-500" /> WA Pembeli
-                        </a>
-                      </div>
-                      {!["cancelled", "completed", "shipped", "complained"].includes(order.status) && (
-                        <button onClick={() => setCancellingOrder(order)} className="w-full py-2 bg-red-500/5 hover:bg-red-500 hover:text-white text-red-500 rounded-xl transition-all font-black text-[8px] uppercase tracking-widest text-center border border-red-500/10 hover:border-red-500/20 flex items-center justify-center gap-1">
-                          <XCircle size={10} /> Batalkan Transaksi
-                        </button>
-                      )}
+                    <div className="flex justify-between items-center group/cost">
+                      <span className="text-[8px] font-bold text-zinc-500 uppercase tracking-tight">Ongkos Kirim</span>
+                      <span className="text-[10px] font-black text-zinc-300 group-hover/cost:text-white transition-colors">{order.product?.is_free_shipping ? <span className="text-emerald-500 uppercase text-[8px] font-black">Gratis</span> : `+${formatPrice(order.shipping_cost || 0)}`}</span>
+                    </div>
+                    <div className="flex justify-between items-center group/cost">
+                      <span className="text-[8px] font-bold text-zinc-500 uppercase tracking-tight">Biaya Packing</span>
+                      <span className="text-[10px] font-black text-zinc-300 group-hover/cost:text-white transition-colors">{order.product?.is_free_packing ? <span className="text-emerald-500 uppercase text-[8px] font-black">Gratis</span> : `+${formatPrice(order.packing_cost || 0)}`}</span>
+                    </div>
+                    <div className="h-px bg-gradient-to-r from-transparent via-zinc-800 to-transparent my-1"></div>
+                    <div className="flex justify-between items-center pt-0.5">
+                      <span className="text-[8px] font-black text-emerald-500 uppercase tracking-[0.2em]">Total Tagihan</span>
+                      <span className="text-xs md:text-sm font-black text-white tracking-tighter">{formatPrice(order.total_price)}</span>
                     </div>
                   </div>
 
-                  {/* Right Column: Shipping & Receiver details */}
-                  <div className="space-y-3">
-                    <div className="flex items-center gap-2 text-zinc-500">
-                      <MapPin size={12} className="text-pink-500" />
-                      <span className="text-[8px] font-black uppercase tracking-widest">Informasi Pengiriman</span>
+                  {/* Actions and CTAs */}
+                  <div className="space-y-2 pt-1">
+                    {order.status === "waiting_shipping_cost" && (
+                      <Link href={`/user/toko/pesanan-masuk/biaya-kirim/${order.id}`} className="w-full py-2 bg-emerald-500 hover:bg-emerald-400 text-zinc-950 rounded-xl transition-all font-black text-[9px] uppercase tracking-widest text-center active:scale-95 block">
+                        Input Ongkir
+                      </Link>
+                    )}
+                    {["waiting_shipment", "payment_verified"].includes(order.status) && (
+                      <Link href={`/user/toko/pesanan-masuk/pengiriman/${order.id}`} className="w-full py-2.5 bg-blue-500 hover:bg-blue-400 text-zinc-950 rounded-xl transition-all font-black text-[9px] uppercase tracking-widest text-center active:scale-95 block">
+                        Input Resi
+                      </Link>
+                    )}
+                    <div className="grid grid-cols-2 gap-2">
+                      <Link
+                        href={`/user/toko/pesanan-masuk/detail/${order.id}`}
+                        className="py-2 bg-emerald-500/10 hover:bg-emerald-500 text-emerald-400 hover:text-zinc-950 rounded-xl transition-all font-black text-[8px] uppercase tracking-widest text-center border border-emerald-500/20 hover:border-emerald-400 flex items-center justify-center gap-1"
+                      >
+                        <CheckCircle2 size={10} /> Proses
+                      </Link>
+                      <a
+                        href={`https://wa.me/${order.phone_number?.replace(/^0/, "62")}?text=Halo ${order.user?.username}, saya penjual dari toko ${shop?.name}. Terkait pesanan ${order.order_id}, ...`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="py-2 bg-zinc-800/50 hover:bg-zinc-800 text-white rounded-xl transition-all font-black text-[8px] uppercase tracking-widest text-center border border-zinc-800 flex items-center justify-center gap-1 hover:border-zinc-700"
+                      >
+                        <MessageCircle size={10} className="text-emerald-500" /> WA Pembeli
+                      </a>
                     </div>
-                    {order.shipping_address ? (
-                      <div className="bg-zinc-950/40 rounded-2xl p-3.5 border border-zinc-800/40 space-y-3">
-                        <div className="space-y-1">
-                          <p className="text-[10px] font-black text-white uppercase tracking-tight">{order.receiver_name}</p>
-                          <p className="text-[9px] text-zinc-400 leading-relaxed font-medium line-clamp-3 hover:line-clamp-none transition-all">{order.shipping_address}</p>
-                        </div>
-                        <div className="flex items-center gap-2 text-[8px] font-black text-zinc-300 bg-zinc-900/50 px-2.5 py-1.5 rounded-xl border border-zinc-800/50 w-fit">
-                          <MessageCircle size={10} className="text-zinc-500" />
-                          {order.phone_number}
-                        </div>
-                      </div>
-                    ) : (
-                      <div className="bg-zinc-950/20 rounded-2xl p-4 border border-zinc-800/40 border-dashed flex flex-col items-center justify-center text-center space-y-2 h-[120px] md:h-[135px]">
-                        <Clock size={16} className="text-zinc-700 animate-pulse" />
-                        <p className="text-[8px] font-black text-zinc-500 uppercase tracking-widest italic leading-tight">Menunggu Alamat...</p>
-                      </div>
+                    {!["cancelled", "completed", "shipped", "complained"].includes(order.status) && (
+                      <button onClick={() => setCancellingOrder(order)} className="w-full py-2 bg-red-500/5 hover:bg-red-500 hover:text-white text-red-500 rounded-xl transition-all font-black text-[8px] uppercase tracking-widest text-center border border-red-500/10 hover:border-red-500/20 flex items-center justify-center gap-1">
+                        <XCircle size={10} /> Batalkan Transaksi
+                      </button>
                     )}
                   </div>
                 </div>

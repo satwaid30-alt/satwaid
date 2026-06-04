@@ -15,8 +15,11 @@ import {
   MoreVertical,
   Store,
   RotateCcw,
+  Bell,
+  Sparkles,
+  X,
 } from "lucide-react";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import ActionModal from "@/components/ActionModal";
 import { io } from "socket.io-client";
@@ -30,6 +33,12 @@ export default function AdminDetailProdukPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 20;
 
+  // Real-time state
+  const [toasts, setToasts] = useState([]);
+  const [newItemIds, setNewItemIds] = useState(new Set());
+  const [newPendingCount, setNewPendingCount] = useState(0);
+  const toastIdRef = useRef(0);
+
   // Unified Action Modal State
   const [actionModal, setActionModal] = useState({
     isOpen: false,
@@ -42,6 +51,19 @@ export default function AdminDetailProdukPage() {
     id: null,
     rejectionReason: "",
   });
+
+  // Toast helpers
+  const addToast = (toast) => {
+    const id = ++toastIdRef.current;
+    setToasts((prev) => [{ id, ...toast }, ...prev]);
+    setTimeout(() => {
+      setToasts((prev) => prev.filter((t) => t.id !== id));
+    }, 6000);
+  };
+
+  const removeToast = (id) => {
+    setToasts((prev) => prev.filter((t) => t.id !== id));
+  };
 
   useEffect(() => {
     fetchListings();
@@ -58,10 +80,39 @@ export default function AdminDetailProdukPage() {
 
     socket.on("connect", () => {
       socket.emit("join_admin");
+      console.log("[Admin Socket] Joined admin_room — real-time aktif");
     });
 
     socket.on("new_listing_admin", (newListing) => {
-      setListings((prev) => [newListing, ...prev]);
+      // Tambah ke daftar produk
+      setListings((prev) => {
+        if (prev.some((item) => item.id === newListing.id)) return prev;
+        return [newListing, ...prev];
+      });
+
+      // Tandai sebagai item baru untuk highlight animasi
+      setNewItemIds((prev) => new Set([...prev, newListing.id]));
+      setTimeout(() => {
+        setNewItemIds((prev) => {
+          const next = new Set(prev);
+          next.delete(newListing.id);
+          return next;
+        });
+      }, 8000);
+
+      // Update counter pending baru
+      if (newListing.status?.toLowerCase() === "pending") {
+        setNewPendingCount((prev) => prev + 1);
+      }
+
+      // Tampilkan toast notification
+      addToast({
+        type: "new",
+        title: "Pengajuan Produk Baru!",
+        message: newListing.name || "Produk baru menunggu moderasi.",
+        shop: newListing.shop?.name || "Toko",
+        listingId: newListing.id,
+      });
     });
 
     socket.on("listing_updated_admin", (updatedListing) => {
@@ -195,14 +246,58 @@ export default function AdminDetailProdukPage() {
 
   return (
     <div className="min-h-screen bg-zinc-950 p-6 lg:p-10 space-y-8 animate-in fade-in duration-700 relative">
+
+      {/* ── Toast Notifications (Real-time) ── */}
+      <div className="fixed top-5 right-5 z-[9999] flex flex-col gap-3 pointer-events-none">
+        {toasts.map((toast) => (
+          <div
+            key={toast.id}
+            className="pointer-events-auto flex items-start gap-3 bg-zinc-900 border border-amber-500/30 rounded-2xl p-4 shadow-2xl shadow-black/50 w-[320px] animate-in slide-in-from-right-5 duration-400"
+          >
+            {/* Icon */}
+            <div className="shrink-0 w-9 h-9 rounded-xl bg-amber-500/15 flex items-center justify-center">
+              <Bell size={16} className="text-amber-400 animate-pulse" />
+            </div>
+            {/* Content */}
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-1.5 mb-0.5">
+                <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse shrink-0" />
+                <p className="text-[10px] font-black text-amber-400 uppercase tracking-widest">
+                  {toast.title}
+                </p>
+              </div>
+              <p className="text-xs font-bold text-white line-clamp-1">{toast.message}</p>
+              <p className="text-[10px] text-zinc-500 font-medium mt-0.5">dari <span className="text-zinc-300">{toast.shop}</span></p>
+              <Link
+                href={`/admin/toko-user/detail-produk/detail/${toast.listingId}`}
+                className="inline-flex items-center gap-1 mt-2 text-[10px] font-black text-emerald-400 hover:text-emerald-300 transition-colors uppercase tracking-widest"
+              >
+                <Eye size={10} /> Lihat Detail →
+              </Link>
+            </div>
+            {/* Close */}
+            <button
+              onClick={() => removeToast(toast.id)}
+              className="shrink-0 w-6 h-6 rounded-lg bg-zinc-800 hover:bg-zinc-700 flex items-center justify-center text-zinc-500 hover:text-white transition-colors"
+            >
+              <X size={12} />
+            </button>
+          </div>
+        ))}
+      </div>
+
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div>
           <h1 className="text-3xl font-black text-white tracking-tight flex items-center gap-3">
             <Package className="text-emerald-500" size={32} />
             Manajemen Produk
           </h1>
-          <p className="text-zinc-500 mt-1 font-medium">
+          <p className="text-zinc-500 mt-1 font-medium flex items-center gap-2">
             Data produk dari seluruh mitra toko marketplace.
+            <span className="inline-flex items-center gap-1 text-[9px] font-black text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded-full">
+              <span className="w-1 h-1 rounded-full bg-emerald-400 animate-pulse" />
+              LIVE
+            </span>
           </p>
         </div>
         <div className="flex items-center gap-4 bg-zinc-900/50 p-2 rounded-2xl border border-zinc-800">
@@ -212,12 +307,24 @@ export default function AdminDetailProdukPage() {
             </p>
             <p className="text-xl font-black text-white">{listings.length}</p>
           </div>
-          <div className="px-4 py-2 text-center">
+          <div className="px-4 py-2 text-center relative">
             <p className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">
               Menunggu
             </p>
-            <p className="text-xl font-black text-amber-500">
+            <p className="text-xl font-black text-amber-500 flex items-center gap-1.5">
               {listings.filter((l) => l.status === "pending").length}
+              {newPendingCount > 0 && (
+                <button
+                  onClick={() => {
+                    setStatusFilter("pending");
+                    setNewPendingCount(0);
+                  }}
+                  className="inline-flex items-center gap-1 text-[9px] font-black bg-amber-500 text-zinc-950 px-1.5 py-0.5 rounded-full animate-bounce"
+                  title={`${newPendingCount} pengajuan baru`}
+                >
+                  +{newPendingCount}
+                </button>
+              )}
             </p>
           </div>
         </div>
@@ -327,10 +434,22 @@ export default function AdminDetailProdukPage() {
                   return (
                     <tr
                       key={item.id}
-                      className="hover:bg-zinc-800/30 transition-colors group"
+                      className={`hover:bg-zinc-800/30 transition-all duration-700 group ${
+                        newItemIds.has(item.id)
+                          ? "bg-amber-500/5 border-l-2 border-amber-500"
+                          : ""
+                      }`}
                     >
+                      {/* Badge baru di atas row jika baru masuk */}
                       <td className="p-6 text-xs font-bold text-zinc-600">
-                        {globalIndex + 1}
+                        <div className="flex flex-col items-center gap-1">
+                          <span>{globalIndex + 1}</span>
+                          {newItemIds.has(item.id) && (
+                            <span className="text-[7px] font-black text-amber-400 bg-amber-500/10 border border-amber-500/20 px-1.5 py-0.5 rounded-full uppercase tracking-widest animate-pulse">
+                              NEW
+                            </span>
+                          )}
+                        </div>
                       </td>
                       <td className="p-6">
                         <div className="flex items-center gap-4">
@@ -527,7 +646,11 @@ export default function AdminDetailProdukPage() {
             return (
               <div
                 key={item.id}
-                className="bg-zinc-900 border border-zinc-800 rounded-[2rem] overflow-hidden shadow-xl animate-in slide-in-from-bottom-4 duration-300"
+                className={`border rounded-[2rem] overflow-hidden shadow-xl animate-in slide-in-from-bottom-4 duration-300 transition-all ${
+                  newItemIds.has(item.id)
+                    ? "bg-amber-500/5 border-amber-500/30"
+                    : "bg-zinc-900 border-zinc-800"
+                }`}
                 style={{ animationDelay: `${index * 50}ms` }}
               >
                 {/* Card Header: No & Status */}
@@ -536,6 +659,11 @@ export default function AdminDetailProdukPage() {
                     <span className="w-5 h-5 bg-zinc-800 rounded flex items-center justify-center text-[10px] font-black text-zinc-500">
                       {globalIndex + 1}
                     </span>
+                    {newItemIds.has(item.id) && (
+                      <span className="text-[8px] font-black text-amber-400 bg-amber-500/10 border border-amber-500/20 px-2 py-0.5 rounded-full uppercase tracking-widest animate-pulse flex items-center gap-1">
+                        <Sparkles size={8} /> Baru
+                      </span>
+                    )}
                     <span
                       className={`px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest border ${getStatusStyles(item.status)}`}
                     >

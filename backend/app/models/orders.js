@@ -197,6 +197,32 @@ module.exports = function (sequelize, DataTypes) {
       type: DataTypes.TEXT,
       allowNull: true,
       comment: 'Alasan pembatalan dari penjual'
+    },
+    payment_rejection_reason: {
+      type: DataTypes.TEXT,
+      allowNull: true,
+      comment: 'Alasan penolakan bukti pembayaran oleh admin'
+    },
+    refund_proof: {
+      type: DataTypes.STRING(255),
+      allowNull: true,
+      comment: 'Bukti transfer refund dari admin ke buyer'
+    },
+    refund_notes: {
+      type: DataTypes.TEXT,
+      allowNull: true,
+      comment: 'Catatan refund dari admin'
+    },
+    refunded_at: {
+      type: DataTypes.DATE,
+      allowNull: true,
+      comment: 'Waktu admin memproses transfer refund'
+    },
+    refund_status: {
+      type: DataTypes.STRING(30),
+      allowNull: true,
+      defaultValue: null,
+      comment: 'Status refund: pending, refunded, rejected'
     }
   }, {
     sequelize,

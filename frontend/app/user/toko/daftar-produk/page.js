@@ -405,10 +405,7 @@ export default function DaftarJualanPage() {
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div>
-          <h1 className="text-3xl font-black text-white flex items-center gap-3">
-            <Tag className="text-emerald-500" />
-            Daftar Produk Toko
-          </h1>
+          <h1 className="text-3xl font-black text-white flex items-center gap-3">Daftar Produk Toko</h1>
           <p className="text-zinc-500 text-sm mt-1">Kelola semua iklan jualan dan lelang reptil Anda.</p>
         </div>
       </div>

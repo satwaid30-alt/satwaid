@@ -1,4 +1,5 @@
 const http = require('http');
+// Force nodemon reload trigger: 2026-06-04T16:50:00
 const app = require('./app');
 const { Server } = require('socket.io');
 const jwt = require('jsonwebtoken');
@@ -353,8 +354,30 @@ async function autoCloseExpiredAuctions() {
 }
 
 sequelize.sync({ alter: true })
-    .then(() => {
+    .then(async () => {
         console.log('Database synced successfully (alter: true)');
+        try {
+            await sequelize.query('ALTER TABLE "public"."orders" ADD COLUMN IF NOT EXISTS "payment_rejection_reason" TEXT;');
+            console.log('Payment rejection reason column verified/added successfully.');
+            
+            // Add refund and bank columns if not exists
+            await sequelize.query('ALTER TABLE "public"."orders" ADD COLUMN IF NOT EXISTS "bank_name" VARCHAR(100) DEFAULT NULL;');
+            await sequelize.query('ALTER TABLE "public"."orders" ADD COLUMN IF NOT EXISTS "bank_account" VARCHAR(100) DEFAULT NULL;');
+            await sequelize.query('ALTER TABLE "public"."orders" ADD COLUMN IF NOT EXISTS "bank_holder" VARCHAR(100) DEFAULT NULL;');
+            await sequelize.query('ALTER TABLE "public"."orders" ADD COLUMN IF NOT EXISTS "refund_status" VARCHAR(30) DEFAULT NULL;');
+            await sequelize.query('ALTER TABLE "public"."orders" ADD COLUMN IF NOT EXISTS "refund_proof" VARCHAR(255) DEFAULT NULL;');
+            await sequelize.query('ALTER TABLE "public"."orders" ADD COLUMN IF NOT EXISTS "refund_notes" TEXT DEFAULT NULL;');
+            await sequelize.query('ALTER TABLE "public"."orders" ADD COLUMN IF NOT EXISTS "refunded_at" TIMESTAMP WITH TIME ZONE DEFAULT NULL;');
+            console.log('Refund and bank columns verified/added successfully.');
+
+            // Clean up any historical default 'pending' refund statuses where the buyer has not yet requested it (bank details are null)
+            await sequelize.query('UPDATE "public"."orders" SET "refund_status" = NULL WHERE "refund_status" = \'pending\' AND "bank_account" IS NULL;');
+            console.log('Cleaned up un-submitted refund statuses to NULL successfully.');
+        } catch (err) {
+            console.error('Error altering/cleaning orders table manually:', err.message);
+        }
+
+
         // Run auto check for shipped orders and auctions on startup
         autoCheckShippedOrders();
         autoCloseExpiredAuctions();

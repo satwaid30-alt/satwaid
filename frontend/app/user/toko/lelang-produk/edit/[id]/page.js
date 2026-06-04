@@ -321,11 +321,15 @@ export default function EditLelangListingPage({ params }) {
       };
       delete payload.duration;
 
+      const token = typeof window !== 'undefined' ? localStorage.getItem("token") : null;
       const response = await fetch(
         `${getApiUrl()}/listings/${id}`,
         {
           method: "PUT",
-          headers: { "Content-Type": "application/json" },
+          headers: { 
+            "Content-Type": "application/json",
+            "Authorization": token ? `Bearer ${token}` : ""
+          },
           body: JSON.stringify(payload),
         },
       );

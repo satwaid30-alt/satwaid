@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Search, Filter, Download, FileText, CheckCircle2, Clock, DollarSign, Calendar, ShoppingBag, Eye, Receipt, AlertCircle, Info, ChevronLeft, ChevronRight, ArrowUpRight } from "lucide-react";
+import { Search, Filter, Download, FileText, CheckCircle2, Clock, DollarSign, Calendar, ShoppingBag, Eye, Receipt, AlertCircle, Info, ChevronLeft, ChevronRight, ArrowUpRight, Wallet } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { io } from "socket.io-client";
@@ -191,6 +191,13 @@ export default function RiwayatTransaksiSeller() {
       return acc + total;
     }, 0);
 
+  const totalPendingDisbursement = orders
+    .filter((o) => ["completed", "disbursement_requested"].includes(o.status) && !(o.disbursed_at || o.disbursement_proof))
+    .reduce((acc, curr) => {
+      const total = Number(curr.price || 0) * Number(curr.quantity || 1) + Number(curr.shipping_cost || 0) + Number(curr.packing_cost || 0) - Number(curr.additional_fee || 0);
+      return acc + total;
+    }, 0);
+
   const filteredOrders = orders.filter((order) => {
     // Riwayat hanya tampilkan pesanan completed, disbursement_requested, atau sudah dicairkan
     const isRelevant = ["completed", "disbursement_requested"].includes(order.status) || !!(order.disbursed_at || order.disbursement_proof);
@@ -233,8 +240,8 @@ export default function RiwayatTransaksiSeller() {
         {/* Card 1: Total Pendapatan */}
         <div className="bg-zinc-900 border border-zinc-800 rounded-2xl md:rounded-[2.5rem] p-4 md:p-8 space-y-2 md:space-y-4 relative overflow-hidden group">
           <div className="w-8 h-8 md:w-12 md:h-12 bg-purple-500/10 rounded-xl md:rounded-2xl flex items-center justify-center text-purple-500 border border-purple-500/20 group-hover:scale-110 transition-transform">
-            <DollarSign size={16} className="md:hidden" />
-            <DollarSign size={24} className="hidden md:block" />
+            <Wallet size={16} className="md:hidden" />
+            <Wallet size={24} className="hidden md:block" />
           </div>
           <div>
             <p className="text-[8px] md:text-xs font-black text-zinc-500 uppercase tracking-widest">Total Pendapatan</p>
@@ -242,7 +249,7 @@ export default function RiwayatTransaksiSeller() {
           </div>
         </div>
 
-        {/* Card 2: Sudah Dicairkan */}
+        {/* Card 2: Sudah Ditransfer */}
         <div className="bg-zinc-900 border border-zinc-800 rounded-2xl md:rounded-[2.5rem] p-4 md:p-8 space-y-2 md:space-y-4 relative overflow-hidden group">
           <div className="w-8 h-8 md:w-12 md:h-12 bg-emerald-500/10 rounded-xl md:rounded-2xl flex items-center justify-center text-emerald-500 border border-emerald-500/20 group-hover:scale-110 transition-transform">
             <CheckCircle2 size={16} className="md:hidden" />
@@ -254,31 +261,41 @@ export default function RiwayatTransaksiSeller() {
           </div>
         </div>
 
-        {/* Card 3: Pengajuan Aktif */}
+        {/* Card 3: Belum Ditransfer */}
         <div className="bg-zinc-900 border border-zinc-800 rounded-2xl md:rounded-[2.5rem] p-4 md:p-8 space-y-2 md:space-y-4 relative overflow-hidden group">
-          <div className="w-8 h-8 md:w-12 md:h-12 bg-blue-500/10 rounded-xl md:rounded-2xl flex items-center justify-center text-blue-500 border border-blue-500/20 group-hover:scale-110 transition-transform">
-            <ArrowUpRight size={16} className="md:hidden" />
-            <ArrowUpRight size={24} className="hidden md:block" />
+          <div className="w-8 h-8 md:w-12 md:h-12 bg-amber-500/10 rounded-xl md:rounded-2xl flex items-center justify-center text-amber-500 border border-amber-500/20 group-hover:scale-110 transition-transform">
+            <DollarSign size={16} className="md:hidden" />
+            <DollarSign size={24} className="hidden md:block" />
           </div>
           <div>
-            <p className="text-[8px] md:text-xs font-black text-zinc-500 uppercase tracking-widest">Pengajuan Aktif</p>
-            <h3 className="text-xs sm:text-sm md:text-2xl font-black text-white mt-0.5 md:mt-1 leading-none">
-              {orders.filter((o) => o.status === "disbursement_requested" && !(o.disbursed_at || o.disbursement_proof)).length} <span className="text-[10px] md:text-base font-bold text-zinc-600 ml-1">Trx</span>
-            </h3>
+            <p className="text-[8px] md:text-xs font-black text-zinc-500 uppercase tracking-widest">Belum Ditransfer</p>
+            <h3 className="text-xs sm:text-sm md:text-2xl font-black text-amber-500 mt-0.5 md:mt-1 leading-none">{formatPrice(totalPendingDisbursement)}</h3>
           </div>
         </div>
 
-        {/* Card 4: Belum Diajukan */}
+        {/* Card 4: Status Pencairan (Pengajuan Aktif & Belum Diajukan) */}
         <div className="bg-zinc-900 border border-zinc-800 rounded-2xl md:rounded-[2.5rem] p-4 md:p-8 space-y-2 md:space-y-4 relative overflow-hidden group">
-          <div className="w-8 h-8 md:w-12 md:h-12 bg-amber-500/10 rounded-xl md:rounded-2xl flex items-center justify-center text-amber-500 border border-amber-500/20 group-hover:scale-110 transition-transform">
+          <div className="w-8 h-8 md:w-12 md:h-12 bg-blue-500/10 rounded-xl md:rounded-2xl flex items-center justify-center text-blue-500 border border-blue-500/20 group-hover:scale-110 transition-transform">
             <Clock size={16} className="md:hidden" />
             <Clock size={24} className="hidden md:block" />
           </div>
           <div>
-            <p className="text-[8px] md:text-xs font-black text-zinc-500 uppercase tracking-widest">Belum Diajukan</p>
-            <h3 className="text-xs sm:text-sm md:text-2xl font-black text-white mt-0.5 md:mt-1 leading-none">
-              {orders.filter((o) => o.status === "completed" && !(o.disbursed_at || o.disbursement_proof)).length} <span className="text-[10px] md:text-base font-bold text-zinc-600 ml-1">Order</span>
-            </h3>
+            <p className="text-[8px] md:text-xs font-black text-zinc-500 uppercase tracking-widest">Status Pencairan</p>
+            <div className="flex items-center gap-3 mt-1.5 md:mt-2">
+              <div className="flex flex-col">
+                <span className="text-[9px] md:text-[10px] font-bold text-zinc-500 uppercase">Pengajuan</span>
+                <span className="text-xs sm:text-sm md:text-lg font-black text-blue-400">
+                  {orders.filter((o) => o.status === "disbursement_requested" && !(o.disbursed_at || o.disbursement_proof)).length} <span className="text-[8px] md:text-xs font-bold text-zinc-600">Trx</span>
+                </span>
+              </div>
+              <div className="w-px h-8 bg-zinc-800"></div>
+              <div className="flex flex-col">
+                <span className="text-[9px] md:text-[10px] font-bold text-zinc-500 uppercase">Belum Diajukan</span>
+                <span className="text-xs sm:text-sm md:text-lg font-black text-amber-500">
+                  {orders.filter((o) => o.status === "completed" && !(o.disbursed_at || o.disbursement_proof)).length} <span className="text-[8px] md:text-xs font-bold text-zinc-600">Order</span>
+                </span>
+              </div>
+            </div>
           </div>
         </div>
       </div>

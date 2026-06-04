@@ -73,6 +73,15 @@ export default function PesananPage() {
         isLoading: false
     });
 
+    // Cancel Order Modal State
+    const [cancelModal, setCancelModal] = useState({
+        isOpen: false,
+        orderId: null,
+        reason: "",
+        customReason: "",
+        isLoading: false
+    });
+
     const fetchOrders = async () => {
         setIsLoading(true);
         const userStr = localStorage.getItem("user");
@@ -182,51 +191,52 @@ export default function PesananPage() {
     };
 
     const handleCancelOrder = (orderId) => {
-        setActionModal({
+        setCancelModal({
             isOpen: true,
-            type: 'warning',
-            title: 'Batalkan Pesanan?',
-            message: 'Apakah Anda yakin ingin membatalkan pesanan ini? Stok produk akan dikembalikan ke penjual.',
-            confirmText: 'Ya, Batalkan',
-            onConfirm: async () => {
-                const userStr = localStorage.getItem("user");
-                if (!userStr) return;
-                const user = JSON.parse(userStr);
-
-                setActionModal(prev => ({ ...prev, isLoading: true }));
-                try {
-                    const token = localStorage.getItem("token");
-                    const response = await fetch(`${getApiUrl()}/orders/${orderId}/cancel`, {
-                        method: 'PUT',
-                        headers: { 
-                            'Content-Type': 'application/json',
-                            'Authorization': token ? `Bearer ${token}` : ""
-                        },
-                        body: JSON.stringify({
-                            user_id: user.id,
-                            cancellation_reason: 'Dibatalkan oleh pembeli'
-                        })
-                    });
-                    if (response.ok) {
-                        fetchOrders();
-                        setActionModal({
-                            isOpen: true,
-                            type: 'success',
-                            title: 'Berhasil Dibatalkan',
-                            message: 'Pesanan Anda telah berhasil dibatalkan.',
-                            onConfirm: null
-                        });
-                    } else {
-                        const err = await response.json();
-                        alert(err.message || "Gagal membatalkan pesanan.");
-                    }
-                } catch (err) {
-                    console.error(err);
-                } finally {
-                    setActionModal(prev => ({ ...prev, isLoading: false }));
-                }
-            }
+            orderId: orderId,
+            reason: "",
+            customReason: "",
+            isLoading: false
         });
+    };
+
+    const submitCancelOrder = async () => {
+        const { orderId, reason, customReason } = cancelModal;
+        const finalReason = reason === "Lainnya" ? customReason : reason;
+
+        setCancelModal(prev => ({ ...prev, isLoading: true }));
+        try {
+            const token = localStorage.getItem("token");
+            const response = await fetch(`${getApiUrl()}/orders/${orderId}/cancel`, {
+                method: 'PUT',
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'Authorization': token ? `Bearer ${token}` : ""
+                },
+                body: JSON.stringify({
+                    cancellation_reason: finalReason
+                })
+            });
+            if (response.ok) {
+                setCancelModal(prev => ({ ...prev, isOpen: false }));
+                fetchOrders();
+                setActionModal({
+                    isOpen: true,
+                    type: 'success',
+                    title: 'Berhasil Dibatalkan',
+                    message: 'Pesanan Anda telah berhasil dibatalkan.',
+                    onConfirm: null
+                });
+            } else {
+                const err = await response.json();
+                alert(err.message || "Gagal membatalkan pesanan.");
+            }
+        } catch (err) {
+            console.error(err);
+            alert("Terjadi kesalahan saat memproses pembatalan.");
+        } finally {
+            setCancelModal(prev => ({ ...prev, isLoading: false }));
+        }
     };
 
     const handleResolveComplaint = (orderId) => {
@@ -540,7 +550,15 @@ export default function PesananPage() {
                     <h1 className="text-3xl font-black text-white tracking-tight mb-2">Pesanan Aktif</h1>
                     <p className="text-zinc-400 font-medium">Pantau dan kelola transaksi yang sedang berjalan</p>
                 </div>
-                <div className="flex items-center gap-3">
+                <div className="flex flex-wrap items-center gap-3">
+                    <Link
+                        href="/user/pesanan/pengembalian-dana"
+                        className="flex items-center gap-2 px-5 py-3 bg-zinc-900 border border-zinc-800 text-zinc-400 hover:text-white hover:border-zinc-700 rounded-2xl transition-all text-xs font-black uppercase tracking-widest group"
+                    >
+                        <CreditCard size={14} className="text-emerald-500" />
+                        Pengembalian Dana
+                        <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform" />
+                    </Link>
                     <Link
                         href="/user/pesanan/riwayat-pembelian"
                         className="flex items-center gap-2 px-5 py-3 bg-zinc-900 border border-zinc-800 text-zinc-400 hover:text-white hover:border-zinc-700 rounded-2xl transition-all text-xs font-black uppercase tracking-widest group"
@@ -767,7 +785,7 @@ export default function PesananPage() {
                                                             >
                                                                 <ShoppingBag size={14} /> Proses Transaksi
                                                             </Link>
-                                                            {order.product?.type === 'sell' && !['processing', 'payment_verified', 'waiting_shipment', 'shipped', 'complained'].includes(order.status) && (
+                                                            {order.product?.type === 'sell' && !['completed', 'cancelled', 'shipped'].includes(order.status) && (
                                                                 <button
                                                                     onClick={() => handleCancelOrder(order.id)}
                                                                     className="w-full sm:w-auto px-6 py-3 bg-red-500/10 hover:bg-red-500 text-red-500 hover:text-white border border-red-500/20 rounded-2xl transition-all text-xs font-black flex items-center justify-center gap-2"
@@ -914,6 +932,98 @@ export default function PesananPage() {
                                     {ratingModal.isLoading ? (
                                         <div className="w-4 h-4 border-2 border-zinc-950 border-t-transparent rounded-full animate-spin"></div>
                                     ) : "Simpan Penilaian"}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Cancel Order Modal */}
+            {cancelModal.isOpen && (
+                <div className="fixed inset-0 z-[150] flex items-center justify-center p-4">
+                    <div className="absolute inset-0 bg-zinc-950/80 backdrop-blur-md animate-in fade-in duration-300" onClick={() => !cancelModal.isLoading && setCancelModal(prev => ({ ...prev, isOpen: false }))}></div>
+                    <div className="bg-zinc-900 border border-zinc-800 w-full max-w-lg rounded-[2.5rem] relative z-10 overflow-hidden shadow-2xl animate-in zoom-in-95 duration-300">
+                        <div className="p-8 md:p-10 space-y-6">
+                            <div className="text-center space-y-2">
+                                <div className="w-16 h-16 bg-red-500/10 text-red-500 rounded-2xl flex items-center justify-center mx-auto mb-2 border border-red-500/20">
+                                    <XCircle size={32} />
+                                </div>
+                                <h3 className="text-2xl font-black text-white uppercase tracking-tight">Batalkan Pesanan?</h3>
+                                <p className="text-zinc-400 font-medium text-xs leading-relaxed px-4">
+                                    Apakah Anda yakin ingin membatalkan pesanan ini? Jika pesanan telah diproses seller, pengembalian dana akan melalui peninjauan Admin SatwaiD.
+                                </p>
+                            </div>
+
+                            <div className="space-y-4">
+                                <label className="text-xs font-black text-zinc-500 uppercase tracking-widest ml-1">Pilih Alasan Pembatalan</label>
+                                <div className="space-y-2 max-h-48 overflow-y-auto pr-1 custom-scrollbar">
+                                    {[
+                                        "Seller belum memberikan respon setelah pembayaran",
+                                        "Seller belum mengirim nomor resi pengiriman",
+                                        "Status pengiriman tidak jelas / tidak ada update",
+                                        "Waktu pengiriman terlalu lama",
+                                        "Permintaan pembatalan oleh Seller",
+                                        "Terjadi kesalahan transaksi / pembayaran",
+                                        "Alamat atau data pengiriman salah",
+                                        "Lainnya"
+                                    ].map((option, idx) => (
+                                        <label
+                                            key={idx}
+                                            className={`flex items-center gap-3 px-4 py-3 rounded-xl border transition-all cursor-pointer text-xs font-bold ${
+                                                cancelModal.reason === option
+                                                    ? "bg-red-500/5 border-red-500/40 text-white"
+                                                    : "bg-zinc-950/40 border-zinc-800 text-zinc-400 hover:text-zinc-200 hover:border-zinc-700"
+                                            }`}
+                                        >
+                                            <input
+                                                type="radio"
+                                                name="cancelReason"
+                                                value={option}
+                                                checked={cancelModal.reason === option}
+                                                onChange={(e) => setCancelModal(prev => ({ ...prev, reason: e.target.value }))}
+                                                className="accent-red-500 w-4 h-4 shrink-0"
+                                            />
+                                            <span>{option}</span>
+                                        </label>
+                                    ))}
+                                </div>
+                            </div>
+
+                            {cancelModal.reason === "Lainnya" && (
+                                <div className="space-y-2 animate-in fade-in slide-in-from-top-2 duration-300">
+                                    <label className="text-xs font-black text-zinc-500 uppercase tracking-widest ml-1">Tulis Alasan Lainnya</label>
+                                    <textarea
+                                        rows={3}
+                                        value={cancelModal.customReason}
+                                        onChange={(e) => setCancelModal(prev => ({ ...prev, customReason: e.target.value }))}
+                                        className="w-full bg-zinc-950 border border-zinc-800 rounded-2xl py-4 px-6 text-white text-xs focus:outline-none focus:border-red-500 transition-all resize-none font-medium placeholder:text-zinc-600"
+                                        placeholder="Masukkan alasan pembatalan Anda di sini..."
+                                        required
+                                    />
+                                </div>
+                            )}
+
+                            <div className="flex gap-4 pt-2">
+                                <button
+                                    type="button"
+                                    onClick={() => setCancelModal(prev => ({ ...prev, isOpen: false }))}
+                                    disabled={cancelModal.isLoading}
+                                    className="flex-1 py-4 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 font-black rounded-2xl text-xs uppercase tracking-wider transition-all"
+                                >
+                                    Kembali
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={submitCancelOrder}
+                                    disabled={
+                                        cancelModal.isLoading ||
+                                        !cancelModal.reason ||
+                                        (cancelModal.reason === "Lainnya" && !cancelModal.customReason.trim())
+                                    }
+                                    className="flex-1 py-4 bg-red-500 hover:bg-red-400 disabled:opacity-40 disabled:cursor-not-allowed text-white font-black rounded-2xl text-xs uppercase tracking-wider transition-all shadow-lg shadow-red-500/15"
+                                >
+                                    {cancelModal.isLoading ? "Memproses..." : "Ya, Batalkan"}
                                 </button>
                             </div>
                         </div>

@@ -96,7 +96,7 @@ export default function AdminDashboard() {
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
                 <div>
                     <h1 className="text-4xl font-black tracking-tight mb-2">Halo, {user?.name || "Admin"}! 👋</h1>
-                    <p className="text-zinc-500 font-medium">Selamat datang kembali di pusat kendali konten Reptile Haven.</p>
+                    <p className="text-zinc-500 font-medium">Selamat datang kembali di pusat kendali konten SatwaiD.</p>
                 </div>
                 <div className="flex items-center gap-3 bg-zinc-900 border border-zinc-800 px-6 py-3 rounded-2xl">
                     <Clock className="text-emerald-500" size={20} />

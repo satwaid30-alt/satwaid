@@ -307,6 +307,17 @@ export default function TransactionProcessPage({ params }) {
                                   ? "Terima kasih telah berbelanja! Pesanan Anda telah sampai dan transaksi dinyatakan selesai."
                                   : ""}
                 </p>
+                {order.status === "waiting_payment" && order.payment_rejection_reason && (
+                  <div className="mt-4 p-4 bg-red-500/10 border border-red-500/20 rounded-2xl flex items-start gap-3 text-left">
+                    <AlertCircle size={16} className="text-red-400 shrink-0 mt-0.5" />
+                    <div className="space-y-1">
+                      <p className="text-xs font-bold text-red-400 uppercase tracking-widest">Bukti Pembayaran Ditolak</p>
+                      <p className="text-[11px] text-zinc-450 font-medium leading-relaxed italic">
+                        &ldquo;{order.payment_rejection_reason}&rdquo;
+                      </p>
+                    </div>
+                  </div>
+                )}
               </div>
               <div className="shrink-0 w-full md:w-auto flex flex-col gap-3">
                 {order.status === "pending_shipping_info" && (

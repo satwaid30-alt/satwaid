@@ -29,6 +29,9 @@ export default function AdminTransactionPage() {
     const [filterStatus, setFilterStatus] = useState("all");
     const [searchQuery, setSearchQuery] = useState("");
     const [selectedProof, setSelectedProof] = useState(null);
+    const [cancelOrderData, setCancelOrderData] = useState(null);
+    const [cancelReason, setCancelReason] = useState("");
+    const [isCancelling, setIsCancelling] = useState(false);
 
     // Pagination State
     const [currentPage, setCurrentPage] = useState(1);
@@ -93,6 +96,42 @@ export default function AdminTransactionPage() {
             console.error("Error fetching orders:", err);
         } finally {
             setLoading(false);
+        }
+    };
+
+    const handleOpenCancelModal = (order) => {
+        setCancelOrderData(order);
+        setCancelReason("Pembayaran ditolak admin dan pesanan dibatalkan.");
+    };
+
+    const handleCancelOrder = async () => {
+        if (!cancelOrderData) return;
+        setIsCancelling(true);
+        try {
+            const token = localStorage.getItem("admin_token");
+            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/orders/${cancelOrderData.id}/admin-cancel`, {
+                method: "PUT",
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: token ? `Bearer ${token}` : ""
+                },
+                body: JSON.stringify({
+                    cancellation_reason: cancelReason
+                })
+            });
+            const result = await res.json();
+            if (res.ok) {
+                setCancelOrderData(null);
+                setCancelReason("");
+                fetchOrders();
+            } else {
+                alert(result.message || "Gagal membatalkan transaksi");
+            }
+        } catch (err) {
+            console.error("Error cancelling order:", err);
+            alert("Terjadi kesalahan koneksi");
+        } finally {
+            setIsCancelling(false);
         }
     };
 
@@ -372,11 +411,17 @@ export default function AdminTransactionPage() {
                                         <span className="text-sm font-black text-white">{formatPrice(order.total_price)}</span>
                                     </td>
                                     <td className="px-6 py-6">
-                                        <div className="flex justify-center">
+                                        <div className="flex flex-col items-center gap-1.5">
                                             <span className={`px-3 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest border flex items-center gap-1.5 ${getStatusColor(order.status)}`}>
                                                 {getStatusIcon(order.status)}
                                                 {getStatusLabel(order.status)}
                                             </span>
+                                            {order.status === "waiting_payment" && order.payment_rejection_reason && (
+                                                <span className="px-3 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest border flex items-center gap-1.5 text-red-500 bg-red-500/10 border-red-500/20">
+                                                    <XCircle size={10} />
+                                                    Pembayaran Ditolak
+                                                </span>
+                                            )}
                                         </div>
                                     </td>
                                     <td className="px-6 py-6">
@@ -398,7 +443,7 @@ export default function AdminTransactionPage() {
                                         </div>
                                     </td>
                                     <td className="px-6 py-6">
-                                        <div className="flex justify-center">
+                                        <div className="flex justify-center items-center gap-2">
                                             <Link
                                                 href={`/admin/transaksi-user/detail/${order.id}`}
                                                 className="p-2.5 bg-zinc-800 hover:bg-emerald-500 text-zinc-400 hover:text-zinc-950 rounded-xl transition-all active:scale-90 flex items-center gap-1.5 group/link"
@@ -406,6 +451,15 @@ export default function AdminTransactionPage() {
                                             >
                                                 <Eye size={16} />
                                             </Link>
+                                            {order.status === "waiting_payment" && order.payment_rejection_reason && (
+                                                <button
+                                                    onClick={() => handleOpenCancelModal(order)}
+                                                    className="p-2.5 bg-zinc-800 hover:bg-red-500 text-zinc-450 hover:text-white rounded-xl transition-all active:scale-90 flex items-center gap-1.5"
+                                                    title="Batalkan Transaksi"
+                                                >
+                                                    <XCircle size={16} />
+                                                </button>
+                                            )}
                                         </div>
                                     </td>
                                 </tr>
@@ -501,6 +555,53 @@ export default function AdminTransactionPage() {
                             >
                                 Selesai
                             </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+            {/* Modal for Cancel Transaction */}
+            {cancelOrderData && (
+                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/90 backdrop-blur-sm animate-in fade-in duration-300">
+                    <div className="bg-zinc-900 border border-zinc-800 w-full max-w-md rounded-[2.5rem] p-10 relative z-10 shadow-3xl animate-in zoom-in duration-300">
+                        <div className="flex flex-col items-center text-center space-y-6">
+                            <div className="w-20 h-20 rounded-3xl bg-red-500/10 border border-red-500/20 flex items-center justify-center text-red-500 shadow-inner">
+                                <XCircle size={40} className="text-red-500 animate-pulse" />
+                            </div>
+
+                            <div className="space-y-2">
+                                <h2 className="text-xl font-bold text-white tracking-tight uppercase">Batalkan Transaksi</h2>
+                                <p className="text-xs text-zinc-450 font-medium leading-relaxed">
+                                    Apakah Anda yakin ingin membatalkan transaksi <span className="text-white font-mono font-bold">{cancelOrderData.order_id}</span>? Tindakan ini akan mengembalikan stok produk ke penjual.
+                                </p>
+                            </div>
+
+                            <div className="w-full text-left space-y-2">
+                                <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest ml-1">Alasan Pembatalan</label>
+                                <textarea
+                                    required
+                                    rows={3}
+                                    value={cancelReason}
+                                    onChange={(e) => setCancelReason(e.target.value)}
+                                    className="w-full bg-zinc-950 border border-zinc-800 rounded-2xl py-4 px-6 text-white text-xs focus:outline-none focus:border-red-500 transition-all resize-none font-bold"
+                                    placeholder="Masukkan alasan pembatalan..."
+                                />
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-4 w-full pt-4">
+                                <button onClick={() => { setCancelOrderData(null); setCancelReason(""); }} disabled={isCancelling} className="py-4 bg-zinc-800 hover:bg-zinc-700 text-zinc-400 font-bold text-xs uppercase tracking-wider rounded-2xl transition-all">
+                                    Batal
+                                </button>
+                                <button onClick={handleCancelOrder} disabled={isCancelling || !cancelReason.trim()} className="py-4 bg-red-500 hover:bg-red-400 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold text-xs uppercase tracking-wider rounded-2xl transition-all shadow-lg shadow-red-500/20 flex items-center justify-center gap-2">
+                                    {isCancelling ? (
+                                        <>
+                                            <div className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                                            Memproses...
+                                        </>
+                                    ) : (
+                                        "Ya, Batalkan"
+                                    )}
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>

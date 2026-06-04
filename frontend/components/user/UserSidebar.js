@@ -19,6 +19,7 @@ const MENU_ITEMS = [
       { key: "pesanan_aktif", name: "Pesanan Aktif", href: "/user/pesanan" },
       { key: "lelang_aktif", name: "Lelang Aktif", href: "/user/pesanan/lelang" },
       { key: "riwayat_pesanan", name: "Riwayat Pesanan", href: "/user/pesanan/riwayat-pembelian" },
+      { key: "pengembalian_dana", name: "Pengembalian Dana", href: "/user/pesanan/pengembalian-dana" },
     ],
   },
   {
@@ -48,7 +49,7 @@ const isSubmenuActive = (subHref, pathname) => {
   }
 
   if (subHref === "/user/pesanan") {
-    return pathname.startsWith("/user/pesanan") && !pathname.startsWith("/user/pesanan/riwayat-pembelian") && !pathname.startsWith("/user/pesanan/lelang");
+    return pathname.startsWith("/user/pesanan") && !pathname.startsWith("/user/pesanan/riwayat-pembelian") && !pathname.startsWith("/user/pesanan/lelang") && !pathname.startsWith("/user/pesanan/pengembalian-dana");
   }
 
   return pathname.startsWith(subHref + "/");
@@ -353,7 +354,7 @@ export default function UserSidebar() {
   if (activeStatus === "maintenance" || activeStatus === "development") {
     return (
       <div className="fixed inset-0 bg-zinc-950 flex flex-col items-center justify-center p-8 text-white z-[9999] animate-in fade-in duration-200">
-        <div className="max-w-md w-full bg-zinc-900 border border-zinc-800 p-8 rounded-[2rem] shadow-2xl text-center animate-in scale-in-95 duration-200">
+        <div className="max-w-md w-full bg-zinc-900 border border-zinc-800 p-8 rounded-[2rem] text-center animate-in scale-in-95 duration-200">
           {activeStatus === "maintenance" ? (
             <div className="w-20 h-20 rounded-3xl bg-amber-500/10 text-amber-500 flex items-center justify-center mx-auto mb-6 border border-amber-500/20 animate-pulse">
               <Wrench size={40} />
@@ -376,7 +377,7 @@ export default function UserSidebar() {
           </div>
 
           <div className="flex flex-col gap-3">
-            <button onClick={() => router.push("/")} className="w-full py-3 bg-emerald-500 hover:bg-emerald-400 text-zinc-950 font-black rounded-xl transition-all shadow-[0_0_20px_rgba(16,185,129,0.2)] active:scale-[0.98]">
+            <button onClick={() => router.push("/")} className="w-full py-3 bg-emerald-500 hover:bg-emerald-400 text-zinc-950 font-black rounded-xl transition-all active:scale-[0.98]">
               Kembali ke Beranda
             </button>
             <button onClick={() => router.back()} className="w-full py-3 bg-zinc-800 hover:bg-zinc-700 text-white font-bold rounded-xl transition-all border border-zinc-800 active:scale-[0.98]">
@@ -393,7 +394,7 @@ export default function UserSidebar() {
       {/* --- DESKTOP SIDEBAR --- */}
       <aside className={`${isCollapsed ? "w-24" : "w-72"} bg-zinc-900 border-r border-zinc-800 flex-col h-screen sticky top-0 hidden md:flex z-40 transition-all duration-300 relative`}>
         {/* Toggle Collapse Button */}
-        <button onClick={() => setIsCollapsed(!isCollapsed)} className="absolute -right-3.5 top-12 bg-zinc-800 border border-zinc-700 text-zinc-400 hover:text-white rounded-full p-1 z-50 hover:bg-zinc-700 shadow-md transition-all">
+        <button onClick={() => setIsCollapsed(!isCollapsed)} className="absolute -right-3.5 top-12 bg-zinc-800 border border-zinc-700 text-zinc-400 hover:text-white rounded-full p-1 z-50 hover:bg-zinc-700 transition-all">
           {isCollapsed ? <ChevronRight size={18} /> : <ChevronLeft size={18} />}
         </button>
 
@@ -412,7 +413,9 @@ export default function UserSidebar() {
               </>
             ) : (
               <>
-                <div className="w-14 h-14 bg-emerald-500 rounded-2xl flex items-center justify-center text-white font-bold text-xl shadow-[0_0_20px_rgba(16,185,129,0.3)] shrink-0">{user?.username ? user.username.charAt(0).toUpperCase() : "U"}</div>
+                <div className="w-14 h-14 bg-emerald-500 rounded-2xl flex items-center justify-center text-white font-bold text-xl shrink-0 overflow-hidden">
+                  {user?.avatar_url ? <img src={user.avatar_url.startsWith("http") ? user.avatar_url : `${getApiUrl()}${user.avatar_url}`} alt={user.username || "User"} className="w-full h-full object-cover" /> : user?.username ? user.username.charAt(0).toUpperCase() : "U"}
+                </div>
                 {!isCollapsed && (
                   <div className="flex-1 min-w-0">
                     <p className="text-lg font-bold text-white truncate">{user?.name || user?.username || "Pengguna"}</p>
@@ -422,7 +425,6 @@ export default function UserSidebar() {
               </>
             )}
           </div>
-          {!isCollapsed && isLoaded && user && <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 mt-2 truncate">Member Terverifikasi</div>}
         </div>
 
         {/* Navigation */}
@@ -460,7 +462,7 @@ export default function UserSidebar() {
                     href={item.href}
                     title={isCollapsed ? item.name : ""}
                     onClick={(e) => handleMenuClick(e, item.key, item.name)}
-                    className={`flex items-center gap-4 ${isCollapsed ? "px-0 justify-center" : "px-4"} py-3 rounded-xl font-semibold transition-all group ${isActive ? "bg-emerald-500 text-zinc-950 shadow-lg shadow-emerald-500/20" : "text-zinc-400 hover:bg-zinc-800 hover:text-white"}`}
+                    className={`flex items-center gap-4 ${isCollapsed ? "px-0 justify-center" : "px-4"} py-3 rounded-xl font-semibold transition-all group ${isActive ? "bg-emerald-500 text-zinc-950" : "text-zinc-400 hover:bg-zinc-800 hover:text-white"}`}
                   >
                     <Icon size={20} className={`shrink-0 ${isActive ? "" : "group-hover:scale-110 transition-transform"}`} />
                     {!isCollapsed && (
@@ -550,10 +552,11 @@ export default function UserSidebar() {
               </>
             ) : (
               <>
-                <div className="w-10 h-10 bg-emerald-500 rounded-xl flex items-center justify-center text-white font-bold text-lg shadow-[0_0_15px_rgba(16,185,129,0.3)]">{user?.username ? user.username.charAt(0).toUpperCase() : "U"}</div>
+                <div className="w-10 h-10 bg-emerald-500 rounded-xl flex items-center justify-center text-white font-bold text-lg overflow-hidden shrink-0">
+                  {user?.avatar_url ? <img src={user.avatar_url.startsWith("http") ? user.avatar_url : `${getApiUrl()}${user.avatar_url}`} alt={user.username || "User"} className="w-full h-full object-cover" /> : user?.username ? user.username.charAt(0).toUpperCase() : "U"}
+                </div>
                 <div>
                   <p className="text-sm font-bold text-white leading-tight">{user?.name || user?.username || "Pengguna"}</p>
-                  <p className="text-[10px] font-bold text-emerald-500 uppercase tracking-wider">Member Terverifikasi</p>
                 </div>
               </>
             )}
@@ -599,7 +602,7 @@ export default function UserSidebar() {
 
         {/* Mobile Notification Dropdown */}
         {showNotifDropdown && (
-          <div className="absolute top-full left-0 w-full bg-zinc-900 border-b border-zinc-800 shadow-2xl p-4 animate-in fade-in slide-in-from-top-3 duration-200 z-50 flex flex-col max-h-[85vh] overflow-hidden">
+          <div className="absolute top-full left-0 w-full bg-zinc-900 border-b border-zinc-800 p-4 animate-in fade-in slide-in-from-top-3 duration-200 z-50 flex flex-col max-h-[85vh] overflow-hidden">
             <div className="flex items-center justify-between pb-3 border-b border-zinc-800 mb-3 shrink-0">
               <div className="flex items-center gap-2">
                 <h3 className="font-bold text-sm text-white">Notifikasi</h3>
@@ -718,7 +721,7 @@ export default function UserSidebar() {
 
         {/* Mobile Dropdown Menu */}
         {isMobileMenuOpen && (
-          <div className="absolute top-full left-0 w-full bg-zinc-900 border-b border-zinc-800 shadow-2xl max-h-[80vh] overflow-y-auto flex flex-col">
+          <div className="absolute top-full left-0 w-full bg-zinc-900 border-b border-zinc-800 max-h-[80vh] overflow-y-auto flex flex-col">
             <nav className="p-4 space-y-2 flex-1">
               <p className="px-2 text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-3">Menu Akun</p>
               {MENU_ITEMS.map((item) => {
@@ -806,7 +809,7 @@ export default function UserSidebar() {
                           const blocked = handleMenuClick(e, item.key, item.name);
                           if (!blocked) setIsMobileMenuOpen(false);
                         }}
-                        className={`flex items-center gap-4 px-4 py-3 rounded-xl font-semibold transition-all ${isActive ? "bg-emerald-500 text-zinc-950 shadow-lg shadow-emerald-500/20" : "text-zinc-400 hover:bg-zinc-800 hover:text-white"}`}
+                        className={`flex items-center gap-4 px-4 py-3 rounded-xl font-semibold transition-all ${isActive ? "bg-emerald-500 text-zinc-950" : "text-zinc-400 hover:bg-zinc-800 hover:text-white"}`}
                       >
                         <Icon size={20} />
                         <span className="flex-1 truncate flex items-center">
@@ -840,7 +843,7 @@ export default function UserSidebar() {
       {/* --- MAINTENANCE MODAL --- */}
       {maintenanceModal && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-zinc-955/80 backdrop-blur-md animate-in fade-in duration-200">
-          <div className="bg-zinc-900 border border-zinc-800 p-8 rounded-[2rem] max-w-md w-full shadow-2xl relative animate-in scale-in-95 duration-200 text-white">
+          <div className="bg-zinc-900 border border-zinc-800 p-8 rounded-[2rem] max-w-md w-full relative animate-in scale-in-95 duration-200 text-white">
             <div className="flex flex-col items-center text-center">
               {maintenanceModal.status === "maintenance" ? (
                 <div className="w-16 h-16 rounded-2xl bg-amber-500/10 text-amber-500 flex items-center justify-center mb-6 border border-amber-500/20 animate-pulse">

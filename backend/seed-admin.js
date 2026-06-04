@@ -19,7 +19,7 @@ async function seedAdmin() {
     try {
         const username = 'admin';
         const password = hashPasswordWithMD5('admin123');
-        const name = 'Admin Reptile';
+        const name = 'Admin SatwaiD';
 
         console.log(`Seeding admin user: ${username} / admin123`);
 

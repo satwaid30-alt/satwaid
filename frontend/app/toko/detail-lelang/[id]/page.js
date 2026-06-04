@@ -913,16 +913,6 @@ function DetailContent() {
                   </div>
                 </div>
 
-                <div className="pt-2">
-                  <div className="bg-gradient-to-b from-amber-50/20 to-amber-50/10 border border-amber-200/60 p-3.5 xs:p-5 sm:p-6 rounded-2xl text-center space-y-1">
-                    <p className="text-[9px] sm:text-[10px] font-black text-amber-800 uppercase tracking-widest">BID SAAT INI</p>
-                    <p className="text-xl xs:text-2xl sm:text-3xl md:text-4xl font-black text-amber-600 tracking-tight">{formatPrice(bids.length > 0 ? Number(bids[0].bid_amount) : Number(selectedProduct.start_bid))}</p>
-                    <p className="text-[10px] sm:text-xs font-bold text-zinc-500 tracking-tight">
-                      Minimum Bid Berikutnya: <span className="text-zinc-900 font-black">{formatPrice(minNextBid)}</span>
-                    </p>
-                  </div>
-                </div>
-
                 {/* BIN Instantly Buy Section (Moved to prevent accidental clicks) */}
                 {selectedProduct.bin_price && auctionStatus === "active" && (
                   <div className="bg-emerald-50/70 border border-emerald-200/50 p-4 rounded-2xl flex flex-col xs:flex-row items-center justify-between gap-3">
@@ -937,6 +927,16 @@ function DetailContent() {
                     )}
                   </div>
                 )}
+
+                <div className="pt-2">
+                  <div className="bg-gradient-to-b from-amber-50/20 to-amber-50/10 border border-amber-200/60 p-3.5 xs:p-5 sm:p-6 rounded-2xl text-center space-y-1">
+                    <p className="text-[9px] sm:text-[10px] font-black text-amber-800 uppercase tracking-widest">BID SAAT INI</p>
+                    <p className="text-xl xs:text-2xl sm:text-3xl md:text-4xl font-black text-amber-600 tracking-tight">{formatPrice(bids.length > 0 ? Number(bids[0].bid_amount) : Number(selectedProduct.start_bid))}</p>
+                    <p className="text-[10px] sm:text-xs font-bold text-zinc-500 tracking-tight">
+                      Minimum Bid Berikutnya: <span className="text-zinc-900 font-black">{formatPrice(minNextBid)}</span>
+                    </p>
+                  </div>
+                </div>
 
                 {/* Bidders History & Manual Bid Form */}
                 <div className="space-y-4 pt-4 border-t border-zinc-150">
@@ -1196,15 +1196,20 @@ function DetailContent() {
                 )}
 
                 {/* Specifications Grid - Minimalist Cards */}
-                <div className="grid grid-cols-2 gap-2 sm:gap-4">
-                  <div className="bg-zinc-50 lg:bg-white border border-zinc-150 lg:border-zinc-200 rounded-2xl p-3.5 sm:p-5 hover:border-amber-500/30 transition-all text-center">
-                    <p className="text-[9px] font-black text-zinc-400 uppercase tracking-widest leading-none mb-3">Jenis Kelamin</p>
+                <div className="grid grid-cols-3 gap-2 sm:gap-4">
+                  <div className="bg-zinc-50 lg:bg-white border border-zinc-150 lg:border-zinc-200 rounded-2xl p-3.5 sm:p-5 hover:border-amber-500/30 transition-all text-center flex flex-col justify-center">
+                    <p className="text-[9px] font-black text-zinc-400 uppercase tracking-widest leading-none mb-2 sm:mb-3">Jenis Kelamin</p>
                     <p className="text-[12px] font-black text-zinc-900 truncate">{selectedProduct.sex === "Male" || selectedProduct.sex?.toLowerCase() === "jantan" ? "Jantan" : selectedProduct.sex === "Female" || selectedProduct.sex?.toLowerCase() === "betina" ? "Betina" : selectedProduct.sex || "Unsex"}</p>
                   </div>
 
                   <div className="bg-zinc-50 lg:bg-white border border-zinc-150 lg:border-zinc-200 rounded-2xl p-3.5 sm:p-5 hover:border-amber-500/30 transition-all text-center flex flex-col justify-center">
                     <p className="text-[9px] font-black text-zinc-400 uppercase tracking-widest leading-none mb-2 sm:mb-3">Pengiriman</p>
                     <p className="text-[11px] sm:text-[12px] font-black text-zinc-900 leading-tight">{selectedProduct.shipping_type || "-"}</p>
+                  </div>
+
+                  <div className="bg-zinc-50 lg:bg-white border border-zinc-150 lg:border-zinc-200 rounded-2xl p-3.5 sm:p-5 hover:border-amber-500/30 transition-all text-center flex flex-col justify-center">
+                    <p className="text-[9px] font-black text-zinc-400 uppercase tracking-widest leading-none mb-2 sm:mb-3">Stok Barang</p>
+                    <p className="text-[11px] sm:text-[12px] font-black text-zinc-900 leading-tight">{selectedProduct.stock !== undefined && selectedProduct.stock !== null ? `${selectedProduct.stock} Ekor` : "-"}</p>
                   </div>
                 </div>
 

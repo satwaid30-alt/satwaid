@@ -7,19 +7,7 @@ import Link from "next/link";
 import { useState, useEffect, useMemo, useRef } from "react";
 import { io } from "socket.io-client";
 import { getApiUrl, getSocketUrl } from "@/app/utils/api";
-import {
-  Gavel,
-  Search,
-  ChevronRight,
-  ChevronLeft,
-  Flame,
-  TrendingUp,
-  Zap,
-  ArrowUpRight,
-  MessageSquare,
-  ShoppingBag,
-  Home,
-} from "lucide-react";
+import { Gavel, Search, ChevronRight, ChevronLeft, Flame, TrendingUp, Zap, ArrowUpRight, MessageSquare, ShoppingBag, Home } from "lucide-react";
 
 export default function LelangPage() {
   const [listings, setListings] = useState([]);
@@ -41,8 +29,7 @@ export default function LelangPage() {
     fetchAdvertisements();
 
     // Socket.IO Setup
-    const token =
-      typeof window !== "undefined" ? localStorage.getItem("token") : null;
+    const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
 
     let socket = io(getSocketUrl(), {
       auth: {
@@ -71,18 +58,14 @@ export default function LelangPage() {
 
     // Real-time Advertisement Events
     socket.on("new_advertisement_published", (ad) => {
-      if (
-        ad.status?.toLowerCase() === "aktif" &&
-        ad.placement?.toLowerCase() === "lelang"
-      ) {
+      if (ad.status?.toLowerCase() === "aktif" && ad.placement?.toLowerCase() === "lelang") {
         setAdvertisements((prev) => [ad, ...prev]);
       }
     });
 
     socket.on("advertisement_updated", (updatedAd) => {
       setAdvertisements((prev) => {
-        const isTargetPlacement =
-          updatedAd.placement?.toLowerCase() === "lelang";
+        const isTargetPlacement = updatedAd.placement?.toLowerCase() === "lelang";
         const isActive = updatedAd.status?.toLowerCase() === "aktif";
         const exists = prev.some((ad) => ad.id === updatedAd.id);
 
@@ -107,13 +90,9 @@ export default function LelangPage() {
 
     // Real-time Listing (Auction) Events
     socket.on("new_listing_published", (listing) => {
-      if (
-        listing.type === "auction" &&
-        listing.status?.toLowerCase() === "active"
-      ) {
+      if (listing.type === "auction" && listing.status?.toLowerCase() === "active") {
         setListings((prev) => {
-          if (prev.some((item) => String(item.id) === String(listing.id)))
-            return prev;
+          if (prev.some((item) => String(item.id) === String(listing.id))) return prev;
           return [listing, ...prev];
         });
       }
@@ -125,11 +104,7 @@ export default function LelangPage() {
         const exists = prev.some((item) => String(item.id) === String(dataId));
         if (data.status?.toLowerCase() === "active") {
           if (exists) {
-            return prev.map((item) =>
-              String(item.id) === String(dataId)
-                ? { ...item, status: data.status }
-                : item,
-            );
+            return prev.map((item) => (String(item.id) === String(dataId) ? { ...item, status: data.status } : item));
           } else {
             // Since we don't have the full object here, we re-fetch to get it
             fetchAuctionListings();
@@ -143,9 +118,7 @@ export default function LelangPage() {
     });
 
     socket.on("listing_deleted", ({ id }) => {
-      setListings((prev) =>
-        prev.filter((item) => String(item.id) !== String(id)),
-      );
+      setListings((prev) => prev.filter((item) => String(item.id) !== String(id)));
     });
 
     socket.on("listing_bid_updated", (data) => {
@@ -154,14 +127,12 @@ export default function LelangPage() {
       setListings((prev) =>
         prev.map((item) => {
           if (String(item.id) === String(dataId)) {
-            const updatedBid =
-              data.current_bid || data.highest_bid || data.current_price;
+            const updatedBid = data.current_bid || data.highest_bid || data.current_price;
             return {
               ...item,
               current_bid: updatedBid,
               current_price: updatedBid,
-              bid_count:
-                data.bid_count || (item.bid_count ? item.bid_count + 1 : 1),
+              bid_count: data.bid_count || (item.bid_count ? item.bid_count + 1 : 1),
             };
           }
           return item;
@@ -180,11 +151,7 @@ export default function LelangPage() {
       const response = await fetch(`${getApiUrl()}/advertisements`);
       const result = await response.json();
       if (response.ok) {
-        const activeAds = (result.data || []).filter(
-          (ad) =>
-            ad.status?.toLowerCase() === "aktif" &&
-            ad.placement?.toLowerCase() === "lelang",
-        );
+        const activeAds = (result.data || []).filter((ad) => ad.status?.toLowerCase() === "aktif" && ad.placement?.toLowerCase() === "lelang");
         setAdvertisements(activeAds);
       }
     } catch (err) {
@@ -195,14 +162,8 @@ export default function LelangPage() {
   const slides = useMemo(() => {
     return advertisements.map((ad, idx) => ({
       id: ad.id || `ad-${idx}`,
-      image_url: ad.image_url.startsWith("http")
-        ? ad.image_url
-        : `${getApiUrl()}${ad.image_url}`,
-      mobile_image_url: ad.mobile_image_url
-        ? ad.mobile_image_url.startsWith("http")
-          ? ad.mobile_image_url
-          : `${getApiUrl()}${ad.mobile_image_url}`
-        : null,
+      image_url: ad.image_url.startsWith("http") ? ad.image_url : `${getApiUrl()}${ad.image_url}`,
+      mobile_image_url: ad.mobile_image_url ? (ad.mobile_image_url.startsWith("http") ? ad.mobile_image_url : `${getApiUrl()}${ad.mobile_image_url}`) : null,
       link_url: ad.link_url || "#",
       badge: ad.badge || "",
       title: ad.title || "",
@@ -252,10 +213,7 @@ export default function LelangPage() {
       const result = await response.json();
 
       if (response.ok) {
-        const auctionOnes = (result.data || []).filter(
-          (item) =>
-            item.status?.toLowerCase() === "active" && item.type === "auction",
-        );
+        const auctionOnes = (result.data || []).filter((item) => item.status?.toLowerCase() === "active" && item.type === "auction");
         setListings(auctionOnes);
       }
     } catch (err) {
@@ -268,10 +226,7 @@ export default function LelangPage() {
   const filteredListings = useMemo(() => {
     return listings.filter((item) => {
       const query = searchQuery.toLowerCase();
-      const matchesSearch =
-        (item.name || "").toLowerCase().includes(query) ||
-        (item.shop?.name || "").toLowerCase().includes(query) ||
-        (item.species || "").toLowerCase().includes(query);
+      const matchesSearch = (item.name || "").toLowerCase().includes(query) || (item.shop?.name || "").toLowerCase().includes(query) || (item.species || "").toLowerCase().includes(query);
 
       // Time-based filter
       let matchesTimeFilter = true;
@@ -292,10 +247,7 @@ export default function LelangPage() {
   }, [listings, searchQuery, activeFilter]);
 
   const totalPages = Math.ceil(filteredListings.length / itemsPerPage);
-  const paginatedListings = filteredListings.slice(
-    (currentPage - 1) * itemsPerPage,
-    currentPage * itemsPerPage,
-  );
+  const paginatedListings = filteredListings.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
   return (
     <div className="min-h-screen bg-zinc-50 font-sans selection:bg-amber-200">
@@ -304,36 +256,17 @@ export default function LelangPage() {
       {/* Hero Section */}
       <section className="relative pt-32 pb-20 lg:pt-40 lg:pb-28 overflow-hidden bg-zinc-900 border-b border-zinc-800 hidden md:block">
         <div className="absolute inset-0 z-0">
-          <img
-            src="/images/hero.png"
-            alt="Hero Background"
-            className="w-full h-full object-cover opacity-30"
-          />
+          <img src="/images/hero.png" alt="Hero Background" className="w-full h-full object-cover opacity-30" />
           <div className="absolute inset-0 bg-gradient-to-b from-zinc-900/50 via-zinc-900/80 to-zinc-900" />
           <div className="absolute top-0 left-1/4 w-96 h-96 bg-amber-500/10 blur-[120px] rounded-full" />
           <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-amber-700/10 blur-[120px] rounded-full" />
         </div>
 
         <div className="relative z-10 max-w-7xl mx-auto px-6 text-center">
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-amber-500/10 text-amber-400 border border-amber-500/20 text-sm font-bold mb-6 backdrop-blur-sm">
-            <Gavel size={14} className="animate-pulse" />
-            <span>Lelang Satwa Live</span>
-            <span className="relative flex h-2 w-2 ml-1">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-amber-500"></span>
-            </span>
-          </div>
           <h1 className="text-4xl md:text-6xl font-extrabold text-white tracking-tight mb-6">
-            Lelang{" "}
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-400 to-orange-500">
-              Satwa
-            </span>
+            Lelang <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-400 to-orange-500">Satwa</span>
           </h1>
-          <p className="text-lg md:text-xl text-zinc-400 max-w-2xl mx-auto mb-10">
-            Ikuti lelang satwa dari seller dan breeder terpercaya. Ajukan
-            tawaran terbaik Anda dan dapatkan satwa impian dengan proses yang
-            aman, mudah, dan transparan.
-          </p>
+          <p className="text-lg md:text-xl text-zinc-400 max-w-2xl mx-auto mb-10">Ikuti lelang satwa dari seller dan breeder terpercaya. Ajukan tawaran terbaik Anda dan dapatkan satwa impian dengan proses yang aman, mudah, dan transparan.</p>
 
           {/* Search Bar */}
           <div className="max-w-3xl mx-auto">
@@ -357,28 +290,12 @@ export default function LelangPage() {
         {/* Promo Banner Image Carousel for Mobile (Visible on mobile only, at the top) */}
         {slides.length > 0 && (
           <div className="block md:hidden mb-6 px-1">
-            <div
-              onTouchStart={handleTouchStart}
-              onTouchMove={handleTouchMove}
-              onTouchEnd={handleTouchEnd}
-              className="relative rounded-2xl overflow-hidden bg-zinc-900 text-white aspect-[2.1/1] min-h-[140px] flex items-center group shadow-md border border-zinc-100/10"
-            >
+            <div onTouchStart={handleTouchStart} onTouchMove={handleTouchMove} onTouchEnd={handleTouchEnd} className="relative rounded-2xl overflow-hidden bg-zinc-900 text-white aspect-[2.1/1] min-h-[140px] flex items-center group shadow-md border border-zinc-100/10">
               {slides.map((slide, idx) => {
                 const isActive = idx === activeAdIndex;
                 return (
-                  <div
-                    key={slide.id}
-                    className={`absolute inset-0 w-full h-full transition-all duration-1000 ease-out flex items-center p-4 ${
-                      isActive
-                        ? "opacity-100 scale-100 pointer-events-auto z-10"
-                        : "opacity-0 scale-105 pointer-events-none z-0"
-                    }`}
-                  >
-                    <img
-                      src={slide.mobile_image_url || slide.image_url}
-                      alt={slide.title}
-                      className="absolute inset-0 w-full h-full object-cover"
-                    />
+                  <div key={slide.id} className={`absolute inset-0 w-full h-full transition-all duration-1000 ease-out flex items-center p-4 ${isActive ? "opacity-100 scale-100 pointer-events-auto z-10" : "opacity-0 scale-105 pointer-events-none z-0"}`}>
+                    <img src={slide.mobile_image_url || slide.image_url} alt={slide.title} className="absolute inset-0 w-full h-full object-cover" />
                     <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/40 to-transparent" />
 
                     <div className="relative z-20 w-full text-left">
@@ -388,21 +305,10 @@ export default function LelangPage() {
                           {slide.badge}
                         </span>
                       )}
-                      {slide.title && (
-                        <h2 className="text-xs sm:text-sm font-black mb-0.5 leading-tight text-white">
-                          {slide.title}
-                        </h2>
-                      )}
-                      {slide.description && (
-                        <p className="text-zinc-300 text-[8px] sm:text-[10px] max-w-[70%] opacity-90 leading-normal line-clamp-1 mb-1.5">
-                          {slide.description}
-                        </p>
-                      )}
+                      {slide.title && <h2 className="text-xs sm:text-sm font-black mb-0.5 leading-tight text-white">{slide.title}</h2>}
+                      {slide.description && <p className="text-zinc-300 text-[8px] sm:text-[10px] max-w-[70%] opacity-90 leading-normal line-clamp-1 mb-1.5">{slide.description}</p>}
                       {slide.buttonText && (
-                        <Link
-                          href={slide.link_url}
-                          className="inline-flex items-center gap-1 bg-white hover:bg-zinc-100 text-zinc-900 font-bold px-2.5 py-1 rounded-lg text-[8px] transition-all duration-300 shadow-sm"
-                        >
+                        <Link href={slide.link_url} className="inline-flex items-center gap-1 bg-white hover:bg-zinc-100 text-zinc-900 font-bold px-2.5 py-1 rounded-lg text-[8px] transition-all duration-300 shadow-sm">
                           {slide.buttonText}
                           <ArrowUpRight size={10} />
                         </Link>
@@ -416,14 +322,7 @@ export default function LelangPage() {
               {slides.length > 1 && (
                 <div className="absolute bottom-2 left-1/2 -translate-x-1/2 z-20 flex gap-1">
                   {slides.map((_, idx) => (
-                    <button
-                      key={idx}
-                      onClick={() => setActiveAdIndex(idx)}
-                      className={`h-0.5 rounded-full transition-all duration-300 ${
-                        activeAdIndex === idx ? "w-3 bg-amber-500" : "w-1 bg-white/30"
-                      }`}
-                      aria-label={`Go to slide ${idx + 1}`}
-                    />
+                    <button key={idx} onClick={() => setActiveAdIndex(idx)} className={`h-0.5 rounded-full transition-all duration-300 ${activeAdIndex === idx ? "w-3 bg-amber-500" : "w-1 bg-white/30"}`} aria-label={`Go to slide ${idx + 1}`} />
                   ))}
                 </div>
               )}
@@ -454,48 +353,21 @@ export default function LelangPage() {
           <div>
             <h2 className="text-2xl font-black text-zinc-900 mb-1 flex items-center gap-2">
               Semua Lelang
-              {activeFilter === "ending_soon" && (
-                <span className="text-xs font-black text-red-500 bg-red-50 px-2 py-1 rounded-lg border border-red-100 animate-pulse">
-                  SEGERA BERAKHIR
-                </span>
-              )}
+              {activeFilter === "ending_soon" && <span className="text-xs font-black text-red-500 bg-red-50 px-2 py-1 rounded-lg border border-red-100 animate-pulse">SEGERA BERAKHIR</span>}
             </h2>
-            <p className="text-zinc-500 text-sm">
-              {filteredListings.length} produk lelang ditemukan
-            </p>
+            <p className="text-zinc-500 text-sm">{filteredListings.length} produk lelang ditemukan</p>
           </div>
 
           <div className="flex items-center gap-2 bg-zinc-100 p-1 rounded-2xl">
-            <button
-              onClick={() => setActiveFilter("all")}
-              className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold transition-all ${
-                activeFilter === "all"
-                  ? "bg-white text-zinc-900"
-                  : "text-zinc-500 hover:text-zinc-700"
-              }`}
-            >
+            <button onClick={() => setActiveFilter("all")} className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold transition-all ${activeFilter === "all" ? "bg-white text-zinc-900" : "text-zinc-500 hover:text-zinc-700"}`}>
               <TrendingUp size={13} />
               Semua
             </button>
-            <button
-              onClick={() => setActiveFilter("active")}
-              className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold transition-all ${
-                activeFilter === "active"
-                  ? "bg-white text-emerald-600"
-                  : "text-zinc-500 hover:text-zinc-700"
-              }`}
-            >
+            <button onClick={() => setActiveFilter("active")} className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold transition-all ${activeFilter === "active" ? "bg-white text-emerald-600" : "text-zinc-500 hover:text-zinc-700"}`}>
               <Zap size={13} />
               Sedang Berlangsung
             </button>
-            <button
-              onClick={() => setActiveFilter("ending_soon")}
-              className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold transition-all ${
-                activeFilter === "ending_soon"
-                  ? "bg-white text-red-500"
-                  : "text-zinc-500 hover:text-zinc-700"
-              }`}
-            >
+            <button onClick={() => setActiveFilter("ending_soon")} className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold transition-all ${activeFilter === "ending_soon" ? "bg-white text-red-500" : "text-zinc-500 hover:text-zinc-700"}`}>
               <Flame size={13} />
               Segera Berakhir
             </button>
@@ -521,11 +393,7 @@ export default function LelangPage() {
               {/* Dot bounce */}
               <div className="flex items-center gap-1.5">
                 {[0, 1, 2].map((i) => (
-                  <span
-                    key={i}
-                    className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-bounce"
-                    style={{ animationDelay: `${i * 120}ms` }}
-                  />
+                  <span key={i} className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-bounce" style={{ animationDelay: `${i * 120}ms` }} />
                 ))}
               </div>
             </div>
@@ -533,11 +401,7 @@ export default function LelangPage() {
             {/* Skeleton cards below the spinner */}
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 sm:gap-6">
               {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((i) => (
-                <div
-                  key={i}
-                  className="bg-white rounded-2xl h-[340px] animate-pulse border border-zinc-100"
-                  style={{ animationDelay: `${(i - 1) * 60}ms` }}
-                >
+                <div key={i} className="bg-white rounded-2xl h-[340px] animate-pulse border border-zinc-100" style={{ animationDelay: `${(i - 1) * 60}ms` }}>
                   <div className="w-full h-1/2 bg-zinc-100 rounded-t-2xl" />
                   <div className="p-4 space-y-3">
                     <div className="h-3 bg-zinc-100 w-1/3 rounded" />
@@ -556,22 +420,14 @@ export default function LelangPage() {
         ) : (
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 sm:gap-6">
             {paginatedListings.length > 0 ? (
-              paginatedListings.map((product) => (
-                <ProductCard key={product.id} product={product} />
-              ))
+              paginatedListings.map((product) => <ProductCard key={product.id} product={product} />)
             ) : (
               <div className="col-span-full py-24 text-center">
                 <div className="w-24 h-24 bg-amber-50 rounded-[2rem] flex items-center justify-center mx-auto mb-6 text-amber-300">
                   <Gavel size={48} />
                 </div>
-                <h3 className="text-xl font-black text-zinc-900 mb-2">
-                  Belum Ada Lelang
-                </h3>
-                <p className="text-zinc-500 mb-6 max-w-md mx-auto">
-                  {searchQuery
-                    ? `Tidak menemukan lelang untuk "${searchQuery}". Coba gunakan kata kunci lain.`
-                    : "Belum ada lelang yang tersedia saat ini. Nantikan lelang menarik berikutnya!"}
-                </p>
+                <h3 className="text-xl font-black text-zinc-900 mb-2">Belum Ada Lelang</h3>
+                <p className="text-zinc-500 mb-6 max-w-md mx-auto">{searchQuery ? `Tidak menemukan lelang untuk "${searchQuery}". Coba gunakan kata kunci lain.` : "Belum ada lelang yang tersedia saat ini. Nantikan lelang menarik berikutnya!"}</p>
                 {(searchQuery || activeFilter !== "all") && (
                   <button
                     onClick={() => {
@@ -595,8 +451,7 @@ export default function LelangPage() {
             {/* Mobile Pagination Info */}
             <div className="sm:hidden text-center">
               <p className="text-xs text-zinc-500 font-bold uppercase tracking-wider">
-                Halaman <span className="text-amber-600">{currentPage}</span>{" "}
-                dari {totalPages}
+                Halaman <span className="text-amber-600">{currentPage}</span> dari {totalPages}
               </p>
             </div>
 
@@ -610,9 +465,7 @@ export default function LelangPage() {
                 Prev
               </button>
               <button
-                onClick={() =>
-                  setCurrentPage((prev) => Math.min(totalPages, prev + 1))
-                }
+                onClick={() => setCurrentPage((prev) => Math.min(totalPages, prev + 1))}
                 disabled={currentPage === totalPages}
                 className="w-[48%] flex items-center justify-center gap-1.5 rounded-xl border border-zinc-200 bg-white px-4 py-3 text-xs font-black text-zinc-600 hover:bg-zinc-50 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
               >
@@ -624,71 +477,29 @@ export default function LelangPage() {
             {/* Desktop Pagination Info */}
             <div className="hidden sm:block">
               <p className="text-sm text-zinc-500 font-medium">
-                Menampilkan{" "}
-                <span className="font-black text-zinc-900">
-                  {(currentPage - 1) * itemsPerPage + 1}
-                </span>{" "}
-                -{" "}
-                <span className="font-black text-zinc-900">
-                  {Math.min(
-                    currentPage * itemsPerPage,
-                    filteredListings.length,
-                  )}
-                </span>{" "}
-                dari{" "}
-                <span className="font-black text-zinc-900">
-                  {filteredListings.length}
-                </span>{" "}
-                lelang
+                Menampilkan <span className="font-black text-zinc-900">{(currentPage - 1) * itemsPerPage + 1}</span> - <span className="font-black text-zinc-900">{Math.min(currentPage * itemsPerPage, filteredListings.length)}</span> dari <span className="font-black text-zinc-900">{filteredListings.length}</span> lelang
               </p>
             </div>
 
             {/* Desktop Page Numbers */}
             <div className="hidden sm:block">
-              <nav
-                className="isolate inline-flex gap-1 rounded-xl"
-                aria-label="Pagination"
-              >
-                <button
-                  onClick={() =>
-                    setCurrentPage((prev) => Math.max(1, prev - 1))
-                  }
-                  disabled={currentPage === 1}
-                  className="relative inline-flex items-center rounded-xl px-3 py-2 text-zinc-400 hover:bg-amber-50 hover:text-amber-600 disabled:opacity-30 transition-all"
-                >
+              <nav className="isolate inline-flex gap-1 rounded-xl" aria-label="Pagination">
+                <button onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))} disabled={currentPage === 1} className="relative inline-flex items-center rounded-xl px-3 py-2 text-zinc-400 hover:bg-amber-50 hover:text-amber-600 disabled:opacity-30 transition-all">
                   <span className="sr-only">Previous</span>
                   <ChevronLeft size={20} />
                 </button>
 
                 {[...Array(totalPages)].map((_, i) => {
                   const pageNum = i + 1;
-                  if (
-                    pageNum === 1 ||
-                    pageNum === totalPages ||
-                    (pageNum >= currentPage - 1 && pageNum <= currentPage + 1)
-                  ) {
+                  if (pageNum === 1 || pageNum === totalPages || (pageNum >= currentPage - 1 && pageNum <= currentPage + 1)) {
                     return (
-                      <button
-                        key={pageNum}
-                        onClick={() => setCurrentPage(pageNum)}
-                        className={`relative inline-flex items-center rounded-xl px-4 py-2 text-sm font-black transition-all ${
-                          currentPage === pageNum
-                            ? "z-10 bg-amber-500 text-white scale-110"
-                            : "text-zinc-500 hover:bg-zinc-100"
-                        }`}
-                      >
+                      <button key={pageNum} onClick={() => setCurrentPage(pageNum)} className={`relative inline-flex items-center rounded-xl px-4 py-2 text-sm font-black transition-all ${currentPage === pageNum ? "z-10 bg-amber-500 text-white scale-110" : "text-zinc-500 hover:bg-zinc-100"}`}>
                         {pageNum}
                       </button>
                     );
-                  } else if (
-                    (pageNum === currentPage - 2 && pageNum > 1) ||
-                    (pageNum === currentPage + 2 && pageNum < totalPages)
-                  ) {
+                  } else if ((pageNum === currentPage - 2 && pageNum > 1) || (pageNum === currentPage + 2 && pageNum < totalPages)) {
                     return (
-                      <span
-                        key={pageNum}
-                        className="relative inline-flex items-center px-4 py-2 text-sm font-bold text-zinc-400"
-                      >
+                      <span key={pageNum} className="relative inline-flex items-center px-4 py-2 text-sm font-bold text-zinc-400">
                         ...
                       </span>
                     );
@@ -696,13 +507,7 @@ export default function LelangPage() {
                   return null;
                 })}
 
-                <button
-                  onClick={() =>
-                    setCurrentPage((prev) => Math.min(totalPages, prev + 1))
-                  }
-                  disabled={currentPage === totalPages}
-                  className="relative inline-flex items-center rounded-xl px-3 py-2 text-zinc-400 hover:bg-amber-50 hover:text-amber-600 disabled:opacity-30 transition-all"
-                >
+                <button onClick={() => setCurrentPage((prev) => Math.min(totalPages, prev + 1))} disabled={currentPage === totalPages} className="relative inline-flex items-center rounded-xl px-3 py-2 text-zinc-400 hover:bg-amber-50 hover:text-amber-600 disabled:opacity-30 transition-all">
                   <span className="sr-only">Next</span>
                   <ChevronLeft size={20} className="rotate-180" />
                 </button>
@@ -714,23 +519,11 @@ export default function LelangPage() {
         {/* Promo Banner Image Carousel - only render when there are active ads */}
         {slides.length > 0 && (
           <section className="mt-10 hidden md:block">
-            <div
-              onTouchStart={handleTouchStart}
-              onTouchMove={handleTouchMove}
-              onTouchEnd={handleTouchEnd}
-              className="relative rounded-[2rem] overflow-hidden bg-zinc-900 text-white aspect-[1.8/1] sm:aspect-[2/1] md:aspect-[3/1] min-h-[190px] sm:min-h-[220px] md:min-h-0 flex items-center group/carousel border border-zinc-100/10"
-            >
+            <div onTouchStart={handleTouchStart} onTouchMove={handleTouchMove} onTouchEnd={handleTouchEnd} className="relative rounded-[2rem] overflow-hidden bg-zinc-900 text-white aspect-[1.8/1] sm:aspect-[2/1] md:aspect-[3/1] min-h-[190px] sm:min-h-[220px] md:min-h-0 flex items-center group/carousel border border-zinc-100/10">
               {slides.map((slide, idx) => {
                 const isActive = idx === activeAdIndex;
                 return (
-                  <div
-                    key={slide.id}
-                    className={`absolute inset-0 w-full h-full transition-all duration-1000 ease-out flex items-center p-5 pb-9 sm:p-8 sm:pb-10 md:p-14 ${
-                      isActive
-                        ? "opacity-100 scale-100 pointer-events-auto z-10"
-                        : "opacity-0 scale-105 pointer-events-none z-0"
-                    }`}
-                  >
+                  <div key={slide.id} className={`absolute inset-0 w-full h-full transition-all duration-1000 ease-out flex items-center p-5 pb-9 sm:p-8 sm:pb-10 md:p-14 ${isActive ? "opacity-100 scale-100 pointer-events-auto z-10" : "opacity-0 scale-105 pointer-events-none z-0"}`}>
                     {/* Banner Desktop */}
                     <img
                       src={slide.image_url}
@@ -758,27 +551,13 @@ export default function LelangPage() {
                           {slide.badge}
                         </span>
                       )}
-                      {slide.title && (
-                        <h2 className="text-base sm:text-2xl md:text-5xl lg:text-6xl font-black mb-1.5 sm:mb-2 md:mb-4 leading-tight">
-                          {slide.title}
-                        </h2>
-                      )}
-                      {slide.description && (
-                        <p className="text-zinc-300 text-[11px] sm:text-sm md:text-lg max-w-lg opacity-90 leading-relaxed line-clamp-2 sm:line-clamp-3 md:line-clamp-none mb-3 sm:mb-4 md:mb-6">
-                          {slide.description}
-                        </p>
-                      )}
+                      {slide.title && <h2 className="text-base sm:text-2xl md:text-5xl lg:text-6xl font-black mb-1.5 sm:mb-2 md:mb-4 leading-tight">{slide.title}</h2>}
+                      {slide.description && <p className="text-zinc-300 text-[11px] sm:text-sm md:text-lg max-w-lg opacity-90 leading-relaxed line-clamp-2 sm:line-clamp-3 md:line-clamp-none mb-3 sm:mb-4 md:mb-6">{slide.description}</p>}
 
                       {slide.buttonText && (
-                        <Link
-                          href={slide.link_url}
-                          className="inline-flex items-center gap-1.5 bg-white hover:bg-zinc-100 hover:scale-105 active:scale-95 text-zinc-900 font-bold px-4 py-2 sm:px-5 sm:py-2.5 rounded-xl text-[11px] sm:text-xs md:text-base transition-all duration-300"
-                        >
+                        <Link href={slide.link_url} className="inline-flex items-center gap-1.5 bg-white hover:bg-zinc-100 hover:scale-105 active:scale-95 text-zinc-900 font-bold px-4 py-2 sm:px-5 sm:py-2.5 rounded-xl text-[11px] sm:text-xs md:text-base transition-all duration-300">
                           {slide.buttonText}
-                          <ArrowUpRight
-                            size={14}
-                            className="md:w-[18px] md:h-[18px]"
-                          />
+                          <ArrowUpRight size={14} className="md:w-[18px] md:h-[18px]" />
                         </Link>
                       )}
                     </div>
@@ -790,20 +569,14 @@ export default function LelangPage() {
               {slides.length > 1 && (
                 <>
                   <button
-                    onClick={() =>
-                      setActiveAdIndex(
-                        (prev) => (prev - 1 + slides.length) % slides.length,
-                      )
-                    }
+                    onClick={() => setActiveAdIndex((prev) => (prev - 1 + slides.length) % slides.length)}
                     className="absolute left-4 z-20 w-10 h-10 md:w-12 md:h-12 rounded-full bg-black/30 hover:bg-black/50 text-white flex items-center justify-center backdrop-blur-md border border-white/10 opacity-0 group-hover/carousel:opacity-100 transition-all duration-300 -translate-x-2 group-hover/carousel:translate-x-0 hidden sm:flex"
                     aria-label="Previous slide"
                   >
                     <ChevronLeft size={20} className="md:w-6 md:h-6" />
                   </button>
                   <button
-                    onClick={() =>
-                      setActiveAdIndex((prev) => (prev + 1) % slides.length)
-                    }
+                    onClick={() => setActiveAdIndex((prev) => (prev + 1) % slides.length)}
                     className="absolute right-4 z-20 w-10 h-10 md:w-12 md:h-12 rounded-full bg-black/30 hover:bg-black/50 text-white flex items-center justify-center backdrop-blur-md border border-white/10 opacity-0 group-hover/carousel:opacity-100 transition-all duration-300 translate-x-2 group-hover/carousel:translate-x-0 hidden sm:flex"
                     aria-label="Next slide"
                   >
@@ -813,16 +586,7 @@ export default function LelangPage() {
                   {/* Dot Indicators */}
                   <div className="absolute bottom-2.5 sm:bottom-4 md:bottom-6 left-1/2 -translate-x-1/2 z-20 flex gap-1.5 md:gap-2">
                     {slides.map((_, idx) => (
-                      <button
-                        key={idx}
-                        onClick={() => setActiveAdIndex(idx)}
-                        className={`h-1 md:h-1.5 rounded-full transition-all duration-300 ${
-                          activeAdIndex === idx
-                            ? "w-4 md:w-6 bg-amber-500"
-                            : "w-1 md:w-1.5 bg-white/30 hover:bg-white/50"
-                        }`}
-                        aria-label={`Go to slide ${idx + 1}`}
-                      />
+                      <button key={idx} onClick={() => setActiveAdIndex(idx)} className={`h-1 md:h-1.5 rounded-full transition-all duration-300 ${activeAdIndex === idx ? "w-4 md:w-6 bg-amber-500" : "w-1 md:w-1.5 bg-white/30 hover:bg-white/50"}`} aria-label={`Go to slide ${idx + 1}`} />
                     ))}
                   </div>
                 </>

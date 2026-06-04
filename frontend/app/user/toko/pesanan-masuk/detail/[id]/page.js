@@ -199,6 +199,19 @@ export default function OrderDetailPage({ params }) {
         <OrderStepper order={order} />
       </div>
 
+      {/* Rejection Notice */}
+      {order.status === "waiting_payment" && order.payment_rejection_reason && (
+        <div className="p-6 bg-red-500/10 border border-red-500/20 rounded-[2rem] flex items-start gap-4 text-left animate-in slide-in-from-top-4 duration-500">
+          <AlertCircle size={20} className="text-red-400 shrink-0 mt-0.5" />
+          <div className="space-y-1">
+            <p className="text-[10px] font-black uppercase tracking-widest text-red-400">Pembayaran Ditolak Admin</p>
+            <p className="text-sm text-zinc-300 font-medium leading-relaxed">
+              Mohon maaf, transaksi Anda terhambat sementara karena bukti pembayaran pembeli ditolak oleh admin. Alasan: <span className="text-red-400 font-semibold">{order.payment_rejection_reason}</span>
+            </p>
+          </div>
+        </div>
+      )}
+
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
         {/* LEFT: Product & Buyer Info */}
         <div className="lg:col-span-8 space-y-8">

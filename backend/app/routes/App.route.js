@@ -1,4 +1,5 @@
 //Lib
+// Force nodemon reload trigger: 2026-06-04T16:50:00
 const express = require('express');
 const router = express.Router();
 // const refController = require('../controllers/Ref.controller');
@@ -75,6 +76,10 @@ router.get('/orders', checkAuthAdmin, ordersController.getAllOrders);
 router.get('/orders/user/:user_id', ordersController.getUserOrders);
 router.get('/orders/shop/:shop_id', ordersController.getShopOrders);
 router.get('/orders/listing/:listing_id', ordersController.getListingOrders);
+
+// Refund Routes (defined before wildcard parameter routes)
+router.get('/orders/refunds', checkAuthAdmin, ordersController.getAllRefunds);
+
 router.get('/orders/:order_id', ordersController.getOrderById);
 router.post('/orders', checkAuth, ordersController.createOrder);
 router.put('/orders/:order_id/shipping-info', checkAuth, ordersController.updateShippingInfo);
@@ -86,6 +91,7 @@ router.put('/orders/:order_id/complete', checkAuth, ordersController.completeOrd
 router.put('/orders/:order_id/complain', checkAuth, ordersController.complainOrder);
 router.put('/orders/:order_id/resolve-complaint', checkAuth, ordersController.resolveComplaint);
 router.put('/orders/:order_id/reset-payment', checkAuthAdmin, ordersController.resetPayment);
+router.put('/orders/:order_id/admin-cancel', checkAuthAdmin, ordersController.adminCancelOrder);
 router.put('/orders/:order_id/cancel', checkAuth, ordersController.cancelOrder);
 router.put('/orders/:order_id/request-disbursement', checkAuth, ordersController.requestDisbursement);
 router.post('/orders/bulk-request-disbursement', checkAuth, ordersController.bulkRequestDisbursement);
@@ -93,6 +99,12 @@ router.post('/orders/bulk-disburse', checkAuthAdmin, ordersController.bulkDisbur
 router.put('/orders/:order_id/disburse', checkAuthAdmin, ordersController.disburseOrder);
 router.put('/orders/:order_id/dismiss-cancellation', checkAuth, ordersController.dismissCancellation);
 router.delete('/orders/:order_id/history', checkAuthAdmin, ordersController.deleteOrderHistory);
+
+router.put('/orders/:order_id/refund', checkAuthAdmin, ordersController.processRefund);
+router.put('/orders/:order_id/reject-refund', checkAuthAdmin, ordersController.rejectRefund);
+router.put('/orders/:order_id/request-refund', checkAuth, ordersController.requestRefund);
+router.put('/orders/:order_id/reset-refund-status', checkAuthAdmin, ordersController.resetRefundStatus);
+
 
 // Cart Routes
 router.get('/cart/:user_id', cartController.getCart);
@@ -181,6 +193,42 @@ router.post('/upload', uploadController.uploadImage);
 
 
 
+
+router.get('/orders/test-submit-refund', async (req, res) => {
+    try {
+        const { Sequelize } = require('sequelize');
+        const initModels = require('../database/init');
+        const sequelize = new Sequelize(process.env.DATABASE_URL);
+        const models = initModels(sequelize);
+        
+        const order = await models.orders.findOne({
+            where: { order_id: 'INV/20260604/RH/850919' }
+        });
+        
+        if (!order) {
+            return res.status(404).json({ message: 'Order INV/20260604/RH/850919 tidak ditemukan' });
+        }
+        
+        await order.update({
+            bank_name: 'BCA',
+            bank_account: '8910293812',
+            bank_holder: 'Asep Sunandar',
+            refund_status: 'pending',
+            updated_at: new Date()
+        });
+        
+        return res.json({
+            message: 'Berhasil mensimulasikan pengajuan refund oleh buyer!',
+            order_id: order.order_id,
+            uuid: order.id,
+            refund_status: order.refund_status,
+            buyer_detail_url: `http://localhost:3000/user/pesanan/pengembalian-dana/detail/${order.id}`,
+            admin_url: 'http://localhost:3000/admin/pengembalian-dana'
+        });
+    } catch (e) {
+        return res.status(500).json({ error: e.message });
+    }
+});
 
 //exports
 module.exports = router;

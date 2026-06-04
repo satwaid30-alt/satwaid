@@ -21,6 +21,7 @@ export default function AdminTransactionDetailPage({ params }) {
   const [isCompleting, setIsCompleting] = useState(false);
   const [showRejectModal, setShowRejectModal] = useState(false);
   const [isRejecting, setIsRejecting] = useState(false);
+  const [rejectionReason, setRejectionReason] = useState("");
 
   useEffect(() => {
     fetchOrderDetails();
@@ -123,18 +124,27 @@ export default function AdminTransactionDetailPage({ params }) {
   };
 
   const handleRejectPayment = async () => {
+    if (!rejectionReason.trim()) {
+      alert("Harap masukkan alasan penolakan!");
+      return;
+    }
     setIsRejecting(true);
     try {
       const token = localStorage.getItem("admin_token");
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/orders/${id}/reset-payment`, {
         method: "PUT",
         headers: {
+          "Content-Type": "application/json",
           Authorization: token ? `Bearer ${token}` : "",
         },
+        body: JSON.stringify({
+          payment_rejection_reason: rejectionReason,
+        }),
       });
       const result = await res.json();
       if (res.ok) {
         setShowRejectModal(false);
+        setRejectionReason("");
         fetchOrderDetails();
       } else {
         alert(result.message || "Gagal menolak bukti pembayaran");
@@ -604,7 +614,7 @@ export default function AdminTransactionDetailPage({ params }) {
       {/* CUSTOM REJECT CONFIRMATION MODAL */}
       {showRejectModal && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-zinc-950/80 backdrop-blur-md" onClick={() => !isRejecting && setShowRejectModal(false)}></div>
+          <div className="absolute inset-0 bg-zinc-950/80 backdrop-blur-md" onClick={() => !isRejecting && (setShowRejectModal(false) || setRejectionReason(""))}></div>
           <div className="bg-zinc-900 border border-zinc-800 w-full max-w-md rounded-[2.5rem] p-10 relative z-10 shadow-3xl animate-in zoom-in duration-300">
             <div className="flex flex-col items-center text-center space-y-6">
               <div className="w-20 h-20 rounded-3xl bg-red-500/10 border border-red-500/20 flex items-center justify-center text-red-500 shadow-inner">
@@ -618,11 +628,23 @@ export default function AdminTransactionDetailPage({ params }) {
                 </p>
               </div>
 
+              <div className="w-full text-left space-y-2">
+                <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest ml-1">Keterangan / Alasan Penolakan</label>
+                <textarea
+                  required
+                  rows={3}
+                  value={rejectionReason}
+                  onChange={(e) => setRejectionReason(e.target.value)}
+                  className="w-full bg-zinc-950 border border-zinc-800 rounded-2xl py-4 px-6 text-white text-xs focus:outline-none focus:border-red-500 transition-all resize-none font-bold"
+                  placeholder="Masukkan alasan penolakan (misal: nominal tidak sesuai, bukti bayar buram)..."
+                />
+              </div>
+
               <div className="grid grid-cols-2 gap-4 w-full pt-4">
-                <button onClick={() => setShowRejectModal(false)} disabled={isRejecting} className="py-4 bg-zinc-800 hover:bg-zinc-700 text-zinc-400 font-bold text-xs uppercase tracking-wider rounded-2xl transition-all">
+                <button onClick={() => { setShowRejectModal(false); setRejectionReason(""); }} disabled={isRejecting} className="py-4 bg-zinc-800 hover:bg-zinc-700 text-zinc-400 font-bold text-xs uppercase tracking-wider rounded-2xl transition-all">
                   Batal
                 </button>
-                <button onClick={handleRejectPayment} disabled={isRejecting} className="py-4 bg-red-500 hover:bg-red-400 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold text-xs uppercase tracking-wider rounded-2xl transition-all shadow-lg shadow-red-500/20 flex items-center justify-center gap-2">
+                <button onClick={handleRejectPayment} disabled={isRejecting || !rejectionReason.trim()} className="py-4 bg-red-500 hover:bg-red-400 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold text-xs uppercase tracking-wider rounded-2xl transition-all shadow-lg shadow-red-500/20 flex items-center justify-center gap-2">
                   {isRejecting ? (
                     <>
                       <div className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin"></div>

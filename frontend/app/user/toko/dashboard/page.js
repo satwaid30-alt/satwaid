@@ -2,7 +2,8 @@
 
 import { useState, useEffect, Fragment } from "react";
 import Link from "next/link";
-import { Package, ShoppingBag, LayoutDashboard, Image as ImageIcon, X, ChevronRight, MapPin, MessageCircle, DollarSign, AlertCircle, CheckCircle2, Clock, Calendar, Truck, Info, Star, Search, Filter, ChevronLeft, LayoutGrid } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { Package, ShoppingBag, LayoutDashboard, Image as ImageIcon, X, XCircle, ChevronRight, MapPin, MessageCircle, DollarSign, AlertCircle, CheckCircle2, Clock, Calendar, Truck, Info, Star, Search, Filter, ChevronLeft, LayoutGrid, Wallet } from "lucide-react";
 import { io } from "socket.io-client";
 import { getApiUrl, getSocketUrl } from "@/app/utils/api";
 import QuotaCard from "@/components/QuotaCard";
@@ -25,6 +26,7 @@ const getPaginationRange = (currentPage, totalPages) => {
 };
 
 export default function SellerDashboardPage() {
+  const router = useRouter();
   const [hasShop, setHasShop] = useState(false);
   const [activeTab, setActiveTab] = useState("riwayat");
   const [successMessage, setSuccessMessage] = useState("");
@@ -40,12 +42,17 @@ export default function SellerDashboardPage() {
     packing_cost: "",
   });
   const [isUpdatingCost, setIsUpdatingCost] = useState(false);
-  const [expandedShipping, setExpandedShipping] = useState(null);
   const [zoomImage, setZoomImage] = useState(null);
   const [orderSearchQuery, setOrderSearchQuery] = useState("");
   const [orderStatusFilter, setOrderStatusFilter] = useState("completed");
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 15;
+
+  const adminRejectedOrders = orders.filter((order) => {
+    const isPaymentRejected = order.status === "waiting_payment" && order.payment_rejection_reason;
+    const isAdminCancelled = order.status === "cancelled" && order.rejection_reason && (order.rejection_reason.includes("Admin") || order.rejection_reason.includes("admin"));
+    return isPaymentRejected || isAdminCancelled;
+  });
 
   // Form States
   const [shopData, setShopData] = useState({
@@ -98,6 +105,12 @@ export default function SellerDashboardPage() {
       if (socket) socket.disconnect();
     };
   }, [shop?.id]);
+
+  useEffect(() => {
+    if (adminRejectedOrders.length > 0) {
+      router.push("/user/toko/pesanan-masuk");
+    }
+  }, [orders]);
 
   const fetchShop = async (userId) => {
     try {
@@ -222,6 +235,20 @@ export default function SellerDashboardPage() {
     }
   };
 
+  const getOrderLabel = (order) => {
+    if (order.status === "waiting_payment" && order.payment_rejection_reason) {
+      return "Pembayaran Ditolak";
+    }
+    return getStatusLabel(order.status);
+  };
+
+  const getOrderStyle = (order) => {
+    if (order.status === "waiting_payment" && order.payment_rejection_reason) {
+      return "bg-red-500/10 text-red-400 border-red-500/20";
+    }
+    return getStatusStyle(order.status);
+  };
+
   const formatPrice = (price) => {
     return new Intl.NumberFormat("id-ID", {
       style: "currency",
@@ -256,9 +283,6 @@ export default function SellerDashboardPage() {
       <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
         <div>
           <h1 className="text-2xl md:text-3xl font-black text-white uppercase tracking-tight">Dashboard Seller</h1>
-          <p className="text-zinc-400 text-sm mt-1">
-            Kelola toko <span className="text-emerald-400 font-bold">{shopData.name || "Reptile Shop"}</span> dan produk jualanmu.
-          </p>
         </div>
       </div>
 
@@ -289,7 +313,7 @@ export default function SellerDashboardPage() {
 
               return formatPrice(total);
             })(),
-            icon: DollarSign,
+            icon: Wallet,
             color: "bg-emerald-500",
           },
           {
@@ -321,27 +345,79 @@ export default function SellerDashboardPage() {
       </div>
 
       {/* Tab Navigation */}
-      <div className="flex gap-2 p-1 bg-zinc-900 border border-zinc-800 rounded-2xl w-full md:w-fit overflow-x-auto custom-scrollbar">
+      <div 
+        className="flex gap-1.5 md:gap-2 p-1.5 bg-zinc-900 border border-zinc-800 rounded-2xl w-full md:w-fit overflow-x-auto no-scrollbar scroll-smooth snap-x"
+        style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
+      >
+        <style dangerouslySetInnerHTML={{__html: `
+          .no-scrollbar::-webkit-scrollbar {
+            display: none;
+          }
+        `}} />
         {[
           {
             id: "dashboard",
-            label: "Statistik Toko",
+            label: (
+              <span>
+                <span className="hidden sm:inline">Statistik Toko</span>
+                <span className="sm:hidden">Statistik</span>
+              </span>
+            ),
             icon: LayoutDashboard,
             href: "/user/toko/dashboard/statistik-toko",
+            type: "link",
           },
           {
             id: "riwayat",
-            label: `Pesanan Selesai (${orders.filter((o) => ["completed", "disbursement_requested", "disbursed"].includes(o.status)).length})`,
+            label: (
+              <span>
+                <span className="hidden sm:inline">Pesanan Selesai</span>
+                <span className="sm:hidden">Selesai</span>
+                {" "}({orders.filter((o) => ["completed", "disbursement_requested", "disbursed"].includes(o.status)).length})
+              </span>
+            ),
             icon: CheckCircle2,
-            href: "/user/toko/dashboard",
+            type: "tab",
           },
-          //   { id: "inventory", label: "Stok", icon: Package },
-        ].map((tab) => (
-          <Link key={tab.id} href={tab.href} className={`flex items-center gap-2 px-4 md:px-6 py-2.5 rounded-xl font-bold text-xs md:text-sm transition-all whitespace-nowrap ${activeTab === tab.id ? "bg-zinc-800 text-white" : "text-zinc-500 hover:text-zinc-300"}`}>
-            <tab.icon size={16} />
-            {tab.label}
-          </Link>
-        ))}
+          {
+            id: "dibatalkan",
+            label: (
+              <span>
+                <span className="hidden sm:inline">Pesanan Dibatalkan</span>
+                <span className="sm:hidden">Batal</span>
+                {" "}({orders.filter((o) => o.status === "cancelled").length})
+              </span>
+            ),
+            icon: XCircle,
+            type: "tab",
+          },
+        ].map((tab) => {
+          if (tab.type === "tab") {
+            return (
+              <button
+                key={tab.id}
+                onClick={() => {
+                  setActiveTab(tab.id);
+                  setCurrentPage(1);
+                }}
+                className={`flex-1 md:flex-initial flex items-center justify-center gap-1.5 md:gap-2 px-3 md:px-6 py-2.5 rounded-xl font-bold text-[10px] sm:text-xs md:text-sm transition-all whitespace-nowrap snap-center ${activeTab === tab.id ? "bg-zinc-800 text-white" : "text-zinc-500 hover:text-zinc-300"}`}
+              >
+                <tab.icon size={16} className="shrink-0" />
+                {tab.label}
+              </button>
+            );
+          }
+          return (
+            <Link 
+              key={tab.id} 
+              href={tab.href} 
+              className={`flex-1 md:flex-initial flex items-center justify-center gap-1.5 md:gap-2 px-3 md:px-6 py-2.5 rounded-xl font-bold text-[10px] sm:text-xs md:text-sm transition-all whitespace-nowrap snap-center ${activeTab === tab.id ? "bg-zinc-800 text-white" : "text-zinc-500 hover:text-zinc-300"}`}
+            >
+              <tab.icon size={16} className="shrink-0" />
+              {tab.label}
+            </Link>
+          );
+        })}
       </div>
 
       {/* Tab Content */}
@@ -364,7 +440,7 @@ export default function SellerDashboardPage() {
             const filteredOrders = orders.filter((o) => {
               const inProgressStatuses = ["pending_shipping_info", "waiting_shipping_cost", "waiting_payment", "processing", "shipped", "complained"];
               const completedStatuses = ["completed", "disbursement_requested", "disbursed"];
-              const matchesStatus = orderStatusFilter === "all" ? true : orderStatusFilter === "processing" ? inProgressStatuses.includes(o.status) : orderStatusFilter === "completed" ? completedStatuses.includes(o.status) : o.status === orderStatusFilter;
+              const matchesStatus = orderStatusFilter === "all" ? o.status !== "cancelled" : orderStatusFilter === "processing" ? inProgressStatuses.includes(o.status) : orderStatusFilter === "completed" ? completedStatuses.includes(o.status) : o.status === orderStatusFilter;
 
               const matchesSearch = o.order_id.toLowerCase().includes(orderSearchQuery.toLowerCase());
               return matchesStatus && matchesSearch;
@@ -377,12 +453,12 @@ export default function SellerDashboardPage() {
             return (
               <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
                 {/* Header */}
-                <div className="flex items-center justify-between">
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                   <div>
                     <h2 className="text-xl font-black text-white">Riwayat Penjualan</h2>
                     <p className="text-xs text-zinc-500 mt-0.5">Transaksi yang telah selesai dari toko Anda</p>
                   </div>
-                  <div className="px-4 py-2 bg-emerald-500/10 border border-emerald-500/20 rounded-xl">
+                  <div className="w-fit px-4 py-2 bg-emerald-500/10 border border-emerald-500/20 rounded-xl">
                     <span className="text-xs font-black text-emerald-400 flex items-center gap-1.5">
                       <CheckCircle2 size={12} /> {filteredOrders.length} Transaksi Ditemukan
                     </span>
@@ -403,9 +479,6 @@ export default function SellerDashboardPage() {
                       </option>
                       <option value="processing" className="bg-zinc-900">
                         Dalam Proses
-                      </option>
-                      <option value="cancelled" className="bg-zinc-900">
-                        Dibatalkan
                       </option>
                       <option value="all" className="bg-zinc-900">
                         Semua Status
@@ -428,7 +501,6 @@ export default function SellerDashboardPage() {
                             <th className="text-left px-6 py-4 text-[10px] font-black text-zinc-500 uppercase tracking-widest">Produk</th>
                             <th className="text-right px-6 py-4 text-[10px] font-black text-zinc-500 uppercase tracking-widest">Total</th>
                             <th className="text-center px-6 py-4 text-[10px] font-black text-zinc-500 uppercase tracking-widest">Status</th>
-                            <th className="text-center px-6 py-4 text-[10px] font-black text-zinc-500 uppercase tracking-widest">Pengiriman</th>
                             <th className="text-center px-6 py-4 text-[10px] font-black text-zinc-500 uppercase tracking-widest">Aksi</th>
                           </tr>
                         </thead>
@@ -471,6 +543,8 @@ export default function SellerDashboardPage() {
                                           {order.product?.type === "auction" ? "Lelang" : "Langsung"}
                                         </span>
                                       </div>
+                                      {order.status === "waiting_payment" && order.payment_rejection_reason && <p className="text-[10px] text-red-400 mt-1 font-semibold leading-tight max-w-[180px]">Ditolak Admin: {order.payment_rejection_reason}</p>}
+                                      {order.status === "cancelled" && order.rejection_reason && <p className="text-[10px] text-zinc-500 mt-1 font-semibold italic leading-tight max-w-[180px]">Alasan Batal: {order.rejection_reason}</p>}
                                     </div>
                                   </div>
                                 </td>
@@ -481,22 +555,12 @@ export default function SellerDashboardPage() {
                                   </div>
                                 </td>
                                 <td className="px-6 py-5 text-center">
-                                  <span className={`px-2.5 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest flex items-center justify-center gap-1 mx-auto w-fit border ${getStatusStyle(order.status)}`}>
+                                  <span className={`px-2.5 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest flex items-center justify-center gap-1 mx-auto w-fit border ${getOrderStyle(order)}`}>
                                     {["completed", "disbursement_requested", "disbursed"].includes(order.status) && <CheckCircle2 size={10} />}
                                     {order.status === "processing" && <Clock size={10} />}
-                                    {getStatusLabel(order.status)}
+                                    {order.status === "waiting_payment" && order.payment_rejection_reason && <AlertCircle size={10} className="shrink-0" />}
+                                    {getOrderLabel(order)}
                                   </span>
-                                </td>
-                                <td className="px-6 py-5 text-center">
-                                  <button
-                                    onClick={() => setExpandedShipping(expandedShipping === order.id ? null : order.id)}
-                                    className={`inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all border ${
-                                      expandedShipping === order.id ? "bg-blue-500/10 border-blue-500/30 text-blue-400" : "bg-zinc-800 border-zinc-700 text-zinc-400 hover:text-white hover:border-zinc-600"
-                                    }`}
-                                  >
-                                    <Truck size={11} />
-                                    {expandedShipping === order.id ? "Tutup" : "Lihat"}
-                                  </button>
                                 </td>
                                 <td className="px-6 py-5 text-center">
                                   <a href={`/user/toko/pesanan-masuk/detail/${order.id}`} className="inline-flex items-center gap-1.5 px-4 py-2 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 hover:text-white rounded-xl text-[10px] font-black uppercase tracking-widest transition-all border border-zinc-700 hover:border-zinc-600">
@@ -504,51 +568,6 @@ export default function SellerDashboardPage() {
                                   </a>
                                 </td>
                               </tr>
-                              {/* Expandable Shipping Row */}
-                              {expandedShipping === order.id && (
-                                <tr key={`ship-${order.id}`} className="bg-zinc-950/60">
-                                  <td colSpan={8} className="px-8 py-6">
-                                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                                      {/* Resi */}
-                                      <div className="bg-zinc-900 border border-blue-500/20 rounded-2xl p-5 space-y-3">
-                                        <p className="text-[11px] font-black text-blue-400 uppercase tracking-widest flex items-center gap-2">
-                                          <Info size={11} /> Nomor Resi
-                                        </p>
-                                        <p className="text-lg font-black text-white tracking-[0.15em] break-all">{order.tracking_number || <span className="text-zinc-600 text-sm font-bold normal-case tracking-normal">Belum tersedia</span>}</p>
-                                      </div>
-                                      {/* Alamat */}
-                                      <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-5 space-y-3">
-                                        <p className="text-[11px] font-black text-zinc-500 uppercase tracking-widest flex items-center gap-2">
-                                          <MapPin size={11} className="text-emerald-500" /> Alamat Penerima
-                                        </p>
-                                        <div className="space-y-1">
-                                          <p className="text-sm font-black text-white">{order.receiver_name || "-"}</p>
-                                          <p className="text-[12px] font-bold text-zinc-500">{order.phone_number}</p>
-                                          <p className="text-sm text-zinc-400 leading-relaxed mt-1">{order.shipping_address || "-"}</p>
-                                        </div>
-                                      </div>
-                                      {/* Foto Bukti */}
-                                      <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-5 space-y-3">
-                                        <p className="text-[11px] font-black text-zinc-500 uppercase tracking-widest flex items-center gap-2">
-                                          <ShoppingBag size={11} className="text-blue-400" /> Bukti Pengiriman
-                                        </p>
-                                        {order.shipping_proof ? (
-                                          <div onClick={() => setZoomImage(`${getApiUrl()}${order.shipping_proof}`)} className="aspect-video rounded-xl overflow-hidden border border-zinc-700 cursor-pointer group relative">
-                                            <img src={`${getApiUrl()}${order.shipping_proof}`} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
-                                            <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                                              <span className="text-[9px] font-black text-white uppercase tracking-widest bg-white/10 px-3 py-1.5 rounded-full border border-white/20">Perbesar</span>
-                                            </div>
-                                          </div>
-                                        ) : (
-                                          <div className="aspect-video rounded-xl bg-zinc-950 border border-zinc-800 flex items-center justify-center">
-                                            <p className="text-[10px] font-black text-zinc-700 uppercase tracking-widest">Foto tidak tersedia</p>
-                                          </div>
-                                        )}
-                                      </div>
-                                    </div>
-                                  </td>
-                                </tr>
-                              )}
                             </Fragment>
                           ))}
                         </tbody>
@@ -564,10 +583,11 @@ export default function SellerDashboardPage() {
                               <span className="w-6 h-6 bg-zinc-800 rounded-lg flex items-center justify-center text-[9px] font-black text-zinc-500">{(currentPage - 1) * itemsPerPage + idx + 1}</span>
                               <span className="text-[10px] font-black text-white font-mono">{order.order_id}</span>
                             </div>
-                            <span className={`px-2 py-1 rounded-lg text-[9px] font-black flex items-center gap-1 uppercase tracking-widest border ${getStatusStyle(order.status)}`}>
+                            <span className={`px-2 py-1 rounded-lg text-[9px] font-black flex items-center gap-1 uppercase tracking-widest border ${getOrderStyle(order)}`}>
                               {["completed", "disbursement_requested", "disbursed"].includes(order.status) && <CheckCircle2 size={9} />}
                               {order.status === "processing" && <Clock size={9} />}
-                              {getStatusLabel(order.status)}
+                              {order.status === "waiting_payment" && order.payment_rejection_reason && <AlertCircle size={9} className="shrink-0" />}
+                              {getOrderLabel(order)}
                             </span>
                           </div>
                           <div className="p-5 space-y-3">
@@ -607,33 +627,19 @@ export default function SellerDashboardPage() {
                                 {Number(order.admin_fee) > 0 && <span className="text-[8px] font-bold text-zinc-500 uppercase tracking-tighter block mt-0.5">Net (Tanpa Biaya Admin)</span>}
                               </div>
                             </div>
-                            {/* Shipping toggle */}
-                            <button
-                              onClick={() => setExpandedShipping(expandedShipping === order.id ? null : order.id)}
-                              className={`w-full flex items-center justify-center gap-2 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all border mt-1 ${expandedShipping === order.id ? "bg-blue-500/10 border-blue-500/20 text-blue-400" : "bg-zinc-800 border-zinc-700 text-zinc-400"}`}
-                            >
-                              <Truck size={12} /> {expandedShipping === order.id ? "Sembunyikan" : "Detail Pengiriman"}
-                            </button>
-                            {expandedShipping === order.id && (
-                              <div className="space-y-3 pt-1 animate-in slide-in-from-top-2 duration-300">
-                                <div className="p-4 bg-zinc-950/60 border border-blue-500/20 rounded-2xl space-y-1">
-                                  <p className="text-[9px] font-black text-blue-400 uppercase tracking-widest">Nomor Resi</p>
-                                  <p className="text-sm font-black text-white tracking-widest break-all">{order.tracking_number || "-"}</p>
-                                </div>
-                                <div className="p-4 bg-zinc-950/60 border border-zinc-800 rounded-2xl space-y-1">
-                                  <p className="text-[9px] font-black text-zinc-600 uppercase tracking-widest">Penerima</p>
-                                  <p className="text-xs font-black text-white">
-                                    {order.receiver_name} — {order.phone_number}
-                                  </p>
-                                  <p className="text-[10px] text-zinc-400 leading-relaxed">{order.shipping_address}</p>
-                                </div>
-                                {order.shipping_proof && (
-                                  <div onClick={() => setZoomImage(`${getApiUrl()}${order.shipping_proof}`)} className="aspect-video rounded-xl overflow-hidden border border-zinc-700 cursor-pointer">
-                                    <img src={`${getApiUrl()}${order.shipping_proof}`} className="w-full h-full object-cover" />
-                                  </div>
-                                )}
+                            {order.status === "waiting_payment" && order.payment_rejection_reason && (
+                              <div className="flex items-center justify-between border-t border-zinc-800/50 pt-2">
+                                <span className="text-[9px] font-black text-red-500 uppercase tracking-widest">Tolak Bayar</span>
+                                <span className="text-xs font-semibold text-red-400 max-w-[200px] text-right">{order.payment_rejection_reason}</span>
                               </div>
                             )}
+                            {order.status === "cancelled" && order.rejection_reason && (
+                              <div className="flex items-center justify-between border-t border-zinc-800/50 pt-2">
+                                <span className="text-[9px] font-black text-zinc-500 uppercase tracking-widest">Alasan Batal</span>
+                                <span className="text-xs font-semibold text-zinc-400 italic max-w-[200px] text-right">{order.rejection_reason}</span>
+                              </div>
+                            )}
+
                             <a href={`/user/toko/pesanan-masuk/detail/${order.id}`} className="w-full flex items-center justify-center gap-2 py-3 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 hover:text-white rounded-xl text-[10px] font-black uppercase tracking-widest transition-all border border-zinc-700 mt-1">
                               <ChevronRight size={12} /> Lihat Detail Transaksi
                             </a>
@@ -685,6 +691,212 @@ export default function SellerDashboardPage() {
                     <div className="space-y-2">
                       <h3 className="text-xl font-bold text-white">Belum Ada Penjualan Selesai</h3>
                       <p className="text-zinc-500 max-w-xs mx-auto text-sm">Transaksi yang berhasil diselesaikan akan muncul di sini.</p>
+                    </div>
+                  </div>
+                )}
+              </div>
+            );
+          })()}
+
+        {activeTab === "dibatalkan" &&
+          (() => {
+            const cancelledOrders = orders.filter((o) => {
+              const matchesSearch = o.order_id.toLowerCase().includes(orderSearchQuery.toLowerCase());
+              return o.status === "cancelled" && matchesSearch;
+            });
+
+            const indexOfLastItem = currentPage * itemsPerPage;
+            const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+            const paginatedOrders = cancelledOrders.slice(indexOfFirstItem, indexOfLastItem);
+            const totalPages = Math.ceil(cancelledOrders.length / itemsPerPage);
+
+            return (
+              <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
+                {/* Header */}
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                  <div>
+                    <h2 className="text-xl font-black text-white">Pesanan Dibatalkan</h2>
+                    <p className="text-xs text-zinc-500 mt-0.5">Daftar transaksi yang dibatalkan oleh Anda atau sistem</p>
+                  </div>
+                  <div className="w-fit px-4 py-2 bg-red-500/10 border border-red-500/20 rounded-xl">
+                    <span className="text-xs font-black text-red-400 flex items-center gap-1.5">
+                      <XCircle size={12} /> {cancelledOrders.length} Pesanan Dibatalkan
+                    </span>
+                  </div>
+                </div>
+
+                {/* Filters */}
+                <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-3 flex flex-col md:flex-row gap-4">
+                  <div className="relative flex-1">
+                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500" size={16} />
+                    <input type="text" placeholder="Cari Order ID / Nomor Invoice..." value={orderSearchQuery} onChange={(e) => setOrderSearchQuery(e.target.value)} className="w-full bg-zinc-950 border border-zinc-800 rounded-xl py-2.5 pl-12 pr-4 text-white text-xs font-medium focus:border-emerald-500/50 outline-none transition-all" />
+                  </div>
+                </div>
+
+                {cancelledOrders.length > 0 ? (
+                  <>
+                    {/* Desktop Table */}
+                    <div className="hidden md:block bg-zinc-900 border border-zinc-800 rounded-[2rem] overflow-hidden">
+                      <table className="w-full">
+                        <thead>
+                          <tr className="border-b border-zinc-800 bg-zinc-950/50">
+                            <th className="text-left px-6 py-4 text-[10px] font-black text-zinc-500 uppercase tracking-widest w-10">No</th>
+                            <th className="text-left px-6 py-4 text-[10px] font-black text-zinc-500 uppercase tracking-widest">Order ID</th>
+                            <th className="text-left px-6 py-4 text-[10px] font-black text-zinc-500 uppercase tracking-widest">Tgl Batal</th>
+                            <th className="text-left px-6 py-4 text-[10px] font-black text-zinc-500 uppercase tracking-widest">Pembeli</th>
+                            <th className="text-left px-6 py-4 text-[10px] font-black text-zinc-500 uppercase tracking-widest">Produk</th>
+                            <th className="text-right px-6 py-4 text-[10px] font-black text-zinc-500 uppercase tracking-widest">Total</th>
+                            <th className="text-left px-6 py-4 text-[10px] font-black text-zinc-500 uppercase tracking-widest">Alasan Pembatalan</th>
+                            <th className="text-center px-6 py-4 text-[10px] font-black text-zinc-500 uppercase tracking-widest">Aksi</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {paginatedOrders.map((order, idx) => (
+                            <tr key={order.id} className="border-b border-zinc-800/50 hover:bg-zinc-800/20 transition-colors">
+                              <td className="px-6 py-5 text-sm font-black text-zinc-600">{(currentPage - 1) * itemsPerPage + idx + 1}</td>
+                              <td className="px-6 py-5">
+                                <span className="text-[11px] font-black text-zinc-300 font-mono tracking-wide">{order.order_id}</span>
+                              </td>
+                              <td className="px-6 py-5">
+                                <div className="flex items-center gap-2 text-xs font-bold text-zinc-400">
+                                  <Calendar size={12} className="text-red-500 shrink-0" />
+                                  {new Date(order.cancelled_at || order.updated_at).toLocaleDateString("id-ID", {
+                                    day: "numeric",
+                                    month: "short",
+                                    year: "numeric",
+                                  })}
+                                </div>
+                              </td>
+                              <td className="px-6 py-5">
+                                <div>
+                                  <p className="text-sm font-black text-white">{order.receiver_name || "-"}</p>
+                                </div>
+                              </td>
+                              <td className="px-6 py-5">
+                                <div className="flex items-center gap-3">
+                                  {order.product?.images?.[0] && (
+                                    <div className="w-10 h-10 rounded-xl overflow-hidden bg-zinc-800 shrink-0 border border-zinc-700">
+                                      <img src={order.product.images[0]} className="w-full h-full object-cover" />
+                                    </div>
+                                  )}
+                                  <div>
+                                    <p className="text-sm font-bold text-zinc-300 truncate max-w-[140px]">{order.product?.name}</p>
+                                    <div className="flex items-center gap-1.5 mt-1">
+                                      <span className="inline-block px-1.5 py-0.5 bg-zinc-950 text-[8px] text-zinc-400 rounded font-black uppercase tracking-widest border border-zinc-800">ID: {order.product?.product_id || "-"}</span>
+                                    </div>
+                                  </div>
+                                </div>
+                              </td>
+                              <td className="px-6 py-5 text-right font-black text-red-400 text-sm">
+                                {formatPrice(Number(order.total_price))}
+                              </td>
+                              <td className="px-6 py-5 text-xs text-zinc-400 max-w-[200px] truncate" title={order.rejection_reason || order.cancellation_reason || "-"}>
+                                {order.rejection_reason || order.cancellation_reason || "-"}
+                              </td>
+                              <td className="px-6 py-5 text-center">
+                                <a href={`/user/toko/pesanan-masuk/detail/${order.id}`} className="inline-flex items-center gap-1.5 px-4 py-2 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 hover:text-white rounded-xl text-[10px] font-black uppercase tracking-widest transition-all border border-zinc-700 hover:border-zinc-600">
+                                  <ChevronRight size={12} /> Detail
+                                </a>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+
+                    {/* Mobile Cards */}
+                    <div className="md:hidden space-y-3">
+                      {paginatedOrders.map((order, idx) => (
+                        <div key={order.id} className="bg-zinc-900 border border-zinc-800 rounded-[2rem] overflow-hidden">
+                          <div className="px-5 py-3 border-b border-zinc-800 bg-red-500/5 flex items-center justify-between">
+                            <div className="flex items-center gap-3">
+                              <span className="w-6 h-6 bg-zinc-800 rounded-lg flex items-center justify-center text-[9px] font-black text-zinc-500">{(currentPage - 1) * itemsPerPage + idx + 1}</span>
+                              <span className="text-[10px] font-black text-white font-mono">{order.order_id}</span>
+                            </div>
+                            <span className="px-2 py-1 rounded-lg text-[9px] font-black bg-red-500/10 text-red-400 border border-red-500/20 uppercase tracking-widest">
+                              Batal
+                            </span>
+                          </div>
+                          <div className="p-5 space-y-3">
+                            <div className="flex items-center justify-between">
+                              <span className="text-[9px] font-black text-zinc-600 uppercase tracking-widest">Pembeli</span>
+                              <span className="text-xs font-black text-white">{order.receiver_name || "-"}</span>
+                            </div>
+                            <div className="flex items-center justify-between">
+                              <span className="text-[9px] font-black text-zinc-600 uppercase tracking-widest">Produk</span>
+                              <span className="text-xs font-bold text-zinc-300 truncate max-w-[160px]">{order.product?.name}</span>
+                            </div>
+                            <div className="flex items-center justify-between">
+                              <span className="text-[9px] font-black text-zinc-600 uppercase tracking-widest">Tgl Batal</span>
+                              <span className="text-xs font-bold text-zinc-400">
+                                {new Date(order.cancelled_at || order.updated_at).toLocaleDateString("id-ID", {
+                                  day: "numeric",
+                                  month: "short",
+                                  year: "numeric",
+                                })}
+                              </span>
+                            </div>
+                            <div className="flex items-center justify-between">
+                              <span className="text-[9px] font-black text-zinc-600 uppercase tracking-widest">Total</span>
+                              <span className="text-sm font-black text-red-400">{formatPrice(Number(order.total_price))}</span>
+                            </div>
+                            {order.rejection_reason && (
+                              <div className="flex items-center justify-between border-t border-zinc-800/50 pt-2">
+                                <span className="text-[9px] font-black text-zinc-500 uppercase tracking-widest">Alasan</span>
+                                <span className="text-xs font-semibold text-zinc-400 italic max-w-[200px] text-right">{order.rejection_reason}</span>
+                              </div>
+                            )}
+                            <a href={`/user/toko/pesanan-masuk/detail/${order.id}`} className="w-full flex items-center justify-center gap-2 py-3 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 hover:text-white rounded-xl text-[10px] font-black uppercase tracking-widest transition-all border border-zinc-700 mt-1">
+                              <ChevronRight size={12} /> Detail Transaksi
+                            </a>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* Pagination */}
+                    {totalPages > 1 && (
+                      <div className="flex flex-col md:flex-row items-center justify-between gap-4 pt-6 pb-2">
+                        <p className="text-[10px] font-black text-zinc-500 uppercase tracking-widest order-2 md:order-1">
+                          Menampilkan {indexOfFirstItem + 1}-{Math.min(indexOfLastItem, cancelledOrders.length)} dari {cancelledOrders.length} Pesanan
+                        </p>
+                        <div className="flex items-center order-1 md:order-2">
+                          <div className="inline-flex rounded-xl border border-zinc-800 bg-zinc-950 divide-x divide-zinc-800 overflow-hidden">
+                            <button onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))} disabled={currentPage === 1} className="w-10 h-10 flex items-center justify-center text-zinc-400 hover:text-white hover:bg-zinc-900/50 disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-transparent transition-all">
+                              <ChevronLeft size={16} />
+                            </button>
+
+                            {getPaginationRange(currentPage, totalPages).map((page, idx) => (
+                              <button
+                                key={idx}
+                                onClick={() => typeof page === "number" && setCurrentPage(page)}
+                                disabled={page === "..."}
+                                className={`w-10 h-10 flex items-center justify-center text-xs font-bold transition-all ${page === currentPage ? "bg-zinc-800 text-white font-black" : page === "..." ? "text-zinc-500 cursor-default bg-zinc-950" : "text-zinc-400 hover:text-white hover:bg-zinc-900/50 bg-zinc-950"}`}
+                              >
+                                {page}
+                              </button>
+                            ))}
+
+                            <button
+                              onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+                              disabled={currentPage === totalPages}
+                              className="w-10 h-10 flex items-center justify-center text-zinc-400 hover:text-white hover:bg-zinc-900/50 disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-transparent transition-all"
+                            >
+                              <ChevronRight size={16} />
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </>
+                ) : (
+                  <div className="py-20 flex flex-col items-center text-center space-y-6 bg-zinc-900/20 border border-zinc-800 rounded-[3rem] border-dashed">
+                    <div className="w-20 h-20 bg-zinc-900 rounded-3xl flex items-center justify-center text-zinc-700">
+                      <XCircle size={40} />
+                    </div>
+                    <div className="space-y-2">
+                      <h3 className="text-xl font-bold text-white">Tidak Ada Pesanan Dibatalkan</h3>
+                      <p className="text-zinc-500 max-w-xs mx-auto text-sm">Pesanan yang dibatalkan akan muncul di sini.</p>
                     </div>
                   </div>
                 )}

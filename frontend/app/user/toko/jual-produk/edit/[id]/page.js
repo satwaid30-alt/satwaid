@@ -149,9 +149,13 @@ export default function EditListingPage({ params }) {
                 end_date: listingType === "auction" ? (reptileData.end_date || null) : null,
             };
 
+            const token = typeof window !== 'undefined' ? localStorage.getItem("token") : null;
             const response = await fetch(`${getApiUrl()}/listings/${id}`, {
                 method: "PUT",
-                headers: { "Content-Type": "application/json" },
+                headers: { 
+                    "Content-Type": "application/json",
+                    "Authorization": token ? `Bearer ${token}` : ""
+                },
                 body: JSON.stringify(payload)
             });
 
@@ -297,7 +301,10 @@ export default function EditListingPage({ params }) {
                             <div className="sm:p-6 sm:bg-zinc-950/50 sm:border sm:border-zinc-800 sm:rounded-3xl space-y-6">
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
                                     <div className="space-y-2">
-                                        <label className="text-xs font-black text-zinc-300 uppercase tracking-widest ml-1">Harga Jual (Rp) <span className="text-red-500">*</span></label>
+                                        <div className="flex items-center gap-2 flex-wrap ml-1">
+                                            <label className="text-xs font-black text-zinc-300 uppercase tracking-widest">Harga Jual (Rp) <span className="text-red-500">*</span></label>
+                                            <span className="text-[9px] font-black text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded-full uppercase tracking-wider">Harga Satuan</span>
+                                        </div>
                                         <div className="relative">
                                             <span className="absolute left-5 top-1/2 -translate-y-1/2 text-zinc-600 font-black">Rp</span>
                                             <input
@@ -310,11 +317,9 @@ export default function EditListingPage({ params }) {
                                                 onChange={(e) => setReptileData(prev => ({ ...prev, price: formatRupiah(e.target.value) }))}
                                             />
                                         </div>
-                                        <div className="px-1 py-1">
-                                            <p className="text-[11px] font-bold text-amber-500/80 italic leading-tight">
-                                                * Harga Belum termasuk ongkir & packing. Klik pilihan &quot;Gratis&quot; jika ingin menggratiskan.
-                                            </p>
-                                        </div>
+                                        <p className="text-[11px] font-bold text-amber-500/80 italic leading-tight px-1">
+                                            * Belum termasuk ongkir &amp; packing.
+                                        </p>
                                     </div>
 
                                     <div className="space-y-3">
@@ -362,7 +367,10 @@ export default function EditListingPage({ params }) {
                             <div className="sm:p-6 sm:bg-zinc-950/50 sm:border sm:border-zinc-800 sm:rounded-3xl space-y-6">
                                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                                     <div className="space-y-2">
-                                        <label className="text-xs font-black text-zinc-300 uppercase tracking-widest ml-1">OB / Start Bid (Rp) <span className="text-red-500">*</span></label>
+                                        <div className="flex items-center gap-2 flex-wrap ml-1">
+                                            <label className="text-xs font-black text-zinc-300 uppercase tracking-widest">OB / Start Bid (Rp) <span className="text-red-500">*</span></label>
+                                            <span className="text-[9px] font-black text-amber-400 bg-amber-500/10 border border-amber-500/20 px-2 py-0.5 rounded-full uppercase tracking-wider">Harga Satuan</span>
+                                        </div>
                                         <input
                                             type="text"
                                             inputMode="numeric"
@@ -395,7 +403,7 @@ export default function EditListingPage({ params }) {
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
                                     <div className="px-1 py-1">
                                         <p className="text-[11px] font-bold text-amber-500/80 italic leading-tight">
-                                            * Harga OB/Start Bid belum termasuk ongkir & packing. Klik pilihan &quot;Gratis&quot; jika ingin menggratiskan.
+                                            * Belum termasuk ongkir &amp; packing.
                                         </p>
                                     </div>
                                     <div className="space-y-3">

@@ -530,6 +530,17 @@ export default function PaymentPage({ params }) {
 
               {order.status === "waiting_payment" ? (
                 <div className="space-y-6">
+                  {order.payment_rejection_reason && (
+                    <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-2xl flex items-start gap-3">
+                      <AlertCircle size={16} className="text-red-400 shrink-0 mt-0.5" />
+                      <div className="space-y-1">
+                        <p className="text-xs font-bold text-red-400 uppercase tracking-widest">Bukti Pembayaran Ditolak</p>
+                        <p className="text-[10px] text-zinc-450 font-medium leading-relaxed italic">
+                          &ldquo;{order.payment_rejection_reason}&rdquo;
+                        </p>
+                      </div>
+                    </div>
+                  )}
                   {/* Image Upload Area */}
                   <div className="bg-zinc-950/40 border-2 border-dashed border-zinc-800 hover:border-emerald-500/40 rounded-2xl p-6 text-center space-y-4 relative group transition-all duration-300">
                     {paymentProof ? (

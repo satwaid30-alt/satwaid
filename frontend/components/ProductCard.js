@@ -69,7 +69,7 @@ export default function ProductCard({ product }) {
     if (product.type === "auction") {
       router.push(`/toko/detail-lelang/${product.id}`);
     } else {
-      router.push(`/toko/detail-produk?id=${product.id}`);
+      router.push(`/toko/detail-produk/${product.id}`);
     }
   };
 
@@ -100,9 +100,6 @@ export default function ProductCard({ product }) {
         {/* Labels - top left */}
         <div className="absolute top-2 left-2 flex flex-col gap-1.5">
           <div className="flex gap-1.5">
-            <span className="bg-white/90 backdrop-blur-sm text-zinc-800 text-[9px] sm:text-[10px] font-bold px-2 py-1 rounded shadow-sm border border-white/20">
-              {product.species}
-            </span>
             {product.sex && (
               <span
                 className={`bg-white/90 backdrop-blur-sm text-[9px] sm:text-[10px] font-bold px-2 py-1 rounded shadow-sm border border-white/20 flex items-center gap-1 ${

@@ -155,9 +155,6 @@ export default function QuotaCard({ quota, loading = false, compact = false }) {
       {/* Footer Row */}
       <div className="flex items-center justify-between gap-2">
         <p className="text-[9px] sm:text-[10px] text-zinc-600 font-bold">{percentage}% terpakai</p>
-        <Link href="/user/toko/daftar-produk" className={`text-[9px] sm:text-[10px] font-black uppercase tracking-wider ${color.text} shrink-0`}>
-          Kelola Produk →
-        </Link>
       </div>
 
       {/* Alert: Full */}

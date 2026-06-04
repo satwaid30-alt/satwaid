@@ -159,13 +159,6 @@ export default function KomunitasPage() {
         </div>
 
         <div className="relative z-10 max-w-7xl mx-auto px-6 text-center">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-sm font-medium mb-6">
-            <span className="relative flex h-2 w-2">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
-            </span>
-            Komunitas Satwa Indonesia
-          </div>
           <h1 className="text-4xl md:text-6xl font-extrabold text-white tracking-tight mb-6 leading-tight">
             Forum Diskusi <br />
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-teal-500">Dunia Satwa</span>
@@ -223,25 +216,6 @@ export default function KomunitasPage() {
 
         {/* Mobile Menu Grid (Visible on mobile/handphones only, white cards) */}
         <MobileMenuGrid className="mb-6 px-1" />
-
-        {/* Stats Bar */}
-        <div className="grid grid-cols-2 gap-4 mb-8">
-          {[
-            { label: "Anggota Aktif", value: userCount, icon: Users, bg: "bg-blue-50", text: "text-blue-600" },
-            { label: "Total Topik", value: topicsData.length, icon: Flame, bg: "bg-rose-50", text: "text-rose-500" },
-          ].map((stat, i) => (
-            <div key={i} className="bg-white rounded-2xl p-4 sm:p-5 border border-zinc-200/70 flex items-center gap-3 sm:gap-4">
-              <div className={`w-10 h-10 sm:w-12 sm:h-12 ${stat.bg} ${stat.text} rounded-xl sm:rounded-2xl flex items-center justify-center shrink-0`}>
-                <stat.icon size={20} />
-              </div>
-              <div className="min-w-0">
-                <p className="text-xl sm:text-2xl font-black text-zinc-900 leading-none">{stat.value}</p>
-                <p className="text-[10px] sm:text-xs text-zinc-500 font-semibold mt-0.5 truncate">{stat.label}</p>
-              </div>
-            </div>
-          ))}
-        </div>
-
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6" id="discussions">
           {/* Left Sidebar */}
           <div className="space-y-5">
@@ -410,11 +384,7 @@ export default function KomunitasPage() {
                     {/* Dot bounce */}
                     <div className="flex items-center gap-1.5">
                       {[0, 1, 2].map((i) => (
-                        <span
-                          key={i}
-                          className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-bounce"
-                          style={{ animationDelay: `${i * 120}ms` }}
-                        />
+                        <span key={i} className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-bounce" style={{ animationDelay: `${i * 120}ms` }} />
                       ))}
                     </div>
                   </div>
