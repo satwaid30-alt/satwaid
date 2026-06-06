@@ -23,6 +23,51 @@ export default function AdminTransactionDetailPage({ params }) {
   const [isRejecting, setIsRejecting] = useState(false);
   const [rejectionReason, setRejectionReason] = useState("");
 
+  const getStatusLabel = (status) => {
+    switch (status) {
+      case "pending_shipping_info": return "Menunggu Alamat";
+      case "waiting_shipping_cost": return "Menunggu Ongkir";
+      case "waiting_payment": return "Menunggu Pembayaran";
+      case "processing": return "Verifikasi Pembayaran";
+      case "payment_verified": return "Siap Dikirim";
+      case "waiting_shipment": return "Siap Dikirim";
+      case "shipped": return "Dalam Pengiriman";
+      case "completed": return "Selesai";
+      case "disbursement_requested": return "Selesai (Pengajuan Pencairan)";
+      case "disbursed": return "Selesai (Dana Dicairkan)";
+      case "cancelled": return "Dibatalkan";
+      case "cancelled_dismissed": return "Dibatalkan (Dibersihkan)";
+      case "complained": return "Komplain";
+      default: return status?.replace(/_/g, " ") || "-";
+    }
+  };
+
+  const getStatusColor = (status) => {
+    switch (status) {
+      case "completed":
+      case "disbursement_requested":
+      case "disbursed":
+        return "text-emerald-500 bg-emerald-500/10 border-emerald-500/20";
+      case "processing":
+      case "payment_verified":
+      case "waiting_shipment":
+        return "text-blue-500 bg-blue-500/10 border-blue-500/20";
+      case "shipped":
+        return "text-purple-500 bg-purple-500/10 border-purple-500/20";
+      case "waiting_payment":
+      case "waiting_shipping_cost":
+      case "pending_shipping_info":
+        return "text-amber-500 bg-amber-500/10 border-amber-500/20";
+      case "cancelled":
+      case "cancelled_dismissed":
+        return "text-red-500 bg-red-500/10 border-red-500/20";
+      case "complained":
+        return "text-orange-500 bg-orange-500/10 border-orange-500/20";
+      default:
+        return "text-zinc-500 bg-zinc-500/10 border-zinc-500/20";
+    }
+  };
+
   useEffect(() => {
     fetchOrderDetails();
   }, [id]);
@@ -188,7 +233,7 @@ export default function AdminTransactionDetailPage({ params }) {
           <div className="space-y-0.5">
             <div className="flex items-center gap-2.5">
               <h1 className="text-base font-black text-white tracking-tighter uppercase">Detail Transaksi</h1>
-              <span className="px-2.5 py-0.5 bg-emerald-500/10 border border-emerald-500/20 text-emerald-500 rounded-lg text-[10px] font-bold uppercase tracking-wider">{order.status.replace("_", " ")}</span>
+              <span className={`px-2.5 py-0.5 rounded-lg text-[10px] font-bold uppercase tracking-wider border ${getStatusColor(order.status)}`}>{getStatusLabel(order.status)}</span>
             </div>
             <p className="text-xs text-zinc-500 font-mono font-medium tracking-normal">{order.order_id}</p>
           </div>

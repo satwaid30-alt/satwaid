@@ -3,7 +3,7 @@
 import { useState, useEffect, Fragment } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Package, ShoppingBag, LayoutDashboard, Image as ImageIcon, X, XCircle, ChevronRight, MapPin, MessageCircle, DollarSign, AlertCircle, CheckCircle2, Clock, Calendar, Truck, Info, Star, Search, Filter, ChevronLeft, LayoutGrid, Wallet } from "lucide-react";
+import { Package, ShoppingBag, LayoutDashboard, Image as ImageIcon, X, XCircle, ChevronRight, MapPin, MessageCircle, DollarSign, AlertCircle, CheckCircle2, Clock, Calendar, Truck, Info, Star, Search, Filter, ChevronLeft, LayoutGrid, Wallet, Store } from "lucide-react";
 import { io } from "socket.io-client";
 import { getApiUrl, getSocketUrl } from "@/app/utils/api";
 import QuotaCard from "@/components/QuotaCard";
@@ -290,16 +290,16 @@ export default function SellerDashboardPage() {
       <div className="grid grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-3 md:gap-4">
         {[
           {
-            label: "Produk",
-            value: listings.length.toString(),
+            label: "Produk Terjual",
+            value: orders.filter((o) => ["completed", "disbursement_requested", "disbursed"].includes(o.status)).length.toString(),
             icon: Package,
             color: "bg-blue-500",
           },
           {
-            label: "Pesanan",
-            value: orders.filter((o) => !["completed", "disbursement_requested", "disbursed", "cancelled", "rejected"].includes(o.status)).length.toString(),
-            icon: ShoppingBag,
-            color: "bg-amber-500",
+            label: "Pesanan Batal",
+            value: orders.filter((o) => o.status === "cancelled").length.toString(),
+            icon: XCircle,
+            color: "bg-red-500",
           },
           {
             label: "Penghasilan",
@@ -345,15 +345,16 @@ export default function SellerDashboardPage() {
       </div>
 
       {/* Tab Navigation */}
-      <div 
-        className="flex gap-1.5 md:gap-2 p-1.5 bg-zinc-900 border border-zinc-800 rounded-2xl w-full md:w-fit overflow-x-auto no-scrollbar scroll-smooth snap-x"
-        style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
-      >
-        <style dangerouslySetInnerHTML={{__html: `
+      <div className="flex gap-1.5 md:gap-2 p-1.5 bg-zinc-900 border border-zinc-800 rounded-2xl w-full md:w-fit overflow-x-auto no-scrollbar scroll-smooth snap-x" style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}>
+        <style
+          dangerouslySetInnerHTML={{
+            __html: `
           .no-scrollbar::-webkit-scrollbar {
             display: none;
           }
-        `}} />
+        `,
+          }}
+        />
         {[
           {
             id: "dashboard",
@@ -372,8 +373,7 @@ export default function SellerDashboardPage() {
             label: (
               <span>
                 <span className="hidden sm:inline">Pesanan Selesai</span>
-                <span className="sm:hidden">Selesai</span>
-                {" "}({orders.filter((o) => ["completed", "disbursement_requested", "disbursed"].includes(o.status)).length})
+                <span className="sm:hidden">Selesai</span> ({orders.filter((o) => ["completed", "disbursement_requested", "disbursed"].includes(o.status)).length})
               </span>
             ),
             icon: CheckCircle2,
@@ -384,8 +384,7 @@ export default function SellerDashboardPage() {
             label: (
               <span>
                 <span className="hidden sm:inline">Pesanan Dibatalkan</span>
-                <span className="sm:hidden">Batal</span>
-                {" "}({orders.filter((o) => o.status === "cancelled").length})
+                <span className="sm:hidden">Batal</span> ({orders.filter((o) => o.status === "cancelled").length})
               </span>
             ),
             icon: XCircle,
@@ -408,9 +407,9 @@ export default function SellerDashboardPage() {
             );
           }
           return (
-            <Link 
-              key={tab.id} 
-              href={tab.href} 
+            <Link
+              key={tab.id}
+              href={tab.href}
               className={`flex-1 md:flex-initial flex items-center justify-center gap-1.5 md:gap-2 px-3 md:px-6 py-2.5 rounded-xl font-bold text-[10px] sm:text-xs md:text-sm transition-all whitespace-nowrap snap-center ${activeTab === tab.id ? "bg-zinc-800 text-white" : "text-zinc-500 hover:text-zinc-300"}`}
             >
               <tab.icon size={16} className="shrink-0" />
@@ -442,7 +441,7 @@ export default function SellerDashboardPage() {
               const completedStatuses = ["completed", "disbursement_requested", "disbursed"];
               const matchesStatus = orderStatusFilter === "all" ? o.status !== "cancelled" : orderStatusFilter === "processing" ? inProgressStatuses.includes(o.status) : orderStatusFilter === "completed" ? completedStatuses.includes(o.status) : o.status === orderStatusFilter;
 
-              const matchesSearch = o.order_id.toLowerCase().includes(orderSearchQuery.toLowerCase());
+              const matchesSearch = o.order_id.toLowerCase().includes(orderSearchQuery.toLowerCase()) || (o.product?.name && o.product.name.toLowerCase().includes(orderSearchQuery.toLowerCase())) || (o.product?.product_id && o.product.product_id.toLowerCase().includes(orderSearchQuery.toLowerCase()));
               return matchesStatus && matchesSearch;
             });
 
@@ -487,91 +486,117 @@ export default function SellerDashboardPage() {
                   </div>
                 </div>
 
-                {filteredOrders.length > 0 ? (
+                {isLoadingOrders ? (
+                  <div className="py-24 flex flex-col items-center justify-center bg-zinc-900/30 border border-zinc-800 rounded-[3rem] min-h-[350px]">
+                    <div className="relative w-20 h-20 flex items-center justify-center">
+                      {/* Outer track */}
+                      <div className="absolute inset-0 rounded-full border-4 border-emerald-500/10"></div>
+                      {/* Spinning indicator */}
+                      <div className="absolute inset-0 rounded-full border-4 border-t-emerald-400 border-r-emerald-400 border-b-transparent border-l-transparent animate-spin"></div>
+                      {/* Store Icon */}
+                      <Store size={28} className="text-emerald-400" />
+                    </div>
+                    <p className="text-[10px] font-black text-zinc-500 uppercase tracking-widest mt-6 animate-pulse">Memuat data pesanan selesai...</p>
+                  </div>
+                ) : filteredOrders.length > 0 ? (
                   <>
                     {/* Desktop Table */}
                     <div className="hidden md:block bg-zinc-900 border border-zinc-800 rounded-[2rem] overflow-hidden">
-                      <table className="w-full">
-                        <thead>
-                          <tr className="border-b border-zinc-800 bg-zinc-950/50">
-                            <th className="text-left px-6 py-4 text-[10px] font-black text-zinc-500 uppercase tracking-widest w-10">No</th>
-                            <th className="text-left px-6 py-4 text-[10px] font-black text-zinc-500 uppercase tracking-widest">Order ID</th>
-                            <th className="text-left px-6 py-4 text-[10px] font-black text-zinc-500 uppercase tracking-widest">Tgl Selesai</th>
-                            <th className="text-left px-6 py-4 text-[10px] font-black text-zinc-500 uppercase tracking-widest">Pembeli</th>
-                            <th className="text-left px-6 py-4 text-[10px] font-black text-zinc-500 uppercase tracking-widest">Produk</th>
-                            <th className="text-right px-6 py-4 text-[10px] font-black text-zinc-500 uppercase tracking-widest">Total</th>
-                            <th className="text-center px-6 py-4 text-[10px] font-black text-zinc-500 uppercase tracking-widest">Status</th>
-                            <th className="text-center px-6 py-4 text-[10px] font-black text-zinc-500 uppercase tracking-widest">Aksi</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {paginatedOrders.map((order, idx) => (
-                            <Fragment key={order.id}>
-                              <tr key={order.id} className="border-b border-zinc-800/50 hover:bg-zinc-800/20 transition-colors">
-                                <td className="px-6 py-5 text-sm font-black text-zinc-600">{(currentPage - 1) * itemsPerPage + idx + 1}</td>
-                                <td className="px-6 py-5">
-                                  <span className="text-[11px] font-black text-zinc-300 font-mono tracking-wide">{order.order_id}</span>
-                                </td>
-                                <td className="px-6 py-5">
-                                  <div className="flex items-center gap-2 text-xs font-bold text-zinc-400">
-                                    <Calendar size={12} className="text-emerald-500 shrink-0" />
-                                    {new Date(order.completed_at || order.updated_at).toLocaleDateString("id-ID", {
-                                      day: "numeric",
-                                      month: "short",
-                                      year: "numeric",
-                                    })}
-                                  </div>
-                                </td>
-                                <td className="px-6 py-5">
-                                  <div>
-                                    <p className="text-sm font-black text-white">{order.receiver_name || "-"}</p>
-                                    {/* <p className="text-[10px] text-zinc-500 font-bold">@{order.user?.username || '-'}</p> */}
-                                  </div>
-                                </td>
-                                <td className="px-6 py-5">
-                                  <div className="flex items-center gap-3">
-                                    {order.product?.images?.[0] && (
-                                      <div className="w-10 h-10 rounded-xl overflow-hidden bg-zinc-800 shrink-0 border border-zinc-700">
-                                        <img src={order.product.images[0]} className="w-full h-full object-cover" />
-                                      </div>
-                                    )}
-                                    <div>
-                                      <p className="text-sm font-bold text-zinc-300 truncate max-w-[140px]">{order.product?.name}</p>
-                                      <div className="flex items-center gap-1.5 mt-1">
-                                        <span className="inline-block px-1.5 py-0.5 bg-zinc-950 text-[8px] text-zinc-400 rounded font-black uppercase tracking-widest border border-zinc-800">ID: {order.product?.product_id || "-"}</span>
-                                        <span className={`inline-block px-1.5 py-0.5 rounded text-[8px] font-black uppercase tracking-widest border ${order.product?.type === "auction" ? "bg-amber-500/10 text-amber-500 border-amber-500/20" : "bg-blue-500/10 text-blue-400 border-blue-500/20"}`}>
-                                          {order.product?.type === "auction" ? "Lelang" : "Langsung"}
-                                        </span>
-                                      </div>
-                                      {order.status === "waiting_payment" && order.payment_rejection_reason && <p className="text-[10px] text-red-400 mt-1 font-semibold leading-tight max-w-[180px]">Ditolak Admin: {order.payment_rejection_reason}</p>}
-                                      {order.status === "cancelled" && order.rejection_reason && <p className="text-[10px] text-zinc-500 mt-1 font-semibold italic leading-tight max-w-[180px]">Alasan Batal: {order.rejection_reason}</p>}
+                      <div className="overflow-x-auto">
+                        <table className="w-full">
+                          <thead>
+                            <tr className="border-b border-zinc-800 bg-zinc-950/50">
+                              <th className="text-left px-6 py-4 text-[10px] font-black text-zinc-500 uppercase tracking-widest w-10">No</th>
+                              <th className="text-left px-6 py-4 text-[10px] font-black text-zinc-500 uppercase tracking-widest">Order ID</th>
+                              <th className="text-left px-6 py-4 text-[10px] font-black text-zinc-500 uppercase tracking-widest">Tgl Selesai</th>
+                              <th className="text-left px-6 py-4 text-[10px] font-black text-zinc-500 uppercase tracking-widest">Pembeli</th>
+                              <th className="text-left px-6 py-4 text-[10px] font-black text-zinc-500 uppercase tracking-widest">Produk</th>
+                              <th className="text-center px-6 py-4 text-[10px] font-black text-zinc-500 uppercase tracking-widest w-24">Jumlah</th>
+                              <th className="text-right px-6 py-4 text-[10px] font-black text-zinc-500 uppercase tracking-widest">Total</th>
+                              <th className="text-center px-6 py-4 text-[10px] font-black text-zinc-500 uppercase tracking-widest">Status Transfer</th>
+                              <th className="text-center px-6 py-4 text-[10px] font-black text-zinc-500 uppercase tracking-widest">Status</th>
+                              <th className="text-center px-6 py-4 text-[10px] font-black text-zinc-500 uppercase tracking-widest">Aksi</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {paginatedOrders.map((order, idx) => (
+                              <Fragment key={order.id}>
+                                <tr key={order.id} className="border-b border-zinc-800/50 hover:bg-zinc-800/20 transition-colors">
+                                  <td className="px-6 py-5 text-sm font-black text-zinc-600">{(currentPage - 1) * itemsPerPage + idx + 1}</td>
+                                  <td className="px-6 py-5">
+                                    <span className="text-[11px] font-black text-zinc-300 font-mono tracking-wide">{order.order_id}</span>
+                                  </td>
+                                  <td className="px-6 py-5">
+                                    <div className="flex items-center gap-2 text-xs font-bold text-zinc-400">
+                                      <Calendar size={12} className="text-emerald-500 shrink-0" />
+                                      {new Date(order.completed_at || order.updated_at).toLocaleDateString("id-ID", {
+                                        day: "numeric",
+                                        month: "short",
+                                        year: "numeric",
+                                      })}
                                     </div>
-                                  </div>
-                                </td>
-                                <td className="px-6 py-5 text-right">
-                                  <div className="flex flex-col items-end">
-                                    <span className="text-sm font-black text-emerald-400">{formatPrice(Number(order.total_price) - (Number(order.admin_fee) || 0))}</span>
-                                    {Number(order.admin_fee) > 0 && <span className="text-[8px] font-bold text-zinc-500 uppercase tracking-tighter">Net (Tanpa Biaya Admin)</span>}
-                                  </div>
-                                </td>
-                                <td className="px-6 py-5 text-center">
-                                  <span className={`px-2.5 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest flex items-center justify-center gap-1 mx-auto w-fit border ${getOrderStyle(order)}`}>
-                                    {["completed", "disbursement_requested", "disbursed"].includes(order.status) && <CheckCircle2 size={10} />}
-                                    {order.status === "processing" && <Clock size={10} />}
-                                    {order.status === "waiting_payment" && order.payment_rejection_reason && <AlertCircle size={10} className="shrink-0" />}
-                                    {getOrderLabel(order)}
-                                  </span>
-                                </td>
-                                <td className="px-6 py-5 text-center">
-                                  <a href={`/user/toko/pesanan-masuk/detail/${order.id}`} className="inline-flex items-center gap-1.5 px-4 py-2 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 hover:text-white rounded-xl text-[10px] font-black uppercase tracking-widest transition-all border border-zinc-700 hover:border-zinc-600">
-                                    <ChevronRight size={12} /> Detail Transaksi
-                                  </a>
-                                </td>
-                              </tr>
-                            </Fragment>
-                          ))}
-                        </tbody>
-                      </table>
+                                  </td>
+                                  <td className="px-6 py-5">
+                                    <div>
+                                      <p className="text-sm font-black text-white">{order.receiver_name || "-"}</p>
+                                      {/* <p className="text-[10px] text-zinc-500 font-bold">@{order.user?.username || '-'}</p> */}
+                                    </div>
+                                  </td>
+                                  <td className="px-6 py-5">
+                                    <div className="flex items-center gap-3">
+                                      {order.product?.images?.[0] && (
+                                        <div className="w-10 h-10 rounded-xl overflow-hidden bg-zinc-800 shrink-0 border border-zinc-700">
+                                          <img src={order.product.images[0]} className="w-full h-full object-cover" />
+                                        </div>
+                                      )}
+                                      <div>
+                                        <p className="text-sm font-bold text-zinc-300 truncate max-w-[140px]">{order.product?.name}</p>
+                                        <div className="flex items-center gap-1.5 mt-1">
+                                          <span className="inline-block px-1.5 py-0.5 bg-zinc-950 text-[8px] text-zinc-400 rounded font-black uppercase tracking-widest border border-zinc-800">ID: {order.product?.product_id || "-"}</span>
+                                          <span className={`inline-block px-1.5 py-0.5 rounded text-[8px] font-black uppercase tracking-widest border ${order.product?.type === "auction" ? "bg-amber-500/10 text-amber-500 border-amber-500/20" : "bg-blue-500/10 text-blue-400 border-blue-500/20"}`}>
+                                            {order.product?.type === "auction" ? "Lelang" : "Reguler"}
+                                          </span>
+                                        </div>
+                                        {order.status === "waiting_payment" && order.payment_rejection_reason && <p className="text-[10px] text-red-400 mt-1 font-semibold leading-tight max-w-[180px]">Ditolak Admin: {order.payment_rejection_reason}</p>}
+                                        {order.status === "cancelled" && order.rejection_reason && <p className="text-[10px] text-zinc-500 mt-1 font-semibold italic leading-tight max-w-[180px]">Alasan Batal: {order.rejection_reason}</p>}
+                                      </div>
+                                    </div>
+                                  </td>
+                                  <td className="px-6 py-5 text-center text-sm font-black text-white">{order.quantity || 1} Ekor</td>
+                                  <td className="px-6 py-5 text-right">
+                                    <div className="flex flex-col items-end">
+                                      <span className="text-sm font-black text-emerald-400">{formatPrice(Number(order.total_price) - (Number(order.admin_fee) || 0))}</span>
+                                      {Number(order.admin_fee) > 0 && <span className="text-[8px] font-bold text-zinc-500 uppercase tracking-tighter">Net (Tanpa Biaya Admin)</span>}
+                                    </div>
+                                  </td>
+                                  <td className="px-6 py-5 text-center">
+                                    <span
+                                      className={`px-2.5 py-1 rounded-lg text-[8px] font-black uppercase tracking-wider border mx-auto w-fit block ${
+                                        order.status === "disbursed" ? "bg-emerald-500/10 text-emerald-500 border-emerald-500/20" : order.status === "disbursement_requested" ? "bg-blue-500/10 text-blue-400 border-blue-500/20" : "bg-zinc-500/10 text-zinc-400 border-zinc-500/20"
+                                      }`}
+                                    >
+                                      {order.status === "disbursed" ? "Transfer" : order.status === "disbursement_requested" ? "Pengajuan" : "Belum Pengajuan"}
+                                    </span>
+                                  </td>
+                                  <td className="px-6 py-5 text-center">
+                                    <span className={`px-2.5 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest flex items-center justify-center gap-1 mx-auto w-fit border ${getOrderStyle(order)}`}>
+                                      {["completed", "disbursement_requested", "disbursed"].includes(order.status) && <CheckCircle2 size={10} />}
+                                      {order.status === "processing" && <Clock size={10} />}
+                                      {order.status === "waiting_payment" && order.payment_rejection_reason && <AlertCircle size={10} className="shrink-0" />}
+                                      {getOrderLabel(order)}
+                                    </span>
+                                  </td>
+                                  <td className="px-6 py-5 text-center">
+                                    <a href={`/user/toko/dashboard/detail/${order.id}`} className="inline-flex items-center gap-1.5 px-4 py-2 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 hover:text-white rounded-xl text-[10px] font-black uppercase tracking-widest transition-all border border-zinc-700 hover:border-zinc-600">
+                                      <ChevronRight size={12} /> Detail
+                                    </a>
+                                  </td>
+                                </tr>
+                              </Fragment>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
                     </div>
 
                     {/* Mobile Cards */}
@@ -605,10 +630,14 @@ export default function SellerDashboardPage() {
                                 <div className="flex items-center justify-end gap-1.5 mt-1">
                                   <span className="inline-block px-1.5 py-0.5 bg-zinc-950 text-[8px] text-zinc-400 rounded font-black uppercase tracking-widest border border-zinc-800">ID: {order.product?.product_id || "-"}</span>
                                   <span className={`inline-block px-1.5 py-0.5 rounded text-[8px] font-black uppercase tracking-widest border ${order.product?.type === "auction" ? "bg-amber-500/10 text-amber-500 border-amber-500/20" : "bg-blue-500/10 text-blue-400 border-blue-500/20"}`}>
-                                    {order.product?.type === "auction" ? "Lelang" : "Langsung"}
+                                    {order.product?.type === "auction" ? "Lelang" : "Reguler"}
                                   </span>
                                 </div>
                               </div>
+                            </div>
+                            <div className="flex items-center justify-between">
+                              <span className="text-[9px] font-black text-zinc-600 uppercase tracking-widest">Jumlah</span>
+                              <span className="text-xs font-bold text-zinc-300">{order.quantity || 1} Ekor</span>
                             </div>
                             <div className="flex items-center justify-between">
                               <span className="text-[9px] font-black text-zinc-600 uppercase tracking-widest">Tgl Selesai</span>
@@ -627,6 +656,16 @@ export default function SellerDashboardPage() {
                                 {Number(order.admin_fee) > 0 && <span className="text-[8px] font-bold text-zinc-500 uppercase tracking-tighter block mt-0.5">Net (Tanpa Biaya Admin)</span>}
                               </div>
                             </div>
+                            <div className="flex items-center justify-between">
+                              <span className="text-[9px] font-black text-zinc-600 uppercase tracking-widest">Status Transfer</span>
+                              <span
+                                className={`px-2 py-0.5 rounded text-[8px] font-black uppercase tracking-wider border ${
+                                  order.status === "disbursed" ? "bg-emerald-500/10 text-emerald-500 border-emerald-500/20" : order.status === "disbursement_requested" ? "bg-blue-500/10 text-blue-400 border-blue-500/20" : "bg-zinc-500/10 text-zinc-400 border-zinc-500/20"
+                                }`}
+                              >
+                                {order.status === "disbursed" ? "Transfer" : order.status === "disbursement_requested" ? "Pengajuan" : "Belum Pengajuan"}
+                              </span>
+                            </div>
                             {order.status === "waiting_payment" && order.payment_rejection_reason && (
                               <div className="flex items-center justify-between border-t border-zinc-800/50 pt-2">
                                 <span className="text-[9px] font-black text-red-500 uppercase tracking-widest">Tolak Bayar</span>
@@ -640,7 +679,7 @@ export default function SellerDashboardPage() {
                               </div>
                             )}
 
-                            <a href={`/user/toko/pesanan-masuk/detail/${order.id}`} className="w-full flex items-center justify-center gap-2 py-3 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 hover:text-white rounded-xl text-[10px] font-black uppercase tracking-widest transition-all border border-zinc-700 mt-1">
+                            <a href={`/user/toko/dashboard/detail/${order.id}`} className="w-full flex items-center justify-center gap-2 py-3 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 hover:text-white rounded-xl text-[10px] font-black uppercase tracking-widest transition-all border border-zinc-700 mt-1">
                               <ChevronRight size={12} /> Lihat Detail Transaksi
                             </a>
                           </div>
@@ -685,12 +724,10 @@ export default function SellerDashboardPage() {
                   </>
                 ) : (
                   <div className="py-20 flex flex-col items-center text-center space-y-6 bg-zinc-900/20 border border-zinc-800 rounded-[3rem] border-dashed">
-                    <div className="w-20 h-20 bg-zinc-900 rounded-3xl flex items-center justify-center text-zinc-700">
-                      <CheckCircle2 size={40} />
-                    </div>
+                    <div className="w-20 h-20 bg-zinc-900 rounded-3xl flex items-center justify-center text-zinc-700">{orderSearchQuery ? <Search size={40} /> : <CheckCircle2 size={40} />}</div>
                     <div className="space-y-2">
-                      <h3 className="text-xl font-bold text-white">Belum Ada Penjualan Selesai</h3>
-                      <p className="text-zinc-500 max-w-xs mx-auto text-sm">Transaksi yang berhasil diselesaikan akan muncul di sini.</p>
+                      <h3 className="text-xl font-bold text-white">{orderSearchQuery ? "Data tidak ditemukan" : "Belum Ada Penjualan Selesai"}</h3>
+                      <p className="text-zinc-500 max-w-xs mx-auto text-sm">{orderSearchQuery ? "- Silakan cari dengan kata kunci lain -" : "Transaksi yang berhasil diselesaikan akan muncul di sini."}</p>
                     </div>
                   </div>
                 )}
@@ -701,7 +738,7 @@ export default function SellerDashboardPage() {
         {activeTab === "dibatalkan" &&
           (() => {
             const cancelledOrders = orders.filter((o) => {
-              const matchesSearch = o.order_id.toLowerCase().includes(orderSearchQuery.toLowerCase());
+              const matchesSearch = o.order_id.toLowerCase().includes(orderSearchQuery.toLowerCase()) || (o.product?.name && o.product.name.toLowerCase().includes(orderSearchQuery.toLowerCase())) || (o.product?.product_id && o.product.product_id.toLowerCase().includes(orderSearchQuery.toLowerCase()));
               return o.status === "cancelled" && matchesSearch;
             });
 
@@ -733,75 +770,92 @@ export default function SellerDashboardPage() {
                   </div>
                 </div>
 
-                {cancelledOrders.length > 0 ? (
+                {isLoadingOrders ? (
+                  <div className="py-24 flex flex-col items-center justify-center bg-zinc-900/30 border border-zinc-800 rounded-[3rem] min-h-[350px]">
+                    <div className="relative w-20 h-20 flex items-center justify-center">
+                      {/* Outer track */}
+                      <div className="absolute inset-0 rounded-full border-4 border-emerald-500/10"></div>
+                      {/* Spinning indicator */}
+                      <div className="absolute inset-0 rounded-full border-4 border-t-emerald-400 border-r-emerald-400 border-b-transparent border-l-transparent animate-spin"></div>
+                      {/* Store Icon */}
+                      <Store size={28} className="text-emerald-400" />
+                    </div>
+                    <p className="text-[10px] font-black text-zinc-500 uppercase tracking-widest mt-6 animate-pulse">Memuat data pesanan dibatalkan...</p>
+                  </div>
+                ) : cancelledOrders.length > 0 ? (
                   <>
                     {/* Desktop Table */}
                     <div className="hidden md:block bg-zinc-900 border border-zinc-800 rounded-[2rem] overflow-hidden">
-                      <table className="w-full">
-                        <thead>
-                          <tr className="border-b border-zinc-800 bg-zinc-950/50">
-                            <th className="text-left px-6 py-4 text-[10px] font-black text-zinc-500 uppercase tracking-widest w-10">No</th>
-                            <th className="text-left px-6 py-4 text-[10px] font-black text-zinc-500 uppercase tracking-widest">Order ID</th>
-                            <th className="text-left px-6 py-4 text-[10px] font-black text-zinc-500 uppercase tracking-widest">Tgl Batal</th>
-                            <th className="text-left px-6 py-4 text-[10px] font-black text-zinc-500 uppercase tracking-widest">Pembeli</th>
-                            <th className="text-left px-6 py-4 text-[10px] font-black text-zinc-500 uppercase tracking-widest">Produk</th>
-                            <th className="text-right px-6 py-4 text-[10px] font-black text-zinc-500 uppercase tracking-widest">Total</th>
-                            <th className="text-left px-6 py-4 text-[10px] font-black text-zinc-500 uppercase tracking-widest">Alasan Pembatalan</th>
-                            <th className="text-center px-6 py-4 text-[10px] font-black text-zinc-500 uppercase tracking-widest">Aksi</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {paginatedOrders.map((order, idx) => (
-                            <tr key={order.id} className="border-b border-zinc-800/50 hover:bg-zinc-800/20 transition-colors">
-                              <td className="px-6 py-5 text-sm font-black text-zinc-600">{(currentPage - 1) * itemsPerPage + idx + 1}</td>
-                              <td className="px-6 py-5">
-                                <span className="text-[11px] font-black text-zinc-300 font-mono tracking-wide">{order.order_id}</span>
-                              </td>
-                              <td className="px-6 py-5">
-                                <div className="flex items-center gap-2 text-xs font-bold text-zinc-400">
-                                  <Calendar size={12} className="text-red-500 shrink-0" />
-                                  {new Date(order.cancelled_at || order.updated_at).toLocaleDateString("id-ID", {
-                                    day: "numeric",
-                                    month: "short",
-                                    year: "numeric",
-                                  })}
-                                </div>
-                              </td>
-                              <td className="px-6 py-5">
-                                <div>
-                                  <p className="text-sm font-black text-white">{order.receiver_name || "-"}</p>
-                                </div>
-                              </td>
-                              <td className="px-6 py-5">
-                                <div className="flex items-center gap-3">
-                                  {order.product?.images?.[0] && (
-                                    <div className="w-10 h-10 rounded-xl overflow-hidden bg-zinc-800 shrink-0 border border-zinc-700">
-                                      <img src={order.product.images[0]} className="w-full h-full object-cover" />
-                                    </div>
-                                  )}
+                      <div className="overflow-x-auto">
+                        <table className="w-full">
+                          <thead>
+                            <tr className="border-b border-zinc-800 bg-zinc-950/50">
+                              <th className="text-left px-6 py-4 text-[10px] font-black text-zinc-500 uppercase tracking-widest w-10">No</th>
+                              <th className="text-left px-6 py-4 text-[10px] font-black text-zinc-500 uppercase tracking-widest">Order ID</th>
+                              <th className="text-left px-6 py-4 text-[10px] font-black text-zinc-500 uppercase tracking-widest">Tgl Batal</th>
+                              <th className="text-left px-6 py-4 text-[10px] font-black text-zinc-500 uppercase tracking-widest">Pembeli</th>
+                              <th className="text-left px-6 py-4 text-[10px] font-black text-zinc-500 uppercase tracking-widest">Produk</th>
+                              <th className="text-center px-6 py-4 text-[10px] font-black text-zinc-500 uppercase tracking-widest w-24">Jumlah</th>
+                              <th className="text-right px-6 py-4 text-[10px] font-black text-zinc-500 uppercase tracking-widest">Total</th>
+                              <th className="text-left px-6 py-4 text-[10px] font-black text-zinc-500 uppercase tracking-widest">Alasan Pembatalan</th>
+                              <th className="text-center px-6 py-4 text-[10px] font-black text-zinc-500 uppercase tracking-widest">Aksi</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {paginatedOrders.map((order, idx) => (
+                              <tr key={order.id} className="border-b border-zinc-800/50 hover:bg-zinc-800/20 transition-colors">
+                                <td className="px-6 py-5 text-sm font-black text-zinc-600">{(currentPage - 1) * itemsPerPage + idx + 1}</td>
+                                <td className="px-6 py-5">
+                                  <span className="text-[11px] font-black text-zinc-300 font-mono tracking-wide">{order.order_id}</span>
+                                </td>
+                                <td className="px-6 py-5">
+                                  <div className="flex items-center gap-2 text-xs font-bold text-zinc-400">
+                                    <Calendar size={12} className="text-red-500 shrink-0" />
+                                    {new Date(order.cancelled_at || order.updated_at).toLocaleDateString("id-ID", {
+                                      day: "numeric",
+                                      month: "short",
+                                      year: "numeric",
+                                    })}
+                                  </div>
+                                </td>
+                                <td className="px-6 py-5">
                                   <div>
-                                    <p className="text-sm font-bold text-zinc-300 truncate max-w-[140px]">{order.product?.name}</p>
-                                    <div className="flex items-center gap-1.5 mt-1">
-                                      <span className="inline-block px-1.5 py-0.5 bg-zinc-950 text-[8px] text-zinc-400 rounded font-black uppercase tracking-widest border border-zinc-800">ID: {order.product?.product_id || "-"}</span>
+                                    <p className="text-sm font-black text-white">{order.receiver_name || "-"}</p>
+                                  </div>
+                                </td>
+                                <td className="px-6 py-5">
+                                  <div className="flex items-center gap-3">
+                                    {order.product?.images?.[0] && (
+                                      <div className="w-10 h-10 rounded-xl overflow-hidden bg-zinc-800 shrink-0 border border-zinc-700">
+                                        <img src={order.product.images[0]} className="w-full h-full object-cover" />
+                                      </div>
+                                    )}
+                                    <div>
+                                      <p className="text-sm font-bold text-zinc-300 truncate max-w-[140px]">{order.product?.name}</p>
+                                      <div className="flex items-center gap-1.5 mt-1">
+                                        <span className="inline-block px-1.5 py-0.5 bg-zinc-950 text-[8px] text-zinc-400 rounded font-black uppercase tracking-widest border border-zinc-800">ID: {order.product?.product_id || "-"}</span>
+                                        <span className={`inline-block px-1.5 py-0.5 rounded text-[8px] font-black uppercase tracking-widest border ${order.product?.type === "auction" ? "bg-amber-500/10 text-amber-500 border-amber-500/20" : "bg-blue-500/10 text-blue-400 border-blue-500/20"}`}>
+                                          {order.product?.type === "auction" ? "Lelang" : "Reguler"}
+                                        </span>
+                                      </div>
                                     </div>
                                   </div>
-                                </div>
-                              </td>
-                              <td className="px-6 py-5 text-right font-black text-red-400 text-sm">
-                                {formatPrice(Number(order.total_price))}
-                              </td>
-                              <td className="px-6 py-5 text-xs text-zinc-400 max-w-[200px] truncate" title={order.rejection_reason || order.cancellation_reason || "-"}>
-                                {order.rejection_reason || order.cancellation_reason || "-"}
-                              </td>
-                              <td className="px-6 py-5 text-center">
-                                <a href={`/user/toko/pesanan-masuk/detail/${order.id}`} className="inline-flex items-center gap-1.5 px-4 py-2 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 hover:text-white rounded-xl text-[10px] font-black uppercase tracking-widest transition-all border border-zinc-700 hover:border-zinc-600">
-                                  <ChevronRight size={12} /> Detail
-                                </a>
-                              </td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
+                                </td>
+                                <td className="px-6 py-5 text-center text-sm font-black text-white">{order.quantity || 1} Ekor</td>
+                                <td className="px-6 py-5 text-right font-black text-red-400 text-sm">{formatPrice(Number(order.total_price))}</td>
+                                <td className="px-6 py-5 text-xs text-zinc-400 max-w-[200px] truncate" title={order.rejection_reason || order.cancellation_reason || "-"}>
+                                  {order.rejection_reason || order.cancellation_reason || "-"}
+                                </td>
+                                <td className="px-6 py-5 text-center">
+                                  <a href={`/user/toko/dashboard/detail/${order.id}`} className="inline-flex items-center gap-1.5 px-4 py-2 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 hover:text-white rounded-xl text-[10px] font-black uppercase tracking-widest transition-all border border-zinc-700 hover:border-zinc-600">
+                                    <ChevronRight size={12} /> Detail
+                                  </a>
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
                     </div>
 
                     {/* Mobile Cards */}
@@ -813,9 +867,7 @@ export default function SellerDashboardPage() {
                               <span className="w-6 h-6 bg-zinc-800 rounded-lg flex items-center justify-center text-[9px] font-black text-zinc-500">{(currentPage - 1) * itemsPerPage + idx + 1}</span>
                               <span className="text-[10px] font-black text-white font-mono">{order.order_id}</span>
                             </div>
-                            <span className="px-2 py-1 rounded-lg text-[9px] font-black bg-red-500/10 text-red-400 border border-red-500/20 uppercase tracking-widest">
-                              Batal
-                            </span>
+                            <span className="px-2 py-1 rounded-lg text-[9px] font-black bg-red-500/10 text-red-400 border border-red-500/20 uppercase tracking-widest">Batal</span>
                           </div>
                           <div className="p-5 space-y-3">
                             <div className="flex items-center justify-between">
@@ -824,7 +876,19 @@ export default function SellerDashboardPage() {
                             </div>
                             <div className="flex items-center justify-between">
                               <span className="text-[9px] font-black text-zinc-600 uppercase tracking-widest">Produk</span>
-                              <span className="text-xs font-bold text-zinc-300 truncate max-w-[160px]">{order.product?.name}</span>
+                              <div className="text-right">
+                                <span className="text-xs font-bold text-zinc-300 truncate max-w-[160px] block">{order.product?.name}</span>
+                                <div className="flex items-center justify-end gap-1.5 mt-1">
+                                  <span className="inline-block px-1.5 py-0.5 bg-zinc-950 text-[8px] text-zinc-400 rounded font-black uppercase tracking-widest border border-zinc-800">ID: {order.product?.product_id || "-"}</span>
+                                  <span className={`inline-block px-1.5 py-0.5 rounded text-[8px] font-black uppercase tracking-widest border ${order.product?.type === "auction" ? "bg-amber-500/10 text-amber-500 border-amber-500/20" : "bg-blue-500/10 text-blue-400 border-blue-500/20"}`}>
+                                    {order.product?.type === "auction" ? "Lelang" : "Reguler"}
+                                  </span>
+                                </div>
+                              </div>
+                            </div>
+                            <div className="flex items-center justify-between">
+                              <span className="text-[9px] font-black text-zinc-600 uppercase tracking-widest">Jumlah</span>
+                              <span className="text-xs font-bold text-zinc-300">{order.quantity || 1} Ekor</span>
                             </div>
                             <div className="flex items-center justify-between">
                               <span className="text-[9px] font-black text-zinc-600 uppercase tracking-widest">Tgl Batal</span>
@@ -846,8 +910,8 @@ export default function SellerDashboardPage() {
                                 <span className="text-xs font-semibold text-zinc-400 italic max-w-[200px] text-right">{order.rejection_reason}</span>
                               </div>
                             )}
-                            <a href={`/user/toko/pesanan-masuk/detail/${order.id}`} className="w-full flex items-center justify-center gap-2 py-3 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 hover:text-white rounded-xl text-[10px] font-black uppercase tracking-widest transition-all border border-zinc-700 mt-1">
-                              <ChevronRight size={12} /> Detail Transaksi
+                            <a href={`/user/toko/dashboard/detail/${order.id}`} className="w-full flex items-center justify-center gap-2 py-3 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 hover:text-white rounded-xl text-[10px] font-black uppercase tracking-widest transition-all border border-zinc-700 mt-1">
+                              <ChevronRight size={12} /> Detail
                             </a>
                           </div>
                         </div>
@@ -891,12 +955,10 @@ export default function SellerDashboardPage() {
                   </>
                 ) : (
                   <div className="py-20 flex flex-col items-center text-center space-y-6 bg-zinc-900/20 border border-zinc-800 rounded-[3rem] border-dashed">
-                    <div className="w-20 h-20 bg-zinc-900 rounded-3xl flex items-center justify-center text-zinc-700">
-                      <XCircle size={40} />
-                    </div>
+                    <div className="w-20 h-20 bg-zinc-900 rounded-3xl flex items-center justify-center text-zinc-700">{orderSearchQuery ? <Search size={40} /> : <XCircle size={40} />}</div>
                     <div className="space-y-2">
-                      <h3 className="text-xl font-bold text-white">Tidak Ada Pesanan Dibatalkan</h3>
-                      <p className="text-zinc-500 max-w-xs mx-auto text-sm">Pesanan yang dibatalkan akan muncul di sini.</p>
+                      <h3 className="text-xl font-bold text-white">{orderSearchQuery ? "Data tidak ditemukan" : "Tidak Ada Pesanan Dibatalkan"}</h3>
+                      <p className="text-zinc-500 max-w-xs mx-auto text-sm">{orderSearchQuery ? "- Silakan cari dengan kata kunci lain -" : "Pesanan yang dibatalkan akan muncul di sini."}</p>
                     </div>
                   </div>
                 )}

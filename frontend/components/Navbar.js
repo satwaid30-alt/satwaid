@@ -175,8 +175,13 @@ export default function Navbar({ theme = "dark", onNotification }) {
                   if (!isChatOpen) {
                     setNotifCount(0);
                     if (user) {
-                      // Mark all as read before fetching to ensure they show up as white
-                      fetch(`${getApiUrl()}/notifications/${user.id}/read-all`, { method: "PUT" })
+                      const token = localStorage.getItem("token");
+                      fetch(`${getApiUrl()}/notifications/${user.id}/read-all`, {
+                        method: "PUT",
+                        headers: {
+                          Authorization: token ? `Bearer ${token}` : "",
+                        },
+                      })
                         .then(() => fetchNotifications())
                         .catch(console.error);
                     } else {
@@ -206,7 +211,13 @@ export default function Navbar({ theme = "dark", onNotification }) {
                       onClick={async () => {
                         if (user) {
                           try {
-                            await fetch(`${getApiUrl()}/notifications/${user.id}`, { method: "DELETE" });
+                            const token = localStorage.getItem("token");
+                            await fetch(`${getApiUrl()}/notifications/${user.id}`, {
+                              method: "DELETE",
+                              headers: {
+                                Authorization: token ? `Bearer ${token}` : "",
+                              },
+                            });
                             setNotifications([]);
                             setNotifCount(0);
                             fetchNotifications();

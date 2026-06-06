@@ -23,7 +23,7 @@ export default function UserKomunitasPage() {
     });
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [selectedImage, setSelectedImage] = useState(null);
-    const [errorModal, setErrorModal] = useState({ isOpen: false, message: "" });
+    const [errorModal, setErrorModal] = useState({ isOpen: false, title: "Gagal", message: "" });
 
     useEffect(() => {
         const userData = localStorage.getItem("user");
@@ -50,17 +50,57 @@ export default function UserKomunitasPage() {
         const file = e.target.files[0];
         if (!file) return;
 
-        // Validasi ukuran maksimal 500KB (500 * 1024 bytes)
-        if (file.size > 500 * 1024) {
-            setErrorModal({ isOpen: true, message: "Maaf, ukuran gambar terlalu besar! Maksimal ukuran file adalah 500KB." });
+        // 1. Validasi File Extension & MIME Type
+        const allowedExtensions = ['.jpg', '.jpeg', '.png', '.webp', '.gif'];
+        const allowedMimeTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+        const fileName = file.name.toLowerCase();
+        const fileExtension = fileName.substring(fileName.lastIndexOf('.'));
+
+        // Blokir ekstensi berbahaya: .php, .exe, .svg
+        // Serta memblokir PDF dan semua dokumen Office (.doc, .docx, .xls, .xlsx, .ppt, .pptx)
+        const blockedExtensions = ['.php', '.exe', '.svg', '.pdf', '.doc', '.docx', '.xls', '.xlsx', '.ppt', '.pptx'];
+        const isBlockedExtension = blockedExtensions.some(ext => fileName.endsWith(ext));
+
+        // Blokir PDF dan Office MIME types
+        const isOfficeOrPdfMime = file.type === 'application/pdf' || 
+            file.type.startsWith('application/msword') || 
+            file.type.startsWith('application/vnd.ms-') || 
+            file.type.startsWith('application/vnd.openxmlformats-officedocument');
+
+        // Validasi kebolehan MIME tipe dan ekstensi gambar
+        const isAllowedMime = allowedMimeTypes.includes(file.type);
+        const isAllowedExtension = allowedExtensions.includes(fileExtension);
+
+        if (isBlockedExtension || isOfficeOrPdfMime || !isAllowedMime || !isAllowedExtension) {
+            setErrorModal({ 
+                isOpen: true, 
+                title: "Gagal Validasi",
+                message: "Format file tidak didukung! Hanya diperbolehkan mengunggah file gambar (JPG, JPEG, PNG, WEBP, GIF). File PDF, dokumen Office, SVG, PHP, atau EXE tidak diizinkan." 
+            });
             e.target.value = ""; // Reset input file
             return;
         }
 
-        setSelectedImage(URL.createObjectURL(file));
+        // 2. Validasi ukuran maksimal 500KB (500 * 1024 bytes)
+        if (file.size > 500 * 1024) {
+            setErrorModal({ 
+                isOpen: true, 
+                title: "Ukuran Terlalu Besar",
+                message: "Maaf, ukuran gambar terlalu besar! Maksimal ukuran file adalah 500KB." 
+            });
+            e.target.value = ""; // Reset input file
+            return;
+        }
+
+        // 3. Rename file secara acak (random) untuk keamanan tambahan
+        const randomString = Math.random().toString(36).substring(2, 15);
+        const randomFilename = `${Date.now()}_${randomString}${fileExtension}`;
+        const renamedFile = new File([file], randomFilename, { type: file.type });
+
+        setSelectedImage(URL.createObjectURL(renamedFile));
 
         const formDataObj = new FormData();
-        formDataObj.append("image", file);
+        formDataObj.append("image", renamedFile);
         try {
             const res = await fetch(`${getApiUrl()}/upload`, {
                 method: "POST",
@@ -69,19 +109,30 @@ export default function UserKomunitasPage() {
             const data = await res.json();
             if (res.ok) {
                 setFormData({ ...formData, image: data.url });
+            } else {
+                setErrorModal({ isOpen: true, title: "Gagal Mengunggah", message: data.message || "Gagal mengunggah gambar." });
             }
         } catch (err) {
             console.error("Upload error:", err);
+            setErrorModal({ isOpen: true, title: "Kesalahan Koneksi", message: "Terjadi kesalahan koneksi saat mengunggah gambar." });
         }
     };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        if (!user || !user.id) {
+            setErrorModal({ isOpen: true, title: "Sesi Habis", message: "Sesi Anda telah berakhir. Silakan login kembali." });
+            return;
+        }
         setIsSubmitting(true);
+        const token = localStorage.getItem("token");
         try {
             const res = await fetch(`${getApiUrl()}/topics`, {
                 method: "POST",
-                headers: { "Content-Type": "application/json" },
+                headers: { 
+                    "Content-Type": "application/json",
+                    ...(token ? { "Authorization": `Bearer ${token}` } : {})
+                },
                 body: JSON.stringify({
                     ...formData,
                     user_id: user.id
@@ -92,9 +143,13 @@ export default function UserKomunitasPage() {
                 fetchTopics(user.id);
                 setFormData({ title: "", category: "Diskusi Umum", description: "", date: new Date().toISOString().split('T')[0], image: "" });
                 setSelectedImage(null);
+            } else {
+                const data = await res.json();
+                setErrorModal({ isOpen: true, title: "Gagal Menyimpan", message: data.message || "Gagal memposting topik." });
             }
         } catch (err) {
             console.error(err);
+            setErrorModal({ isOpen: true, title: "Kesalahan Koneksi", message: "Terjadi kesalahan koneksi saat memposting topik." });
         } finally {
             setIsSubmitting(false);
         }
@@ -102,13 +157,23 @@ export default function UserKomunitasPage() {
 
     const handleDelete = async (id) => {
         if (!confirm("Apakah Anda yakin ingin menghapus topik ini?")) return;
+        const token = localStorage.getItem("token");
         try {
-            const res = await fetch(`${getApiUrl()}/topics/${id}`, { method: "DELETE" });
+            const res = await fetch(`${getApiUrl()}/topics/${id}`, { 
+                method: "DELETE",
+                headers: token ? { "Authorization": `Bearer ${token}` } : {}
+            });
             if (res.ok) {
-                fetchTopics(user.id);
+                if (user && user.id) {
+                    fetchTopics(user.id);
+                }
+            } else {
+                const data = await res.json();
+                alert(data.message || "Gagal menghapus topik.");
             }
         } catch (err) {
             console.error(err);
+            alert("Terjadi kesalahan koneksi saat menghapus topik.");
         }
     };
 
@@ -462,7 +527,7 @@ export default function UserKomunitasPage() {
                                 <span className="text-3xl">⚠️</span>
                             </div>
                             <div className="space-y-1">
-                                <h3 className="text-xl font-bold text-white">Gagal Mengunggah</h3>
+                                <h3 className="text-xl font-bold text-white">{errorModal.title || "Gagal"}</h3>
                                 <p className="text-sm text-zinc-400 font-medium leading-relaxed">
                                     {errorModal.message}
                                 </p>
@@ -470,7 +535,7 @@ export default function UserKomunitasPage() {
                         </div>
                         <div className="p-4 bg-zinc-950/50 border-t border-zinc-800 flex justify-center">
                             <button
-                                onClick={() => setErrorModal({ isOpen: false, message: "" })}
+                                onClick={() => setErrorModal({ isOpen: false, title: "Gagal", message: "" })}
                                 className="w-full px-6 py-3 bg-zinc-800 hover:bg-zinc-700 text-white font-bold rounded-xl transition-all"
                             >
                                 Mengerti

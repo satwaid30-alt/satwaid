@@ -21,6 +21,7 @@ const chatController = require('../controllers/Chat.controller');
 const bidsController = require('../controllers/Bids.controller');
 const menuControlsController = require('../controllers/MenuControls.controller');
 const shopUpgradesController = require('../controllers/ShopUpgrades.controller');
+const complaintsController = require('../controllers/Complaints.controller');
 const { checkAuth, checkAuthAdmin } = require('@middlewares/Auth.middleware');
 
 
@@ -119,6 +120,12 @@ router.get('/notifications/:user_id', notificationsController.getNotificationCou
 router.put('/notifications/:user_id/read', checkAuth, notificationsController.markCommunityAsRead);
 router.put('/notifications/:user_id/read-all', checkAuth, notificationsController.markAllAsRead);
 router.delete('/notifications/:user_id', checkAuth, notificationsController.deleteAll);
+
+// Complaints (Pengaduan) Routes
+router.post('/complaints', checkAuth, complaintsController.createComplaint);
+router.get('/complaints/user', checkAuth, complaintsController.getUserComplaints);
+router.get('/complaints', checkAuthAdmin, complaintsController.getAllComplaints);
+router.put('/complaints/:id', checkAuthAdmin, complaintsController.respondToComplaint);
 
 // Advertisements Routes
 router.get('/advertisements', adsController.getAdvertisements);

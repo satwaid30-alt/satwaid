@@ -161,11 +161,9 @@ const ListingsController = {
                         ],
                         [
                             Sequelize.literal(`(
-                                SELECT order_id
+                                SELECT STRING_AGG(order_id || '::' || status, ', ' ORDER BY created_at DESC)
                                 FROM orders
                                 WHERE orders.listing_id = "listings"."id"
-                                ORDER BY created_at DESC
-                                LIMIT 1
                             )`),
                             'latestOrderId'
                         ],
@@ -306,11 +304,9 @@ const ListingsController = {
                         ],
                         [
                             Sequelize.literal(`(
-                                SELECT order_id
+                                SELECT STRING_AGG(order_id || '::' || status, ', ' ORDER BY created_at DESC)
                                 FROM orders
                                 WHERE orders.listing_id = "listings"."id"
-                                ORDER BY created_at DESC
-                                LIMIT 1
                             )`),
                             'latestOrderId'
                         ],
@@ -619,11 +615,9 @@ const ListingsController = {
                         ],
                         [
                             Sequelize.literal(`(
-                                SELECT order_id
+                                SELECT STRING_AGG(order_id || '::' || status, ', ' ORDER BY created_at DESC)
                                 FROM orders
                                 WHERE orders.listing_id = "listings"."id"
-                                ORDER BY created_at DESC
-                                LIMIT 1
                             )`),
                             'latestOrderId'
                         ],

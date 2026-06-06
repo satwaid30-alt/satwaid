@@ -26,9 +26,9 @@ export default function OrderStepper({ order, className = "" }) {
   // Step completion logic for tracking steps when cancelled
   const stepCompletions = {
     1: !!(order.address_filled_at || order.receiver_name || !['pending_shipping_info', 'cancelled', 'cancelled_dismissed'].includes(order.status)),
-    2: !!(order.shipping_cost_set_at || order.shipping_cost !== null || !['pending_shipping_info', 'waiting_shipping_cost', 'cancelled', 'cancelled_dismissed'].includes(order.status)),
-    3: !!(order.payment_uploaded_at || order.payment_proof || ['processing', 'payment_verified', 'shipped', 'completed', 'complained'].includes(normalizedStatus)),
-    4: !!(order.payment_verified_at || ['payment_verified', 'shipped', 'completed', 'complained'].includes(normalizedStatus)),
+    2: !!(order.shipping_cost_set_at || !['pending_shipping_info', 'waiting_shipping_cost', 'cancelled', 'cancelled_dismissed'].includes(order.status)),
+    3: !!(order.payment_uploaded_at || order.payment_proof || ['processing', 'payment_verified', 'waiting_shipment', 'shipped', 'completed', 'complained'].includes(normalizedStatus)),
+    4: !!(order.payment_verified_at || ['payment_verified', 'waiting_shipment', 'shipped', 'completed', 'complained'].includes(normalizedStatus)),
     5: !!(order.shipped_at || order.tracking_number || ['shipped', 'completed', 'complained'].includes(normalizedStatus)),
     6: !!(order.completed_at || ['completed', 'complained'].includes(normalizedStatus)),
   };

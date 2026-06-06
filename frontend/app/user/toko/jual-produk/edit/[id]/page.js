@@ -54,6 +54,7 @@ export default function EditListingPage({ params }) {
     const [showSuccessModal, setShowSuccessModal] = useState(false);
     const [showConfirmModal, setShowConfirmModal] = useState(false);
     const [showErrorModal, setShowErrorModal] = useState(false);
+    const [errorModalMessage, setErrorModalMessage] = useState("Ukuran foto tidak boleh melebihi 1MB. Silakan kompres foto Anda.");
 
     const [listingType, setListingType] = useState("sell");
     const [reptileData, setReptileData] = useState({
@@ -76,6 +77,66 @@ export default function EditListingPage({ params }) {
     useEffect(() => {
         fetchListingData();
     }, [id]);
+
+    // ── Image Upload Security Validator ──────────────────────────────────────────
+    const validateImageFile = (file, inputRef) => {
+        if (!file) return false;
+
+        // 1. Block dangerous extensions
+        const blockedExtensions = [".php", ".exe", ".svg", ".doc", ".docx", ".xls", ".xlsx", ".ppt", ".pptx", ".pdf"];
+        const fileName = file.name.toLowerCase();
+        if (blockedExtensions.some((ext) => fileName.endsWith(ext))) {
+            setShowErrorModal(true);
+            setErrorModalMessage("Format file tersebut tidak diperbolehkan. Hanya gambar JPG, PNG, atau WEBP yang diterima.");
+            if (inputRef) inputRef.value = null;
+            return false;
+        }
+
+        // 2. Block dangerous & document MIME types
+        const blockedMime = [
+            "application/pdf",
+            "application/msword",
+            "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+            "application/vnd.ms-excel",
+            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            "application/vnd.ms-powerpoint",
+            "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+            "application/x-php", "application/x-httpd-php", "text/x-php",
+            "application/octet-stream", "image/svg+xml",
+        ];
+        if (blockedMime.includes(file.type)) {
+            setShowErrorModal(true);
+            setErrorModalMessage("Tipe file tersebut tidak diperbolehkan. Hanya gambar JPG, PNG, atau WEBP yang diterima.");
+            if (inputRef) inputRef.value = null;
+            return false;
+        }
+
+        // 3. Validate allowed image MIME types
+        const allowedMime = ["image/jpeg", "image/jpg", "image/png", "image/webp", "image/gif"];
+        if (!allowedMime.includes(file.type)) {
+            setShowErrorModal(true);
+            setErrorModalMessage("Hanya gambar berformat JPG, PNG, WEBP, atau GIF yang diperbolehkan.");
+            if (inputRef) inputRef.value = null;
+            return false;
+        }
+
+        // 4. Validate file size (max 1 MB)
+        if (file.size > 1 * 1024 * 1024) {
+            setShowErrorModal(true);
+            setErrorModalMessage("Ukuran foto tidak boleh melebihi 1MB. Silakan kompres foto Anda.");
+            if (inputRef) inputRef.value = null;
+            return false;
+        }
+
+        return true;
+    };
+
+    // ── Random file rename before upload ─────────────────────────────────────────
+    const renameFileRandom = (file) => {
+        const ext = file.name.split(".").pop().toLowerCase();
+        const randomName = `${Date.now()}-${Math.random().toString(36).substring(2, 10)}.${ext}`;
+        return new File([file], randomName, { type: file.type });
+    };
 
     const fetchListingData = async () => {
         try {
@@ -518,15 +579,12 @@ export default function EditListingPage({ params }) {
                                     <label className="aspect-square bg-zinc-950 border-2 border-dashed border-zinc-800 rounded-2xl flex flex-col items-center justify-center gap-2 text-zinc-500 hover:border-emerald-500 hover:text-emerald-500 transition-all cursor-pointer group hover:bg-emerald-500/5">
                                         <input
                                             type="file"
-                                            accept="image/*"
+                                            accept="image/jpeg,image/jpg,image/png,image/webp,image/gif"
                                             className="hidden"
                                             onChange={(e) => {
-                                                const file = e.target.files[0];
-                                                if (!file) return;
-                                                if (file.size > 1 * 1024 * 1024) {
-                                                    setShowErrorModal(true);
-                                                    return;
-                                                }
+                                                const raw = e.target.files[0];
+                                                if (!validateImageFile(raw, e.target)) return;
+                                                const file = renameFileRandom(raw);
                                                 const reader = new FileReader();
                                                 reader.onload = (event) => {
                                                     setReptileData(prev => ({
@@ -631,27 +689,25 @@ export default function EditListingPage({ params }) {
                     </div>
                 )}
 
-                {/* Error Modal */}
-                {showErrorModal && (
-                    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-                        <div className="absolute inset-0 bg-zinc-950/90 backdrop-blur-md animate-in fade-in duration-300" onClick={() => setShowErrorModal(false)}></div>
-                        <div className="bg-zinc-900 border border-zinc-800 rounded-[2.5rem] w-full max-w-md p-12 text-center relative z-10 animate-in zoom-in-95 duration-300">
-                            <div className="w-24 h-24 bg-red-500 text-zinc-950 rounded-full flex items-center justify-center mx-auto mb-8">
-                                <AlertCircle size={48} />
+                    {/* Error Modal */}
+                    {showErrorModal && (
+                        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+                            <div className="absolute inset-0 bg-zinc-950/90 backdrop-blur-md animate-in fade-in duration-300" onClick={() => setShowErrorModal(false)}></div>
+                            <div className="bg-zinc-900 border border-zinc-800 rounded-[2.5rem] w-full max-w-md p-12 text-center relative z-10 animate-in zoom-in-95 duration-300">
+                                <div className="w-24 h-24 bg-red-500 text-zinc-950 rounded-full flex items-center justify-center mx-auto mb-8">
+                                    <AlertCircle size={48} />
+                                </div>
+                                <h3 className="text-3xl font-black text-white mb-4">File Tidak Valid!</h3>
+                                <p className="text-zinc-400 mb-10 leading-relaxed font-medium">
+                                    {errorModalMessage}
+                                </p>
+                                <button onClick={() => setShowErrorModal(false)} className="w-full bg-red-500 hover:bg-red-400 text-zinc-950 font-black py-4 rounded-2xl transition-all">
+                                    Saya Mengerti
+                                </button>
                             </div>
-                            <h3 className="text-3xl font-black text-white mb-4">File Terlalu Besar!</h3>
-                            <p className="text-zinc-400 mb-10 leading-relaxed font-medium">
-                                Ukuran foto tidak boleh melebihi <span className="text-red-500 font-black">1MB</span>. Silakan kompres foto Anda.
-                            </p>
-                            <button
-                                onClick={() => setShowErrorModal(false)}
-                                className="w-full bg-red-500 hover:bg-red-400 text-zinc-950 font-black py-4 rounded-2xl transition-all"
-                            >
-                                Saya Mengerti
-                            </button>
                         </div>
-                    </div>
-                )}
+                    )}
+
 
                 <style jsx global>{`
                 .quill-dark-editor .ql-toolbar {

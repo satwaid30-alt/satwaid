@@ -741,10 +741,10 @@ export default function RiwayatTransaksiSeller() {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pb-10">
         <div className="p-8 bg-zinc-900 border border-zinc-800 rounded-[2.5rem] flex gap-6 items-start group hover:border-emerald-500/30 transition-all">
           <div className="w-14 h-14 bg-emerald-500/10 text-emerald-500 rounded-2xl flex items-center justify-center shrink-0 border border-emerald-500/20 group-hover:scale-110 transition-transform">
-            <DollarSign size={28} />
+            <Wallet size={28} />
           </div>
           <div className="space-y-2">
-            <h4 className="text-sm font-black text-white uppercase tracking-wider">Kapan Dana Saya Cair?</h4>
+            <h4 className="text-sm font-black text-white uppercase tracking-wider">Estimasi Pencairan Dana</h4>
             <p className="text-xs text-zinc-500 leading-relaxed font-medium">
               Dana akan diproses oleh Admin segera setelah pembeli mengonfirmasi pesanan diterima atau saat transaksi dinyatakan selesai.{" "}
               {shop && shop.membership_level === "Enterprise Seller" ? (

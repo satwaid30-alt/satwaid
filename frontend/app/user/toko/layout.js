@@ -112,10 +112,13 @@ export default function UserTokoLayout({ children }) {
         console.error("[Layout Socket] Error:", e);
       }
     }
-    setIsLoading(false);
+    const timer = setTimeout(() => {
+      setIsLoading(false);
+    }, 0);
     return () => {
       if (socket) socket.disconnect();
       clearAllTimers();
+      clearTimeout(timer);
     };
   }, [clearAllTimers, router]);
 

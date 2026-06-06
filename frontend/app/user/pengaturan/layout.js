@@ -11,11 +11,17 @@ export default function PengaturanLayout({ children }) {
 
     useEffect(() => {
         const token = localStorage.getItem("token");
+        let timer;
         if (!token) {
             router.push("/login");
         } else {
-            setIsLoading(false);
+            timer = setTimeout(() => {
+                setIsLoading(false);
+            }, 0);
         }
+        return () => {
+            if (timer) clearTimeout(timer);
+        };
     }, [router]);
 
     if (isLoading) {

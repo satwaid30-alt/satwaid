@@ -19,6 +19,7 @@ var _bids = require("../models/bids");
 var _menu_controls = require("../models/menu_controls");
 var _shop_upgrades = require("../models/shop_upgrades");
 var _shop_upgrade_plans = require("../models/shop_upgrade_plans");
+var _complaints = require("../models/complaints");
 
 
 function initModels(sequelize) {
@@ -41,6 +42,7 @@ function initModels(sequelize) {
   var menu_controls = _menu_controls(sequelize, DataTypes);
   var shop_upgrades = _shop_upgrades(sequelize, DataTypes);
   var shop_upgrade_plans = _shop_upgrade_plans(sequelize, DataTypes);
+  var complaints = _complaints(sequelize, DataTypes);
 
 
 
@@ -110,6 +112,9 @@ function initModels(sequelize) {
   shop_upgrades.belongsTo(shops, { as: "shop", foreignKey: "shop_id" });
   shops.hasMany(shop_upgrades, { as: "upgrades", foreignKey: "shop_id" });
 
+  complaints.belongsTo(users, { as: "user", foreignKey: "user_id" });
+  users.hasMany(complaints, { as: "complaints", foreignKey: "user_id" });
+
 
   return {
 
@@ -131,7 +136,8 @@ function initModels(sequelize) {
     bids,
     menu_controls,
     shop_upgrades,
-    shop_upgrade_plans
+    shop_upgrade_plans,
+    complaints
   };
 }
 

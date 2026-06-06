@@ -100,10 +100,15 @@ export default function KomunitasPage() {
       return;
     }
 
+    const token = localStorage.getItem("token");
+
     try {
       const res = await fetch(`${getApiUrl()}/topics/${topicId}/like`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { 
+          "Content-Type": "application/json",
+          ...(token ? { "Authorization": `Bearer ${token}` } : {})
+        },
         body: JSON.stringify({ user_id: currentUser.id }),
       });
 

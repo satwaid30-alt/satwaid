@@ -577,14 +577,12 @@ export default function AdminRefundPage() {
                               </p>
                             )}
                             {refund.refund_proof && (
-                              <a
-                                href={refund.refund_proof}
-                                target="_blank"
-                                rel="noreferrer"
+                              <button
+                                onClick={() => setZoomImage(refund.refund_proof)}
                                 className="inline-flex items-center gap-1 text-[8px] font-bold text-blue-400 hover:underline uppercase tracking-widest"
                               >
                                 Bukti Transfer <ExternalLink size={8} />
-                              </a>
+                              </button>
                             )}
                           </div>
                         )}

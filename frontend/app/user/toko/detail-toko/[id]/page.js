@@ -5,8 +5,9 @@ import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { Store, ChevronRight, CheckCircle2, X, ScrollText, ShieldCheck, PencilLine, XCircle, Lock, LogOut, ArrowLeft, MapPin, Tag, ChevronDown, ChevronUp, AlertCircle, Star, Image as ImageIcon, Upload, Info, LayoutGrid, Clock } from "lucide-react";
 import ActionModal from "@/components/ActionModal";
-import { getApiUrl, getLogoUrl } from "@/app/utils/api";
+import { getApiUrl, getLogoUrl, getSocketUrl } from "@/app/utils/api";
 import { useShopQuota } from "@/hooks/useShopQuota";
+import { io } from "socket.io-client";
 
 export default function UserTokoDetailPage() {
   const params = useParams();
@@ -27,17 +28,44 @@ export default function UserTokoDetailPage() {
 
   useEffect(() => {
     const userStr = localStorage.getItem("user");
+    let socket;
     if (userStr) {
       try {
-        setCurrentUser(JSON.parse(userStr));
+        const parsed = JSON.parse(userStr);
+        setCurrentUser(parsed);
+
+        const token = localStorage.getItem("token");
+        socket = io(getSocketUrl(), {
+          auth: { token: token ? `Bearer ${token}` : "" },
+        });
+
+        socket.on("connect", () => {
+          socket.emit("join_user", parsed.id);
+        });
+
+        const handleRefresh = () => {
+          fetchShopDetail();
+          fetchShopReviews();
+        };
+
+        socket.on("new_notification", handleRefresh);
+        socket.on("shop_quota_updated", handleRefresh);
+        socket.on("shop_membership_updated", handleRefresh);
+        socket.on("shop_upgrade_status_updated", handleRefresh);
       } catch (e) {
-        console.error(e);
+        console.error("[Detail Toko Socket] Error:", e);
       }
     }
     if (params.id) {
       fetchShopDetail();
       fetchShopReviews();
     }
+
+    return () => {
+      if (socket) {
+        socket.disconnect();
+      }
+    };
   }, [params.id]);
 
   const fetchShopReviews = async () => {

@@ -133,6 +133,20 @@ export default function UploadFinanceDocPage({ params }) {
     const handleFileChange = (e) => {
         const file = e.target.files[0];
         if (file) {
+            const MAX_FILE_SIZE = 1 * 1024 * 1024; // 1 MB
+            if (file.size > MAX_FILE_SIZE) {
+                setActionModal({
+                    isOpen: true,
+                    type: 'warning',
+                    title: 'Ukuran File Terlalu Besar',
+                    message: 'Ukuran file bukti transfer tidak boleh melebihi 1MB. Silakan pilih file yang lebih kecil.',
+                    onConfirm: () => setActionModal(prev => ({ ...prev, isOpen: false }))
+                });
+                e.target.value = ""; // Reset input file
+                setSelectedFile(null);
+                setPreviewUrl(null);
+                return;
+            }
             setSelectedFile(file);
             const reader = new FileReader();
             reader.onloadend = () => {
@@ -354,7 +368,7 @@ export default function UploadFinanceDocPage({ params }) {
                                                         </div>
                                                         <div className="space-y-1">
                                                             <p className="text-xs font-black text-zinc-500 uppercase tracking-widest">Pilih File Bukti Transaksi</p>
-                                                            <p className="text-[10px] text-zinc-600 font-bold uppercase tracking-tighter">PNG, JPG, atau PDF (Max. 5MB)</p>
+                                                            <p className="text-[10px] text-zinc-600 font-bold uppercase tracking-tighter">PNG, JPG, atau PDF (Max. 1MB)</p>
                                                         </div>
                                                     </div>
                                                 )}

@@ -57,6 +57,20 @@ export default function DetailPembayaranPage({ params: paramsPromise }) {
     const handleFileChange = (e) => {
         const file = e.target.files[0];
         if (file) {
+            const MAX_FILE_SIZE = 1 * 1024 * 1024; // 1 MB
+            if (file.size > MAX_FILE_SIZE) {
+                setActionModal({
+                    isOpen: true,
+                    type: 'warning',
+                    title: 'Ukuran File Terlalu Besar',
+                    message: 'Ukuran file bukti transfer tidak boleh melebihi 1MB. Silakan pilih file yang lebih kecil.',
+                    onConfirm: () => setActionModal(prev => ({ ...prev, isOpen: false }))
+                });
+                e.target.value = ""; // Reset input file
+                setSelectedFile(null);
+                setPreviewUrl(null);
+                return;
+            }
             setSelectedFile(file);
             const reader = new FileReader();
             reader.onloadend = () => {
@@ -718,7 +732,7 @@ export default function DetailPembayaranPage({ params: paramsPromise }) {
                                 <label className="flex flex-col items-center justify-center border border-dashed border-zinc-800 hover:border-emerald-500/30 rounded-2xl p-8 bg-zinc-950/50 cursor-pointer hover:bg-zinc-950 transition-all group">
                                     <Upload size={24} className="text-zinc-600 group-hover:text-emerald-500 transition-colors mb-2" />
                                     <span className="text-xs font-bold text-zinc-400">Pilih File Bukti Transfer</span>
-                                    <span className="text-[9px] text-zinc-600 mt-1 font-bold">Maks. 5MB</span>
+                                    <span className="text-[9px] text-zinc-600 mt-1 font-bold">Maks. 1MB</span>
                                     <input type="file" accept="image/*" className="hidden" onChange={handleFileChange} />
                                 </label>
                             )}

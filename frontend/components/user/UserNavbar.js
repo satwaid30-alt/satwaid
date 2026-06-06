@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Bell, Home, Store, ChevronDown, User, LogOut, Settings, MessageSquare, ShoppingBag, Trash2, Package, CreditCard, Users } from "lucide-react";
+import { Bell, Home, Store, ChevronDown, User, LogOut, Settings, MessageSquare, ShoppingBag, Trash2, Package, CreditCard, Users, AlertTriangle } from "lucide-react";
 import { io } from "socket.io-client";
 import { getApiUrl, getSocketUrl } from "@/app/utils/api";
 
@@ -29,12 +29,13 @@ export default function UserNavbar() {
     if (pathname.includes("/user/komunitas")) return "Komunitas Saya";
     if (pathname.includes("/user/pesanan")) return "Pesanan Saya";
     if (pathname.includes("/user/toko/dashboard")) return "Dashboard Seller";
-    if (pathname.includes("/user/toko/jual-produk")) return "Jual Produk";
+    if (pathname.includes("/user/toko/jual-produk")) return "Produk Reguler";
     if (pathname.includes("/user/toko/lelang-produk")) return "Lelang Produk";
     if (pathname.includes("/user/toko/daftar-produk")) return "Daftar Produk";
     if (pathname.includes("/user/toko/pesanan-masuk")) return "Pesanan Masuk";
     if (pathname.includes("/user/toko/pengajuan-keuangan")) return "Pengajuan Keuangan";
     if (pathname.includes("/user/toko")) return "Profil Toko";
+    if (pathname.includes("/user/pengaduan")) return "Pengaduan Saya";
     return "Dashboard Pengguna";
   };
 
@@ -186,7 +187,13 @@ export default function UserNavbar() {
                   onClick={async () => {
                     if (user) {
                       try {
-                        await fetch(`${getApiUrl()}/notifications/${user.id}`, { method: "DELETE" });
+                        const token = localStorage.getItem("token");
+                        await fetch(`${getApiUrl()}/notifications/${user.id}`, {
+                          method: "DELETE",
+                          headers: {
+                            Authorization: token ? `Bearer ${token}` : "",
+                          },
+                        });
                         setNotifications([]);
                         setNotifCount(0);
                         fetchNotifications();
@@ -324,6 +331,11 @@ export default function UserNavbar() {
               <Link href="/user/pengaturan/keamanan" onClick={() => setShowProfileDropdown(false)} className="flex items-center gap-3 px-3 py-2 text-xs font-semibold text-zinc-400 hover:text-white hover:bg-zinc-800 rounded-lg transition-colors">
                 <Settings size={14} className="text-emerald-500" />
                 <span>Keamanan Akun</span>
+              </Link>
+
+              <Link href="/user/pengaduan" onClick={() => setShowProfileDropdown(false)} className="flex items-center gap-3 px-3 py-2 text-xs font-semibold text-zinc-400 hover:text-white hover:bg-zinc-800 rounded-lg transition-colors">
+                <AlertTriangle size={14} className="text-emerald-500" />
+                <span>Pengaduan Saya</span>
               </Link>
 
               <div className="border-t border-zinc-800/80 my-2" />

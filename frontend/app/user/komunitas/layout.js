@@ -11,11 +11,18 @@ export default function KomunitasLayout({ children }) {
 
     useEffect(() => {
         const token = localStorage.getItem("token");
-        if (!token) {
+        const user = localStorage.getItem("user");
+        let timer;
+        if (!token || !user) {
             router.push("/login");
         } else {
-            setIsLoading(false);
+            timer = setTimeout(() => {
+                setIsLoading(false);
+            }, 0);
         }
+        return () => {
+            if (timer) clearTimeout(timer);
+        };
     }, [router]);
 
     if (isLoading) {

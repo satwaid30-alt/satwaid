@@ -28,11 +28,18 @@ export default function PesananMasukPage() {
 
   // Cancellation State
   const [cancellingOrder, setCancellingOrder] = useState(null); // stores order object
-  const [cancellationReason, setCancellationReason] = useState("");
+  const [cancelOption, setCancelOption] = useState("");
+  const [customCancelReason, setCustomCancelReason] = useState("");
   const [isCancelling, setIsCancelling] = useState(false);
   const [selectedImage, setSelectedImage] = useState(null);
   const [expandedComplaints, setExpandedComplaints] = useState({});
   const shopIdRef = useRef(null);
+
+  const handleCloseCancelModal = () => {
+    setCancellingOrder(null);
+    setCancelOption("");
+    setCustomCancelReason("");
+  };
 
   const toggleComplaint = (orderId) => {
     setExpandedComplaints((prev) => ({
@@ -44,8 +51,6 @@ export default function PesananMasukPage() {
   useEffect(() => {
     shopIdRef.current = shop?.id;
   }, [shop?.id]);
-
-
 
   useEffect(() => {
     const userData = localStorage.getItem("user");
@@ -138,7 +143,8 @@ export default function PesananMasukPage() {
 
   const handleCancelOrder = async (e) => {
     e.preventDefault();
-    if (!cancellationReason.trim()) return;
+    const finalReason = cancelOption === "Lainnya" ? customCancelReason : cancelOption;
+    if (!finalReason || !finalReason.trim()) return;
 
     setIsCancelling(true);
     try {
@@ -149,13 +155,12 @@ export default function PesananMasukPage() {
           "Content-Type": "application/json",
           Authorization: token ? `Bearer ${token}` : "",
         },
-        body: JSON.stringify({ cancellation_reason: cancellationReason }),
+        body: JSON.stringify({ cancellation_reason: finalReason }),
       });
 
       if (response.ok) {
         setOrders(orders.map((o) => (o.id === cancellingOrder.id ? { ...o, status: "cancelled" } : o)));
-        setCancellingOrder(null);
-        setCancellationReason("");
+        handleCloseCancelModal();
         setSuccessMessage("Pesanan berhasil dibatalkan");
         setTimeout(() => setSuccessMessage(""), 3000);
       } else {
@@ -241,9 +246,8 @@ export default function PesananMasukPage() {
     }
   };
 
-  // Active orders only — completed/cancelled/disbursement orders are in Riwayat Penjualan & Pengajuan Keuangan
-  // disbursement_requested dan disbursed adalah status SETELAH transaksi selesai (proses keuangan internal)
   const activeOrders = orders.filter((o) => !["completed", "cancelled", "cancelled_dismissed", "disbursement_requested", "disbursed"].includes(o.status));
+  const complainedOrders = orders.filter((o) => o.status === "complained");
 
   const filteredOrders = activeOrders.filter((order) => {
     const matchesSearch = order.order_id.toLowerCase().includes(searchQuery.toLowerCase()) || order.product?.name.toLowerCase().includes(searchQuery.toLowerCase());
@@ -429,9 +433,7 @@ export default function PesananMasukPage() {
                   </div>
                 </div>
                 <div className="flex flex-wrap items-center gap-2 self-start sm:self-auto">
-                  <div className={`px-4 py-1.5 rounded-xl border text-[9px] font-black uppercase tracking-widest ${getStatusStyle(order.status)}`}>
-                    {getStatusLabel(order.status)}
-                  </div>
+                  <div className={`px-4 py-1.5 rounded-xl border text-[9px] font-black uppercase tracking-widest ${getStatusStyle(order.status)}`}>{getStatusLabel(order.status)}</div>
                   {order.status === "waiting_payment" && order.payment_rejection_reason && (
                     <div className="px-4 py-1.5 rounded-xl border text-[9px] font-black uppercase tracking-widest bg-red-500/10 text-red-400 border-red-500/20 flex items-center gap-1">
                       <AlertCircle size={10} className="shrink-0" />
@@ -490,6 +492,19 @@ export default function PesananMasukPage() {
                 </div>
               )}
 
+              {/* Complaint Notification for Seller */}
+              {order.status === "complained" && (
+                <div className="mx-4 md:mx-6 mt-4 p-4.5 bg-red-500/10 border border-red-500/20 rounded-2xl flex items-start gap-3.5 animate-in slide-in-from-top-2 duration-300">
+                  <AlertCircle size={20} className="text-red-500 shrink-0 mt-0.5" />
+                  <div className="space-y-1 text-left">
+                    <p className="text-xs md:text-sm font-black text-red-500 uppercase tracking-wider leading-none">Perhatian: Ada Komplain Aktif!</p>
+                    <p className="text-[11px] md:text-xs text-zinc-400 font-bold leading-relaxed mt-1">
+                      Transaksi ini sedang dikomplain oleh pembeli. Harap segera hubungi/berdiskusi dengan pembeli untuk menyelesaikan masalah ini. Apabila komplain telah disepakati dan diselesaikan, pembeli harus menekan tombol <strong>Selesaikan Pesanan/Komplain</strong> untuk menyelesaikan transaksi.
+                    </p>
+                  </div>
+                </div>
+              )}
+
               {/* Card Body - Responsive Inner Grid */}
               <div className="p-4 md:p-6 space-y-5 flex-1 flex flex-col">
                 {/* Product Detail Header */}
@@ -518,30 +533,30 @@ export default function PesananMasukPage() {
                 {/* Billing Details (Receipt) & Actions */}
                 <div className="w-full space-y-3">
                   <div className="flex items-center gap-2 text-zinc-500">
-                    <DollarSign size={12} className="text-emerald-500" />
-                    <span className="text-[8px] font-black uppercase tracking-widest">Rincian Biaya</span>
+                    <DollarSign size={14} className="text-emerald-500" />
+                    <span className="text-[10px] md:text-xs font-black uppercase tracking-widest">Rincian Biaya</span>
                   </div>
-                  <div className="bg-zinc-950/40 rounded-2xl p-3.5 border border-zinc-800/40 space-y-2">
+                  <div className="bg-zinc-950/40 rounded-2xl p-4 border border-zinc-800/40 space-y-2.5">
                     <div className="flex justify-between items-center group/cost">
-                      <span className="text-[8px] font-bold text-zinc-500 uppercase tracking-tight">Harga Produk</span>
-                      <span className="text-[10px] font-black text-zinc-300 group-hover/cost:text-white transition-colors">{formatPrice(order.price * order.quantity)}</span>
+                      <span className="text-[10px] md:text-xs font-bold text-zinc-500 uppercase tracking-tight">Harga Produk</span>
+                      <span className="text-[11px] md:text-xs font-black text-zinc-300 group-hover/cost:text-white transition-colors">{formatPrice(order.price * order.quantity)}</span>
                     </div>
                     <div className="flex justify-between items-center group/cost">
-                      <span className="text-[8px] font-bold text-zinc-500 uppercase tracking-tight">Biaya Admin</span>
-                      <span className="text-[10px] font-black text-zinc-300 group-hover/cost:text-white transition-colors">+{formatPrice(order.admin_fee || 5000)}</span>
+                      <span className="text-[10px] md:text-xs font-bold text-zinc-500 uppercase tracking-tight">Biaya Admin</span>
+                      <span className="text-[11px] md:text-xs font-black text-zinc-300 group-hover/cost:text-white transition-colors">+{formatPrice(order.admin_fee || 5000)}</span>
                     </div>
                     <div className="flex justify-between items-center group/cost">
-                      <span className="text-[8px] font-bold text-zinc-500 uppercase tracking-tight">Ongkos Kirim</span>
-                      <span className="text-[10px] font-black text-zinc-300 group-hover/cost:text-white transition-colors">{order.product?.is_free_shipping ? <span className="text-emerald-500 uppercase text-[8px] font-black">Gratis</span> : `+${formatPrice(order.shipping_cost || 0)}`}</span>
+                      <span className="text-[10px] md:text-xs font-bold text-zinc-500 uppercase tracking-tight">Ongkos Kirim</span>
+                      <span className="text-[11px] md:text-xs font-black text-zinc-300 group-hover/cost:text-white transition-colors">{order.product?.is_free_shipping ? <span className="text-emerald-500 uppercase text-[10px] md:text-xs font-black">Gratis</span> : `+${formatPrice(order.shipping_cost || 0)}`}</span>
                     </div>
                     <div className="flex justify-between items-center group/cost">
-                      <span className="text-[8px] font-bold text-zinc-500 uppercase tracking-tight">Biaya Packing</span>
-                      <span className="text-[10px] font-black text-zinc-300 group-hover/cost:text-white transition-colors">{order.product?.is_free_packing ? <span className="text-emerald-500 uppercase text-[8px] font-black">Gratis</span> : `+${formatPrice(order.packing_cost || 0)}`}</span>
+                      <span className="text-[10px] md:text-xs font-bold text-zinc-500 uppercase tracking-tight">Biaya Packing</span>
+                      <span className="text-[11px] md:text-xs font-black text-zinc-300 group-hover/cost:text-white transition-colors">{order.product?.is_free_packing ? <span className="text-emerald-500 uppercase text-[10px] md:text-xs font-black">Gratis</span> : `+${formatPrice(order.packing_cost || 0)}`}</span>
                     </div>
-                    <div className="h-px bg-gradient-to-r from-transparent via-zinc-800 to-transparent my-1"></div>
+                    <div className="h-px bg-gradient-to-r from-transparent via-zinc-800 to-transparent my-1.5"></div>
                     <div className="flex justify-between items-center pt-0.5">
-                      <span className="text-[8px] font-black text-emerald-500 uppercase tracking-[0.2em]">Total Tagihan</span>
-                      <span className="text-xs md:text-sm font-black text-white tracking-tighter">{formatPrice(order.total_price)}</span>
+                      <span className="text-[10px] md:text-xs font-black text-emerald-500 uppercase tracking-[0.2em]">Total Tagihan</span>
+                      <span className="text-sm md:text-lg font-black text-white tracking-tighter">{formatPrice(order.total_price)}</span>
                     </div>
                   </div>
 
@@ -621,7 +636,12 @@ export default function PesananMasukPage() {
               <h3 className="text-3xl font-black text-white tracking-tight uppercase">Belum Ada Pesanan</h3>
               <p className="text-zinc-500 max-w-sm mx-auto font-medium">Pesanan dari pelanggan tokomu akan muncul di sini secara otomatis.</p>
             </div>
-            <button onClick={() => { if (shop?.id) fetchOrders(shop.id); }} className="text-emerald-500 font-black text-xs uppercase tracking-widest flex items-center gap-2 hover:gap-3 transition-all">
+            <button
+              onClick={() => {
+                if (shop?.id) fetchOrders(shop.id);
+              }}
+              className="text-emerald-500 font-black text-xs uppercase tracking-widest flex items-center gap-2 hover:gap-3 transition-all"
+            >
               Refresh Data <Clock size={14} />
             </button>
           </div>
@@ -636,11 +656,7 @@ export default function PesananMasukPage() {
           </p>
           <div className="flex items-center">
             <div className="inline-flex rounded-xl border border-zinc-800 bg-zinc-950 divide-x divide-zinc-800 overflow-hidden">
-              <button
-                onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-                disabled={currentPage === 1}
-                className="w-10 h-10 flex items-center justify-center text-zinc-400 hover:text-white hover:bg-zinc-900/50 disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-transparent transition-all"
-              >
+              <button onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))} disabled={currentPage === 1} className="w-10 h-10 flex items-center justify-center text-zinc-400 hover:text-white hover:bg-zinc-900/50 disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-transparent transition-all">
                 <ChevronLeft size={16} />
               </button>
               {getPaginationRange(currentPage, totalPages).map((page, idx) => (
@@ -648,22 +664,12 @@ export default function PesananMasukPage() {
                   key={idx}
                   onClick={() => typeof page === "number" && setCurrentPage(page)}
                   disabled={page === "..."}
-                  className={`w-10 h-10 flex items-center justify-center text-xs font-bold transition-all ${
-                    page === currentPage
-                      ? "bg-zinc-800 text-white font-black"
-                      : page === "..."
-                      ? "text-zinc-500 cursor-default bg-zinc-950"
-                      : "text-zinc-400 hover:text-white hover:bg-zinc-900/50 bg-zinc-950"
-                  }`}
+                  className={`w-10 h-10 flex items-center justify-center text-xs font-bold transition-all ${page === currentPage ? "bg-zinc-800 text-white font-black" : page === "..." ? "text-zinc-500 cursor-default bg-zinc-950" : "text-zinc-400 hover:text-white hover:bg-zinc-900/50 bg-zinc-950"}`}
                 >
                   {page}
                 </button>
               ))}
-              <button
-                onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
-                disabled={currentPage === totalPages}
-                className="w-10 h-10 flex items-center justify-center text-zinc-400 hover:text-white hover:bg-zinc-900/50 disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-transparent transition-all"
-              >
+              <button onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))} disabled={currentPage === totalPages} className="w-10 h-10 flex items-center justify-center text-zinc-400 hover:text-white hover:bg-zinc-900/50 disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-transparent transition-all">
                 <ChevronRight size={16} />
               </button>
             </div>
@@ -674,14 +680,14 @@ export default function PesananMasukPage() {
       {/* Cancellation Modal */}
       {cancellingOrder && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-zinc-950/80 backdrop-blur-sm animate-in fade-in duration-300" onClick={() => !isCancelling && setCancellingOrder(null)}></div>
+          <div className="absolute inset-0 bg-zinc-950/80 backdrop-blur-sm animate-in fade-in duration-300" onClick={() => !isCancelling && handleCloseCancelModal()}></div>
           <div className="bg-zinc-900 border border-zinc-800 w-full max-w-md rounded-[2.5rem] relative z-10 overflow-hidden animate-in zoom-in-95 duration-300">
             <div className="p-8 md:p-10 space-y-6">
               <div className="flex items-center justify-between">
                 <div className="w-12 h-12 bg-red-500/10 text-red-500 rounded-2xl flex items-center justify-center border border-red-500/20">
                   <AlertCircle size={24} />
                 </div>
-                <button onClick={() => setCancellingOrder(null)} className="text-zinc-500 hover:text-white transition-colors">
+                <button onClick={() => handleCloseCancelModal()} className="text-zinc-500 hover:text-white transition-colors">
                   <X size={20} />
                 </button>
               </div>
@@ -696,21 +702,51 @@ export default function PesananMasukPage() {
               <form onSubmit={handleCancelOrder} className="space-y-6">
                 <div className="space-y-3">
                   <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest ml-1">Alasan Pembatalan</label>
-                  <textarea
-                    required
-                    rows={4}
-                    value={cancellationReason}
-                    onChange={(e) => setCancellationReason(e.target.value)}
-                    className="w-full bg-zinc-950 border border-zinc-800 rounded-2xl p-5 text-white focus:outline-none focus:border-red-500 transition-all font-medium text-sm resize-none"
-                    placeholder="Sebutkan alasan pembatalan (misal: Stok rusak, kendala kurir, dll)..."
-                  ></textarea>
+                  <div className="relative">
+                    <select required value={cancelOption} onChange={(e) => setCancelOption(e.target.value)} className="w-full bg-zinc-950 border border-zinc-800 rounded-2xl py-4 pl-6 pr-12 text-white focus:outline-none focus:border-red-500 transition-all text-sm font-medium cursor-pointer appearance-none">
+                      <option value="" disabled>
+                        Pilih Alasan Pembatalan
+                      </option>
+                      <option value="Produk/satwa tidak tersedia (stok habis)">Produk/satwa tidak tersedia (stok habis)</option>
+                      <option value="Kondisi satwa tidak layak dikirim / sakit">Kondisi satwa tidak layak dikirim / sakit</option>
+                      <option value="Satwa mengalami kendala kesehatan mendadak">Satwa mengalami kendala kesehatan mendadak</option>
+                      <option value="Kendala pengiriman ke lokasi buyer">Kendala pengiriman ke lokasi buyer</option>
+                      <option value="Data/alamat pengiriman buyer tidak lengkap">Data/alamat pengiriman buyer tidak lengkap</option>
+                      <option value="Buyer tidak dapat dihubungi">Buyer tidak dapat dihubungi</option>
+                      <option value="Permintaan pembatalan dari Buyer">Permintaan pembatalan dari Buyer</option>
+                      <option value="Terjadi kesalahan data atau harga produk">Terjadi kesalahan data atau harga produk</option>
+                      <option value="Kendala operasional seller">Kendala operasional seller</option>
+                      <option value="Lainnya">Lainnya</option>
+                    </select>
+                    <div className="absolute right-4 top-1/2 -translate-y-1/2 text-zinc-500 pointer-events-none">
+                      <ChevronRight size={18} className="rotate-90" />
+                    </div>
+                  </div>
                 </div>
 
+                {cancelOption === "Lainnya" && (
+                  <div className="space-y-3 animate-in fade-in slide-in-from-top-2 duration-300">
+                    <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest ml-1">Detail Alasan Pembatalan</label>
+                    <textarea
+                      required
+                      rows={4}
+                      value={customCancelReason}
+                      onChange={(e) => setCustomCancelReason(e.target.value)}
+                      className="w-full bg-zinc-950 border border-zinc-800 rounded-2xl p-5 text-white focus:outline-none focus:border-red-500 transition-all font-semibold text-sm resize-none leading-relaxed"
+                      placeholder="Sebutkan detail alasan pembatalan lainnya secara lengkap..."
+                    ></textarea>
+                  </div>
+                )}
+
                 <div className="flex gap-4">
-                  <button type="button" onClick={() => setCancellingOrder(null)} className="flex-1 py-4 bg-zinc-800 hover:bg-zinc-700 text-white font-black rounded-2xl transition-all text-xs uppercase tracking-widest">
+                  <button type="button" onClick={() => handleCloseCancelModal()} className="flex-1 py-4 bg-zinc-800 hover:bg-zinc-700 text-white font-black rounded-2xl transition-all text-xs uppercase tracking-widest">
                     Kembali
                   </button>
-                  <button type="submit" disabled={isCancelling || !cancellationReason.trim()} className="flex-[2] py-4 bg-red-500 hover:bg-red-400 text-zinc-950 font-black rounded-2xl transition-all disabled:opacity-50 flex items-center justify-center gap-2 active:scale-95 text-xs uppercase tracking-widest">
+                  <button
+                    type="submit"
+                    disabled={isCancelling || !cancelOption || (cancelOption === "Lainnya" && !customCancelReason.trim())}
+                    className="flex-[2] py-4 bg-red-500 hover:bg-red-400 text-zinc-950 font-black rounded-2xl transition-all disabled:opacity-50 flex items-center justify-center gap-2 active:scale-95 text-xs uppercase tracking-widest"
+                  >
                     {isCancelling ? "Membatalkan..." : "Ya, Batalkan Pesanan"}
                   </button>
                 </div>

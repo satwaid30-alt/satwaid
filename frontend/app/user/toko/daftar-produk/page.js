@@ -207,6 +207,7 @@ export default function DaftarJualanPage() {
               ? {
                   ...item,
                   latestCancelledOrderId: null,
+                  lastOrderStatus: "cancelled_dismissed",
                   stock: result.currentStock !== null ? result.currentStock : item.stock,
                 }
               : item,
@@ -238,6 +239,9 @@ export default function DaftarJualanPage() {
             }
             if (orderStatus === "cancelled") {
               return "auction_cancelled_transaction";
+            }
+            if (orderStatus === "cancelled_dismissed") {
+              return "auction_cancelled_dismissed";
             }
             return "auction_in_transaction";
           }
@@ -290,18 +294,23 @@ export default function DaftarJualanPage() {
 
     // 2. If it has a cancelled order, add it as a separate VIRTUAL row
     if (item.latestCancelledOrderId && (filterStatus === "all" || filterStatus === "rejected")) {
-      rows.push({
-        ...item,
-        id: `cancelled-${item.latestCancelledOrderId}`,
-        realListingId: item.id,
-        internalOrderId: item.latestCancelledInternalId,
-        isVirtual: true,
-        virtualType: "cancelled",
-        invoiceId: item.latestCancelledOrderId,
-        quantity: item.latestCancelledQuantity,
-        buyerName: item.latestCancelledBuyer,
-        displayStatus: "cancelled_order",
-      });
+      // Check if virtual row matches search (matches parent search OR matches invoice ID or buyer name)
+      const matchesVirtualSearch = matchesSearch || item.latestCancelledOrderId.toLowerCase().includes(searchQuery.toLowerCase()) || (item.latestCancelledBuyer && item.latestCancelledBuyer.toLowerCase().includes(searchQuery.toLowerCase()));
+
+      if (matchesVirtualSearch && matchesType) {
+        rows.push({
+          ...item,
+          id: `cancelled-${item.latestCancelledOrderId}`,
+          realListingId: item.id,
+          internalOrderId: item.latestCancelledInternalId,
+          isVirtual: true,
+          virtualType: "cancelled",
+          invoiceId: item.latestCancelledOrderId,
+          quantity: item.latestCancelledQuantity,
+          buyerName: item.latestCancelledBuyer,
+          displayStatus: "cancelled_order",
+        });
+      }
     }
 
     return rows;
@@ -347,6 +356,7 @@ export default function DaftarJualanPage() {
       case "auction_waiting_checkout":
         return "bg-amber-500/10 text-amber-400 border-amber-500/20";
       case "auction_no_bids":
+      case "auction_cancelled_dismissed":
       default:
         return "bg-zinc-500/10 text-zinc-500 border-zinc-500/20";
     }
@@ -367,11 +377,13 @@ export default function DaftarJualanPage() {
       case "cancelled":
         return "Batal Sistem";
       case "cancelled_order":
-        return "Transaksi Batal";
+        return "Dibatalkan";
       case "auction_completed":
         return "Lelang Selesai (Terjual)";
       case "auction_cancelled_transaction":
-        return "Transaksi Batal";
+        return "Dibatalkan";
+      case "auction_cancelled_dismissed":
+        return "Lelang Selesai (Batal)";
       case "auction_in_transaction":
         return "Proses Transaksi";
       case "auction_waiting_checkout":
@@ -417,7 +429,7 @@ export default function DaftarJualanPage() {
       <div className="bg-zinc-900 border border-zinc-800 p-2 rounded-[2rem] flex flex-col md:flex-row gap-2 items-center">
         <div className="relative flex-1 w-full">
           <Search className="absolute left-6 top-1/2 -translate-y-1/2 text-zinc-500" size={18} />
-          <input type="text" placeholder="Cari nama reptil atau id produk..." className="w-full bg-zinc-950 border border-transparent rounded-[1.5rem] pl-14 pr-6 py-4 text-sm text-white focus:border-emerald-500 transition-all outline-none" value={searchQuery} onChange={(e) => handleSearchChange(e.target.value)} />
+          <input type="text" placeholder="Cari nama Produk atau id produk..." className="w-full bg-zinc-950 border border-transparent rounded-[1.5rem] pl-14 pr-6 py-4 text-sm text-white focus:border-emerald-500 transition-all outline-none" value={searchQuery} onChange={(e) => handleSearchChange(e.target.value)} />
         </div>
         <div className="flex flex-col md:flex-row gap-2 w-full md:w-auto">
           <div className="hidden md:flex bg-zinc-950 border border-zinc-800 rounded-[1.5rem] p-1.5">
@@ -480,7 +492,7 @@ export default function DaftarJualanPage() {
       {/* Table View (Desktop) */}
       <div className="hidden md:block bg-zinc-900 border border-zinc-800 rounded-[2.5rem] overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse">
+          <table className="w-full text-left border-collapse min-w-[1000px]">
             <thead>
               <tr className="border-b border-zinc-800 bg-zinc-950/50">
                 <th className="p-6 text-[10px] font-black text-zinc-300 uppercase tracking-[0.2em]">No.</th>
@@ -520,11 +532,9 @@ export default function DaftarJualanPage() {
                               )}
                             </div>
                             {item.isVirtual && <p className="text-[10px] text-red-400 mt-1 font-bold">Pembeli: {item.buyerName || "User"}</p>}
-                            {!item.isVirtual && (
-                              <div className="flex items-center gap-2 mt-1">
-                                <span className={`px-2 py-0.5 rounded text-[8px] font-black uppercase tracking-tighter border ${item.type === "sell" ? "bg-blue-500/10 text-blue-400 border-blue-500/20" : "bg-amber-500/10 text-amber-400 border-amber-500/20"}`}>{item.type === "sell" ? "Jual" : "Lelang"}</span>
-                              </div>
-                            )}
+                            <div className="flex items-center gap-2 mt-1">
+                              <span className={`px-2 py-0.5 rounded text-[8px] font-black uppercase tracking-tighter border ${item.type === "sell" ? "bg-blue-500/10 text-blue-400 border-blue-500/20" : "bg-amber-500/10 text-amber-400 border-amber-500/20"}`}>{item.type === "sell" ? "Reguler" : "Lelang"}</span>
+                            </div>
                             {item.displayStatus === "rejected" && item.rejection_reason && (
                               <div className="flex items-start gap-1.5 mt-2 bg-red-500/5 border border-red-500/20 rounded-xl px-3 py-2 max-w-xs">
                                 <AlertCircle size={11} className="text-red-400 mt-0.5 shrink-0" />
@@ -548,7 +558,7 @@ export default function DaftarJualanPage() {
                         </div>
                       </td>
                       <td className="p-6">
-                        <span className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest border w-fit ${getStatusStyles(item.displayStatus)}`}>{getStatusLabel(item.displayStatus)}</span>
+                        <span className={`inline-flex items-center justify-center px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest border whitespace-nowrap ${getStatusStyles(item.displayStatus)}`}>{getStatusLabel(item.displayStatus)}</span>
                       </td>
                       <td className="p-6">
                         <div className="flex items-center justify-center gap-2">
@@ -569,9 +579,30 @@ export default function DaftarJualanPage() {
                                   },
                                 });
                               }}
-                              className="flex items-center gap-2 px-3 py-2 bg-zinc-800 hover:bg-red-500/20 text-red-500 rounded-xl transition-all border border-zinc-700 hover:border-red-500/30 font-bold text-[10px] uppercase tracking-wider"
+                              className="flex items-center gap-2 px-3 py-2 bg-zinc-800 hover:bg-red-500/20 text-red-500 rounded-xl transition-all border border-zinc-700 hover:border-red-500/30 font-bold text-[10px] uppercase tracking-wider whitespace-nowrap"
                             >
-                              <Trash2 size={14} /> Bersihkan Riwayat
+                              <Trash2 size={14} />
+                            </button>
+                          ) : item.type === "auction" && item.displayStatus === "auction_cancelled_transaction" ? (
+                            <button
+                              onClick={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                setActionModal({
+                                  isOpen: true,
+                                  type: "danger",
+                                  title: "Bersihkan Riwayat Transaksi",
+                                  message: `Apakah Anda yakin ingin membersihkan riwayat transaksi batal untuk lelang "${item.name}"? Tindakan ini akan menyelesaikan pembatalan dan memungkinkan Anda untuk melelang kembali produk ini.`,
+                                  confirmText: "Ya, Bersihkan",
+                                  onConfirm: () => {
+                                    handleDismissCancellation(item.latestCancelledInternalId || item.latestCancelledOrderId, item.id);
+                                    setActionModal({ isOpen: false });
+                                  },
+                                });
+                              }}
+                              className="flex items-center gap-2 px-3 py-2 bg-zinc-800 hover:bg-red-500/20 text-red-500 rounded-xl transition-all border border-zinc-700 hover:border-red-500/30 font-bold text-[10px] uppercase tracking-wider whitespace-nowrap"
+                            >
+                              <Trash2 size={14} />
                             </button>
                           ) : (
                             <>
@@ -588,7 +619,7 @@ export default function DaftarJualanPage() {
                                 </Link>
                               )}
                               {item.type === "auction"
-                                ? Number(item.bid_count || 0) === 0 &&
+                                ? (Number(item.bid_count || 0) === 0 || item.displayStatus === "auction_cancelled_dismissed") &&
                                   item.displayStatus !== "proses_lelang" && (
                                     <>
                                       <Link href={`/user/toko/lelang-produk/edit/${item.id}`} className="w-10 h-10 bg-zinc-800 text-white hover:bg-amber-500 hover:text-zinc-950 rounded-xl flex items-center justify-center transition-all active:scale-90" title="Edit Lelang">
@@ -623,12 +654,10 @@ export default function DaftarJualanPage() {
                 <tr>
                   <td colSpan="8" className="p-20 text-center">
                     <div className="flex flex-col items-center gap-4">
-                      <div className="w-16 h-16 bg-zinc-800/50 rounded-full flex items-center justify-center text-zinc-600">
-                        <Tag size={32} />
-                      </div>
+                      <div className="w-16 h-16 bg-zinc-800/50 rounded-full flex items-center justify-center text-zinc-600">{listings.length > 0 ? <Search size={32} /> : <Tag size={32} />}</div>
                       <div>
-                        <p className="text-lg font-black text-white">Belum ada iklan</p>
-                        <p className="text-zinc-500 text-sm italic">- Belum ada data untuk ditampilkan -</p>
+                        <p className="text-lg font-black text-white">{listings.length > 0 ? "Data tidak ditemukan" : "Belum ada iklan"}</p>
+                        <p className="text-zinc-500 text-sm italic">{listings.length > 0 ? "- Silakan cari dengan kata kunci lain atau ubah filter Anda -" : "- Belum ada data untuk ditampilkan -"}</p>
                       </div>
                     </div>
                   </td>
@@ -650,7 +679,7 @@ export default function DaftarJualanPage() {
                   <span className="w-5 h-5 bg-zinc-800 rounded flex items-center justify-center text-[10px] font-black text-zinc-500">{item.isVirtual ? "-" : index + 1}</span>
                   <span className={`px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest border ${getStatusStyles(item.displayStatus)}`}>{getStatusLabel(item.displayStatus)}</span>
                 </div>
-                {!item.isVirtual && <span className={`px-2 py-0.5 rounded text-[8px] font-black uppercase tracking-tighter border ${item.type === "sell" ? "bg-blue-500/10 text-blue-400 border-blue-500/20" : "bg-amber-500/10 text-amber-400 border-amber-500/20"}`}>{item.type === "sell" ? "Jual" : "Lelang"}</span>}
+                <span className={`px-2 py-0.5 rounded text-[8px] font-black uppercase tracking-tighter border ${item.type === "sell" ? "bg-blue-500/10 text-blue-400 border-blue-500/20" : "bg-amber-500/10 text-amber-400 border-amber-500/20"}`}>{item.type === "sell" ? "Reguler" : "Lelang"}</span>
               </div>
 
               {/* Card Body */}
@@ -716,6 +745,27 @@ export default function DaftarJualanPage() {
                     >
                       <Trash2 size={14} /> Bersihkan Riwayat Batal
                     </button>
+                  ) : item.type === "auction" && item.displayStatus === "auction_cancelled_transaction" ? (
+                    <button
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        setActionModal({
+                          isOpen: true,
+                          type: "danger",
+                          title: "Bersihkan Riwayat Transaksi",
+                          message: `Apakah Anda yakin ingin membersihkan riwayat transaksi batal untuk lelang "${item.name}"? Tindakan ini akan menyelesaikan pembatalan dan memungkinkan Anda untuk melelang kembali produk ini.`,
+                          confirmText: "Ya, Bersihkan",
+                          onConfirm: () => {
+                            handleDismissCancellation(item.latestCancelledInternalId || item.latestCancelledOrderId, item.id);
+                            setActionModal({ isOpen: false });
+                          },
+                        });
+                      }}
+                      className="w-full flex items-center justify-center gap-2 py-3 bg-red-500/10 hover:bg-red-500/20 text-red-500 rounded-xl transition-all border border-red-500/30 font-black text-[10px] uppercase tracking-widest"
+                    >
+                      <Trash2 size={14} />
+                    </button>
                   ) : (
                     <>
                       <Link
@@ -734,7 +784,7 @@ export default function DaftarJualanPage() {
                         </Link>
                       )}
                       {item.type === "auction"
-                        ? Number(item.bid_count || 0) === 0 &&
+                        ? (Number(item.bid_count || 0) === 0 || item.displayStatus === "auction_cancelled_dismissed") &&
                           item.displayStatus !== "proses_lelang" && (
                             <>
                               <Link href={`/user/toko/lelang-produk/edit/${item.id}`} className="flex-1 min-w-[80px] flex items-center justify-center gap-1.5 py-3 bg-zinc-800 hover:bg-amber-500 text-zinc-400 hover:text-zinc-950 rounded-xl transition-all border border-zinc-700 hover:border-amber-500">
@@ -771,12 +821,10 @@ export default function DaftarJualanPage() {
           ))
         ) : (
           <div className="py-16 flex flex-col items-center text-center space-y-4 bg-zinc-900/40 border border-dashed border-zinc-800 rounded-[2.5rem]">
-            <div className="w-16 h-16 bg-zinc-900 rounded-2xl flex items-center justify-center text-zinc-700">
-              <Tag size={32} />
-            </div>
+            <div className="w-16 h-16 bg-zinc-900 rounded-2xl flex items-center justify-center text-zinc-700">{listings.length > 0 ? <Search size={32} /> : <Tag size={32} />}</div>
             <div>
-              <p className="text-sm font-black text-white">Belum ada iklan</p>
-              <p className="text-xs text-zinc-500 italic mt-1">Data jualan Anda akan muncul di sini</p>
+              <p className="text-sm font-black text-white">{listings.length > 0 ? "Data tidak ditemukan" : "Belum ada iklan"}</p>
+              <p className="text-xs text-zinc-500 italic mt-1">{listings.length > 0 ? "- Coba kata kunci atau filter lain -" : "Data jualan Anda akan muncul di sini"}</p>
             </div>
           </div>
         )}

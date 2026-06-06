@@ -185,6 +185,7 @@ export default function PengembalianDanaPage() {
                 <th className="px-6 py-5 text-[10px] font-black text-zinc-500 uppercase tracking-widest text-center">No.</th>
                 <th className="px-6 py-5 text-[10px] font-black text-zinc-500 uppercase tracking-widest">ID Pesanan & Batal</th>
                 <th className="px-6 py-5 text-[10px] font-black text-zinc-500 uppercase tracking-widest">Produk & Toko</th>
+                <th className="px-6 py-5 text-[10px] font-black text-zinc-500 uppercase tracking-widest text-center">Tipe</th>
                 <th className="px-6 py-5 text-[10px] font-black text-zinc-500 uppercase tracking-widest text-right">Nominal Refund</th>
                 <th className="px-6 py-5 text-[10px] font-black text-zinc-500 uppercase tracking-widest text-center">Status</th>
                 <th className="px-6 py-5 text-[10px] font-black text-zinc-500 uppercase tracking-widest text-center">Aksi</th>
@@ -217,6 +218,11 @@ export default function PengembalianDanaPage() {
                             <span className="text-[9px] font-bold uppercase truncate">{order.shop?.name || "-"}</span>
                           </div>
                         </div>
+                      </td>
+                      <td className="px-6 py-6 text-center">
+                        <span className={`inline-block px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-widest border ${order.product?.type === "auction" ? "bg-amber-500/10 text-amber-500 border-amber-500/20" : "bg-blue-500/10 text-blue-400 border-blue-500/20"}`}>
+                          {order.product?.type === "auction" ? "Lelang" : "Beli Langsung"}
+                        </span>
                       </td>
                       <td className="px-6 py-6 text-right">
                         <span className="text-sm font-black text-emerald-500 font-mono">{formatPrice(order.total_price)}</span>
@@ -307,6 +313,11 @@ export default function PengembalianDanaPage() {
                     {order.product?.images?.length > 0 ? <img src={getImageUrl(order.product.images)} className="w-full h-full object-cover" alt={order.product.name} /> : <Store size={20} />}
                   </div>
                   <div className="min-w-0 flex-1 space-y-1">
+                    <div className="flex items-center gap-2">
+                      <span className={`inline-block px-1.5 py-0.5 rounded text-[8px] font-black uppercase tracking-widest border ${order.product?.type === "auction" ? "bg-amber-500/10 text-amber-500 border-amber-500/20" : "bg-blue-500/10 text-blue-400 border-blue-500/20"}`}>
+                        {order.product?.type === "auction" ? "Lelang" : "Beli Langsung"}
+                      </span>
+                    </div>
                     <p className="text-xs font-black text-white truncate">{order.product?.name || "-"}</p>
                     <div className="flex items-center gap-1.5 text-zinc-500">
                       <Store size={10} className="text-emerald-500 shrink-0" />

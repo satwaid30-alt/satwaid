@@ -4,19 +4,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import {
-  Mail,
-  KeyRound,
-  Eye,
-  EyeOff,
-  Copy,
-  Check,
-  ArrowLeft,
-  X,
-  ShieldCheck,
-  User,
-  Sparkles,
-} from "lucide-react";
+import { Mail, KeyRound, Eye, EyeOff, Copy, Check, ArrowLeft, X, ShieldCheck, User, Sparkles } from "lucide-react";
 import { copyToClipboard } from "../utils/clipboard";
 import { getApiUrl } from "@/app/utils/api";
 
@@ -112,14 +100,11 @@ export default function LoginPage() {
     setForgotError("");
 
     try {
-      const res = await fetch(
-        `${getApiUrl()}/forgot-password`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ email: forgotEmail.trim() }),
-        },
-      );
+      const res = await fetch(`${getApiUrl()}/forgot-password`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: forgotEmail.trim() }),
+      });
 
       const data = await res.json();
 
@@ -154,11 +139,7 @@ export default function LoginPage() {
     <div className="min-h-screen bg-[#050505] flex items-center justify-center p-4 relative overflow-hidden font-sans selection:bg-emerald-500/30">
       {/* ── Background Effects ── */}
       <div className="absolute inset-0 z-0">
-        <img
-          src="/images/login-bg.png"
-          alt="Background"
-          className="w-full h-full object-cover opacity-30 mix-blend-luminosity"
-        />
+        <img src="/images/login-bg.png" alt="Background" className="w-full h-full object-cover opacity-30 mix-blend-luminosity" />
         <div className="absolute inset-0 bg-gradient-to-tr from-zinc-950 via-zinc-950/90 to-emerald-950/20" />
 
         {/* Animated Glows */}
@@ -177,32 +158,17 @@ export default function LoginPage() {
           <div className="relative z-10">
             <Link href="/" className="flex items-center group">
               <div className="relative w-48 h-14 group-hover:scale-105 transition-transform duration-500">
-                <Image
-                  src="/images/Logo-Bg-1-2.png"
-                  alt="Satwa iD Logo"
-                  fill
-                  className="object-contain object-left"
-                  priority
-                />
+                <Image src="/images/Logo-Bg-1-2.png" alt="Satwa iD Logo" fill className="object-contain object-left" priority />
               </div>
             </Link>
           </div>
 
           <div className="relative z-10 space-y-6">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-bold uppercase tracking-wider">
-              <Sparkles size={12} />
-              Sahabat Fauna Indonesia
-            </div>
             <h1 className="text-4xl font-black text-white leading-tight">
               Selamat Datang <br />
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-teal-400">
-                di SatwaiD
-              </span>
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-teal-400">di SatwaiD</span>
             </h1>
-            <p className="text-zinc-400 text-lg leading-relaxed max-w-sm">
-              Tempat terpercaya untuk jual beli satwa, perlengkapan, dan
-              komunitas pecinta fauna.
-            </p>
+            <p className="text-zinc-400 text-lg leading-relaxed max-w-sm">Tempat terpercaya untuk jual beli satwa, perlengkapan, dan komunitas pecinta fauna.</p>
           </div>
 
           <div className="relative z-10 pt-8 border-t border-white/5">
@@ -226,21 +192,10 @@ export default function LoginPage() {
             <div className="md:hidden mb-8">
               <Link href="/" className="flex items-center">
                 <div className="relative w-40 h-12">
-                  <Image
-                    src="/images/Logo-Bg-1-2.png"
-                    alt="Satwa iD Logo"
-                    fill
-                    className="object-contain object-left"
-                  />
+                  <Image src="/images/Logo-Bg-1-2.png" alt="Satwa iD Logo" fill className="object-contain object-left" />
                 </div>
               </Link>
             </div>
-            <h2 className="text-3xl font-bold text-white mb-3">
-              Selamat Datang
-            </h2>
-            <p className="text-zinc-500">
-              Masukkan akun Anda untuk melanjutkan akses penuh.
-            </p>
           </div>
 
           <form onSubmit={handleLogin} className="space-y-6">
@@ -254,9 +209,7 @@ export default function LoginPage() {
             )}
 
             <div className="space-y-2">
-              <label className="text-xs font-bold text-zinc-500 uppercase tracking-widest ml-1">
-                Username / Email
-              </label>
+              <label className="text-xs font-bold text-zinc-500 uppercase tracking-widest ml-1">Username / Email</label>
               <div className="relative group">
                 <div className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500 group-focus-within:text-emerald-500 transition-colors">
                   <User size={20} />
@@ -275,14 +228,8 @@ export default function LoginPage() {
 
             <div className="space-y-2">
               <div className="flex items-center justify-between ml-1">
-                <label className="text-xs font-bold text-zinc-500 uppercase tracking-widest">
-                  Password
-                </label>
-                <button
-                  type="button"
-                  onClick={openForgotModal}
-                  className="text-xs font-bold text-emerald-500 hover:text-emerald-400 transition-colors"
-                >
+                <label className="text-xs font-bold text-zinc-500 uppercase tracking-widest">Password</label>
+                <button type="button" onClick={openForgotModal} className="text-xs font-bold text-emerald-500 hover:text-emerald-400 transition-colors">
                   Lupa Password?
                 </button>
               </div>
@@ -299,39 +246,19 @@ export default function LoginPage() {
                   required
                   className="w-full bg-white/5 border border-white/5 text-white rounded-2xl pl-12 pr-12 py-4 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:bg-white/10 transition-all placeholder:text-zinc-700"
                 />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 text-zinc-600 hover:text-white transition-colors"
-                >
+                <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-4 top-1/2 -translate-y-1/2 text-zinc-600 hover:text-white transition-colors">
                   {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                 </button>
               </div>
             </div>
 
-            <button
-              type="submit"
-              disabled={isLoading}
-              className="w-full relative group overflow-hidden bg-emerald-500 hover:bg-emerald-400 text-zinc-950 font-black py-4 rounded-2xl transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
+            <button type="submit" disabled={isLoading} className="w-full relative group overflow-hidden bg-emerald-500 hover:bg-emerald-400 text-zinc-950 font-black py-4 rounded-2xl transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed">
               <div className="absolute inset-0 w-1/2 h-full bg-gradient-to-r from-transparent via-white/20 to-transparent -skew-x-[45deg] -translate-x-[150%] group-hover:translate-x-[250%] transition-transform duration-1000" />
               <span className="flex items-center justify-center gap-2">
                 {isLoading ? (
                   <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
-                    <circle
-                      className="opacity-25"
-                      cx="12"
-                      cy="12"
-                      r="10"
-                      stroke="currentColor"
-                      strokeWidth="4"
-                      fill="none"
-                    />
-                    <path
-                      className="opacity-75"
-                      fill="currentColor"
-                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
-                    />
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
                   </svg>
                 ) : (
                   "Masuk Sekarang"
@@ -343,10 +270,7 @@ export default function LoginPage() {
           <div className="mt-8 text-center">
             <p className="text-zinc-500 text-sm">
               Belum punya akun?{" "}
-              <Link
-                href="/register"
-                className="text-white font-bold hover:text-emerald-400 transition-colors underline underline-offset-4 decoration-emerald-500/30"
-              >
+              <Link href="/register" className="text-white font-bold hover:text-emerald-400 transition-colors underline underline-offset-4 decoration-emerald-500/30">
                 Daftar Gratis
               </Link>
             </p>
@@ -359,10 +283,7 @@ export default function LoginPage() {
       {/* Success Modal */}
       {showModal && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-          <div
-            className="absolute inset-0 bg-black/80 backdrop-blur-md"
-            onClick={handleCloseModal}
-          />
+          <div className="absolute inset-0 bg-black/80 backdrop-blur-md" onClick={handleCloseModal} />
           <div className="bg-zinc-900 border border-emerald-500/30 rounded-[2rem] p-10 max-w-sm w-full text-center relative z-10 animate-in zoom-in duration-300">
             <div className="w-24 h-24 bg-emerald-500/20 rounded-full flex items-center justify-center mx-auto mb-8 relative">
               <div className="absolute inset-0 rounded-full animate-ping bg-emerald-500/10" />
@@ -370,16 +291,9 @@ export default function LoginPage() {
                 <Check size={32} strokeWidth={4} />
               </div>
             </div>
-            <h3 className="text-3xl font-bold text-white mb-3">
-              Login Berhasil!
-            </h3>
-            <p className="text-zinc-400 mb-10 leading-relaxed">
-              Selamat datang kembali di ekosistem reptil terbaik.
-            </p>
-            <button
-              onClick={handleCloseModal}
-              className="w-full bg-white text-zinc-950 font-black py-4 rounded-2xl hover:bg-emerald-500 transition-colors duration-300"
-            >
+            <h3 className="text-3xl font-bold text-white mb-3">Login Berhasil!</h3>
+            <p className="text-zinc-400 mb-10 leading-relaxed">Selamat datang kembali di ekosistem reptil terbaik.</p>
+            <button onClick={handleCloseModal} className="w-full bg-white text-zinc-950 font-black py-4 rounded-2xl hover:bg-emerald-500 transition-colors duration-300">
               Lanjutkan
             </button>
           </div>
@@ -389,10 +303,7 @@ export default function LoginPage() {
       {/* Forgot Password Modal */}
       {showForgotModal && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-          <div
-            className="absolute inset-0 bg-black/90 backdrop-blur-md"
-            onClick={closeForgotModal}
-          />
+          <div className="absolute inset-0 bg-black/90 backdrop-blur-md" onClick={closeForgotModal} />
           <div className="bg-zinc-900 border border-white/5 rounded-[2.5rem] w-full max-w-md relative z-10 overflow-hidden animate-in zoom-in duration-300">
             <div className="p-8 border-b border-white/5 flex items-center justify-between">
               <div className="flex items-center gap-4">
@@ -400,16 +311,11 @@ export default function LoginPage() {
                   <KeyRound size={24} />
                 </div>
                 <div>
-                  <h3 className="text-xl font-bold text-white">
-                    Lupa Password
-                  </h3>
+                  <h3 className="text-xl font-bold text-white">Lupa Password</h3>
                   <p className="text-xs text-zinc-500">Reset akses akun Anda</p>
                 </div>
               </div>
-              <button
-                onClick={closeForgotModal}
-                className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center text-zinc-500 hover:text-white transition-colors"
-              >
+              <button onClick={closeForgotModal} className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center text-zinc-500 hover:text-white transition-colors">
                 <X size={20} />
               </button>
             </div>
@@ -421,13 +327,8 @@ export default function LoginPage() {
                     <Check size={28} />
                   </div>
                   <div className="space-y-2">
-                    <p className="text-white font-bold text-lg">
-                      Instruksi Dikirim!
-                    </p>
-                    <p className="text-zinc-400 text-sm leading-relaxed">
-                      {forgotResult.message ||
-                        "Tautan untuk mengatur ulang sandi Anda telah dikirim ke alamat email."}
-                    </p>
+                    <p className="text-white font-bold text-lg">Instruksi Dikirim!</p>
+                    <p className="text-zinc-400 text-sm leading-relaxed">{forgotResult.message || "Tautan untuk mengatur ulang sandi Anda telah dikirim ke alamat email."}</p>
                   </div>
 
                   {forgotResult.dev_simulated && (
@@ -436,48 +337,28 @@ export default function LoginPage() {
                         <Sparkles size={12} />
                         Mode Pengembangan (Simulasi)
                       </p>
-                      <p className="text-zinc-500 text-xs leading-relaxed">
-                        Sistem mendeteksi SMTP belum dikonfigurasi secara penuh
-                        di file .env. Anda dapat menguji link reset langsung di
-                        bawah ini:
-                      </p>
+                      <p className="text-zinc-500 text-xs leading-relaxed">Sistem mendeteksi SMTP belum dikonfigurasi secara penuh di file .env. Anda dapat menguji link reset langsung di bawah ini:</p>
                       <div className="flex gap-2">
-                        <a
-                          href={forgotResult.reset_url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="flex-1 text-center bg-emerald-500 hover:bg-emerald-400 text-zinc-950 font-bold text-xs py-2 px-3 rounded-xl transition-all"
-                        >
+                        <a href={forgotResult.reset_url} target="_blank" rel="noopener noreferrer" className="flex-1 text-center bg-emerald-500 hover:bg-emerald-400 text-zinc-950 font-bold text-xs py-2 px-3 rounded-xl transition-all">
                           Buka Link Reset
                         </a>
-                        <button
-                          onClick={handleCopy}
-                          className={`px-3 py-2 rounded-xl text-xs font-bold transition-all ${copied ? "bg-emerald-500 text-zinc-950" : "bg-white/5 text-zinc-400 hover:text-white"}`}
-                        >
+                        <button onClick={handleCopy} className={`px-3 py-2 rounded-xl text-xs font-bold transition-all ${copied ? "bg-emerald-500 text-zinc-950" : "bg-white/5 text-zinc-400 hover:text-white"}`}>
                           {copied ? "Tersalin!" : "Salin Link"}
                         </button>
                       </div>
                     </div>
                   )}
 
-                  <button
-                    onClick={closeForgotModal}
-                    className="w-full bg-white/5 border border-white/5 text-white font-bold py-4 rounded-2xl hover:bg-white/10 transition-all"
-                  >
+                  <button onClick={closeForgotModal} className="w-full bg-white/5 border border-white/5 text-white font-bold py-4 rounded-2xl hover:bg-white/10 transition-all">
                     Tutup
                   </button>
                 </div>
               ) : (
                 <form onSubmit={handleForgotPassword} className="space-y-6">
                   <div className="space-y-2">
-                    <label className="text-xs font-bold text-zinc-500 uppercase tracking-widest ml-1">
-                      Alamat Email
-                    </label>
+                    <label className="text-xs font-bold text-zinc-500 uppercase tracking-widest ml-1">Alamat Email</label>
                     <div className="relative">
-                      <Mail
-                        className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500"
-                        size={20}
-                      />
+                      <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500" size={20} />
                       <input
                         type="email"
                         value={forgotEmail}
@@ -490,25 +371,13 @@ export default function LoginPage() {
                         className="w-full bg-white/5 border border-white/5 text-white rounded-2xl pl-12 pr-4 py-4 focus:outline-none focus:ring-2 focus:ring-amber-500/50 transition-all placeholder:text-zinc-700"
                       />
                     </div>
-                    {forgotError && (
-                      <p className="text-red-400 text-xs ml-1 font-medium">
-                        {forgotError}
-                      </p>
-                    )}
+                    {forgotError && <p className="text-red-400 text-xs ml-1 font-medium">{forgotError}</p>}
                   </div>
                   <div className="flex gap-3">
-                    <button
-                      type="button"
-                      onClick={closeForgotModal}
-                      className="px-6 bg-white/5 text-white font-bold rounded-2xl hover:bg-white/10 transition-colors"
-                    >
+                    <button type="button" onClick={closeForgotModal} className="px-6 bg-white/5 text-white font-bold rounded-2xl hover:bg-white/10 transition-colors">
                       Batal
                     </button>
-                    <button
-                      type="submit"
-                      disabled={forgotLoading || !forgotEmail.trim()}
-                      className="flex-1 bg-amber-500 hover:bg-amber-400 text-zinc-950 font-black py-4 rounded-2xl transition-all"
-                    >
+                    <button type="submit" disabled={forgotLoading || !forgotEmail.trim()} className="flex-1 bg-amber-500 hover:bg-amber-400 text-zinc-950 font-black py-4 rounded-2xl transition-all">
                       {forgotLoading ? "Memproses..." : "Reset Password"}
                     </button>
                   </div>

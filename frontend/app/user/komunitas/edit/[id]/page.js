@@ -58,16 +58,52 @@ export default function EditKomunitasPage() {
         const file = e.target.files[0];
         if (!file) return;
 
-        if (file.size > 500 * 1024) {
-            setErrorModal({ isOpen: true, message: "Maaf, ukuran gambar terlalu besar! Maksimal ukuran file adalah 500KB." });
-            e.target.value = "";
+        // 1. Validasi File Extension & MIME Type
+        const allowedExtensions = ['.jpg', '.jpeg', '.png', '.webp', '.gif'];
+        const allowedMimeTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+        const fileName = file.name.toLowerCase();
+        const fileExtension = fileName.substring(fileName.lastIndexOf('.'));
+
+        // Blokir ekstensi berbahaya: .php, .exe, .svg
+        // Serta memblokir PDF dan semua dokumen Office (.doc, .docx, .xls, .xlsx, .ppt, .pptx)
+        const blockedExtensions = ['.php', '.exe', '.svg', '.pdf', '.doc', '.docx', '.xls', '.xlsx', '.ppt', '.pptx'];
+        const isBlockedExtension = blockedExtensions.some(ext => fileName.endsWith(ext));
+
+        // Blokir PDF dan Office MIME types
+        const isOfficeOrPdfMime = file.type === 'application/pdf' || 
+            file.type.startsWith('application/msword') || 
+            file.type.startsWith('application/vnd.ms-') || 
+            file.type.startsWith('application/vnd.openxmlformats-officedocument');
+
+        // Validasi kebolehan MIME tipe dan ekstensi gambar
+        const isAllowedMime = allowedMimeTypes.includes(file.type);
+        const isAllowedExtension = allowedExtensions.includes(fileExtension);
+
+        if (isBlockedExtension || isOfficeOrPdfMime || !isAllowedMime || !isAllowedExtension) {
+            setErrorModal({ 
+                isOpen: true, 
+                message: "Format file tidak didukung! Hanya diperbolehkan mengunggah file gambar (JPG, JPEG, PNG, WEBP, GIF). File PDF, dokumen Office, SVG, PHP, atau EXE tidak diizinkan." 
+            });
+            e.target.value = ""; // Reset input file
             return;
         }
 
-        setSelectedImage(URL.createObjectURL(file));
+        // 2. Validasi ukuran maksimal 500KB (500 * 1024 bytes)
+        if (file.size > 500 * 1024) {
+            setErrorModal({ isOpen: true, message: "Maaf, ukuran gambar terlalu besar! Maksimal ukuran file adalah 500KB." });
+            e.target.value = ""; // Reset input file
+            return;
+        }
+
+        // 3. Rename file secara acak (random) untuk keamanan tambahan
+        const randomString = Math.random().toString(36).substring(2, 15);
+        const randomFilename = `${Date.now()}_${randomString}${fileExtension}`;
+        const renamedFile = new File([file], randomFilename, { type: file.type });
+
+        setSelectedImage(URL.createObjectURL(renamedFile));
 
         const formDataObj = new FormData();
-        formDataObj.append("image", file);
+        formDataObj.append("image", renamedFile);
         try {
             const res = await fetch(`${getApiUrl()}/upload`, {
                 method: "POST",
@@ -76,16 +112,19 @@ export default function EditKomunitasPage() {
             const data = await res.json();
             if (res.ok) {
                 setFormData({ ...formData, image: data.url });
+            } else {
+                setErrorModal({ isOpen: true, message: data.message || "Gagal mengunggah gambar." });
             }
         } catch (err) {
             console.error("Upload error:", err);
-            setErrorModal({ isOpen: true, message: "Terjadi kesalahan saat mengunggah gambar." });
+            setErrorModal({ isOpen: true, message: "Terjadi kesalahan koneksi saat mengunggah gambar." });
         }
     };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
         setIsSubmitting(true);
+        const token = localStorage.getItem("token");
 
         try {
             // Ketika user mengedit topik, otomatis status dikembalikan ke 'Pending' untuk di-review ulang
@@ -93,7 +132,10 @@ export default function EditKomunitasPage() {
 
             const res = await fetch(`${getApiUrl()}/topics/${id}`, {
                 method: "PUT",
-                headers: { "Content-Type": "application/json" },
+                headers: { 
+                    "Content-Type": "application/json",
+                    ...(token ? { "Authorization": `Bearer ${token}` } : {})
+                },
                 body: JSON.stringify(payload)
             });
 

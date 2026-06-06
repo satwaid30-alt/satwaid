@@ -5,6 +5,7 @@ import { User, Mail, Phone, MapPin, Save, Camera, Building, CreditCard, Plus, Tr
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { getApiUrl } from "@/app/utils/api";
+import ActionModal from "@/components/ActionModal";
 
 export default function EditProfilPage() {
     const router = useRouter();
@@ -22,7 +23,16 @@ export default function EditProfilPage() {
     });
 
     const [userId, setUserId] = useState(null);
-    const [showModal, setShowModal] = useState(false);
+    const [modalConfig, setModalConfig] = useState({
+        isOpen: false,
+        type: "success",
+        title: "",
+        message: "",
+        onConfirm: null,
+        confirmText: "Ya, Simpan",
+        cancelText: "Batal",
+        isLoading: false
+    });
 
     useEffect(() => {
         if (typeof window !== "undefined") {
@@ -78,7 +88,13 @@ export default function EditProfilPage() {
         e.preventDefault();
 
         if (!userId) {
-            alert("Sesi tidak valid, silakan login ulang.");
+            setModalConfig({
+                isOpen: true,
+                type: "warning",
+                title: "Sesi Berakhir",
+                message: "Sesi Anda telah berakhir, silakan login ulang untuk melanjutkan.",
+                onConfirm: () => (window.location.href = "/login"),
+            });
             return;
         }
 
@@ -106,39 +122,94 @@ export default function EditProfilPage() {
 
             if (response.ok) {
                 localStorage.setItem("user", JSON.stringify(result.data));
-                setShowModal(true);
+                setModalConfig({
+                    isOpen: true,
+                    type: "success",
+                    title: "Profil Diperbarui",
+                    message: "Data profil Anda telah berhasil disimpan dan diperbarui.",
+                    onConfirm: null,
+                    confirmText: "Selesai",
+                    onClose: () => {
+                        window.location.href = "/user/pengaturan";
+                    }
+                });
             } else {
                 throw new Error(result.message || "Gagal memperbarui profil");
             }
         } catch (error) {
             console.error("Error saving profile:", error);
-            alert(error.message);
+            setModalConfig({
+                isOpen: true,
+                type: "danger",
+                title: "Gagal Menyimpan",
+                message: error.message || "Terjadi kesalahan saat mencoba menyimpan profil Anda.",
+                onConfirm: null,
+            });
         } finally {
             setIsLoading(false);
         }
-    };
-
-    const handleCloseModal = () => {
-        setShowModal(false);
-        // Refresh & Redirect to view page
-        window.location.href = "/user/pengaturan";
     };
 
     const handleFileUpload = async (e) => {
         const file = e.target.files[0];
         if (!file) return;
 
-        // Validasi ukuran file (maksimal 500 KB)
+        // 1. Validasi File Extension & MIME Type (Keamanan Server)
+        const allowedExtensions = ['.jpg', '.jpeg', '.png', '.webp', '.gif'];
+        const allowedMimeTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+        const fileName = file.name.toLowerCase();
+        const fileExtension = fileName.substring(fileName.lastIndexOf('.'));
+
+        // Blokir ekstensi berbahaya: .php, .exe, .svg
+        // Serta memblokir PDF dan semua dokumen Office (.doc, .docx, .xls, .xlsx, .ppt, .pptx)
+        const blockedExtensions = ['.php', '.exe', '.svg', '.pdf', '.doc', '.docx', '.xls', '.xlsx', '.ppt', '.pptx'];
+        const isBlockedExtension = blockedExtensions.some(ext => fileName.endsWith(ext));
+
+        // Blokir PDF dan Office MIME types
+        const isOfficeOrPdfMime = file.type === 'application/pdf' || 
+            file.type.startsWith('application/msword') || 
+            file.type.startsWith('application/vnd.ms-') || 
+            file.type.startsWith('application/vnd.openxmlformats-officedocument');
+
+        // Validasi kebolehan MIME tipe dan ekstensi gambar
+        const isAllowedMime = allowedMimeTypes.includes(file.type);
+        const isAllowedExtension = allowedExtensions.includes(fileExtension);
+
+        if (isBlockedExtension || isOfficeOrPdfMime || !isAllowedMime || !isAllowedExtension) {
+            setModalConfig({
+                isOpen: true,
+                type: "danger",
+                title: "Format File Tidak Didukung",
+                message: "Hanya diperbolehkan mengunggah file gambar (JPG, JPEG, PNG, WEBP, GIF). File PDF, dokumen Office, SVG, PHP, atau EXE tidak diizinkan demi keamanan sistem.",
+                onConfirm: null,
+            });
+            e.target.value = ""; // Reset input file
+            return;
+        }
+
+        // 2. Validasi ukuran file (maksimal 500 KB)
         const MAX_FILE_SIZE = 500 * 1024;
         if (file.size > MAX_FILE_SIZE) {
-            alert("Ukuran foto profil maksimal adalah 500 KB. Silakan pilih file yang lebih kecil.");
+            setModalConfig({
+                isOpen: true,
+                type: "warning",
+                title: "Ukuran File Terlalu Besar",
+                message: "Ukuran foto profil maksimal adalah 500 KB. Silakan pilih file yang lebih kecil.",
+                onConfirm: null,
+            });
             e.target.value = "";
             return;
         }
 
         setIsLoading(true);
+
+        // 3. Rename file secara acak (random) untuk keamanan tambahan
+        const randomString = Math.random().toString(36).substring(2, 15);
+        const randomFilename = `${Date.now()}_${randomString}${fileExtension}`;
+        const renamedFile = new File([file], randomFilename, { type: file.type });
+
         const formData = new FormData();
-        formData.append("image", file);
+        formData.append("image", renamedFile);
 
         try {
             const response = await fetch(`${getApiUrl()}/upload`, {
@@ -150,11 +221,23 @@ export default function EditProfilPage() {
             if (response.ok) {
                 setUser({ ...user, avatar_url: result.url });
             } else {
-                alert(result.message || "Gagal mengunggah foto");
+                setModalConfig({
+                    isOpen: true,
+                    type: "danger",
+                    title: "Gagal Mengunggah",
+                    message: result.message || "Gagal mengunggah foto profil.",
+                    onConfirm: null,
+                });
             }
         } catch (error) {
             console.error("Error uploading image:", error);
-            alert("Terjadi kesalahan saat mengunggah foto.");
+            setModalConfig({
+                isOpen: true,
+                type: "danger",
+                title: "Kesalahan Koneksi",
+                message: "Terjadi kesalahan koneksi saat mengunggah foto profil.",
+                onConfirm: null,
+            });
         } finally {
             setIsLoading(false);
         }
@@ -162,28 +245,18 @@ export default function EditProfilPage() {
 
     return (
         <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-            {/* Success Modal */}
-            {showModal && (
-                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-zinc-950/80 backdrop-blur-sm">
-                    <div className="bg-zinc-900 border border-emerald-500/30 rounded-3xl p-8 max-w-sm w-full text-center transform animate-in fade-in zoom-in duration-300">
-                        <div className="w-20 h-20 bg-emerald-500/20 rounded-full flex items-center justify-center mx-auto mb-6">
-                            <div className="w-12 h-12 bg-emerald-500 rounded-full flex items-center justify-center text-zinc-950">
-                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={3} stroke="currentColor" className="w-6 h-6">
-                                    <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
-                                </svg>
-                            </div>
-                        </div>
-                        <h3 className="text-2xl font-bold text-white mb-2">Penyimpanan Berhasil!</h3>
-                        <p className="text-zinc-400 mb-8">Data pengaturan profil Anda telah berhasil diperbarui dan disimpan.</p>
-                        <button
-                            onClick={handleCloseModal}
-                            className="w-full bg-emerald-500 hover:bg-emerald-400 text-zinc-950 font-bold py-3 rounded-xl transition-colors"
-                        >
-                            Selesai
-                        </button>
-                    </div>
-                </div>
-            )}
+            {/* Global Action Modal */}
+            <ActionModal 
+                isOpen={modalConfig.isOpen} 
+                onClose={modalConfig.onClose || (() => setModalConfig({ ...modalConfig, isOpen: false }))} 
+                onConfirm={modalConfig.onConfirm} 
+                type={modalConfig.type} 
+                title={modalConfig.title} 
+                message={modalConfig.message} 
+                confirmText={modalConfig.confirmText} 
+                cancelText={modalConfig.cancelText} 
+                isLoading={modalConfig.isLoading} 
+            />
 
             <div className="mb-8">
                 <h1 className="text-3xl font-black text-white mb-2">Edit <span className="text-emerald-500">Profil</span></h1>

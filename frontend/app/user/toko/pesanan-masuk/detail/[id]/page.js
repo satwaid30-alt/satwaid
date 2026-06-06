@@ -187,7 +187,7 @@ export default function OrderDetailPage({ params }) {
       )}
 
       {/* Back Button */}
-      <Link href="/user/toko/dashboard" className="inline-flex items-center gap-2 text-zinc-400 hover:text-white transition-colors group">
+      <Link href="/user/toko/pesanan-masuk" className="inline-flex items-center gap-2 text-zinc-400 hover:text-white transition-colors group">
         <div className="w-8 h-8 rounded-lg bg-zinc-900 border border-zinc-800 flex items-center justify-center group-hover:bg-zinc-800 transition-all">
           <ChevronLeft size={18} />
         </div>
@@ -432,7 +432,6 @@ export default function OrderDetailPage({ params }) {
                     <p className="text-sm text-white font-black uppercase tracking-tight">{order.receiver_name}</p>
                     <p className="text-xs text-zinc-400 leading-relaxed font-medium">{order.shipping_address}</p>
                   </div>
-
 
                   <div className="space-y-2 pt-2 border-t border-zinc-800/50">
                     <div className="flex items-center gap-2 text-zinc-500">

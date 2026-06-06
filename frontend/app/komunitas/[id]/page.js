@@ -65,10 +65,14 @@ export default function DetailKomunitasPage() {
 
     const handleLike = async () => {
         if (!currentUser) { alert("Silakan login untuk menyukai topik!"); return; }
+        const token = localStorage.getItem("token");
         try {
             const res = await fetch(`${getApiUrl()}/topics/${topic.id}/like`, {
                 method: "POST",
-                headers: { "Content-Type": "application/json" },
+                headers: { 
+                    "Content-Type": "application/json",
+                    ...(token ? { "Authorization": `Bearer ${token}` } : {})
+                },
                 body: JSON.stringify({ user_id: currentUser.id })
             });
             if (res.ok) {

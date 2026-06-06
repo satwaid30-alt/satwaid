@@ -250,10 +250,6 @@ export default function ListingDetailPage({ params }) {
               {/* Price Card */}
               {/* Price Card */}
               <div className={`rounded-3xl p-8 border group/price relative overflow-hidden shadow-2xl ${listing.type === "auction" ? "bg-amber-500/5 border-amber-500/20" : "bg-zinc-950 border-zinc-800"}`}>
-                <div className={`absolute top-0 right-0 p-8 transition-colors ${listing.type === "auction" ? "text-amber-500/5 group-hover/price:text-amber-500/10" : "text-emerald-500/5 group-hover/price:text-emerald-500/10"}`}>
-                  {listing.type === "auction" ? <Gavel size={120} strokeWidth={1.5} /> : <Tag size={120} strokeWidth={1.5} />}
-                </div>
-
                 <div className="relative">
                   <p className="text-[10px] font-black text-zinc-500 uppercase tracking-[0.3em] mb-3">{listing.type === "sell" ? "Harga" : "Open Bid (OB)"}</p>
                   <div className="flex flex-wrap items-baseline gap-2 lg:gap-4">

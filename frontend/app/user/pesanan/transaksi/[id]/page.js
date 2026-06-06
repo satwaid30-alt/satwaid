@@ -344,11 +344,6 @@ export default function TransactionProcessPage({ params }) {
                     Pesanan Diterima <CheckCircle2 size={20} />
                   </Link>
                 )}
-                {order.product?.type === "sell" && ["pending_shipping_info", "waiting_shipping_cost", "waiting_payment"].includes(order.status) && (
-                  <button onClick={handleCancelOrder} className="w-full md:w-auto px-10 py-4 bg-red-500/10 hover:bg-red-500 text-red-500 hover:text-white font-black rounded-2xl transition-all border border-red-500/20 flex items-center justify-center gap-3 active:scale-95">
-                    Batalkan Transaksi <XCircle size={18} />
-                  </button>
-                )}
               </div>
             </div>
           </div>

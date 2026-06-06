@@ -1106,6 +1106,10 @@ const OrdersController = {
                 return res.status(403).json({ message: 'Anda tidak memiliki akses untuk membatalkan pesanan ini' });
             }
 
+            if (isSeller && (!cancellation_reason || !cancellation_reason.trim())) {
+                return res.status(400).json({ message: 'Alasan pembatalan wajib diisi oleh penjual' });
+            }
+
             if (['completed', 'cancelled', 'shipped'].includes(order.status)) {
                 return res.status(400).json({ message: 'Pesanan tidak dapat dibatalkan pada tahap ini' });
             }

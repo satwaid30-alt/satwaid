@@ -324,7 +324,49 @@ export default function PesananPage() {
         });
     };
 
-    const handleCheckoutCart = (item) => {
+    const handleCheckoutCart = async (item) => {
+        const userStr = localStorage.getItem("user");
+        if (!userStr) return;
+        const userObj = JSON.parse(userStr);
+
+        try {
+            const response = await fetch(`${getApiUrl()}/users/${userObj.id}`);
+            if (response.ok) {
+                const result = await response.json();
+                const freshUser = result.data;
+                localStorage.setItem("user", JSON.stringify(freshUser));
+                
+                const isFieldFilled = (val) => {
+                    if (val === undefined || val === null) return false;
+                    const str = String(val).trim();
+                    return str !== "" && str.toLowerCase() !== "null" && str.toLowerCase() !== "undefined";
+                };
+
+                const isIncomplete = !isFieldFilled(freshUser.name) || 
+                                     !isFieldFilled(freshUser.phone) || 
+                                     !isFieldFilled(freshUser.address) || 
+                                     !isFieldFilled(freshUser.city) || 
+                                     !isFieldFilled(freshUser.province);
+
+                if (isIncomplete) {
+                    setActionModal({
+                        isOpen: true,
+                        type: 'danger',
+                        title: 'Profil Belum Lengkap',
+                        message: 'Anda wajib melengkapi data profil terlebih dahulu (Nama, No. WhatsApp, Alamat, Kota, Provinsi) di halaman pengaturan sebelum dapat melakukan pembelian.',
+                        confirmText: 'Lengkapi Profil',
+                        cancelText: 'Batal',
+                        onConfirm: () => {
+                            window.location.href = "/user/pengaturan";
+                        }
+                    });
+                    return;
+                }
+            }
+        } catch (err) {
+            console.error("Error verifying profile completeness:", err);
+        }
+
         setActionModal({
             isOpen: true,
             type: 'checkout',
@@ -499,6 +541,8 @@ export default function PesananPage() {
         return true;
     });
 
+    const complainedOrders = orders.filter((o) => o.status === "complained");
+
     const filteredOrders = (() => {
         // Tab Dibatalkan: tampilkan semua pesanan cancelled
         if (activeTab === 'cancelled') {
@@ -569,6 +613,7 @@ export default function PesananPage() {
                     </Link>
                 </div>
             </div>
+
 
             {/* Filter & Search Section - Reorganized for better visibility */}
             <div className="space-y-4 ">
@@ -756,6 +801,19 @@ export default function PesananPage() {
                                                 </div>
                                             </div>
 
+                                            {/* Complaint Notification for Buyer */}
+                                            {order.status === "complained" && (
+                                                <div className="mx-4 md:mx-6 mt-4 p-4.5 bg-red-500/10 border border-red-500/20 rounded-2xl flex items-start gap-3.5 animate-in slide-in-from-top-2 duration-300">
+                                                    <AlertCircle size={20} className="text-red-500 shrink-0 mt-0.5" />
+                                                    <div className="space-y-1 text-left">
+                                                        <p className="text-xs md:text-sm font-black text-red-500 uppercase tracking-wider leading-none">Perhatian: Ada Komplain Aktif!</p>
+                                                        <p className="text-[11px] md:text-xs text-zinc-400 font-bold leading-relaxed mt-1">
+                                                            Pesanan ini sedang Anda komplain. Harap segera berdiskusi dengan penjual untuk menyelesaikan kendala transaksi Anda. Apabila komplain telah diselesaikan, mohon segera tekan tombol <strong className="text-emerald-400">Selesaikan Komplain</strong> di bawah agar transaksi dapat diselesaikan.
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                            )}
+
                                             {/* Card Body */}
                                             <div className="p-4 md:p-6 flex flex-col md:flex-row items-center md:items-start gap-4 md:gap-6">
                                                 <div className="w-24 h-24 rounded-2xl overflow-hidden bg-zinc-800 shrink-0 border border-zinc-700 mx-auto md:mx-0">
@@ -785,7 +843,7 @@ export default function PesananPage() {
                                                             >
                                                                 <ShoppingBag size={14} /> Proses Transaksi
                                                             </Link>
-                                                            {order.product?.type === 'sell' && !['completed', 'cancelled', 'shipped'].includes(order.status) && (
+                                                            {!['completed', 'cancelled', 'shipped'].includes(order.status) && (
                                                                 <button
                                                                     onClick={() => handleCancelOrder(order.id)}
                                                                     className="w-full sm:w-auto px-6 py-3 bg-red-500/10 hover:bg-red-500 text-red-500 hover:text-white border border-red-500/20 rounded-2xl transition-all text-xs font-black flex items-center justify-center gap-2"

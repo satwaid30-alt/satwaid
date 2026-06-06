@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
-import { User, Settings, ShoppingBag, Store, Heart, LogOut, MapPin, Home, Menu, X, ChevronLeft, ChevronRight, MessageSquare, Users, Lock, Bell, Trash2, Package, CreditCard, Gavel, Wrench, Code } from "lucide-react";
+import { User, Settings, ShoppingBag, Store, Heart, LogOut, MapPin, Home, Menu, X, ChevronLeft, ChevronRight, MessageSquare, Users, Lock, Bell, Trash2, Package, CreditCard, Gavel, Wrench, Code, AlertTriangle } from "lucide-react";
 import { io } from "socket.io-client";
 import { getApiUrl, getSocketUrl } from "@/app/utils/api";
 
@@ -29,7 +29,7 @@ const MENU_ITEMS = [
     submenu: [
       { key: "toko_dashboard", name: "Dashboard Utama", href: "/user/toko/dashboard" },
       { key: "toko_profil", name: "Profil Toko", href: "/user/toko" },
-      { key: "toko_jual", name: "Jual Langsung", href: "/user/toko/jual-produk" },
+      { key: "toko_jual", name: "Produk Reguler", href: "/user/toko/jual-produk" },
       { key: "toko_lelang", name: "Lelang Produk", href: "/user/toko/lelang-produk" },
       { key: "toko_produk", name: "Daftar Produk", href: "/user/toko/daftar-produk" },
       { key: "toko_pesanan", name: "Pesanan Masuk", href: "/user/toko/pesanan-masuk" },
@@ -38,6 +38,7 @@ const MENU_ITEMS = [
     ],
   },
   { key: "keamanan", name: "Keamanan Akun", href: "/user/pengaturan/keamanan", icon: Settings },
+  { key: "pengaduan", name: "Pengaduan Saya", href: "/user/pengaduan", icon: AlertTriangle },
 ];
 
 const isSubmenuActive = (subHref, pathname) => {
@@ -102,6 +103,19 @@ export default function UserSidebar() {
       setIsLoaded(true);
     }
   }, []);
+
+  // Listen for shop status changes from other parts of the app
+  useEffect(() => {
+    const handleSyncShop = () => {
+      if (user?.id) {
+        fetchShopStatus(user.id);
+      }
+    };
+    window.addEventListener("shop_status_changed", handleSyncShop);
+    return () => {
+      window.removeEventListener("shop_status_changed", handleSyncShop);
+    };
+  }, [user?.id]);
 
   const fetchMenuStatuses = async () => {
     try {
@@ -290,6 +304,7 @@ export default function UserSidebar() {
       fetchDetailedCounts(); // Fetch accurate counts from backend
       fetchDetailedNotifications(); // Refresh list
       fetchActiveAuctionsCount(user.id);
+      fetchShopStatus(user.id);
     });
 
     newSocket.on("listing_bid_updated", () => {
@@ -313,7 +328,16 @@ export default function UserSidebar() {
     });
 
     newSocket.on("shop_quota_updated", () => {
+      fetchShopStatus(user.id);
       window.dispatchEvent(new CustomEvent("sync_quota"));
+    });
+
+    newSocket.on("shop_upgrade_status_updated", () => {
+      fetchShopStatus(user.id);
+    });
+
+    newSocket.on("shop_membership_updated", () => {
+      fetchShopStatus(user.id);
     });
 
     return () => newSocket.disconnect();
@@ -324,7 +348,13 @@ export default function UserSidebar() {
     if (pathname === "/user/komunitas" && user?.id) {
       const markAsRead = async () => {
         try {
-          await fetch(`${getApiUrl()}/notifications/${user.id}/read`, { method: "PUT" });
+          const token = localStorage.getItem("token");
+          await fetch(`${getApiUrl()}/notifications/${user.id}/read`, {
+            method: "PUT",
+            headers: {
+              Authorization: token ? `Bearer ${token}` : "",
+            },
+          });
           setNotifications((prev) => ({ ...prev, community: 0 }));
         } catch (e) {
           console.error(e);
@@ -488,7 +518,7 @@ export default function UserSidebar() {
                       if (subStatus === "hidden") return null;
 
                       const hasNoShop = !isLoadingShop && (shopStatus === "none" || !shopId);
-                      const isLocked = ((sub.name === "Jual Langsung" || sub.name === "Lelang Produk") && shopStatus !== "active") || ((sub.name === "Dashboard Utama" || sub.name === "Daftar Produk" || sub.name === "Pesanan Masuk" || sub.name === "Pengajuan Keuangan" || sub.name === "Upgrade Toko") && hasNoShop);
+                      const isLocked = ((sub.name === "Produk Reguler" || sub.name === "Lelang Produk") && shopStatus !== "active") || ((sub.name === "Dashboard Utama" || sub.name === "Daftar Produk" || sub.name === "Pesanan Masuk" || sub.name === "Pengajuan Keuangan" || sub.name === "Upgrade Toko") && hasNoShop);
 
                       if (isLocked) {
                         const lockReason = hasNoShop ? "Buka Toko Dahulu" : "Tunggu Verifikasi Admin";
@@ -572,7 +602,13 @@ export default function UserSidebar() {
                   if (!showNotifDropdown) {
                     setNotifCount(0);
                     if (user) {
-                      fetch(`${getApiUrl()}/notifications/${user.id}/read-all`, { method: "PUT" })
+                      const token = localStorage.getItem("token");
+                      fetch(`${getApiUrl()}/notifications/${user.id}/read-all`, {
+                        method: "PUT",
+                        headers: {
+                          Authorization: token ? `Bearer ${token}` : "",
+                        },
+                      })
                         .then(() => fetchDetailedNotifications())
                         .catch(console.error);
                     } else {
@@ -613,7 +649,13 @@ export default function UserSidebar() {
                 onClick={async () => {
                   if (user) {
                     try {
-                      await fetch(`${getApiUrl()}/notifications/${user.id}`, { method: "DELETE" });
+                      const token = localStorage.getItem("token");
+                      await fetch(`${getApiUrl()}/notifications/${user.id}`, {
+                        method: "DELETE",
+                        headers: {
+                          Authorization: token ? `Bearer ${token}` : "",
+                        },
+                      });
                       setNotifList([]);
                       setNotifCount(0);
                       fetchDetailedNotifications();
@@ -763,7 +805,7 @@ export default function UserSidebar() {
                               if (subStatus === "hidden") return null;
 
                               const hasNoShop = !isLoadingShop && (shopStatus === "none" || !shopId);
-                              const isLocked = ((sub.name === "Jual Langsung" || sub.name === "Lelang Produk") && shopStatus !== "active") || ((sub.name === "Dashboard Utama" || sub.name === "Daftar Produk" || sub.name === "Pesanan Masuk" || sub.name === "Pengajuan Keuangan" || sub.name === "Upgrade Toko") && hasNoShop);
+                              const isLocked = ((sub.name === "Produk Reguler" || sub.name === "Lelang Produk") && shopStatus !== "active") || ((sub.name === "Dashboard Utama" || sub.name === "Daftar Produk" || sub.name === "Pesanan Masuk" || sub.name === "Pengajuan Keuangan" || sub.name === "Upgrade Toko") && hasNoShop);
 
                               if (isLocked) {
                                 const lockReason = hasNoShop ? "Buka Toko Dahulu" : "Tunggu Verifikasi Admin";

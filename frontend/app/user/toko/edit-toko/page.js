@@ -44,6 +44,22 @@ export default function EditTokoPage() {
     warranty_policy: "",
   });
 
+  const [editableFields, setEditableFields] = useState({
+    name: false,
+    nik: false,
+    whatsapp: false,
+    province: false,
+    city: false,
+    address: false,
+  });
+
+  const isNameEditable = editableFields.name;
+  const isNikEditable = editableFields.nik;
+  const isWhatsappEditable = editableFields.whatsapp;
+  const isProvinceEditable = editableFields.province;
+  const isCityEditable = editableFields.city;
+  const isAddressEditable = editableFields.address;
+
   const [provinces, setProvinces] = useState([]);
   const [cities, setCities] = useState([]);
   const [provinceSearch, setProvinceSearch] = useState("");
@@ -71,7 +87,19 @@ export default function EditTokoPage() {
           .then((res) => res.json())
           .then((res) => {
             if (res.data) {
-              setShopData(res.data);
+              setEditableFields({
+                name: !res.data.name || (typeof res.data.name === "string" && res.data.name.startsWith("Toko Reset #")) || res.data.status === "rejected",
+                nik: !res.data.nik || res.data.status === "rejected",
+                whatsapp: !res.data.whatsapp || res.data.status === "rejected",
+                province: !res.data.province || res.data.status === "rejected",
+                city: !res.data.city || res.data.status === "rejected",
+                address: !res.data.address || res.data.status === "rejected",
+              });
+              const cleanedShop = {
+                ...res.data,
+                name: res.data.name && typeof res.data.name === "string" && res.data.name.startsWith("Toko Reset #") ? "" : res.data.name || "",
+              };
+              setShopData(cleanedShop);
               setProvinceSearch(res.data.province || "");
               setCitySearch(res.data.city || "");
             } else {
@@ -175,6 +203,7 @@ export default function EditTokoPage() {
       const result = await response.json();
 
       if (response.ok) {
+        window.dispatchEvent(new CustomEvent("shop_status_changed"));
         setModalConfig({
           isOpen: true,
           type: "success",
@@ -201,6 +230,66 @@ export default function EditTokoPage() {
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  // ── Image Upload Security Validator ──────────────────────────────────────────
+  const validateImageFile = (file, inputRef) => {
+    if (!file) return false;
+
+    // 1. Block dangerous extensions
+    const blockedExtensions = [".php", ".exe", ".svg", ".doc", ".docx", ".xls", ".xlsx", ".ppt", ".pptx", ".pdf"];
+    const fileName = file.name.toLowerCase();
+    const hasBlockedExt = blockedExtensions.some((ext) => fileName.endsWith(ext));
+    if (hasBlockedExt) {
+      setModalConfig({ isOpen: true, type: "danger", title: "File Tidak Diizinkan", message: "Format file tersebut tidak diperbolehkan. Hanya gambar JPG, PNG, atau WEBP yang diterima." });
+      if (inputRef) inputRef.value = null;
+      return false;
+    }
+
+    // 2. Block dangerous & document MIME types
+    const blockedMime = [
+      "application/pdf",
+      "application/msword",
+      "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+      "application/vnd.ms-excel",
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+      "application/vnd.ms-powerpoint",
+      "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+      "application/x-php",
+      "application/x-httpd-php",
+      "text/x-php",
+      "application/octet-stream",
+      "image/svg+xml",
+    ];
+    if (blockedMime.includes(file.type)) {
+      setModalConfig({ isOpen: true, type: "danger", title: "Tipe File Tidak Diizinkan", message: "Tipe file tersebut tidak diperbolehkan. Hanya gambar JPG, PNG, atau WEBP yang diterima." });
+      if (inputRef) inputRef.value = null;
+      return false;
+    }
+
+    // 3. Validate allowed image MIME types
+    const allowedMime = ["image/jpeg", "image/jpg", "image/png", "image/webp", "image/gif"];
+    if (!allowedMime.includes(file.type)) {
+      setModalConfig({ isOpen: true, type: "warning", title: "Format Tidak Didukung", message: "Hanya gambar berformat JPG, PNG, WEBP, atau GIF yang diperbolehkan." });
+      if (inputRef) inputRef.value = null;
+      return false;
+    }
+
+    // 4. Validate file size (max 1 MB)
+    if (file.size > 1 * 1024 * 1024) {
+      setModalConfig({ isOpen: true, type: "warning", title: "File Terlalu Besar", message: "Ukuran gambar tidak boleh lebih dari 1MB. Silakan kompres gambar Anda terlebih dahulu." });
+      if (inputRef) inputRef.value = null;
+      return false;
+    }
+
+    return true;
+  };
+
+  // ── Random file rename before upload ─────────────────────────────────────────
+  const renameFileRandom = (file) => {
+    const ext = file.name.split(".").pop().toLowerCase();
+    const randomName = `${Date.now()}-${Math.random().toString(36).substring(2, 10)}.${ext}`;
+    return new File([file], randomName, { type: file.type });
   };
 
   if (isLoading) {
@@ -251,33 +340,41 @@ export default function EditTokoPage() {
                 <div className="space-y-3 group">
                   <label className="text-[10px] sm:text-xs font-black text-zinc-500 uppercase tracking-widest ml-1 group-focus-within:text-emerald-500 transition-colors">Nama Toko</label>
                   <div className="relative">
-                    <i className="fa-solid fa-store absolute left-4 top-1/2 -translate-y-1/2 text-zinc-600"></i>
                     <input
                       type="text"
-                      className="w-full bg-zinc-950/30 border border-zinc-800/50 text-zinc-500 rounded-2xl pl-12 pr-4 py-3.5 sm:py-4 focus:outline-none transition-all font-bold placeholder:text-zinc-800 text-sm sm:text-base cursor-not-allowed"
+                      className={`w-full border rounded-2xl px-4 py-3.5 sm:py-4 focus:outline-none transition-all font-bold placeholder:text-zinc-700 text-sm sm:text-base ${
+                        !isNameEditable ? "bg-zinc-950/30 border-zinc-800/50 text-zinc-500 cursor-not-allowed" : "bg-zinc-950/50 border-zinc-800 text-white cursor-text focus:border-emerald-500/50 focus:ring-4 focus:ring-emerald-500/5"
+                      }`}
                       placeholder="Contoh: Reptile Zone Jakarta"
                       value={shopData.name || ""}
                       onChange={(e) => setShopData({ ...shopData, name: e.target.value })}
-                      disabled
+                      disabled={!isNameEditable}
                     />
                   </div>
                 </div>
                 <div className="space-y-3 group">
                   <label className="text-[10px] sm:text-xs font-black text-zinc-500 uppercase tracking-widest ml-1 group-focus-within:text-emerald-500 transition-colors">NIK (Verifikasi)</label>
                   <div className="relative">
-                    <i className="fa-solid fa-id-card absolute left-4 top-1/2 -translate-y-1/2 text-zinc-600"></i>
                     <input
                       type="text"
                       placeholder="16 digit NIK sesuai KTP"
-                      className="w-full bg-zinc-950/30 border border-zinc-800/50 text-zinc-500 rounded-2xl pl-12 pr-4 py-3.5 sm:py-4 focus:outline-none transition-all font-bold placeholder:text-zinc-800 tracking-widest text-sm sm:text-base cursor-not-allowed"
+                      className={`w-full border rounded-2xl px-4 py-3.5 sm:py-4 focus:outline-none transition-all font-bold placeholder:text-zinc-700 text-sm sm:text-base ${
+                        !isNikEditable ? "bg-zinc-950/30 border-zinc-800/50 text-zinc-500 cursor-not-allowed tracking-widest" : "bg-zinc-950/50 border-zinc-800 text-white cursor-text focus:border-emerald-500/50 focus:ring-4 focus:ring-emerald-500/5 tracking-widest"
+                      }`}
                       value={shopData.nik || ""}
-                      onChange={(e) => setShopData({ ...shopData, nik: e.target.value })}
-                      disabled
+                      onChange={(e) => {
+                        const val = e.target.value.replace(/\D/g, ""); // Enforce numbers only
+                        setShopData({ ...shopData, nik: val });
+                      }}
+                      maxLength={16}
+                      disabled={!isNikEditable}
                     />
                   </div>
                 </div>
               </div>
             </section>
+
+            <hr className="border-zinc-800/80" />
 
             {/* Section 2: Kontak & Lokasi Toko */}
             <section className="space-y-6">
@@ -292,27 +389,30 @@ export default function EditTokoPage() {
                 <div className="space-y-3 group">
                   <label className="text-[10px] sm:text-xs font-black text-zinc-500 uppercase tracking-widest ml-1 group-focus-within:text-emerald-500 transition-colors">No. WhatsApp</label>
                   <div className="relative">
-                    <div className="absolute left-4 top-1/2 -translate-y-1/2 flex items-center gap-2 border-r border-zinc-800 pr-3">
-                      <i className="fa-brands fa-whatsapp text-emerald-500 text-base sm:text-lg"></i>
-                      <span className="text-zinc-500 font-bold text-xs sm:text-sm">+62</span>
-                    </div>
                     <input
                       type="tel"
-                      className="w-full bg-zinc-950/30 border border-zinc-800/50 text-zinc-500 rounded-2xl pl-20 sm:pl-24 pr-4 py-3.5 sm:py-4 focus:outline-none transition-all font-bold placeholder:text-zinc-800 text-sm sm:text-base cursor-not-allowed"
-                      placeholder="8123456789"
+                      className={`w-full border rounded-2xl px-4 py-3.5 sm:py-4 focus:outline-none transition-all font-bold text-sm sm:text-base ${
+                        !isWhatsappEditable ? "bg-zinc-950/30 border-zinc-800/50 text-zinc-500 cursor-not-allowed" : "bg-zinc-950/50 border-zinc-800 text-white cursor-text focus:border-emerald-500/50 focus:ring-4 focus:ring-emerald-500/5"
+                      }`}
+                      placeholder="Contoh: 081234567890"
                       value={shopData.whatsapp || ""}
-                      onChange={(e) => setShopData({ ...shopData, whatsapp: e.target.value })}
-                      disabled
+                      onChange={(e) => setShopData({ ...shopData, whatsapp: e.target.value.replace(/\D/g, "") })}
+                      onBlur={(e) => {
+                        const val = e.target.value.replace(/^62/, "").replace(/^0/, "");
+                        setShopData({ ...shopData, whatsapp: val });
+                      }}
+                      disabled={!isWhatsappEditable}
                     />
                   </div>
                 </div>
                 <div className="space-y-3 group relative">
                   <label className="text-[10px] sm:text-xs font-black text-zinc-500 uppercase tracking-widest ml-1 group-focus-within:text-emerald-500 transition-colors">Provinsi</label>
                   <div className="relative">
-                    <i className="fa-solid fa-map absolute left-4 top-1/2 -translate-y-1/2 text-zinc-600"></i>
                     <input
                       type="text"
-                      className="w-full bg-zinc-950/30 border border-zinc-800/50 text-zinc-500 rounded-2xl pl-12 pr-4 py-3.5 sm:py-4 focus:outline-none transition-all font-bold placeholder:text-zinc-800 text-sm sm:text-base cursor-not-allowed"
+                      className={`w-full border rounded-2xl px-4 py-3.5 sm:py-4 focus:outline-none transition-all font-bold placeholder:text-zinc-800 text-sm sm:text-base ${
+                        !isProvinceEditable ? "bg-zinc-950/30 border-zinc-800/50 text-zinc-500 cursor-not-allowed" : "bg-zinc-950/50 border-zinc-800 text-white cursor-text focus:border-emerald-500/50 focus:ring-4 focus:ring-emerald-500/5"
+                      }`}
                       placeholder="Ketik untuk mencari provinsi..."
                       value={provinceSearch || shopData.province || ""}
                       onChange={(e) => {
@@ -323,9 +423,9 @@ export default function EditTokoPage() {
                           setCitySearch("");
                         }
                       }}
-                      onFocus={() => setShowProvinceDropdown(true)}
+                      onFocus={() => isProvinceEditable && setShowProvinceDropdown(true)}
                       autoComplete="off"
-                      disabled
+                      disabled={!isProvinceEditable}
                     />
                     {showProvinceDropdown && (
                       <div className="absolute z-50 w-full mt-2 bg-zinc-900 border border-zinc-800 rounded-2xl max-h-60 overflow-y-auto custom-scrollbar">
@@ -355,19 +455,20 @@ export default function EditTokoPage() {
                 <div className="space-y-3 group relative">
                   <label className="text-[10px] sm:text-xs font-black text-zinc-500 uppercase tracking-widest ml-1 group-focus-within:text-emerald-500 transition-colors">Kota / Kabupaten</label>
                   <div className="relative">
-                    <i className="fa-solid fa-city absolute left-4 top-1/2 -translate-y-1/2 text-zinc-600"></i>
                     <input
                       type="text"
-                      className="w-full bg-zinc-950/30 border border-zinc-800/50 text-zinc-500 rounded-2xl pl-12 pr-4 py-3.5 sm:py-4 focus:outline-none transition-all font-bold placeholder:text-zinc-800 text-sm sm:text-base cursor-not-allowed"
+                      className={`w-full border rounded-2xl px-4 py-3.5 sm:py-4 focus:outline-none transition-all font-bold text-sm sm:text-base ${
+                        !isCityEditable || !shopData.province ? "bg-zinc-950/30 border-zinc-800/50 text-zinc-500 cursor-not-allowed" : "bg-zinc-950/50 border-zinc-800 text-white cursor-text focus:border-emerald-500/50 focus:ring-4 focus:ring-emerald-500/5"
+                      }`}
                       placeholder={shopData.province ? "Ketik untuk mencari kota..." : "Pilih provinsi terlebih dahulu"}
                       value={citySearch || shopData.city || ""}
-                      disabled={true}
+                      disabled={!isCityEditable || !shopData.province}
                       onChange={(e) => {
                         setCitySearch(e.target.value);
                         setShowCityDropdown(true);
                         setShopData((prev) => ({ ...prev, city: e.target.value }));
                       }}
-                      onFocus={() => setShowCityDropdown(true)}
+                      onFocus={() => isCityEditable && shopData.province && setShowCityDropdown(true)}
                       autoComplete="off"
                     />
                     {showCityDropdown && cities.length > 0 && (
@@ -398,14 +499,15 @@ export default function EditTokoPage() {
               <div className="space-y-3 group">
                 <label className="text-[10px] sm:text-xs font-black text-zinc-500 uppercase tracking-widest ml-1 group-focus-within:text-emerald-500 transition-colors">Alamat Lengkap</label>
                 <div className="relative">
-                  <i className="fa-solid fa-location-dot absolute left-4 top-4 text-zinc-600"></i>
                   <textarea
                     rows="2"
-                    className="w-full bg-zinc-950/30 border border-zinc-800/50 text-zinc-500 rounded-2xl pl-12 pr-4 py-3.5 sm:py-4 focus:outline-none transition-all font-bold placeholder:text-zinc-800 resize-none text-sm sm:text-base cursor-not-allowed"
+                    className={`w-full border rounded-2xl px-4 py-3.5 sm:py-4 focus:outline-none transition-all font-bold placeholder:text-zinc-800 resize-none text-sm sm:text-base ${
+                      !isAddressEditable ? "bg-zinc-950/30 border-zinc-800/50 text-zinc-500 cursor-not-allowed" : "bg-zinc-950/50 border-zinc-800 text-white cursor-text focus:border-emerald-500/50 focus:ring-4 focus:ring-emerald-500/5"
+                    }`}
                     placeholder="Tuliskan alamat lengkap toko fisik atau rumah Anda..."
                     value={shopData.address || ""}
                     onChange={(e) => setShopData({ ...shopData, address: e.target.value })}
-                    disabled
+                    disabled={!isAddressEditable}
                   ></textarea>
                 </div>
               </div>
@@ -446,6 +548,8 @@ export default function EditTokoPage() {
               </div>
             </section>
 
+            <hr className="border-zinc-800/80" />
+
             {/* Section 3: Visual & Branding */}
             <section className="space-y-6">
               <div className="flex items-center gap-3">
@@ -475,19 +579,14 @@ export default function EditTokoPage() {
                       <input
                         type="file"
                         className="absolute inset-0 opacity-0 cursor-pointer"
-                        accept="image/*"
+                        accept="image/jpeg,image/jpg,image/png,image/webp,image/gif"
                         onChange={(e) => {
-                          const file = e.target.files[0];
-                          if (file) {
-                            if (file.size > 500 * 1024) {
-                              setModalConfig({ isOpen: true, type: "warning", title: "File Terlalu Besar", message: "Ukuran foto toko tidak boleh lebih dari 500KB." });
-                              e.target.value = null;
-                              return;
-                            }
-                            const reader = new FileReader();
-                            reader.onload = (ev) => setShopData({ ...shopData, logo_url: ev.target.result });
-                            reader.readAsDataURL(file);
-                          }
+                          const raw = e.target.files[0];
+                          if (!validateImageFile(raw, e.target)) return;
+                          const file = renameFileRandom(raw);
+                          const reader = new FileReader();
+                          reader.onload = (ev) => setShopData({ ...shopData, logo_url: ev.target.result });
+                          reader.readAsDataURL(file);
                         }}
                       />
                     </div>
@@ -500,7 +599,7 @@ export default function EditTokoPage() {
                   <div className="flex-1 min-w-0">
                     <p className="text-xs sm:text-sm font-black text-white mb-1">{shopData.logo_url ? "Logo terpasang ✓" : "Belum ada logo"}</p>
                     <p className="text-[10px] text-zinc-500 leading-relaxed mb-3">
-                      Format JPG, PNG, atau WEBP. Maks <span className="text-emerald-500">500KB</span>.
+                      Format JPG, PNG, atau WEBP. Maks <span className="text-emerald-500">1MB</span>.
                     </p>
                     <label className="inline-flex items-center gap-2 px-4 py-2 bg-zinc-800 hover:bg-emerald-500 text-zinc-400 hover:text-zinc-950 text-[11px] font-black rounded-xl cursor-pointer transition-all border border-zinc-700 hover:border-emerald-500 uppercase tracking-wider">
                       <Upload size={12} />
@@ -508,19 +607,14 @@ export default function EditTokoPage() {
                       <input
                         type="file"
                         className="hidden"
-                        accept="image/*"
+                        accept="image/jpeg,image/jpg,image/png,image/webp,image/gif"
                         onChange={(e) => {
-                          const file = e.target.files[0];
-                          if (file) {
-                            if (file.size > 500 * 1024) {
-                              setModalConfig({ isOpen: true, type: "warning", title: "File Terlalu Besar", message: "Ukuran foto toko tidak boleh lebih dari 500KB." });
-                              e.target.value = null;
-                              return;
-                            }
-                            const reader = new FileReader();
-                            reader.onload = (ev) => setShopData({ ...shopData, logo_url: ev.target.result });
-                            reader.readAsDataURL(file);
-                          }
+                          const raw = e.target.files[0];
+                          if (!validateImageFile(raw, e.target)) return;
+                          const file = renameFileRandom(raw);
+                          const reader = new FileReader();
+                          reader.onload = (ev) => setShopData({ ...shopData, logo_url: ev.target.result });
+                          reader.readAsDataURL(file);
                         }}
                       />
                     </label>

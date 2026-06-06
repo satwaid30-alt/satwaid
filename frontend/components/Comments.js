@@ -11,16 +11,27 @@ const MAX_VISIBLE = 5; // show this many before enabling scroll
 export default function Comments({ topicId }) {
   const [comments, setComments] = useState([]);
   const [newComment, setNewComment] = useState("");
-  const [user, setUser] = useState(null);
-  const [socket, setSocket] = useState(null);
+  const [user, setUser] = useState(() => {
+    const userData = localStorage.getItem("user");
+    return userData ? JSON.parse(userData) : null;
+  });
+  const socketRef = useRef(null);
   const [isExpanded, setIsExpanded] = useState(false);
   const commentsScrollRef = useRef(null);
   const commentsEndRef = useRef(null);
 
   useEffect(() => {
-    const userData = localStorage.getItem("user");
-    if (userData) setUser(JSON.parse(userData));
-
+    const fetchComments = async () => {
+      try {
+        const res = await fetch(
+          `${getApiUrl()}/topics/${topicId}/comments`,
+        );
+        const data = await res.json();
+        if (res.ok) setComments(data.data);
+      } catch (err) {
+        console.error("Error fetching comments:", err);
+      }
+    };
     fetchComments();
 
     const token = localStorage.getItem("token");
@@ -29,7 +40,7 @@ export default function Comments({ topicId }) {
         token: token ? `Bearer ${token}` : null,
       },
     });
-    setSocket(newSocket);
+    socketRef.current = newSocket;
     newSocket.emit("join_topic", topicId);
 
     newSocket.on("receive_comment", (comment) => {
@@ -54,22 +65,10 @@ export default function Comments({ topicId }) {
     }
   }, [isExpanded]);
 
-  const fetchComments = async () => {
-    try {
-      const res = await fetch(
-        `${getApiUrl()}/topics/${topicId}/comments`,
-      );
-      const data = await res.json();
-      if (res.ok) setComments(data.data);
-    } catch (err) {
-      console.error("Error fetching comments:", err);
-    }
-  };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!newComment.trim() || !user) return;
-    socket.emit("send_comment", {
+    socketRef.current.emit("send_comment", {
       topic_id: topicId,
       user_id: user.id,
       content: newComment,

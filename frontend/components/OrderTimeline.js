@@ -13,28 +13,28 @@ export default function OrderTimeline({ order, formatPrice, className = "" }) {
             id: 'data_pembeli',
             label: 'Data Pembeli', 
             sub: 'Lengkapi alamat dan informasi penerima',
-            isCompleted: !!(order.address_filled_at || order.receiver_name || !['pending_shipping_info'].includes(normalizedStatus)),
+            isCompleted: !!(order.address_filled_at || order.receiver_name || !['pending_shipping_info', 'cancelled', 'cancelled_dismissed'].includes(order.status)),
             date: order.address_filled_at || null 
         },
         { 
             id: 'ongkir',
             label: 'Penetapan Ongkir', 
             sub: 'Penjual memasukkan biaya kirim dan packing',
-            isCompleted: !!(order.shipping_cost_set_at || order.shipping_cost !== null || !['pending_shipping_info', 'waiting_shipping_cost'].includes(normalizedStatus)),
+            isCompleted: !!(order.shipping_cost_set_at || !['pending_shipping_info', 'waiting_shipping_cost', 'cancelled', 'cancelled_dismissed'].includes(order.status)),
             date: order.shipping_cost_set_at || null 
         },
         { 
             id: 'pembayaran',
             label: 'Pembayaran', 
             sub: 'Unggah bukti transfer untuk diverifikasi',
-            isCompleted: !!(order.payment_uploaded_at || order.payment_proof || ['processing', 'payment_verified', 'shipped', 'completed', 'complained'].includes(normalizedStatus)),
+            isCompleted: !!(order.payment_uploaded_at || order.payment_proof || ['processing', 'payment_verified', 'waiting_shipment', 'shipped', 'completed', 'complained'].includes(normalizedStatus)),
             date: order.payment_uploaded_at || null 
         },
         { 
             id: 'verifikasi',
             label: 'Verifikasi Admin', 
             sub: 'Validasi pembayaran oleh pihak admin',
-            isCompleted: !!(order.payment_verified_at || ['payment_verified', 'shipped', 'completed', 'complained'].includes(normalizedStatus)),
+            isCompleted: !!(order.payment_verified_at || ['payment_verified', 'waiting_shipment', 'shipped', 'completed', 'complained'].includes(normalizedStatus)),
             date: order.payment_verified_at || null 
         },
         { 
@@ -73,7 +73,7 @@ export default function OrderTimeline({ order, formatPrice, className = "" }) {
 
             <div className="space-y-6 relative before:absolute before:left-[11px] before:top-2 before:bottom-2 before:w-[1px] before:bg-zinc-800">
                 {allSteps.map((step, i) => {
-                    const isUpcoming = !step.isCompleted && (!isCancelled || i > nextStepIndex);
+                    const isUpcoming = nextStepIndex !== -1 && i > nextStepIndex;
                     const isActive = i === nextStepIndex && !isCancelled;
                     const isCancelledStep = i === nextStepIndex && isCancelled;
                     const isComplainedStep = normalizedStatus === 'complained' && step.id === 'selesai';
@@ -115,7 +115,22 @@ export default function OrderTimeline({ order, formatPrice, className = "" }) {
                                     )}
                                 </div>
                                 <p className="text-[10px] text-zinc-400 font-medium leading-relaxed">
-                                    {isCancelledStep && order.rejection_reason ? `Alasan: ${order.rejection_reason}` : step.sub}
+                                    {isCancelledStep ? (
+                                        (() => {
+                                            const stepReasons = {
+                                                data_pembeli: 'Buyer tidak melengkapi alamat pengiriman',
+                                                ongkir: 'Seller tidak memasukkan biaya kirim dan packing',
+                                                pembayaran: 'Buyer tidak melakukan pembayaran',
+                                                verifikasi: 'Pembayaran ditolak atau dibatalkan oleh admin',
+                                                pengiriman: 'Seller tidak mengirimkan barang',
+                                                selesai: 'Transaksi dibatalkan'
+                                            };
+                                            const baseReason = stepReasons[step.id] || 'Transaksi dibatalkan';
+                                            return order.rejection_reason 
+                                                ? `${baseReason} (Alasan: ${order.rejection_reason})` 
+                                                : baseReason;
+                                        })()
+                                    ) : step.sub}
                                 </p>
                                 
                                 {step.id === 'pengiriman' && order.tracking_number && step.isCompleted && (

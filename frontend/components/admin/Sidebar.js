@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
-import { LayoutDashboard, PawPrint, BookOpen, Settings, LogOut, UserCircle, Users, ChevronLeft, ChevronRight, MessageSquare, Megaphone, Store, ChevronDown, ChevronUp, Package, Receipt, Sliders, Wallet } from "lucide-react";
+import { LayoutDashboard, PawPrint, BookOpen, Settings, LogOut, UserCircle, Users, ChevronLeft, ChevronRight, MessageSquare, Megaphone, Store, ChevronDown, ChevronUp, Package, Receipt, Sliders, Wallet, ShieldAlert } from "lucide-react";
 
 const MENU_ITEMS = [
   { name: "Dashboard", href: "/admin/dashboard", icon: LayoutDashboard },
@@ -24,8 +24,12 @@ const MENU_ITEMS = [
   { name: "Pengembalian Dana", href: "/admin/pengembalian-dana", icon: Wallet },
   { name: "Daftar Pengguna", href: "/admin/users", icon: Users },
   { name: "Kontrol Menu", href: "/admin/control-menu", icon: Sliders },
+  { name: "Reset Profil", href: "/admin/reset-profil", icon: UserCircle },
+  { name: "Reset Toko", href: "/admin/reset-toko", icon: Store },
+  { name: "Pengaduan", href: "/admin/pengaduan", icon: ShieldAlert },
   { name: "Pengaturan", href: "/admin/settings", icon: Settings },
 ];
+
 
 export default function Sidebar() {
   const pathname = usePathname();

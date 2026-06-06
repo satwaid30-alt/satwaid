@@ -9,6 +9,29 @@ module.exports.uploadImage = async (req, res, next) => {
         }
 
         const image = req.files.image;
+
+        // 1. Validasi File Extension & MIME Type (Keamanan Server)
+        const ext = path.extname(image.name).toLowerCase();
+        const mime = image.mimetype ? image.mimetype.toLowerCase() : '';
+
+        const allowedExtensions = ['.jpg', '.jpeg', '.png', '.webp', '.gif'];
+        const allowedMimeTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+
+        // Blokir file berbahaya (.php, .exe, .svg) dan dokumen (.pdf, office)
+        const blockedExtensions = ['.php', '.exe', '.svg', '.pdf', '.doc', '.docx', '.xls', '.xlsx', '.ppt', '.pptx'];
+        const isBlockedExt = blockedExtensions.includes(ext);
+
+        const isOfficeOrPdfMime = mime === 'application/pdf' || 
+            mime.startsWith('application/msword') || 
+            mime.startsWith('application/vnd.ms-') || 
+            mime.startsWith('application/vnd.openxmlformats-officedocument');
+
+        const isAllowedMime = allowedMimeTypes.includes(mime);
+        const isAllowedExt = allowedExtensions.includes(ext);
+
+        if (isBlockedExt || isOfficeOrPdfMime || !isAllowedMime || !isAllowedExt) {
+            return res.status(400).json({ message: "Format file tidak didukung atau dilarang demi keamanan sistem." });
+        }
         
         // Validate file size (Max 1MB)
         if (image.size > 1 * 1024 * 1024) {
@@ -22,7 +45,6 @@ module.exports.uploadImage = async (req, res, next) => {
         }
 
         // Generate unique filename
-        const ext = path.extname(image.name);
         const filename = `${uuidv4()}${ext}`;
         const uploadPath = path.join(uploadDir, filename);
 

@@ -110,6 +110,14 @@ body {
    Rich Text Content Display (dangerouslySetInnerHTML)
    Fixes Tailwind CSS reset that hides list markers
    ====================================== */
+.description-content p {
+    margin-bottom: 0.75rem;
+}
+
+.description-content p:last-child {
+    margin-bottom: 0;
+}
+
 .description-content ul {
     list-style-type: disc;
     list-style-position: outside;

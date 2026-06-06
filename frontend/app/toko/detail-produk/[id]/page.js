@@ -172,10 +172,49 @@ function DetailContent() {
     }).format(price);
   };
 
-  const handleBuyNow = () => {
+  const handleBuyNow = async () => {
     if (!currentUser) {
       window.location.href = "/login";
       return;
+    }
+
+    // Validation Check: Profile completeness
+    try {
+      const response = await fetch(`${getApiUrl()}/users/${currentUser.id}`);
+      if (response.ok) {
+        const result = await response.json();
+        const freshUser = result.data;
+        localStorage.setItem("user", JSON.stringify(freshUser));
+
+        const isFieldFilled = (val) => {
+          if (val === undefined || val === null) return false;
+          const str = String(val).trim();
+          return str !== "" && str.toLowerCase() !== "null" && str.toLowerCase() !== "undefined";
+        };
+
+        const isIncomplete = !isFieldFilled(freshUser.name) || 
+                             !isFieldFilled(freshUser.phone) || 
+                             !isFieldFilled(freshUser.address) || 
+                             !isFieldFilled(freshUser.city) || 
+                             !isFieldFilled(freshUser.province);
+
+        if (isIncomplete) {
+          setActionModal({
+            isOpen: true,
+            type: "danger",
+            title: "Profil Belum Lengkap",
+            message: "Anda wajib melengkapi data profil terlebih dahulu (Nama, No. WhatsApp, Alamat, Kota, Provinsi) di halaman pengaturan sebelum dapat melakukan pembelian.",
+            confirmText: "Lengkapi Profil",
+            cancelText: "Batal",
+            onConfirm: () => {
+              window.location.href = "/user/pengaturan";
+            },
+          });
+          return;
+        }
+      }
+    } catch (err) {
+      console.error("Error verifying profile completeness:", err);
     }
 
     setActionModal({
@@ -246,12 +285,53 @@ function DetailContent() {
       return;
     }
 
+    // Validation Check: Profile completeness
+    try {
+      const response = await fetch(`${getApiUrl()}/users/${currentUser.id}`);
+      if (response.ok) {
+        const result = await response.json();
+        const freshUser = result.data;
+        localStorage.setItem("user", JSON.stringify(freshUser));
+
+        const isFieldFilled = (val) => {
+          if (val === undefined || val === null) return false;
+          const str = String(val).trim();
+          return str !== "" && str.toLowerCase() !== "null" && str.toLowerCase() !== "undefined";
+        };
+
+        const isIncomplete = !isFieldFilled(freshUser.name) || 
+                             !isFieldFilled(freshUser.phone) || 
+                             !isFieldFilled(freshUser.address) || 
+                             !isFieldFilled(freshUser.city) || 
+                             !isFieldFilled(freshUser.province);
+
+        if (isIncomplete) {
+          setActionModal({
+            isOpen: true,
+            type: "danger",
+            title: "Profil Belum Lengkap",
+            message: "Anda wajib melengkapi data profil terlebih dahulu (Nama, No. WhatsApp, Alamat, Kota, Provinsi) di halaman pengaturan sebelum dapat menambahkan produk ke keranjang.",
+            confirmText: "Lengkapi Profil",
+            cancelText: "Batal",
+            onConfirm: () => {
+              window.location.href = "/user/pengaturan";
+            },
+          });
+          return;
+        }
+      }
+    } catch (err) {
+      console.error("Error verifying profile completeness:", err);
+    }
+
     setIsAddingToCart(true);
     try {
+      const token = localStorage.getItem("token");
       const response = await fetch(`${getApiUrl()}/cart`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          Authorization: token ? `Bearer ${token}` : "",
         },
         body: JSON.stringify({
           user_id: currentUser.id,

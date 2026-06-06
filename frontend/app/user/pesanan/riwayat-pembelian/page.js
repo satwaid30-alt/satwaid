@@ -281,9 +281,19 @@ export default function RiwayatPembelianPage() {
                           <td className="px-6 py-6">
                             <div className="flex flex-col justify-center items-center gap-2">
                               {isCancelled && isPaid && (
-                                <Link href="/user/pesanan/pengembalian-dana" className="w-28 py-2.5 bg-amber-500 hover:bg-amber-400 text-zinc-950 rounded-xl text-[9px] font-black uppercase tracking-wider transition-all active:scale-95 shadow-md shadow-amber-500/15 flex items-center justify-center" title="Pengembalian Dana">
-                                  Refund Dana
-                                </Link>
+                                order.refund_status === "refunded" ? (
+                                  <Link href="/user/pesanan/pengembalian-dana" className="w-28 py-2.5 bg-emerald-500/10 border border-emerald-500/20 text-emerald-500 rounded-xl text-[9px] font-black uppercase tracking-wider transition-all flex items-center justify-center font-bold" title="Refund Selesai">
+                                    Refund Selesai
+                                  </Link>
+                                ) : order.refund_status === "pending" ? (
+                                  <Link href="/user/pesanan/pengembalian-dana" className="w-28 py-2.5 bg-amber-500/10 border border-amber-500/20 text-amber-500 rounded-xl text-[9px] font-black uppercase tracking-wider transition-all flex items-center justify-center font-bold" title="Refund Diproses">
+                                    Refund Diproses
+                                  </Link>
+                                ) : (
+                                  <Link href="/user/pesanan/pengembalian-dana" className="w-28 py-2.5 bg-amber-500 hover:bg-amber-400 text-zinc-950 rounded-xl text-[9px] font-black uppercase tracking-wider transition-all active:scale-95 shadow-md shadow-amber-500/15 flex items-center justify-center" title="Refund Dana">
+                                    Refund Dana
+                                  </Link>
+                                )
                               )}
                               <Link href={`/user/pesanan/detail-pesanan/${order.id}`} className="w-28 py-2.5 bg-zinc-800 hover:bg-emerald-500 text-zinc-400 hover:text-zinc-950 rounded-xl text-[9px] font-black uppercase tracking-wider transition-all active:scale-95 border border-zinc-700 hover:border-emerald-400 flex items-center justify-center" title="Lihat Detail">
                                 Detail
@@ -342,9 +352,19 @@ export default function RiwayatPembelianPage() {
                     {/* Card Footer Actions */}
                     <div className="px-5 py-4 bg-zinc-900/40 border-t border-zinc-800 flex items-center gap-3">
                       {isCancelled && isPaid && (
-                        <Link href="/user/pesanan/pengembalian-dana" className="flex-1 flex items-center justify-center gap-2 py-2.5 bg-amber-500 hover:bg-amber-400 text-zinc-950 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all">
-                          Refund Dana
-                        </Link>
+                        order.refund_status === "refunded" ? (
+                          <Link href="/user/pesanan/pengembalian-dana" className="flex-1 flex items-center justify-center gap-2 py-2.5 bg-emerald-500/10 border border-emerald-500/20 text-emerald-500 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all">
+                            Refund Selesai
+                          </Link>
+                        ) : order.refund_status === "pending" ? (
+                          <Link href="/user/pesanan/pengembalian-dana" className="flex-1 flex items-center justify-center gap-2 py-2.5 bg-amber-500/10 border border-amber-500/20 text-amber-500 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all">
+                            Refund Diproses
+                          </Link>
+                        ) : (
+                          <Link href="/user/pesanan/pengembalian-dana" className="flex-1 flex items-center justify-center gap-2 py-2.5 bg-amber-500 hover:bg-amber-400 text-zinc-950 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all">
+                            Refund Dana
+                          </Link>
+                        )
                       )}
                       <Link href={`/user/pesanan/detail-pesanan/${order.id}`} className="flex-1 flex items-center justify-center gap-2 py-2.5 bg-zinc-800 hover:bg-zinc-700 text-white rounded-xl border border-zinc-700 text-[10px] font-black uppercase tracking-widest transition-all">
                         <Eye size={14} /> Detail
