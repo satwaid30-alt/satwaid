@@ -22,6 +22,7 @@ import {
 import { io } from "socket.io-client";
 import ActionModal from "@/components/ActionModal";
 import { getApiUrl, getSocketUrl, getImageUrl } from "@/app/utils/api";
+import ComplaintComments from "@/components/ComplaintComments";
 
 export default function AdminPengaduanPage() {
   const [complaints, setComplaints] = useState([]);
@@ -490,7 +491,7 @@ export default function AdminPengaduanPage() {
             onClick={handleCloseDetail}
           />
 
-          <div className="bg-zinc-900 border border-zinc-800 w-full max-w-4xl rounded-[2.5rem] relative z-10 overflow-hidden animate-in zoom-in-95 slide-in-from-bottom-8 duration-500 flex flex-col max-h-[90vh]">
+          <div className="bg-zinc-900 border border-zinc-800 w-full max-w-6xl lg:max-w-7xl rounded-[2.5rem] relative z-10 overflow-hidden animate-in zoom-in-95 slide-in-from-bottom-8 duration-500 flex flex-col max-h-[92vh]">
             {/* Modal Header */}
             <div className="px-8 py-6 border-b border-zinc-800 flex items-center justify-between bg-zinc-950/40">
               <div className="flex items-center gap-3">
@@ -590,60 +591,53 @@ export default function AdminPengaduanPage() {
                   </div>
                 </div>
 
-                {/* Response Form */}
+                {/* Response Form (Status only) */}
                 <form onSubmit={handleSaveResponse} className="space-y-4">
-                  <div className="space-y-1.5">
-                    <label className="text-xs font-bold text-zinc-500 uppercase tracking-widest">Perbarui Status</label>
-                    <select
-                      name="status"
-                      value={responseForm.status}
-                      onChange={handleResponseChange}
-                      className="w-full bg-zinc-950 border border-zinc-800 text-white rounded-xl px-4 py-3 text-xs font-bold focus:outline-none focus:ring-1 focus:ring-emerald-500 focus:border-transparent transition-all"
+                  <div className="bg-zinc-950 border border-zinc-850 rounded-2xl p-5 space-y-4 animate-in fade-in duration-300">
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-bold text-zinc-500 uppercase tracking-widest">Perbarui Status</label>
+                      <select
+                        name="status"
+                        value={responseForm.status}
+                        onChange={handleResponseChange}
+                        className="w-full bg-zinc-900 border border-zinc-800 text-white rounded-xl px-4 py-3 text-xs font-bold focus:outline-none focus:ring-1 focus:ring-emerald-500 focus:border-transparent transition-all"
+                      >
+                        <option value="pending">Menunggu (Pending)</option>
+                        <option value="processing">Diproses (Processing)</option>
+                        <option value="resolved">Selesai (Resolved)</option>
+                      </select>
+                    </div>
+
+                    <button
+                      type="submit"
+                      disabled={isSavingResponse}
+                      className={`w-full py-2.5 bg-zinc-800 hover:bg-zinc-700 text-white text-xs font-bold rounded-xl transition-all shadow-md flex items-center justify-center gap-2 active:scale-95 ${
+                        isSavingResponse ? "opacity-70 cursor-not-allowed" : ""
+                      }`}
                     >
-                      <option value="pending">Menunggu (Pending)</option>
-                      <option value="processing">Diproses (Processing)</option>
-                      <option value="resolved">Selesai (Resolved)</option>
-                    </select>
+                      {isSavingResponse ? (
+                        <>
+                          <svg className="animate-spin h-3.5 w-3.5 text-current" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                          </svg>
+                          <span>Memperbarui Status...</span>
+                        </>
+                      ) : (
+                        <>
+                          <CheckCircle2 size={13} />
+                          Simpan Status Laporan
+                        </>
+                      )}
+                    </button>
                   </div>
-
-                  <div className="space-y-1.5">
-                    <label className="text-xs font-bold text-zinc-500 uppercase tracking-widest flex items-center gap-1">
-                      <MessageSquare size={12} />
-                      Tanggapan / Solusi Admin
-                    </label>
-                    <textarea
-                      name="admin_response"
-                      value={responseForm.admin_response}
-                      onChange={handleResponseChange}
-                      rows={4}
-                      placeholder="Masukkan tanggapan, arahan, atau solusi penanganan masalah untuk pengguna..."
-                      className="w-full bg-zinc-950 border border-zinc-800 text-white rounded-xl px-4 py-3 text-xs font-medium focus:outline-none focus:ring-1 focus:ring-emerald-500 focus:border-transparent transition-all placeholder-zinc-650 resize-none"
-                    />
-                  </div>
-
-                  <button
-                    type="submit"
-                    disabled={isSavingResponse}
-                    className={`w-full py-3.5 bg-emerald-500 hover:bg-emerald-400 text-zinc-950 text-xs font-black rounded-xl transition-all shadow-md flex items-center justify-center gap-2 active:scale-95 ${
-                      isSavingResponse ? "opacity-70 cursor-not-allowed" : ""
-                    }`}
-                  >
-                    {isSavingResponse ? (
-                      <>
-                        <svg className="animate-spin h-4 w-4 text-current" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                        </svg>
-                        <span>Menyimpan Tanggapan...</span>
-                      </>
-                    ) : (
-                      <>
-                        <CheckCircle2 size={14} />
-                        Simpan Tanggapan & Perbarui
-                      </>
-                    )}
-                  </button>
                 </form>
+
+                {/* Complaint Comments Chat Thread */}
+                <div className="animate-in fade-in duration-300">
+                  <ComplaintComments complaintId={selectedComplaint.id} isAdminPage={true} />
+                </div>
+
               </div>
             </div>
           </div>

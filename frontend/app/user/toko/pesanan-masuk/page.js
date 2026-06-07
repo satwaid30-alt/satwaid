@@ -533,7 +533,6 @@ export default function PesananMasukPage() {
                 {/* Billing Details (Receipt) & Actions */}
                 <div className="w-full space-y-3">
                   <div className="flex items-center gap-2 text-zinc-500">
-                    <DollarSign size={14} className="text-emerald-500" />
                     <span className="text-[10px] md:text-xs font-black uppercase tracking-widest">Rincian Biaya</span>
                   </div>
                   <div className="bg-zinc-950/40 rounded-2xl p-4 border border-zinc-800/40 space-y-2.5">

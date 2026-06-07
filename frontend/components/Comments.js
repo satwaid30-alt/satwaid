@@ -136,9 +136,9 @@ export default function Comments({ topicId }) {
             visibleComments.map((comment, i) => {
               const isMe =
                 user &&
-                (comment.user_id === user.id ||
-                  comment.author_id === user.id ||
-                  comment.author?.id === user.id);
+                (String(comment.user_id).toLowerCase() === String(user.id).toLowerCase() ||
+                  String(comment.author_id).toLowerCase() === String(user.id).toLowerCase() ||
+                  String(comment.author?.id).toLowerCase() === String(user.id).toLowerCase());
               return (
                 <div
                   key={comment.id}

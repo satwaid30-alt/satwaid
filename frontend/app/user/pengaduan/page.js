@@ -1,10 +1,11 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { AlertTriangle, FileText, Send, Upload, Clock, CheckCircle2, Image as ImageIcon, ChevronDown, ChevronUp, ChevronLeft, ChevronRight, Trash2, Paperclip, Check, X, HelpCircle } from "lucide-react";
+import { AlertTriangle, FileText, Send, Upload, Clock, CheckCircle2, Image as ImageIcon, ChevronDown, ChevronUp, ChevronLeft, ChevronRight, Trash2, Paperclip, Check, X, HelpCircle, MessageSquare } from "lucide-react";
 import { io } from "socket.io-client";
 import ActionModal from "@/components/ActionModal";
 import { getApiUrl, getSocketUrl, getImageUrl } from "@/app/utils/api";
+import ComplaintComments from "@/components/ComplaintComments";
 
 export default function PengaduanUserPage() {
   const [user, setUser] = useState(null);
@@ -97,6 +98,16 @@ export default function PengaduanUserPage() {
       socket.on("complaint_updated", (updatedData) => {
         // Auto update matching complaint in local state
         setComplaints((prevComplaints) => prevComplaints.map((item) => (item.id === updatedData.id ? { ...item, status: updatedData.status, admin_response: updatedData.admin_response, updated_at: new Date() } : item)));
+      });
+
+      socket.on("complaint_comment_added", (data) => {
+        setComplaints((prevComplaints) =>
+          prevComplaints.map((item) =>
+            item.id === data.complaint_id
+              ? { ...item, comments_count: (parseInt(item.comments_count) || 0) + 1 }
+              : item
+          )
+        );
       });
 
       return () => {
@@ -402,7 +413,7 @@ export default function PengaduanUserPage() {
   };
 
   return (
-    <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+    <div>
       {/* Global Action Modal */}
       <ActionModal isOpen={modalConfig.isOpen} onClose={() => setModalConfig({ ...modalConfig, isOpen: false })} onConfirm={modalConfig.onConfirm} type={modalConfig.type} title={modalConfig.title} message={modalConfig.message} confirmText={modalConfig.confirmText} cancelText={modalConfig.cancelText} isLoading={modalConfig.isLoading} />
 
@@ -415,7 +426,7 @@ export default function PengaduanUserPage() {
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
         {/* FORM SECTION (Left Side) */}
-        <div className="lg:col-span-5 bg-zinc-900 border border-zinc-800 rounded-3xl p-6 relative overflow-hidden">
+        <div className="lg:col-span-5 bg-transparent sm:bg-zinc-900 border-0 sm:border border-zinc-800 rounded-none sm:rounded-xl p-0 sm:p-6 relative overflow-hidden">
           <div className="absolute top-0 left-0 w-24 h-1" />
           <h2 className="text-xl font-bold text-white mb-6 flex items-center gap-2">
             <AlertTriangle className="text-emerald-500" size={20} />
@@ -425,7 +436,7 @@ export default function PengaduanUserPage() {
           <form onSubmit={handleSubmit} className="space-y-5">
             <div className="space-y-1.5">
               <label className="text-sm font-semibold text-zinc-300">Kategori Laporan</label>
-              <select name="category" value={form.category} onChange={handleChange} className="w-full bg-zinc-950 border border-zinc-700 text-white rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all font-medium text-sm">
+              <select name="category" value={form.category} onChange={handleChange} className="w-full bg-zinc-950 border border-zinc-700 text-white rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent font-medium text-sm">
                 <option value="sistem">Sistem / Kendala Website / Bug</option>
                 <option value="produk">Masalah Produk / Penjual</option>
                 <option value="lainnya">Lainnya / Pertanyaan Umum</option>
@@ -441,7 +452,7 @@ export default function PengaduanUserPage() {
                 onChange={handleChange}
                 rows={5}
                 placeholder="Jelaskan secara kronologis kendala yang Anda alami. Tuliskan ID Pesanan jika berkaitan dengan transaksi tertentu."
-                className="w-full bg-zinc-950 border border-zinc-700 text-white rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all font-medium text-sm placeholder-zinc-600 resize-none"
+                className="w-full bg-zinc-950 border border-zinc-700 text-white rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent font-medium text-sm placeholder-zinc-650 resize-none"
               />
             </div>
 
@@ -455,14 +466,14 @@ export default function PengaduanUserPage() {
               {form.attachment_url ? (
                 <div className="relative border border-zinc-800 rounded-xl overflow-hidden group bg-zinc-950">
                   <img src={getImageUrl(form.attachment_url)} alt="Bukti Lampiran" className="w-full h-48 object-cover opacity-80" />
-                  <div className="absolute inset-0 bg-black/60 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                    <button type="button" onClick={handleRemoveAttachment} className="p-3 bg-red-500/90 hover:bg-red-600 text-white rounded-full transition-colors font-bold">
+                  <div className="absolute inset-0 bg-black/60 flex items-center justify-center opacity-0 group-hover:opacity-100">
+                    <button type="button" onClick={handleRemoveAttachment} className="p-3 bg-red-500/90 hover:bg-red-600 text-white rounded-full font-bold">
                       <Trash2 size={20} />
                     </button>
                   </div>
                 </div>
               ) : (
-                <label className="w-full border-2 border-dashed border-zinc-800 hover:border-emerald-500/50 rounded-xl py-6 flex flex-col items-center justify-center cursor-pointer transition-all hover:bg-emerald-500/5">
+                <label className="w-full border-2 border-dashed border-zinc-800 hover:border-emerald-500/50 rounded-xl py-6 flex flex-col items-center justify-center cursor-pointer hover:bg-emerald-500/5">
                   {isUploading ? (
                     <div className="flex flex-col items-center gap-2">
                       <svg className="animate-spin h-8 w-8 text-emerald-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -483,7 +494,7 @@ export default function PengaduanUserPage() {
               )}
             </div>
 
-            <button type="submit" disabled={isSubmitting || isUploading} className={`w-full py-4 bg-emerald-500 hover:bg-emerald-400 text-zinc-950 font-black rounded-xl transition-all flex items-center justify-center gap-2 active:scale-95 ${isSubmitting || isUploading ? "opacity-70 cursor-not-allowed" : ""}`}>
+            <button type="submit" disabled={isSubmitting || isUploading} className={`w-full py-4 bg-emerald-500 hover:bg-emerald-400 text-zinc-950 font-black rounded-xl flex items-center justify-center gap-2 ${isSubmitting || isUploading ? "opacity-70 cursor-not-allowed" : ""}`}>
               {isSubmitting ? (
                 <>
                   <svg className="animate-spin h-5 w-5 text-current" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -504,7 +515,7 @@ export default function PengaduanUserPage() {
 
         {/* HISTORY SECTION (Right Side) */}
         <div className="lg:col-span-7 space-y-6">
-          <div className="bg-zinc-900 border border-zinc-800 rounded-3xl p-6">
+          <div className="bg-transparent sm:bg-zinc-900 border-0 sm:border border-zinc-800 rounded-none sm:rounded-xl p-0 sm:p-6">
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6 pb-6 border-b border-zinc-800">
               <h2 className="text-xl font-bold text-white flex items-center gap-2">
                 <FileText className="text-emerald-500" size={20} />
@@ -551,7 +562,7 @@ export default function PengaduanUserPage() {
               <div className="space-y-6">
                 <div className="space-y-4 max-h-[600px] overflow-y-auto pr-2 custom-scrollbar">
                   {paginatedComplaints.map((item) => (
-                    <div key={item.id} className="bg-zinc-950 border border-zinc-800 hover:border-zinc-700 rounded-2xl p-5 transition-all">
+                    <div key={item.id} className="bg-transparent sm:bg-zinc-950 border-0 border-b sm:border border-zinc-800 rounded-none py-5 sm:p-5">
                       {/* Header info */}
                       <div className="flex items-start justify-between gap-4 mb-3">
                         <div className="space-y-1.5">
@@ -570,13 +581,13 @@ export default function PengaduanUserPage() {
                           <>
                             <p>{item.description}</p>
                             {item.attachment_url && (
-                              <div className="mt-4 border border-zinc-800 rounded-xl overflow-hidden max-w-sm bg-zinc-900">
+                              <div className="mt-4 border border-zinc-800 rounded-lg overflow-hidden max-w-sm bg-zinc-900">
                                 <p className="text-xs text-zinc-500 px-3 py-2 border-b border-zinc-800 font-bold flex items-center gap-1.5 bg-zinc-950">
                                   <Paperclip size={12} /> Lampiran Bukti
                                 </p>
-                                <a href={getImageUrl(item.attachment_url)} target="_blank" rel="noreferrer" className="block group relative">
+                                <a href={getImageUrl(item.attachment_url)} target="_blank" rel="noreferrer" className="block relative">
                                   <img src={getImageUrl(item.attachment_url)} alt="Lampiran" className="w-full h-auto object-cover max-h-60" />
-                                  <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity text-white text-xs font-bold gap-1">
+                                  <div className="absolute inset-0 bg-black/40 flex items-center justify-center text-white text-xs font-bold gap-1">
                                     <ImageIcon size={14} /> Lihat Gambar Penuh
                                   </div>
                                 </a>
@@ -588,42 +599,66 @@ export default function PengaduanUserPage() {
                         )}
                       </div>
 
-                      {/* Collapsible toggle */}
-                      {item.description.length > 150 || item.attachment_url || item.admin_response ? (
-                        <button onClick={() => toggleExpand(item.id)} className="flex items-center gap-1 text-xs text-emerald-500 hover:text-emerald-400 font-bold uppercase tracking-wider mb-2">
+                      {/* Action Row: Balas Chat & Detail Toggle */}
+                      <div className="flex items-center justify-between border-t border-zinc-800/65 pt-3 mt-3.5 mb-2.5">
+                        <button
+                          onClick={() => toggleExpand(item.id)}
+                          type="button"
+                          className="flex items-center gap-2 px-3 py-1.5 bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 text-zinc-300 hover:text-white rounded-lg text-xs font-bold"
+                        >
+                          <MessageSquare size={13} className="text-blue-400" />
+                          <span>Balas Chat</span>
+                          <span className="bg-zinc-950 px-1.5 py-0.5 rounded-md text-[10px] text-zinc-500 font-bold">
+                            {item.comments_count || 0}
+                          </span>
+                        </button>
+
+                        <button
+                          onClick={() => toggleExpand(item.id)}
+                          type="button"
+                          className="flex items-center gap-1 text-xs text-emerald-500 hover:text-emerald-400 font-bold uppercase tracking-wider"
+                        >
                           {expandedId === item.id ? (
                             <>
-                              Sembunyikan detail <ChevronUp size={14} />
+                              Sembunyikan <ChevronUp size={14} />
                             </>
                           ) : (
                             <>
-                              Lihat detail lengkap <ChevronDown size={14} />
+                              Detail <ChevronDown size={14} />
                             </>
                           )}
                         </button>
-                      ) : null}
+                      </div>
 
-                      {/* Admin Response Card */}
-                      {item.admin_response && (
-                        <div className="mt-4 border border-emerald-500/20 bg-emerald-500/5 rounded-xl p-4 animate-in fade-in duration-300">
-                          <div className="flex items-center gap-1.5 text-xs font-black text-emerald-400 uppercase tracking-wider mb-1.5">
-                            <CheckCircle2 size={14} />
-                            Tanggapan Administrator
+                      {/* Admin Response (Legacy) & Complaint Chat Thread */}
+                      {expandedId === item.id && (
+                        <div className="space-y-4 mt-2">
+                          {item.admin_response && (
+                            <div className="border border-zinc-800 bg-zinc-950/40 rounded-xl p-4">
+                              <div className="flex items-center gap-1.5 text-xs font-black text-amber-500 uppercase tracking-wider mb-1.5">
+                                <CheckCircle2 size={14} />
+                                Tanggapan Administrator Utama (Legacy)
+                              </div>
+                              <p className="text-zinc-400 text-xs leading-relaxed whitespace-pre-line">{item.admin_response}</p>
+                            </div>
+                          )}
+                          <div>
+                            <ComplaintComments complaintId={item.id} isAdminPage={false} />
                           </div>
-                          <p className="text-zinc-300 text-sm leading-relaxed whitespace-pre-line">{item.admin_response}</p>
                         </div>
                       )}
+
                     </div>
                   ))}
                 </div>
 
                 {/* Pagination Controls */}
                 {totalPages > 1 && (
-                  <div className="flex items-center justify-between pt-6 border-t border-zinc-800/65">
+                  <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-6 border-t border-zinc-800/65">
                     <button
                       onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
                       disabled={currentPage === 1}
-                      className="flex items-center gap-1.5 px-4 py-2.5 bg-zinc-950 border border-zinc-800 text-zinc-300 text-xs font-bold rounded-xl transition-all hover:bg-zinc-800 disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="flex items-center gap-1.5 px-4 py-2.5 bg-zinc-950 border border-zinc-800 text-zinc-300 text-xs font-bold rounded-xl hover:bg-zinc-800 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       <ChevronLeft size={14} />
                       Sebelumnya
@@ -634,9 +669,9 @@ export default function PengaduanUserPage() {
                         <button
                           key={page}
                           onClick={() => setCurrentPage(page)}
-                          className={`w-9 h-9 flex items-center justify-center text-xs font-bold rounded-xl border transition-all ${
+                          className={`w-9 h-9 flex items-center justify-center text-xs font-bold rounded-xl border ${
                             currentPage === page
-                              ? "bg-emerald-500 border-emerald-500 text-zinc-950 shadow-lg shadow-emerald-500/20"
+                              ? "bg-emerald-500 border-emerald-500 text-zinc-950"
                               : "bg-zinc-950 border-zinc-800 text-zinc-400 hover:bg-zinc-800 hover:text-white"
                           }`}
                         >
@@ -648,7 +683,7 @@ export default function PengaduanUserPage() {
                     <button
                       onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
                       disabled={currentPage === totalPages}
-                      className="flex items-center gap-1.5 px-4 py-2.5 bg-zinc-950 border border-zinc-800 text-zinc-300 text-xs font-bold rounded-xl transition-all hover:bg-zinc-800 disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="flex items-center gap-1.5 px-4 py-2.5 bg-zinc-950 border border-zinc-800 text-zinc-300 text-xs font-bold rounded-xl hover:bg-zinc-800 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       Berikutnya
                       <ChevronRight size={14} />

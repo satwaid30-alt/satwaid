@@ -48,6 +48,28 @@ require('dotenv').config();
 const sequelize = new Sequelize(process.env.DATABASE_URL);
 var models = initModels(sequelize);
 
+// Run one-off database correction for test data
+(async () => {
+    try {
+        await sequelize.query(`
+            UPDATE public.complaint_comments cc
+            SET user_id = c.user_id
+            FROM public.complaints c
+            WHERE cc.complaint_id = c.id
+              AND cc.content = 'coba min di cek lagi masih error sama';
+        `);
+        await sequelize.query(`
+            UPDATE public.users
+            SET name = 'Admin SatwaiD'
+            WHERE username = 'admin';
+        `);
+        console.log(`[DB Fix] Corrected test complaint comments and updated admin name successfully.`);
+    } catch (err) {
+        console.error(`[DB Fix] Error running database corrections:`, err);
+    }
+})();
+
+
 // Function to automatically check and complete shipped orders after 2 days (48 hours)
 async function autoCheckShippedOrders() {
     try {
@@ -429,13 +451,110 @@ io.on('connection', (socket) => {
         console.log(`Socket ${socket.id} joined order room order_${orderId}`);
     });
 
+    // Join room pengaduan berdasarkan complaint_id untuk live chat pengaduan
+    socket.on('join_complaint', (complaintId) => {
+        socket.join(`complaint_${complaintId}`);
+        console.log(`Socket ${socket.id} joined complaint room complaint_${complaintId}`);
+    });
+
+    // Menerima komentar/chat baru pada PENGADUAN
+    socket.on('send_complaint_comment', async (data) => {
+        try {
+            const { complaint_id, user_id, content } = data;
+
+            if (!socket.user || String(socket.user.id).toLowerCase() !== String(user_id).toLowerCase()) {
+                console.warn(`[Socket Auth Warning] Unauthorized send_complaint_comment attempt by socket ${socket.id} claiming user_id ${user_id}`);
+                return;
+            }
+
+            // Verify if user is owner of the complaint or an admin
+            const complaint = await models.complaints.findByPk(complaint_id);
+            if (!complaint) {
+                console.warn(`[Socket Error] Complaint ${complaint_id} not found`);
+                return;
+            }
+
+            if (socket.user.role !== 'admin' && String(complaint.user_id).toLowerCase() !== String(user_id).toLowerCase()) {
+                console.warn(`[Socket Auth Warning] Unauthorized access to complaint ${complaint_id} comments by user ${user_id}`);
+                return;
+            }
+
+            // Simpan ke DB Komentar Pengaduan (Tabel complaint_comments)
+            const newComment = await models.complaint_comments.create({
+                complaint_id,
+                user_id,
+                content
+            });
+
+            // Ambil data lengkap dengan relasi author
+            const commentWithAuthor = await models.complaint_comments.findOne({
+                where: { id: newComment.id },
+                include: [{
+                    model: models.users,
+                    as: 'author',
+                    attributes: ['id', 'username', 'name', 'avatar_url', 'role']
+                }]
+            });
+
+            // Broadcast ke room complaint
+            io.to(`complaint_${complaint_id}`).emit('receive_complaint_comment', commentWithAuthor);
+
+            // Buat & Kirim notifikasi
+            const senderName = commentWithAuthor.author?.name || commentWithAuthor.author?.username || 'Seseorang';
+            const shortContent = content.length > 50 ? content.substring(0, 50) + "..." : content;
+
+            if (socket.user.role === 'admin') {
+                // Sent by admin -> notify user
+                const title = 'Balasan Pengaduan Baru';
+                const message = `Admin membalas pengaduan Anda "${complaint.title}": "${shortContent}"`;
+                const link = '/user/pengaduan';
+
+                const newNotif = await models.notifications.create({
+                    user_id: complaint.user_id,
+                    type: 'complaint',
+                    title,
+                    message,
+                    link,
+                    created_at: new Date()
+                });
+
+                io.to(`user_${complaint.user_id}`).emit('new_notification', {
+                    id: newNotif.id,
+                    type: 'complaint',
+                    title,
+                    message,
+                    link,
+                    time: newNotif.created_at
+                });
+            } else {
+                // Sent by user -> notify admin room
+                const title = 'Pesan Pengaduan Baru';
+                const message = `${senderName} membalas pengaduan: "${shortContent}"`;
+
+                // Broadcast to admin_room to show a toast/badge
+                io.to('admin_room').emit('new_complaint_comment', {
+                    complaint_id,
+                    title,
+                    message,
+                    sender_name: senderName
+                });
+            }
+
+            // Broadcast count update to user and admin rooms
+            io.to(`user_${complaint.user_id}`).emit('complaint_comment_added', { complaint_id });
+            io.to('admin_room').emit('complaint_comment_added', { complaint_id });
+
+        } catch (error) {
+            console.error("Error processing complaint comment:", error);
+        }
+    });
 
     // Menerima komentar baru pada TOPIK (Komunitas)
     socket.on('send_comment', async (data) => {
         try {
             const { topic_id, user_id, content } = data;
 
-            if (!socket.user || socket.user.id !== user_id) {
+            if (!socket.user || String(socket.user.id).toLowerCase() !== String(user_id).toLowerCase()) {
                 console.warn(`[Socket Auth Warning] Unauthorized send_comment attempt by socket ${socket.id} claiming user_id ${user_id}`);
                 return;
             }
@@ -523,7 +642,7 @@ io.on('connection', (socket) => {
         try {
             const { listing_id, user_id, bid_amount } = data;
 
-            if (!socket.user || socket.user.id !== user_id) {
+            if (!socket.user || String(socket.user.id).toLowerCase() !== String(user_id).toLowerCase()) {
                 console.warn(`[Socket Auth Warning] Unauthorized send_bid attempt by socket ${socket.id} claiming user_id ${user_id}`);
                 return;
             }
@@ -626,14 +745,14 @@ io.on('connection', (socket) => {
         try {
             const { chat_id, user_id, content } = data;
 
-            if (!socket.user || socket.user.id !== user_id) {
+            if (!socket.user || String(socket.user.id).toLowerCase() !== String(user_id).toLowerCase()) {
                 console.warn(`[Socket Auth Warning] Unauthorized send_message attempt by socket ${socket.id} claiming user_id ${user_id}`);
                 return;
             }
 
             // Additionally check if user is a participant in this chat
             const chat = await models.chats.findByPk(chat_id);
-            if (!chat || (socket.user.id !== chat.buyer_id && socket.user.id !== chat.seller_id)) {
+            if (!chat || (String(socket.user.id).toLowerCase() !== String(chat.buyer_id).toLowerCase() && String(socket.user.id).toLowerCase() !== String(chat.seller_id).toLowerCase())) {
                 console.warn(`[Socket Auth Warning] Unauthorized send_message in chat ${chat_id} by user ${socket.user.id}`);
                 return;
             }

@@ -1,6 +1,6 @@
 "use client";
 
-import { Tag, Trash2, Edit, Eye, Search, Plus, CheckCircle2, ChevronLeft, ChevronRight, ShoppingBag, AlertCircle, XCircle, Truck, ScrollText, RotateCcw } from "lucide-react";
+import { Tag, Trash2, Edit, Eye, Search, Plus, CheckCircle2, ChevronLeft, ChevronRight, ShoppingBag, AlertCircle, XCircle, Truck, ScrollText, RotateCcw, Clock } from "lucide-react";
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import ActionModal from "@/components/ActionModal";
@@ -220,8 +220,6 @@ export default function DaftarJualanPage() {
   };
 
   const getEffectiveStatus = (item) => {
-    if (item.isVirtual) return "cancelled_order";
-
     let status = item.status?.toLowerCase() || "active";
 
     if (item.type === "auction") {
@@ -237,10 +235,7 @@ export default function DaftarJualanPage() {
             if (["completed", "disbursed", "disbursement_requested"].includes(orderStatus)) {
               return "auction_completed";
             }
-            if (orderStatus === "cancelled") {
-              return "auction_cancelled_transaction";
-            }
-            if (orderStatus === "cancelled_dismissed") {
+            if (orderStatus === "cancelled" || orderStatus === "cancelled_dismissed") {
               return "auction_cancelled_dismissed";
             }
             return "auction_in_transaction";
@@ -266,8 +261,8 @@ export default function DaftarJualanPage() {
 
     const effectiveStatus = getEffectiveStatus(item);
 
-    // Exclude completed auctions from product list (moved to dashboard completed orders)
-    if (item.type === "auction" && effectiveStatus === "auction_completed") {
+    // Exclude completed or cancelled auctions from product list (already in dashboard)
+    if (item.type === "auction" && ["auction_completed", "auction_cancelled_dismissed", "auction_cancelled_transaction"].includes(effectiveStatus)) {
       return [];
     }
 
@@ -277,7 +272,7 @@ export default function DaftarJualanPage() {
     } else if (filterStatus === "sold") {
       matchesStatus = effectiveStatus === "sold";
     } else if (filterStatus === "rejected") {
-      matchesStatus = ["rejected", "cancelled", "cancelled_order", "auction_cancelled_transaction"].includes(effectiveStatus);
+      matchesStatus = ["rejected", "cancelled"].includes(effectiveStatus);
     } else if (filterStatus === "active") {
       // 'active' filter: only show non-running auctions + non-auction actives
       // auction_in_transaction & auction_waiting_checkout are post-auction, not "active"
@@ -290,27 +285,6 @@ export default function DaftarJualanPage() {
 
     if (matchesSearch && matchesType && matchesStatus) {
       rows.push({ ...item, isVirtual: false, displayStatus: effectiveStatus });
-    }
-
-    // 2. If it has a cancelled order, add it as a separate VIRTUAL row
-    if (item.latestCancelledOrderId && (filterStatus === "all" || filterStatus === "rejected")) {
-      // Check if virtual row matches search (matches parent search OR matches invoice ID or buyer name)
-      const matchesVirtualSearch = matchesSearch || item.latestCancelledOrderId.toLowerCase().includes(searchQuery.toLowerCase()) || (item.latestCancelledBuyer && item.latestCancelledBuyer.toLowerCase().includes(searchQuery.toLowerCase()));
-
-      if (matchesVirtualSearch && matchesType) {
-        rows.push({
-          ...item,
-          id: `cancelled-${item.latestCancelledOrderId}`,
-          realListingId: item.id,
-          internalOrderId: item.latestCancelledInternalId,
-          isVirtual: true,
-          virtualType: "cancelled",
-          invoiceId: item.latestCancelledOrderId,
-          quantity: item.latestCancelledQuantity,
-          buyerName: item.latestCancelledBuyer,
-          displayStatus: "cancelled_order",
-        });
-      }
     }
 
     return rows;
@@ -422,8 +396,74 @@ export default function DaftarJualanPage() {
         </div>
       </div>
 
-      {/* Quota Card */}
-      <QuotaCard quota={quota} loading={quotaLoading} />
+      {/* Stats Cards Grid */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <QuotaCard quota={quota} loading={quotaLoading} />
+        <div className="bg-zinc-900 border border-zinc-800 rounded-2xl sm:rounded-3xl p-4 sm:p-5 flex flex-col justify-between h-full">
+          <div className="space-y-4">
+            <div className="flex items-start justify-between gap-2">
+              <div className="flex items-center gap-2.5 min-w-0">
+                <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-blue-500/10 text-blue-400 flex items-center justify-center shrink-0">
+                  <ShoppingBag size={16} />
+                </div>
+                <div className="min-w-0">
+                  <p className="text-[10px] sm:text-xs font-black text-zinc-400 uppercase tracking-widest leading-tight">Total Produk</p>
+                  <p className="text-[9px] text-zinc-600 font-bold mt-0.5">Seluruh iklan aktif & non-aktif</p>
+                </div>
+              </div>
+            </div>
+            <div className="flex items-end justify-between gap-2">
+              <div>
+                <div className="flex items-baseline gap-1.5">
+                  <span className="text-2xl sm:text-3xl md:text-4xl font-black tabular-nums leading-none text-white">{listings.length}</span>
+                  <span className="text-zinc-600 font-bold text-xs sm:text-sm">iklan</span>
+                </div>
+                <p className="text-[9px] sm:text-[10px] text-zinc-600 font-bold mt-0.5 uppercase tracking-wider">Terdaftar di sistem</p>
+              </div>
+              <div className="text-right shrink-0">
+                <p className="text-[9px] sm:text-[10px] font-bold text-zinc-500 uppercase tracking-wider">Tipe Produk</p>
+                <p className="text-xs sm:text-sm font-black text-blue-400">
+                  {listings.filter((item) => item.type === "sell").length} <span className="text-zinc-600 text-[8px] font-bold uppercase">Reguler</span>
+                  <span className="text-zinc-700 mx-1">•</span>
+                  {listings.filter((item) => item.type === "auction").length} <span className="text-zinc-600 text-[8px] font-bold uppercase">Lelang</span>
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div className="bg-zinc-900 border border-zinc-800 rounded-2xl sm:rounded-3xl p-4 sm:p-5 flex flex-col justify-between h-full">
+          <div className="space-y-4">
+            <div className="flex items-start justify-between gap-2">
+              <div className="flex items-center gap-2.5 min-w-0">
+                <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-amber-500/10 text-amber-400 flex items-center justify-center shrink-0">
+                  <Clock size={16} />
+                </div>
+                <div className="min-w-0">
+                  <p className="text-[10px] sm:text-xs font-black text-zinc-400 uppercase tracking-widest leading-tight">Produk Pending</p>
+                  <p className="text-[9px] text-zinc-600 font-bold mt-0.5">Menunggu persetujuan admin</p>
+                </div>
+              </div>
+            </div>
+            <div className="flex items-end justify-between gap-2">
+              <div>
+                <div className="flex items-baseline gap-1.5">
+                  <span className={`text-2xl sm:text-3xl md:text-4xl font-black tabular-nums leading-none ${listings.filter((item) => getEffectiveStatus(item) === "pending").length > 0 ? "text-amber-400 animate-pulse" : "text-white"}`}>
+                    {listings.filter((item) => getEffectiveStatus(item) === "pending").length}
+                  </span>
+                  <span className="text-zinc-600 font-bold text-xs sm:text-sm">produk</span>
+                </div>
+                <p className="text-[9px] sm:text-[10px] text-zinc-600 font-bold mt-0.5 uppercase tracking-wider">Menunggu verifikasi</p>
+              </div>
+              <div className="text-right shrink-0">
+                <p className="text-[9px] sm:text-[10px] font-bold text-zinc-500 uppercase tracking-wider">Status Lain</p>
+                <p className="text-xs sm:text-sm font-black text-red-400">
+                  {listings.filter((item) => getEffectiveStatus(item) === "rejected").length} <span className="text-zinc-600 text-[8px] font-bold uppercase">Ditolak</span>
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
 
       {/* Filters */}
       <div className="bg-zinc-900 border border-zinc-800 p-2 rounded-[2rem] flex flex-col md:flex-row gap-2 items-center">
@@ -510,8 +550,8 @@ export default function DaftarJualanPage() {
                 paginatedListings.map((item, index) => {
                   const globalIndex = (currentPage - 1) * itemsPerPage + index;
                   return (
-                    <tr key={item.id} className={`transition-colors group ${item.isVirtual ? "bg-red-500/5 hover:bg-red-500/10" : "hover:bg-zinc-800/30"}`}>
-                      <td className="p-6 text-xs font-bold text-zinc-600">{item.isVirtual ? "-" : globalIndex + 1}</td>
+                    <tr key={item.id} className="transition-colors group hover:bg-zinc-800/30">
+                      <td className="p-6 text-xs font-bold text-zinc-600">{globalIndex + 1}</td>
                       <td className="p-6">
                         <div className="flex items-center gap-4">
                           <div className="w-14 h-14 rounded-2xl bg-zinc-950 border border-zinc-800 overflow-hidden shrink-0 group-hover:border-zinc-700 transition-all">
@@ -519,7 +559,6 @@ export default function DaftarJualanPage() {
                           </div>
                           <div>
                             <p className="text-xs font-black text-white line-clamp-1">
-                              {item.isVirtual && <span className="text-red-500 mr-1">[BATAL]</span>}
                               {item.name}
                             </p>
                             <div className="flex items-center gap-2 mt-0.5">
@@ -531,7 +570,6 @@ export default function DaftarJualanPage() {
                                 </>
                               )}
                             </div>
-                            {item.isVirtual && <p className="text-[10px] text-red-400 mt-1 font-bold">Pembeli: {item.buyerName || "User"}</p>}
                             <div className="flex items-center gap-2 mt-1">
                               <span className={`px-2 py-0.5 rounded text-[8px] font-black uppercase tracking-tighter border ${item.type === "sell" ? "bg-blue-500/10 text-blue-400 border-blue-500/20" : "bg-amber-500/10 text-amber-400 border-amber-500/20"}`}>{item.type === "sell" ? "Reguler" : "Lelang"}</span>
                             </div>
@@ -553,8 +591,7 @@ export default function DaftarJualanPage() {
                       </td>
                       <td className="p-6 text-center">
                         <div className="flex flex-col items-center">
-                          <span className={`text-sm font-black ${item.isVirtual ? "text-red-500" : "text-white"}`}>{item.isVirtual ? item.quantity : item.stock || 0}</span>
-                          {item.isVirtual && <span className="text-[8px] text-red-400 font-bold uppercase">Batal</span>}
+                          <span className="text-sm font-black text-white">{item.stock || 0}</span>
                         </div>
                       </td>
                       <td className="p-6">
@@ -562,89 +599,45 @@ export default function DaftarJualanPage() {
                       </td>
                       <td className="p-6">
                         <div className="flex items-center justify-center gap-2">
-                          {item.isVirtual ? (
-                            <button
-                              onClick={(e) => {
-                                e.preventDefault();
-                                e.stopPropagation();
-                                setActionModal({
-                                  isOpen: true,
-                                  type: "danger",
-                                  title: "Hapus Riwayat Pembatalan",
-                                  message: `Apakah Anda yakin ingin menghapus catatan pembatalan untuk invoice ${item.invoiceId}? Catatan ini hanya riwayat visual. Stok barang (${item.quantity} ekor) SUDAH dikembalikan secara otomatis ke inventaris saat pembatalan terjadi. Menghapus baris ini tidak akan mengubah stok lagi.`,
-                                  confirmText: "Ya, Bersihkan Tampilan",
-                                  onConfirm: () => {
-                                    handleDismissCancellation(item.internalOrderId || item.invoiceId, item.realListingId);
-                                    setActionModal({ isOpen: false });
-                                  },
-                                });
-                              }}
-                              className="flex items-center gap-2 px-3 py-2 bg-zinc-800 hover:bg-red-500/20 text-red-500 rounded-xl transition-all border border-zinc-700 hover:border-red-500/30 font-bold text-[10px] uppercase tracking-wider whitespace-nowrap"
+                          <>
+                            <Link
+                              href={item.type === "auction" ? `/user/toko/lelang-produk/detail/${item.id}` : `/user/toko/daftar-produk/detail/${item.id}`}
+                              className={`w-10 h-10 bg-zinc-800 text-white rounded-xl flex items-center justify-center transition-all active:scale-90 ${item.type === "auction" ? "hover:bg-amber-500 hover:text-zinc-950" : "hover:bg-emerald-500 hover:text-zinc-950"}`}
+                              title="Detail Iklan"
                             >
-                              <Trash2 size={14} />
-                            </button>
-                          ) : item.type === "auction" && item.displayStatus === "auction_cancelled_transaction" ? (
-                            <button
-                              onClick={(e) => {
-                                e.preventDefault();
-                                e.stopPropagation();
-                                setActionModal({
-                                  isOpen: true,
-                                  type: "danger",
-                                  title: "Bersihkan Riwayat Transaksi",
-                                  message: `Apakah Anda yakin ingin membersihkan riwayat transaksi batal untuk lelang "${item.name}"? Tindakan ini akan menyelesaikan pembatalan dan memungkinkan Anda untuk melelang kembali produk ini.`,
-                                  confirmText: "Ya, Bersihkan",
-                                  onConfirm: () => {
-                                    handleDismissCancellation(item.latestCancelledInternalId || item.latestCancelledOrderId, item.id);
-                                    setActionModal({ isOpen: false });
-                                  },
-                                });
-                              }}
-                              className="flex items-center gap-2 px-3 py-2 bg-zinc-800 hover:bg-red-500/20 text-red-500 rounded-xl transition-all border border-zinc-700 hover:border-red-500/30 font-bold text-[10px] uppercase tracking-wider whitespace-nowrap"
-                            >
-                              <Trash2 size={14} />
-                            </button>
-                          ) : (
-                            <>
-                              <Link
-                                href={item.type === "auction" ? `/user/toko/lelang-produk/detail/${item.id}` : `/user/toko/daftar-produk/detail/${item.id}`}
-                                className={`w-10 h-10 bg-zinc-800 text-white rounded-xl flex items-center justify-center transition-all active:scale-90 ${item.type === "auction" ? "hover:bg-amber-500 hover:text-zinc-950" : "hover:bg-emerald-500 hover:text-zinc-950"}`}
-                                title="Detail Iklan"
-                              >
-                                <Eye size={18} />
+                              <Eye size={18} />
+                            </Link>
+                            {item.type === "auction" && item.latestOrderUuid && (
+                              <Link href={`/user/toko/pesanan-masuk/detail/${item.latestOrderUuid}`} className="w-10 h-10 bg-violet-600/10 text-violet-400 hover:bg-violet-600 hover:text-white rounded-xl flex items-center justify-center transition-all active:scale-90 border border-violet-500/20" title="Kelola Transaksi Lelang">
+                                <ShoppingBag size={18} />
                               </Link>
-                              {item.type === "auction" && item.latestOrderUuid && (
-                                <Link href={`/user/toko/pesanan-masuk/detail/${item.latestOrderUuid}`} className="w-10 h-10 bg-violet-600/10 text-violet-400 hover:bg-violet-600 hover:text-white rounded-xl flex items-center justify-center transition-all active:scale-90 border border-violet-500/20" title="Kelola Transaksi Lelang">
-                                  <ShoppingBag size={18} />
-                                </Link>
-                              )}
-                              {item.type === "auction"
-                                ? (Number(item.bid_count || 0) === 0 || item.displayStatus === "auction_cancelled_dismissed") &&
-                                  item.displayStatus !== "proses_lelang" && (
-                                    <>
-                                      <Link href={`/user/toko/lelang-produk/edit/${item.id}`} className="w-10 h-10 bg-zinc-800 text-white hover:bg-amber-500 hover:text-zinc-950 rounded-xl flex items-center justify-center transition-all active:scale-90" title="Edit Lelang">
-                                        <Edit size={18} />
-                                      </Link>
-                                      <Link href={`/user/toko/lelang-produk/edit/${item.id}?reauction=true`} className="w-10 h-10 bg-zinc-800 text-white hover:bg-emerald-500 hover:text-zinc-950 rounded-xl flex items-center justify-center transition-all active:scale-90" title="Lelang Kembali">
-                                        <RotateCcw size={18} />
-                                      </Link>
-                                      <button onClick={() => openDeleteModal(item)} className="w-10 h-10 bg-zinc-800 text-white hover:bg-red-500 hover:text-white rounded-xl flex items-center justify-center transition-all active:scale-90" title="Hapus Lelang">
-                                        <Trash2 size={18} />
-                                      </button>
-                                    </>
-                                  )
-                                : !["sold", "cancelled_order"].includes(item.displayStatus) && (
-                                    <>
-                                      <Link href={`/user/toko/jual-produk/edit/${item.id}`} className="w-10 h-10 bg-zinc-800 text-white hover:bg-amber-500 hover:text-zinc-950 rounded-xl flex items-center justify-center transition-all active:scale-90" title="Edit Iklan">
-                                        <Edit size={18} />
-                                      </Link>
-                                      <button onClick={() => openDeleteModal(item)} className="w-10 h-10 bg-zinc-800 text-white hover:bg-red-500 hover:text-white rounded-xl flex items-center justify-center transition-all active:scale-90" title="Hapus Iklan">
-                                        <Trash2 size={18} />
-                                      </button>
-                                    </>
-                                  )}
-                            </>
-                          )}
+                            )}
+                            {item.type === "auction"
+                              ? (Number(item.bid_count || 0) === 0 || item.displayStatus === "auction_cancelled_dismissed") &&
+                                item.displayStatus !== "proses_lelang" && (
+                                  <>
+                                    <Link href={`/user/toko/lelang-produk/edit/${item.id}`} className="w-10 h-10 bg-zinc-800 text-white hover:bg-amber-500 hover:text-zinc-950 rounded-xl flex items-center justify-center transition-all active:scale-90" title="Edit Lelang">
+                                      <Edit size={18} />
+                                    </Link>
+                                    <Link href={`/user/toko/lelang-produk/edit/${item.id}?reauction=true`} className="w-10 h-10 bg-zinc-800 text-white hover:bg-emerald-500 hover:text-zinc-950 rounded-xl flex items-center justify-center transition-all active:scale-90" title="Lelang Kembali">
+                                      <RotateCcw size={18} />
+                                    </Link>
+                                    <button onClick={() => openDeleteModal(item)} className="w-10 h-10 bg-zinc-800 text-white hover:bg-red-500 hover:text-white rounded-xl flex items-center justify-center transition-all active:scale-90" title="Hapus Lelang">
+                                      <Trash2 size={18} />
+                                    </button>
+                                  </>
+                                )
+                              : item.displayStatus !== "sold" && (
+                                  <>
+                                    <Link href={`/user/toko/jual-produk/edit/${item.id}`} className="w-10 h-10 bg-zinc-800 text-white hover:bg-amber-500 hover:text-zinc-950 rounded-xl flex items-center justify-center transition-all active:scale-90" title="Edit Iklan">
+                                      <Edit size={18} />
+                                    </Link>
+                                    <button onClick={() => openDeleteModal(item)} className="w-10 h-10 bg-zinc-800 text-white hover:bg-red-500 hover:text-white rounded-xl flex items-center justify-center transition-all active:scale-90" title="Hapus Iklan">
+                                      <Trash2 size={18} />
+                                    </button>
+                                  </>
+                                )}
+                          </>
                         </div>
                       </td>
                     </tr>
@@ -672,11 +665,11 @@ export default function DaftarJualanPage() {
       <div className="md:hidden space-y-4">
         {paginatedListings.length > 0 ? (
           paginatedListings.map((item, index) => (
-            <div key={item.id} className={`border rounded-[2rem] overflow-hidden animate-in slide-in-from-bottom-4 duration-300 ${item.isVirtual ? "bg-red-900/10 border-red-500/20" : "bg-zinc-900 border-zinc-800"}`} style={{ animationDelay: `${index * 50}ms` }}>
+            <div key={item.id} className="bg-zinc-900 border border-zinc-800 rounded-[2rem] overflow-hidden animate-in slide-in-from-bottom-4 duration-300" style={{ animationDelay: `${index * 50}ms` }}>
               {/* Card Header */}
               <div className="px-5 py-3 border-b border-zinc-800 bg-zinc-950/30 flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <span className="w-5 h-5 bg-zinc-800 rounded flex items-center justify-center text-[10px] font-black text-zinc-500">{item.isVirtual ? "-" : index + 1}</span>
+                  <span className="w-5 h-5 bg-zinc-800 rounded flex items-center justify-center text-[10px] font-black text-zinc-500">{index + 1}</span>
                   <span className={`px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest border ${getStatusStyles(item.displayStatus)}`}>{getStatusLabel(item.displayStatus)}</span>
                 </div>
                 <span className={`px-2 py-0.5 rounded text-[8px] font-black uppercase tracking-tighter border ${item.type === "sell" ? "bg-blue-500/10 text-blue-400 border-blue-500/20" : "bg-amber-500/10 text-amber-400 border-amber-500/20"}`}>{item.type === "sell" ? "Reguler" : "Lelang"}</span>
@@ -690,7 +683,6 @@ export default function DaftarJualanPage() {
                   </div>
                   <div className="flex-1 min-w-0">
                     <h3 className="text-sm font-black text-white line-clamp-1 mb-0.5">
-                      {item.isVirtual && <span className="text-red-500">[BATAL] </span>}
                       {item.name}
                     </h3>
                     <div className="flex items-center gap-2 mb-2">
@@ -699,9 +691,8 @@ export default function DaftarJualanPage() {
                     </div>
                     <div className="flex items-center justify-between">
                       <span className="text-xs font-black text-white">{formatPrice(item.type === "sell" ? item.price : item.current_bid || item.start_bid)}</span>
-                      <span className={`text-[10px] font-bold italic ${item.isVirtual ? "text-red-400" : "text-zinc-500"}`}>{item.isVirtual ? `Batal: ${item.quantity}` : `Stok: ${item.stock || 0}`}</span>
+                      <span className="text-[10px] font-bold italic text-zinc-500">{`Stok: ${item.stock || 0}`}</span>
                     </div>
-                    {item.isVirtual && <p className="text-[10px] text-red-500 mt-1 font-bold">Oleh: {item.buyerName || "User"}</p>}
                   </div>
                 </div>
                 {item.displayStatus === "rejected" && item.rejection_reason && (
@@ -716,105 +707,61 @@ export default function DaftarJualanPage() {
                 <div className="grid grid-cols-2 gap-3 pt-1">
                   <div className="p-3 bg-zinc-950/40 border border-zinc-800/50 rounded-xl col-span-2">
                     <p className="text-[8px] font-black text-zinc-500 uppercase tracking-widest mb-1 flex items-center gap-1">
-                      <ScrollText size={10} className={item.latestOrderId || item.invoiceId ? "text-emerald-500" : "text-zinc-500"} />
-                      {item.displayStatus === "cancelled_order" || item.displayStatus === "auction_cancelled_transaction" ? "Invoice Batal" : "Nomor Invoice"}
+                      <ScrollText size={10} className={item.latestOrderId ? "text-emerald-500" : "text-zinc-500"} />
+                      Nomor Invoice
                     </p>
-                    {item.isVirtual ? <p className="text-[10px] font-black text-red-400 font-mono">{item.invoiceId}</p> : item.latestOrderId ? <p className="text-[10px] font-black text-white font-mono">{item.latestOrderId}</p> : <p className="text-[10px] font-bold text-zinc-600 italic">Belum Terjual</p>}
+                    {item.latestOrderId ? <p className="text-[10px] font-black text-white font-mono">{item.latestOrderId}</p> : <p className="text-[10px] font-bold text-zinc-600 italic">Belum Terjual</p>}
                   </div>
                 </div>
 
                 <div className="flex flex-wrap gap-2 pt-2">
-                  {item.isVirtual ? (
-                    <button
-                      onClick={(e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        setActionModal({
-                          isOpen: true,
-                          type: "danger",
-                          title: "Hapus Riwayat Pembatalan",
-                          message: `Hapus catatan pembatalan invoice ${item.invoiceId}? Stok (${item.quantity} ekor) SUDAH otomatis kembali ke inventaris saat pembatalan terjadi. Aksi ini hanya untuk membersihkan dashboard Anda.`,
-                          confirmText: "Ya, Hapus Catatan",
-                          onConfirm: () => {
-                            handleDismissCancellation(item.internalOrderId || item.invoiceId, item.realListingId);
-                            setActionModal({ isOpen: false });
-                          },
-                        });
-                      }}
-                      className="w-full flex items-center justify-center gap-2 py-3 bg-red-500/10 hover:bg-red-500/20 text-red-500 rounded-xl transition-all border border-red-500/30 font-black text-[10px] uppercase tracking-widest"
+                  <>
+                    <Link
+                      href={item.type === "auction" ? `/user/toko/lelang-produk/detail/${item.id}` : `/user/toko/daftar-produk/detail/${item.id}`}
+                      className={`flex-1 min-w-[80px] flex items-center justify-center gap-1.5 py-3 bg-zinc-800 text-zinc-400 rounded-xl transition-all border border-zinc-700 ${
+                        item.type === "auction" ? "hover:bg-amber-500 hover:text-zinc-950 hover:border-amber-500" : "hover:bg-emerald-500 hover:text-zinc-950 hover:border-emerald-500"
+                      }`}
                     >
-                      <Trash2 size={14} /> Bersihkan Riwayat Batal
-                    </button>
-                  ) : item.type === "auction" && item.displayStatus === "auction_cancelled_transaction" ? (
-                    <button
-                      onClick={(e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        setActionModal({
-                          isOpen: true,
-                          type: "danger",
-                          title: "Bersihkan Riwayat Transaksi",
-                          message: `Apakah Anda yakin ingin membersihkan riwayat transaksi batal untuk lelang "${item.name}"? Tindakan ini akan menyelesaikan pembatalan dan memungkinkan Anda untuk melelang kembali produk ini.`,
-                          confirmText: "Ya, Bersihkan",
-                          onConfirm: () => {
-                            handleDismissCancellation(item.latestCancelledInternalId || item.latestCancelledOrderId, item.id);
-                            setActionModal({ isOpen: false });
-                          },
-                        });
-                      }}
-                      className="w-full flex items-center justify-center gap-2 py-3 bg-red-500/10 hover:bg-red-500/20 text-red-500 rounded-xl transition-all border border-red-500/30 font-black text-[10px] uppercase tracking-widest"
-                    >
-                      <Trash2 size={14} />
-                    </button>
-                  ) : (
-                    <>
-                      <Link
-                        href={item.type === "auction" ? `/user/toko/lelang-produk/detail/${item.id}` : `/user/toko/daftar-produk/detail/${item.id}`}
-                        className={`flex-1 min-w-[80px] flex items-center justify-center gap-1.5 py-3 bg-zinc-800 text-zinc-400 rounded-xl transition-all border border-zinc-700 ${
-                          item.type === "auction" ? "hover:bg-amber-500 hover:text-zinc-950 hover:border-amber-500" : "hover:bg-emerald-500 hover:text-zinc-950 hover:border-emerald-500"
-                        }`}
-                      >
-                        <Eye size={14} />
-                        <span className="text-[9px] font-black uppercase tracking-widest">Detail</span>
+                      <Eye size={14} />
+                      <span className="text-[9px] font-black uppercase tracking-widest">Detail</span>
+                    </Link>
+                    {item.type === "auction" && item.latestOrderUuid && (
+                      <Link href={`/user/toko/pesanan-masuk/detail/${item.latestOrderUuid}`} className="flex-1 min-w-[80px] flex items-center justify-center gap-1.5 py-3 bg-violet-600/10 hover:bg-violet-600 text-violet-400 hover:text-white rounded-xl transition-all border border-violet-500/20 hover:border-violet-600 font-bold">
+                        <ShoppingBag size={14} />
+                        <span className="text-[9px] font-black uppercase tracking-widest">Transaksi</span>
                       </Link>
-                      {item.type === "auction" && item.latestOrderUuid && (
-                        <Link href={`/user/toko/pesanan-masuk/detail/${item.latestOrderUuid}`} className="flex-1 min-w-[80px] flex items-center justify-center gap-1.5 py-3 bg-violet-600/10 hover:bg-violet-600 text-violet-400 hover:text-white rounded-xl transition-all border border-violet-500/20 hover:border-violet-600 font-bold">
-                          <ShoppingBag size={14} />
-                          <span className="text-[9px] font-black uppercase tracking-widest">Transaksi</span>
-                        </Link>
-                      )}
-                      {item.type === "auction"
-                        ? (Number(item.bid_count || 0) === 0 || item.displayStatus === "auction_cancelled_dismissed") &&
-                          item.displayStatus !== "proses_lelang" && (
-                            <>
-                              <Link href={`/user/toko/lelang-produk/edit/${item.id}`} className="flex-1 min-w-[80px] flex items-center justify-center gap-1.5 py-3 bg-zinc-800 hover:bg-amber-500 text-zinc-400 hover:text-zinc-950 rounded-xl transition-all border border-zinc-700 hover:border-amber-500">
-                                <Edit size={14} />
-                                <span className="text-[9px] font-black uppercase tracking-widest">Edit</span>
-                              </Link>
-                              <Link href={`/user/toko/lelang-produk/edit/${item.id}?reauction=true`} className="flex-1 min-w-[80px] flex items-center justify-center gap-1.5 py-3 bg-zinc-800 hover:bg-emerald-500 text-zinc-400 hover:text-zinc-950 rounded-xl transition-all border border-zinc-700 hover:border-emerald-500">
-                                <RotateCcw size={14} />
-                                <span className="text-[9px] font-black uppercase tracking-widest">Lelang</span>
-                              </Link>
-                              <button onClick={() => openDeleteModal(item)} className="flex-1 min-w-[80px] flex items-center justify-center gap-1.5 py-3 bg-zinc-800 hover:bg-red-500 text-zinc-400 hover:text-white rounded-xl transition-all border border-zinc-700 hover:border-red-500">
-                                <Trash2 size={14} />
-                                <span className="text-[9px] font-black uppercase tracking-widest">Hapus</span>
-                              </button>
-                            </>
-                          )
-                        : !["sold", "cancelled_order"].includes(item.displayStatus) && (
-                            <>
-                              <Link href={`/user/toko/jual-produk/edit/${item.id}`} className="flex-1 min-w-[80px] flex items-center justify-center gap-1.5 py-3 bg-zinc-800 hover:bg-amber-500 text-zinc-400 hover:text-zinc-950 rounded-xl transition-all border border-zinc-700 hover:border-amber-500">
-                                <Edit size={14} />
-                                <span className="text-[9px] font-black uppercase tracking-widest">Edit</span>
-                              </Link>
-                              <button onClick={() => openDeleteModal(item)} className="flex-1 min-w-[80px] flex items-center justify-center gap-1.5 py-3 bg-zinc-800 hover:bg-red-500 text-zinc-400 hover:text-white rounded-xl transition-all border border-zinc-700 hover:border-red-500">
-                                <Trash2 size={14} />
-                                <span className="text-[9px] font-black uppercase tracking-widest">Hapus</span>
-                              </button>
-                            </>
-                          )}
-                    </>
-                  )}
+                    )}
+                    {item.type === "auction"
+                      ? (Number(item.bid_count || 0) === 0 || item.displayStatus === "auction_cancelled_dismissed") &&
+                        item.displayStatus !== "proses_lelang" && (
+                          <>
+                            <Link href={`/user/toko/lelang-produk/edit/${item.id}`} className="flex-1 min-w-[80px] flex items-center justify-center gap-1.5 py-3 bg-zinc-800 hover:bg-amber-500 text-zinc-400 hover:text-zinc-950 rounded-xl transition-all border border-zinc-700 hover:border-amber-500">
+                              <Edit size={14} />
+                              <span className="text-[9px] font-black uppercase tracking-widest">Edit</span>
+                            </Link>
+                            <Link href={`/user/toko/lelang-produk/edit/${item.id}?reauction=true`} className="flex-1 min-w-[80px] flex items-center justify-center gap-1.5 py-3 bg-zinc-800 hover:bg-emerald-500 text-zinc-400 hover:text-zinc-950 rounded-xl transition-all border border-zinc-700 hover:border-emerald-500">
+                              <RotateCcw size={14} />
+                              <span className="text-[9px] font-black uppercase tracking-widest">Lelang</span>
+                            </Link>
+                            <button onClick={() => openDeleteModal(item)} className="flex-1 min-w-[80px] flex items-center justify-center gap-1.5 py-3 bg-zinc-800 hover:bg-red-500 text-zinc-400 hover:text-white rounded-xl transition-all border border-zinc-700 hover:border-red-500">
+                              <Trash2 size={14} />
+                              <span className="text-[9px] font-black uppercase tracking-widest">Hapus</span>
+                            </button>
+                          </>
+                        )
+                      : item.displayStatus !== "sold" && (
+                          <>
+                            <Link href={`/user/toko/jual-produk/edit/${item.id}`} className="flex-1 min-w-[80px] flex items-center justify-center gap-1.5 py-3 bg-zinc-800 hover:bg-amber-500 text-zinc-400 hover:text-zinc-950 rounded-xl transition-all border border-zinc-700 hover:border-amber-500">
+                              <Edit size={14} />
+                              <span className="text-[9px] font-black uppercase tracking-widest">Edit</span>
+                            </Link>
+                            <button onClick={() => openDeleteModal(item)} className="flex-1 min-w-[80px] flex items-center justify-center gap-1.5 py-3 bg-zinc-800 hover:bg-red-500 text-zinc-400 hover:text-white rounded-xl transition-all border border-zinc-700 hover:border-red-500">
+                              <Trash2 size={14} />
+                              <span className="text-[9px] font-black uppercase tracking-widest">Hapus</span>
+                            </button>
+                          </>
+                        )}
+                  </>
                 </div>
               </div>
             </div>

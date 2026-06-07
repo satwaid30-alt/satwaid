@@ -859,6 +859,87 @@ const ListingsController = {
         }
     },
 
+    // 5b. Bulk Verify Pending Listings (PUT)
+    bulkVerifyListings: async (req, res) => {
+        try {
+            // Find all pending listings
+            const pendingListings = await models.listings.findAll({
+                where: { status: 'pending' },
+                include: [{ model: models.shops, as: 'shop' }]
+            });
+
+            if (pendingListings.length === 0) {
+                return res.status(200).json({ message: "Tidak ada produk pending untuk diverifikasi." });
+            }
+
+            const listingIds = pendingListings.map(l => l.id);
+
+            // Update all to active
+            await models.listings.update(
+                { status: 'active', updated_at: new Date() },
+                { where: { id: listingIds } }
+            );
+
+            // Create notifications & emit socket events
+            const io = req.app.get('socketio');
+
+            for (const listing of pendingListings) {
+                try {
+                    const title = 'Produk Disetujui';
+                    const message = `Selamat! Produk "${listing.name}" telah disetujui dan kini tayang di marketplace.`;
+
+                    // Create Notification in DB
+                    const newNotif = await models.notifications.create({
+                        user_id: listing.user_id,
+                        type: 'moderation_product',
+                        title,
+                        message,
+                        link: '/user/toko/daftar-produk',
+                        created_at: new Date()
+                    });
+
+                    // Emit Socket Event
+                    if (io) {
+                        io.to(`user_${listing.user_id}`).emit('new_notification', {
+                            id: newNotif.id,
+                            type: 'moderation_product',
+                            title,
+                            message,
+                            time: newNotif.created_at
+                        });
+
+                        io.to(`user_${listing.user_id}`).emit('listing_status_updated', {
+                            id: listing.id,
+                            status: 'active',
+                            rejection_reason: null
+                        });
+
+                        // Emit to Admin Room for Real-time Dashboard Update
+                        io.to('admin_room').emit('listing_updated_admin', {
+                            id: listing.id,
+                            status: 'active',
+                            updated_at: new Date()
+                        });
+
+                        // Broadcast to General Public (Homepage / Stores)
+                        listing.status = 'active'; // reflect updated status in memory
+                        io.emit('new_listing_published', listing);
+                    }
+                } catch (notifErr) {
+                    console.error(`Failed to notify for listing ${listing.id}:`, notifErr);
+                }
+            }
+
+            return res.status(200).json({
+                message: `Berhasil memverifikasi ${pendingListings.length} produk pending.`,
+                count: pendingListings.length
+            });
+        } catch (err) {
+            console.error("Error bulk verifying listings:", err);
+            return res.status(500).json({ message: err.message });
+        }
+    },
+
     // 6. Delete (DELETE)
     deleteListing: async (req, res) => {
         try {

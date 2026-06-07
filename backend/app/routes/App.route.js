@@ -59,6 +59,7 @@ router.delete('/shop-upgrades/plans/:id', checkAuthAdmin, shopUpgradesController
 router.get('/listings', listingsController.getListings);
 router.get('/listings/shop/:shopId', listingsController.getListingsByShop);
 router.get('/listings/quota/:shopId', listingsController.getShopQuota);
+router.put('/listings/bulk-verify', checkAuthAdmin, listingsController.bulkVerifyListings);
 router.get('/listings/:id', listingsController.getListingById);
 router.post('/listings', checkAuth, listingsController.createListing);
 router.put('/listings/:id', checkAuth, listingsController.updateListing);
@@ -126,6 +127,8 @@ router.post('/complaints', checkAuth, complaintsController.createComplaint);
 router.get('/complaints/user', checkAuth, complaintsController.getUserComplaints);
 router.get('/complaints', checkAuthAdmin, complaintsController.getAllComplaints);
 router.put('/complaints/:id', checkAuthAdmin, complaintsController.respondToComplaint);
+router.get('/complaints/:complaint_id/comments', checkAuth, complaintsController.getComplaintComments);
+
 
 // Advertisements Routes
 router.get('/advertisements', adsController.getAdvertisements);

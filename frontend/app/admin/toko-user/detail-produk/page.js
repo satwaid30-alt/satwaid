@@ -1,6 +1,6 @@
 "use client";
 
-import { Package, Search, Eye, Trash2, ShoppingBag, CheckCircle2, XCircle, AlertCircle, Edit, Info, MessageSquare, MoreVertical, Store, RotateCcw, Bell, Sparkles, X } from "lucide-react";
+import { Package, Search, Eye, Trash2, ShoppingBag, CheckCircle2, XCircle, AlertCircle, Edit, Info, MessageSquare, MoreVertical, Store, RotateCcw, Bell, Sparkles, X, Ban } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import ActionModal from "@/components/ActionModal";
@@ -32,6 +32,7 @@ export default function AdminDetailProdukPage() {
     isLoading: false,
     id: null,
     rejectionReason: "",
+    showReasonInput: false,
   });
 
   // Toast helpers
@@ -154,6 +155,109 @@ export default function AdminDetailProdukPage() {
     }
   };
 
+  const openBulkVerifyModal = () => {
+    const pendingCount = listings.filter((l) => l.status?.toLowerCase() === "pending").length;
+    setActionModal({
+      isOpen: true,
+      type: "success",
+      title: "Setujui Semua Pending",
+      message: `Apakah Anda yakin ingin memverifikasi dan menyetujui ${pendingCount} produk pending sekaligus? Semua produk ini akan langsung aktif di marketplace.`,
+      confirmText: "Ya, Setujui Semua",
+      id: null,
+      onConfirm: () => processBulkVerify(),
+    });
+  };
+
+  const processBulkVerify = async () => {
+    setActionModal((prev) => ({ ...prev, isLoading: true }));
+    try {
+      const token = localStorage.getItem("admin_token");
+      const response = await fetch(`${getApiUrl()}/listings/bulk-verify`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: token ? `Bearer ${token}` : "",
+        },
+      });
+      const result = await response.json();
+      if (response.ok) {
+        addToast({
+          type: "success",
+          title: "Verifikasi Masal Berhasil!",
+          message: result.message || "Semua produk pending telah disetujui.",
+          shop: "Sistem Admin",
+          listingId: "",
+        });
+        fetchListings();
+        setActionModal({ isOpen: false });
+      } else {
+        alert(result.message || "Gagal memproses verifikasi massal");
+      }
+    } catch (err) {
+      console.error("Error bulk verifying listings:", err);
+      alert("Terjadi kesalahan koneksi saat memproses verifikasi massal");
+    } finally {
+      setActionModal((prev) => ({ ...prev, isLoading: false }));
+    }
+  };
+
+  const openCancelAuctionModal = (item) => {
+    setActionModal({
+      isOpen: true,
+      type: "warning",
+      title: "Batalkan Lelang",
+      message: `Apakah Anda yakin ingin membatalkan lelang untuk "${item.name}"? Tuliskan alasan pembatalan lelang di bawah:`,
+      confirmText: "Batalkan Lelang",
+      id: item.id,
+      rejectionReason: "",
+      showReasonInput: true,
+      onConfirm: () => {}, // dummy, will be intercepted
+    });
+  };
+
+  const processCancelAuction = async (id, reason) => {
+    if (!reason || !reason.trim()) {
+      alert("Harap masukkan alasan pembatalan lelang.");
+      return;
+    }
+
+    setActionModal((prev) => ({ ...prev, isLoading: true }));
+    try {
+      const token = localStorage.getItem("admin_token");
+      const response = await fetch(`${getApiUrl()}/listings/${id}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: token ? `Bearer ${token}` : "",
+        },
+        body: JSON.stringify({
+          status: "rejected",
+          rejection_reason: reason.trim(),
+        }),
+      });
+
+      if (response.ok) {
+        addToast({
+          type: "success",
+          title: "Lelang Dibatalkan",
+          message: "Lelang berhasil dibatalkan dan produk diturunkan.",
+          shop: "Sistem Admin",
+          listingId: id,
+        });
+        fetchListings();
+        setActionModal({ isOpen: false, showReasonInput: false, rejectionReason: "" });
+      } else {
+        const result = await response.json();
+        alert(result.message || "Gagal membatalkan lelang");
+      }
+    } catch (err) {
+      console.error("Error cancelling auction:", err);
+      alert("Terjadi kesalahan koneksi saat memproses pembatalan lelang");
+    } finally {
+      setActionModal((prev) => ({ ...prev, isLoading: false }));
+    }
+  };
+
   const filteredListings = listings.filter((item) => {
     const matchesSearch =
       item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -229,9 +333,11 @@ export default function AdminDetailProdukPage() {
               <p className="text-[10px] text-zinc-500 font-medium mt-0.5">
                 dari <span className="text-zinc-300">{toast.shop}</span>
               </p>
-              <Link href={`/admin/toko-user/detail-produk/detail/${toast.listingId}`} className="inline-flex items-center gap-1 mt-2 text-[10px] font-black text-emerald-400 hover:text-emerald-300 transition-colors uppercase tracking-widest">
-                <Eye size={10} /> Lihat Detail →
-              </Link>
+              {toast.listingId && (
+                <Link href={`/admin/toko-user/detail-produk/detail/${toast.listingId}`} className="inline-flex items-center gap-1 mt-2 text-[10px] font-black text-emerald-400 hover:text-emerald-300 transition-colors uppercase tracking-widest">
+                  <Eye size={10} /> Lihat Detail →
+                </Link>
+              )}
             </div>
             {/* Close */}
             <button onClick={() => removeToast(toast.id)} className="shrink-0 w-6 h-6 rounded-lg bg-zinc-800 hover:bg-zinc-700 flex items-center justify-center text-zinc-500 hover:text-white transition-colors">
@@ -255,28 +361,39 @@ export default function AdminDetailProdukPage() {
             </span>
           </p>
         </div>
-        <div className="flex items-center gap-4 bg-zinc-900/50 p-2 rounded-2xl border border-zinc-800">
-          <div className="px-4 py-2 text-center border-r border-zinc-800">
-            <p className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Total Produk</p>
-            <p className="text-xl font-black text-white">{listings.length}</p>
-          </div>
-          <div className="px-4 py-2 text-center relative">
-            <p className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Menunggu</p>
-            <p className="text-xl font-black text-amber-500 flex items-center gap-1.5">
-              {listings.filter((l) => l.status === "pending").length}
-              {newPendingCount > 0 && (
-                <button
-                  onClick={() => {
-                    setStatusFilter("pending");
-                    setNewPendingCount(0);
-                  }}
-                  className="inline-flex items-center gap-1 text-[9px] font-black bg-amber-500 text-zinc-950 px-1.5 py-0.5 rounded-full animate-bounce"
-                  title={`${newPendingCount} pengajuan baru`}
-                >
-                  +{newPendingCount}
-                </button>
-              )}
-            </p>
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4">
+          {listings.filter((l) => l.status?.toLowerCase() === "pending").length > 0 && (
+            <button
+              onClick={openBulkVerifyModal}
+              className="flex items-center justify-center gap-2 px-5 py-3 bg-emerald-500 hover:bg-emerald-400 text-zinc-950 rounded-2xl text-xs font-black transition-all active:scale-95 shadow-lg shadow-emerald-500/15"
+            >
+              <CheckCircle2 size={16} />
+              Setujui Semua Pending
+            </button>
+          )}
+          <div className="flex items-center gap-4 bg-zinc-900/50 p-2 rounded-2xl border border-zinc-800">
+            <div className="px-4 py-2 text-center border-r border-zinc-800">
+              <p className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Total Produk</p>
+              <p className="text-xl font-black text-white">{listings.length}</p>
+            </div>
+            <div className="px-4 py-2 text-center relative">
+              <p className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Menunggu</p>
+              <p className="text-xl font-black text-amber-500 flex items-center gap-1.5">
+                {listings.filter((l) => l.status === "pending").length}
+                {newPendingCount > 0 && (
+                  <button
+                    onClick={() => {
+                      setStatusFilter("pending");
+                      setNewPendingCount(0);
+                    }}
+                    className="inline-flex items-center gap-1 text-[9px] font-black bg-amber-500 text-zinc-950 px-1.5 py-0.5 rounded-full animate-bounce"
+                    title={`${newPendingCount} pengajuan baru`}
+                  >
+                    +{newPendingCount}
+                  </button>
+                )}
+              </p>
+            </div>
           </div>
         </div>
       </div>
@@ -450,13 +567,15 @@ export default function AdminDetailProdukPage() {
                           <Link href={`/admin/toko-user/detail-produk/detail/${item.id}`} className="w-10 h-10 bg-zinc-800 text-white hover:bg-emerald-500 hover:text-zinc-950 rounded-xl flex items-center justify-center transition-all shadow-lg active:scale-90" title="Detail & Moderasi">
                             <Eye size={18} />
                           </Link>
-                          {/* <Link
-                                                        href={`/user/toko/jual-produk/edit/${item.id}`}
-                                                        className="w-10 h-10 bg-zinc-800 text-white hover:bg-amber-500 hover:text-zinc-950 rounded-xl flex items-center justify-center transition-all shadow-lg active:scale-90"
-                                                        title="Edit Produk"
-                                                    >
-                                                        <Edit size={18} />
-                                                    </Link> */}
+                          {item.type === "auction" && item.status?.toLowerCase() === "active" && (
+                            <button
+                              onClick={() => openCancelAuctionModal(item)}
+                              className="w-10 h-10 bg-zinc-800 text-white hover:bg-red-500 hover:text-white rounded-xl flex items-center justify-center transition-all shadow-lg active:scale-90"
+                              title="Batalkan Lelang"
+                            >
+                              <Ban size={18} />
+                            </button>
+                          )}
                           <button onClick={() => openDeleteModal(item)} className="w-10 h-10 bg-zinc-800 text-white hover:bg-red-500 hover:text-white rounded-xl flex items-center justify-center transition-all shadow-lg active:scale-90" title="Hapus Produk">
                             <Trash2 size={18} />
                           </button>
@@ -572,10 +691,17 @@ export default function AdminDetailProdukPage() {
                       <Eye size={14} />
                       <span className="text-[9px] font-black uppercase tracking-widest">Detail</span>
                     </Link>
-                    <Link href={`/user/toko/jual-produk/edit/${item.id}`} className="flex items-center justify-center gap-1.5 py-3 bg-zinc-800 hover:bg-amber-500 text-zinc-400 hover:text-zinc-950 rounded-xl transition-all border border-zinc-700 hover:border-amber-500">
-                      <Edit size={14} />
-                      <span className="text-[9px] font-black uppercase tracking-widest">Edit</span>
-                    </Link>
+                    {item.type === "auction" && item.status?.toLowerCase() === "active" ? (
+                      <button onClick={() => openCancelAuctionModal(item)} className="flex items-center justify-center gap-1.5 py-3 bg-zinc-800 hover:bg-red-500 text-zinc-400 hover:text-white rounded-xl transition-all border border-zinc-700 hover:border-red-500">
+                        <Ban size={14} />
+                        <span className="text-[9px] font-black uppercase tracking-widest">Batal</span>
+                      </button>
+                    ) : (
+                      <Link href={`/user/toko/jual-produk/edit/${item.id}`} className="flex items-center justify-center gap-1.5 py-3 bg-zinc-800 hover:bg-amber-500 text-zinc-400 hover:text-zinc-950 rounded-xl transition-all border border-zinc-700 hover:border-amber-500">
+                        <Edit size={14} />
+                        <span className="text-[9px] font-black uppercase tracking-widest">Edit</span>
+                      </Link>
+                    )}
                     <button onClick={() => openDeleteModal(item)} className="flex items-center justify-center gap-1.5 py-3 bg-zinc-800 hover:bg-red-500 text-zinc-400 hover:text-white rounded-xl transition-all border border-zinc-700 hover:border-red-500">
                       <Trash2 size={14} />
                       <span className="text-[9px] font-black uppercase tracking-widest">Hapus</span>
@@ -693,7 +819,34 @@ export default function AdminDetailProdukPage() {
       )}
 
       {/* Standardized Action Modal */}
-      <ActionModal isOpen={actionModal.isOpen} onClose={() => setActionModal({ ...actionModal, isOpen: false })} onConfirm={actionModal.onConfirm} isLoading={actionModal.isLoading} type={actionModal.type} title={actionModal.title} message={actionModal.message} confirmText={actionModal.confirmText} />
+      <ActionModal
+        isOpen={actionModal.isOpen}
+        onClose={() => setActionModal({ ...actionModal, isOpen: false, showReasonInput: false, rejectionReason: "" })}
+        onConfirm={actionModal.onConfirm ? () => {
+          if (actionModal.showReasonInput) {
+            processCancelAuction(actionModal.id, actionModal.rejectionReason);
+          } else {
+            actionModal.onConfirm();
+          }
+        } : null}
+        isLoading={actionModal.isLoading}
+        type={actionModal.type}
+        title={actionModal.title}
+        message={actionModal.message}
+        confirmText={actionModal.confirmText}
+      >
+        {actionModal.showReasonInput && (
+          <div className="relative mt-2">
+            <MessageSquare className="absolute left-5 top-5 text-zinc-500" size={20} />
+            <textarea
+              placeholder="Tuliskan alasan pembatalan lelang secara jelas..."
+              className="w-full bg-zinc-950 border border-zinc-800 text-white pl-14 pr-6 py-5 rounded-3xl focus:outline-none focus:border-red-500 transition-all min-h-[140px] text-sm leading-relaxed"
+              value={actionModal.rejectionReason || ""}
+              onChange={(e) => setActionModal({ ...actionModal, rejectionReason: e.target.value })}
+            />
+          </div>
+        )}
+      </ActionModal>
     </div>
   );
 }

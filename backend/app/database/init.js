@@ -20,6 +20,7 @@ var _menu_controls = require("../models/menu_controls");
 var _shop_upgrades = require("../models/shop_upgrades");
 var _shop_upgrade_plans = require("../models/shop_upgrade_plans");
 var _complaints = require("../models/complaints");
+var _complaint_comments = require("../models/complaint_comments");
 
 
 function initModels(sequelize) {
@@ -43,6 +44,7 @@ function initModels(sequelize) {
   var shop_upgrades = _shop_upgrades(sequelize, DataTypes);
   var shop_upgrade_plans = _shop_upgrade_plans(sequelize, DataTypes);
   var complaints = _complaints(sequelize, DataTypes);
+  var complaint_comments = _complaint_comments(sequelize, DataTypes);
 
 
 
@@ -115,6 +117,11 @@ function initModels(sequelize) {
   complaints.belongsTo(users, { as: "user", foreignKey: "user_id" });
   users.hasMany(complaints, { as: "complaints", foreignKey: "user_id" });
 
+  complaint_comments.belongsTo(complaints, { as: "complaint", foreignKey: "complaint_id" });
+  complaints.hasMany(complaint_comments, { as: "comments", foreignKey: "complaint_id" });
+  complaint_comments.belongsTo(users, { as: "author", foreignKey: "user_id" });
+  users.hasMany(complaint_comments, { as: "complaint_comments", foreignKey: "user_id" });
+
 
   return {
 
@@ -137,7 +144,8 @@ function initModels(sequelize) {
     menu_controls,
     shop_upgrades,
     shop_upgrade_plans,
-    complaints
+    complaints,
+    complaint_comments
   };
 }
 

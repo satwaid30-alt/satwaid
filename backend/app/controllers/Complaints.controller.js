@@ -51,6 +51,18 @@ module.exports.getUserComplaints = async (req, res) => {
 
     const complaints = await models.complaints.findAll({
       where: { user_id },
+      attributes: {
+        include: [
+          [
+            Sequelize.literal(`(
+              SELECT COUNT(*)
+              FROM "complaint_comments" AS "comments"
+              WHERE "comments"."complaint_id" = "complaints"."id"
+            )`),
+            "comments_count"
+          ]
+        ]
+      },
       order: [["created_at", "DESC"]]
     });
 
@@ -79,6 +91,18 @@ module.exports.getAllComplaints = async (req, res) => {
 
     const complaints = await models.complaints.findAll({
       where: whereClause,
+      attributes: {
+        include: [
+          [
+            Sequelize.literal(`(
+              SELECT COUNT(*)
+              FROM "complaint_comments" AS "comments"
+              WHERE "comments"."complaint_id" = "complaints"."id"
+            )`),
+            "comments_count"
+          ]
+        ]
+      },
       include: [
         {
           model: models.users,
@@ -193,3 +217,43 @@ module.exports.respondToComplaint = async (req, res) => {
     res.status(500).json({ message: "Internal server error" });
   }
 };
+
+// Get all comments for a complaint
+module.exports.getComplaintComments = async (req, res) => {
+  try {
+    const { complaint_id } = req.params;
+    const user_id = req.user_data.id;
+    const user_role = req.user_data.role;
+
+    const complaint = await models.complaints.findByPk(complaint_id);
+    if (!complaint) {
+      return res.status(404).json({ message: "Pengaduan tidak ditemukan." });
+    }
+
+    // Authorization: User must be complaint owner OR an admin
+    if (user_role !== "admin" && complaint.user_id !== user_id) {
+      return res.status(403).json({ message: "Anda tidak memiliki akses ke pengaduan ini." });
+    }
+
+    const comments = await models.complaint_comments.findAll({
+      where: { complaint_id },
+      include: [
+        {
+          model: models.users,
+          as: "author",
+          attributes: ["id", "name", "username", "avatar_url", "role"]
+        }
+      ],
+      order: [["created_at", "ASC"]]
+    });
+
+    res.status(200).json({
+      message: "Berhasil mengambil komentar pengaduan.",
+      data: comments
+    });
+  } catch (err) {
+    console.error("Error getting complaint comments:", err);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
