@@ -163,7 +163,7 @@ export default function QuotaCard({ quota, loading = false, compact = false }) {
           <XCircle size={13} className="text-red-400 mt-0.5 shrink-0" />
           <p className="text-[10px] sm:text-xs text-red-400 font-bold leading-relaxed">
             Kuota penuh. Hapus iklan lama di{" "}
-            <Link href="/user/toko/daftar-produk" className="underline font-black">
+            <Link href="/toko-saya/produk" className="underline font-black">
               Daftar Produk
             </Link>{" "}
             untuk menambah produk baru.

@@ -84,7 +84,7 @@ export default function UserTokoPage() {
             if (res.data) {
               setShopData(res.data);
               setHasShop(true);
-              router.push(`/user/toko/detail-toko/${res.data.id}`);
+              router.push(`/toko-saya/profil/${res.data.id}`);
             } else {
               // Pre-fill form from latest profile (from step 1 or localStorage)
               setShopData((prev) => ({
@@ -772,7 +772,7 @@ export default function UserTokoPage() {
             setModalConfig({ ...modalConfig, isOpen: false });
             if (modalConfig.type === "success" && redirectShopId) {
               setIsLoading(true);
-              router.push(`/user/toko/detail-toko/${redirectShopId}`);
+              router.push(`/toko-saya/profil/${redirectShopId}`);
             }
           }}
           type={modalConfig.type}

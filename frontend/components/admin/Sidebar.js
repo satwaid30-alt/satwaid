@@ -6,28 +6,28 @@ import { useState, useEffect } from "react";
 import { LayoutDashboard, PawPrint, BookOpen, Settings, LogOut, UserCircle, Users, ChevronLeft, ChevronRight, MessageSquare, Megaphone, Store, ChevronDown, ChevronUp, Package, Receipt, Sliders, Wallet, ShieldAlert } from "lucide-react";
 
 const MENU_ITEMS = [
-  { name: "Dashboard", href: "/admin/dashboard", icon: LayoutDashboard },
-  { name: "Kelola Iklan", href: "/admin/iklan", icon: Megaphone },
-  { name: "Kelola Transaksi", href: "/admin/transaksi-user", icon: Receipt },
+  { name: "Dashboard", href: "/panel-admin", icon: LayoutDashboard },
+  { name: "Kelola Iklan", href: "/panel-admin/iklan", icon: Megaphone },
+  { name: "Kelola Transaksi", href: "/panel-admin/transaksi", icon: Receipt },
   {
     name: "Kelola Toko",
-    href: "/admin/toko-user",
+    href: "/panel-admin/toko",
     icon: Store,
     subMenu: [
-      { name: "Daftar Toko", href: "/admin/toko-user", icon: Store },
-      { name: "Detail Produk", href: "/admin/toko-user/detail-produk", icon: Package },
-      { name: "Upgrade Toko", href: "/admin/upgrade-toko", icon: Sliders },
+      { name: "Daftar Toko", href: "/panel-admin/toko", icon: Store },
+      { name: "Detail Produk", href: "/panel-admin/toko/detail-produk", icon: Package },
+      { name: "Upgrade Toko", href: "/panel-admin/upgrade-toko", icon: Sliders },
     ],
   },
-  { name: "Verifikasi Komunitas", href: "/admin/komunitas", icon: MessageSquare },
-  { name: "Keuangan Toko", href: "/admin/keuangan", icon: BookOpen },
-  { name: "Pengembalian Dana", href: "/admin/pengembalian-dana", icon: Wallet },
-  { name: "Daftar Pengguna", href: "/admin/users", icon: Users },
-  { name: "Kontrol Menu", href: "/admin/control-menu", icon: Sliders },
-  { name: "Reset Profil", href: "/admin/reset-profil", icon: UserCircle },
-  { name: "Reset Toko", href: "/admin/reset-toko", icon: Store },
-  { name: "Pengaduan", href: "/admin/pengaduan", icon: ShieldAlert },
-  { name: "Pengaturan", href: "/admin/settings", icon: Settings },
+  { name: "Verifikasi Komunitas", href: "/panel-admin/komunitas", icon: MessageSquare },
+  { name: "Keuangan Toko", href: "/panel-admin/keuangan", icon: BookOpen },
+  { name: "Pengembalian Dana", href: "/panel-admin/pengembalian-dana", icon: Wallet },
+  { name: "Daftar Pengguna", href: "/panel-admin/users", icon: Users },
+  { name: "Kontrol Menu", href: "/panel-admin/control-menu", icon: Sliders },
+  { name: "Reset Profil", href: "/panel-admin/reset-profil", icon: UserCircle },
+  { name: "Reset Toko", href: "/panel-admin/reset-toko", icon: Store },
+  { name: "Pengaduan", href: "/panel-admin/pengaduan", icon: ShieldAlert },
+  { name: "Pengaturan", href: "/panel-admin/settings", icon: Settings },
 ];
 
 

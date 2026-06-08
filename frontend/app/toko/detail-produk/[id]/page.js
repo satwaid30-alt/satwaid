@@ -466,41 +466,54 @@ function DetailContent() {
           Kembali
         </Link>
 
-        <div className="bg-white border border-zinc-200 rounded-[2rem] lg:rounded-[2.5rem] overflow-hidden flex flex-col lg:flex-row lg:flex-1 lg:min-h-0 mb-4">
-          {/* Left Side: Image Gallery */}
-          <div className="lg:w-[45%] bg-zinc-50 relative group border-b lg:border-b-0 lg:border-r border-zinc-100">
-            {parsedImages.length > 0 && parsedImages[activeImageIndex] ? (
-              <img src={parsedImages[activeImageIndex]} className="w-full h-full object-contain p-8 lg:p-20 transition-transform duration-700 group-hover:scale-105 min-h-[350px] lg:min-h-0 cursor-zoom-in" alt={selectedProduct.name} onClick={() => setIsImageZoomed(true)} />
-            ) : (
-              <div className="w-full h-full flex flex-col items-center justify-center text-zinc-400 bg-zinc-100">
-                <Tag size={64} strokeWidth={1} />
-                <p className="mt-4 font-bold text-xs uppercase tracking-widest">Tidak ada gambar</p>
-              </div>
-            )}
+        <div className="flex flex-col lg:flex-row gap-6 mb-4 items-start">
+          {/* Left Side: Image Gallery Card */}
+          <div className="w-full lg:w-[45%] sticky-image-card bg-white border border-zinc-200 rounded-[2rem] p-4 lg:p-6 shadow-sm flex flex-col gap-4">
+            <div className="bg-zinc-50 rounded-[1.5rem] relative group overflow-hidden border border-zinc-100 flex items-center justify-center aspect-square w-full">
+              {parsedImages.length > 0 && parsedImages[activeImageIndex] ? (
+                <img
+                  src={parsedImages[activeImageIndex]}
+                  className="w-full h-full object-contain p-6 lg:p-12 transition-transform duration-700 group-hover:scale-105 cursor-zoom-in"
+                  alt={selectedProduct.name}
+                  onClick={() => setIsImageZoomed(true)}
+                />
+              ) : (
+                <div className="w-full h-full flex flex-col items-center justify-center text-zinc-400 bg-zinc-100">
+                  <Tag size={64} strokeWidth={1} />
+                  <p className="mt-4 font-bold text-xs uppercase tracking-widest">Tidak ada gambar</p>
+                </div>
+              )}
 
-            {/* Image Navigation Arrows */}
-            {parsedImages.length > 1 && (
-              <div className="absolute inset-x-4 top-1/2 -translate-y-1/2 flex justify-between pointer-events-none">
-                <button
-                  onClick={() => setActiveImageIndex((prev) => (prev === 0 ? parsedImages.length - 1 : prev - 1))}
-                  className="w-10 h-10 rounded-xl bg-white/90 backdrop-blur-md border border-zinc-200/50 flex items-center justify-center text-zinc-800 hover:bg-emerald-500 hover:text-white transition-all pointer-events-auto active:scale-90"
-                >
-                  <ChevronLeft size={20} />
-                </button>
-                <button
-                  onClick={() => setActiveImageIndex((prev) => (prev === parsedImages.length - 1 ? 0 : prev + 1))}
-                  className="w-10 h-10 rounded-xl bg-white/90 backdrop-blur-md border border-zinc-200/50 flex items-center justify-center text-zinc-800 hover:bg-emerald-500 hover:text-white transition-all pointer-events-auto active:scale-90"
-                >
-                  <ChevronRight size={20} />
-                </button>
-              </div>
-            )}
+              {/* Image Navigation Arrows */}
+              {parsedImages.length > 1 && (
+                <div className="absolute inset-x-4 top-1/2 -translate-y-1/2 flex justify-between pointer-events-none">
+                  <button
+                    onClick={() => setActiveImageIndex((prev) => (prev === 0 ? parsedImages.length - 1 : prev - 1))}
+                    className="w-10 h-10 rounded-xl bg-white/90 backdrop-blur-md border border-zinc-200/50 flex items-center justify-center text-zinc-800 hover:bg-emerald-500 hover:text-white transition-all pointer-events-auto active:scale-90"
+                  >
+                    <ChevronLeft size={20} />
+                  </button>
+                  <button
+                    onClick={() => setActiveImageIndex((prev) => (prev === parsedImages.length - 1 ? 0 : prev + 1))}
+                    className="w-10 h-10 rounded-xl bg-white/90 backdrop-blur-md border border-zinc-200/50 flex items-center justify-center text-zinc-800 hover:bg-emerald-500 hover:text-white transition-all pointer-events-auto active:scale-90"
+                  >
+                    <ChevronRight size={20} />
+                  </button>
+                </div>
+              )}
+            </div>
 
             {/* Thumbnail Strip */}
             {parsedImages.length > 1 && (
-              <div className="absolute bottom-6 inset-x-0 flex justify-center gap-2 px-4 overflow-x-auto no-scrollbar">
+              <div className="flex justify-center gap-2 overflow-x-auto no-scrollbar py-1">
                 {parsedImages.map((img, idx) => (
-                  <button key={idx} onClick={() => setActiveImageIndex(idx)} className={`w-14 h-14 rounded-xl border-2 overflow-hidden transition-all flex-shrink-0 bg-white ${activeImageIndex === idx ? "border-emerald-500 scale-105" : "border-white opacity-60 hover:opacity-100"}`}>
+                  <button
+                    key={idx}
+                    onClick={() => setActiveImageIndex(idx)}
+                    className={`w-14 h-14 rounded-xl border-2 overflow-hidden transition-all flex-shrink-0 bg-white ${
+                      activeImageIndex === idx ? "border-emerald-500 scale-105" : "border-zinc-200 opacity-60 hover:opacity-100"
+                    }`}
+                  >
                     <img src={img} className="w-full h-full object-cover" alt={`Thumb ${idx}`} />
                   </button>
                 ))}
@@ -508,8 +521,8 @@ function DetailContent() {
             )}
           </div>
 
-          {/* Right Side: Product Details */}
-          <div className="lg:w-[55%] p-6 lg:p-10 xl:p-12 overflow-y-auto no-scrollbar">
+          {/* Right Side: Product Details Card */}
+          <div className="w-full lg:w-[55%] bg-white border border-zinc-200 rounded-[2rem] p-6 lg:p-10 xl:p-12 shadow-sm">
             <div className="space-y-6 lg:space-y-8">
               <div>
                 <div className="flex items-center gap-2 mb-3">
@@ -755,6 +768,14 @@ function DetailContent() {
         }
         .description-content li::before {
           content: none;
+        }
+        @media (min-width: 1024px) {
+          .sticky-image-card {
+            position: -webkit-sticky !important;
+            position: sticky !important;
+            top: 112px !important;
+            z-index: 10;
+          }
         }
         .no-scrollbar::-webkit-scrollbar {
           display: none;

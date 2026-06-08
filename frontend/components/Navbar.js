@@ -356,13 +356,13 @@ export default function Navbar({ theme = "dark", onNotification }) {
                       <p className="text-xs text-zinc-500 truncate">{shopName || user.email || "User"}</p>
                     </div>
                   </div>
-                  <Link href="/user/pengaturan" className="flex items-center px-4 py-2 text-sm font-medium text-zinc-700 hover:bg-emerald-50 hover:text-emerald-600 transition-colors" onClick={() => setIsDropdownOpen(false)}>
+                  <Link href="/akun/pengaturan" className="flex items-center px-4 py-2 text-sm font-medium text-zinc-700 hover:bg-emerald-50 hover:text-emerald-600 transition-colors" onClick={() => setIsDropdownOpen(false)}>
                     Pengaturan Akun
                   </Link>
-                  <Link href="/user/pesanan" className="flex items-center px-4 py-2 text-sm font-medium text-zinc-700 hover:bg-emerald-50 hover:text-emerald-600 transition-colors" onClick={() => setIsDropdownOpen(false)}>
+                  <Link href="/akun/pesanan" className="flex items-center px-4 py-2 text-sm font-medium text-zinc-700 hover:bg-emerald-50 hover:text-emerald-600 transition-colors" onClick={() => setIsDropdownOpen(false)}>
                     Pesanan saya
                   </Link>
-                  <Link href="/user/toko/dashboard" className="flex items-center px-4 py-2 text-sm font-medium text-zinc-700 hover:bg-emerald-50 hover:text-emerald-600 transition-colors" onClick={() => setIsDropdownOpen(false)}>
+                  <Link href="/toko-saya/dashboard" className="flex items-center px-4 py-2 text-sm font-medium text-zinc-700 hover:bg-emerald-50 hover:text-emerald-600 transition-colors" onClick={() => setIsDropdownOpen(false)}>
                     Dashboard Seller
                   </Link>
                   <div className="border-t border-zinc-100 mt-2 pt-2">
@@ -437,13 +437,13 @@ export default function Navbar({ theme = "dark", onNotification }) {
                   <p className="text-xs text-zinc-500">{shopName || user.email}</p>
                 </div>
               </div>
-              <Link href="/user/pengaturan" className="text-zinc-600 hover:text-emerald-600 transition-colors" onClick={() => setIsMenuOpen(false)}>
+              <Link href="/akun/pengaturan" className="text-zinc-600 hover:text-emerald-600 transition-colors" onClick={() => setIsMenuOpen(false)}>
                 Pengaturan Akun
               </Link>
-              <Link href="/user/pesanan" className="text-zinc-600 hover:text-emerald-600 transition-colors" onClick={() => setIsMenuOpen(false)}>
+              <Link href="/akun/pesanan" className="text-zinc-600 hover:text-emerald-600 transition-colors" onClick={() => setIsMenuOpen(false)}>
                 Pesanan saya
               </Link>
-              <Link href="/user/toko/dashboard" className="text-zinc-600 hover:text-emerald-600 transition-colors" onClick={() => setIsMenuOpen(false)}>
+              <Link href="/toko-saya/dashboard" className="text-zinc-600 hover:text-emerald-600 transition-colors" onClick={() => setIsMenuOpen(false)}>
                 Dashboard Seller
               </Link>
               <button onClick={handleLogout} className="text-left text-red-600 font-bold mt-2">

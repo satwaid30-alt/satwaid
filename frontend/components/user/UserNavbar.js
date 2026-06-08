@@ -24,18 +24,18 @@ export default function UserNavbar() {
 
   // Get current page title based on path
   const getPageTitle = () => {
-    if (pathname.includes("/user/pengaturan/keamanan")) return "Keamanan Akun";
-    if (pathname.includes("/user/pengaturan")) return "Pengaturan Profil";
-    if (pathname.includes("/user/komunitas")) return "Komunitas Saya";
-    if (pathname.includes("/user/pesanan")) return "Pesanan Saya";
-    if (pathname.includes("/user/toko/dashboard")) return "Dashboard Seller";
-    if (pathname.includes("/user/toko/jual-produk")) return "Produk Reguler";
-    if (pathname.includes("/user/toko/lelang-produk")) return "Lelang Produk";
-    if (pathname.includes("/user/toko/daftar-produk")) return "Daftar Produk";
-    if (pathname.includes("/user/toko/pesanan-masuk")) return "Pesanan Masuk";
-    if (pathname.includes("/user/toko/pengajuan-keuangan")) return "Pengajuan Keuangan";
-    if (pathname.includes("/user/toko")) return "Profil Toko";
-    if (pathname.includes("/user/pengaduan")) return "Pengaduan Saya";
+    if (pathname.includes("/akun/pengaturan/keamanan") || pathname.includes("/user/pengaturan/keamanan")) return "Keamanan Akun";
+    if (pathname.includes("/akun/pengaturan") || pathname.includes("/user/pengaturan")) return "Pengaturan Profil";
+    if (pathname.includes("/akun/komunitas") || pathname.includes("/user/komunitas")) return "Komunitas Saya";
+    if (pathname.includes("/akun/pesanan") || pathname.includes("/user/pesanan")) return "Pesanan Saya";
+    if (pathname.includes("/toko-saya/dashboard") || pathname.includes("/user/toko/dashboard")) return "Dashboard Seller";
+    if (pathname.includes("/toko-saya/jual") || pathname.includes("/user/toko/jual-produk")) return "Produk Reguler";
+    if (pathname.includes("/toko-saya/lelang") || pathname.includes("/user/toko/lelang-produk")) return "Lelang Produk";
+    if (pathname.includes("/toko-saya/produk") || pathname.includes("/user/toko/daftar-produk")) return "Daftar Produk";
+    if (pathname.includes("/toko-saya/pesanan-masuk") || pathname.includes("/user/toko/pesanan-masuk")) return "Pesanan Masuk";
+    if (pathname.includes("/toko-saya/keuangan") || pathname.includes("/user/toko/pengajuan-keuangan")) return "Pengajuan Keuangan";
+    if (pathname.includes("/toko-saya/profil") || pathname.includes("/user/toko")) return "Profil Toko";
+    if (pathname.includes("/akun/pengaduan") || pathname.includes("/user/pengaduan")) return "Pengaduan Saya";
     return "Dashboard Pengguna";
   };
 
@@ -282,7 +282,7 @@ export default function UserNavbar() {
               </div>
 
               <div className="pt-3 mt-3 border-t border-zinc-800">
-                <Link href="/user/pesanan" onClick={() => setShowNotifDropdown(false)} className="flex items-center justify-center w-full py-3 bg-zinc-800 hover:bg-emerald-500 hover:text-zinc-950 text-white text-[10px] font-black uppercase tracking-[0.2em] rounded-xl transition-all active:scale-[0.98]">
+                <Link href="/akun/pesanan" onClick={() => setShowNotifDropdown(false)} className="flex items-center justify-center w-full py-3 bg-zinc-800 hover:bg-emerald-500 hover:text-zinc-950 text-white text-[10px] font-black uppercase tracking-[0.2em] rounded-xl transition-all active:scale-[0.98]">
                   Lihat Semua Aktivitas
                 </Link>
               </div>
@@ -323,17 +323,17 @@ export default function UserNavbar() {
                 <p className="text-[10px] text-zinc-500 truncate">{user?.email}</p>
               </div>
 
-              <Link href="/user/pengaturan" onClick={() => setShowProfileDropdown(false)} className="flex items-center gap-3 px-3 py-2 text-xs font-semibold text-zinc-400 hover:text-white hover:bg-zinc-800 rounded-lg transition-colors">
+              <Link href="/akun/pengaturan" onClick={() => setShowProfileDropdown(false)} className="flex items-center gap-3 px-3 py-2 text-xs font-semibold text-zinc-400 hover:text-white hover:bg-zinc-800 rounded-lg transition-colors">
                 <User size={14} className="text-emerald-500" />
                 <span>Profil Saya</span>
               </Link>
 
-              <Link href="/user/pengaturan/keamanan" onClick={() => setShowProfileDropdown(false)} className="flex items-center gap-3 px-3 py-2 text-xs font-semibold text-zinc-400 hover:text-white hover:bg-zinc-800 rounded-lg transition-colors">
+              <Link href="/akun/pengaturan/keamanan" onClick={() => setShowProfileDropdown(false)} className="flex items-center gap-3 px-3 py-2 text-xs font-semibold text-zinc-400 hover:text-white hover:bg-zinc-800 rounded-lg transition-colors">
                 <Settings size={14} className="text-emerald-500" />
                 <span>Keamanan Akun</span>
               </Link>
 
-              <Link href="/user/pengaduan" onClick={() => setShowProfileDropdown(false)} className="flex items-center gap-3 px-3 py-2 text-xs font-semibold text-zinc-400 hover:text-white hover:bg-zinc-800 rounded-lg transition-colors">
+              <Link href="/akun/pengaduan" onClick={() => setShowProfileDropdown(false)} className="flex items-center gap-3 px-3 py-2 text-xs font-semibold text-zinc-400 hover:text-white hover:bg-zinc-800 rounded-lg transition-colors">
                 <AlertTriangle size={14} className="text-emerald-500" />
                 <span>Pengaduan Saya</span>
               </Link>

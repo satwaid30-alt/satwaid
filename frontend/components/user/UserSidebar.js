@@ -9,17 +9,17 @@ import { getApiUrl, getSocketUrl } from "@/app/utils/api";
 
 const MENU_ITEMS = [
   { key: "beranda", name: "Beranda Website", href: "/", icon: Home },
-  { key: "profil", name: "Pengaturan Profil", href: "/user/pengaturan", icon: User },
-  { key: "komunitas", name: "Komunitas Saya", href: "/user/komunitas", icon: MessageSquare },
+  { key: "profil", name: "Pengaturan Profil", href: "/akun/pengaturan", icon: User },
+  { key: "komunitas", name: "Komunitas Saya", href: "/akun/komunitas", icon: MessageSquare },
   {
     key: "pesanan",
     name: "Pesanan Saya",
     icon: ShoppingBag,
     submenu: [
-      { key: "pesanan_aktif", name: "Pesanan Aktif", href: "/user/pesanan" },
-      { key: "lelang_aktif", name: "Lelang Aktif", href: "/user/pesanan/lelang" },
-      { key: "riwayat_pesanan", name: "Riwayat Pesanan", href: "/user/pesanan/riwayat-pembelian" },
-      { key: "pengembalian_dana", name: "Pengembalian Dana", href: "/user/pesanan/pengembalian-dana" },
+      { key: "pesanan_aktif", name: "Pesanan Aktif", href: "/akun/pesanan" },
+      { key: "lelang_aktif", name: "Lelang Aktif", href: "/akun/pesanan/lelang" },
+      { key: "riwayat_pesanan", name: "Riwayat Pesanan", href: "/akun/pesanan/riwayat-pembelian" },
+      { key: "pengembalian_dana", name: "Pengembalian Dana", href: "/akun/pesanan/pengembalian-dana" },
     ],
   },
   {
@@ -27,30 +27,30 @@ const MENU_ITEMS = [
     name: "Dashboard Seller",
     icon: Store,
     submenu: [
-      { key: "toko_dashboard", name: "Dashboard Utama", href: "/user/toko/dashboard" },
-      { key: "toko_profil", name: "Profil Toko", href: "/user/toko" },
-      { key: "toko_jual", name: "Produk Reguler", href: "/user/toko/jual-produk" },
-      { key: "toko_lelang", name: "Lelang Produk", href: "/user/toko/lelang-produk" },
-      { key: "toko_produk", name: "Daftar Produk", href: "/user/toko/daftar-produk" },
-      { key: "toko_pesanan", name: "Pesanan Masuk", href: "/user/toko/pesanan-masuk" },
-      { key: "toko_keuangan", name: "Pengajuan Keuangan", href: "/user/toko/pengajuan-keuangan" },
-      { key: "upgrade_toko", name: "Upgrade Toko", href: "/user/toko/upgrade-toko" },
+      { key: "toko_dashboard", name: "Dashboard Utama", href: "/toko-saya/dashboard" },
+      { key: "toko_profil", name: "Profil Toko", href: "/toko-saya/profil" },
+      { key: "toko_jual", name: "Produk Reguler", href: "/toko-saya/jual" },
+      { key: "toko_lelang", name: "Lelang Produk", href: "/toko-saya/lelang" },
+      { key: "toko_produk", name: "Daftar Produk", href: "/toko-saya/produk" },
+      { key: "toko_pesanan", name: "Pesanan Masuk", href: "/toko-saya/pesanan-masuk" },
+      { key: "toko_keuangan", name: "Pengajuan Keuangan", href: "/toko-saya/keuangan" },
+      { key: "upgrade_toko", name: "Upgrade Toko", href: "/toko-saya/upgrade" },
     ],
   },
-  { key: "keamanan", name: "Keamanan Akun", href: "/user/pengaturan/keamanan", icon: Settings },
-  { key: "pengaduan", name: "Pengaduan Saya", href: "/user/pengaduan", icon: AlertTriangle },
+  { key: "keamanan", name: "Keamanan Akun", href: "/akun/pengaturan/keamanan", icon: Settings },
+  { key: "pengaduan", name: "Pengaduan Saya", href: "/akun/pengaduan", icon: AlertTriangle },
 ];
 
 const isSubmenuActive = (subHref, pathname) => {
   if (pathname === subHref) return true;
 
-  if (subHref === "/user/toko") {
-    const siblingSubmenus = ["/user/toko/dashboard", "/user/toko/jual-produk", "/user/toko/lelang-produk", "/user/toko/daftar-produk", "/user/toko/pesanan-masuk", "/user/toko/pengajuan-keuangan", "/user/toko/upgrade-toko"];
-    return pathname.startsWith("/user/toko") && !siblingSubmenus.some((sib) => pathname.startsWith(sib));
+  if (subHref === "/toko-saya/profil") {
+    const siblingSubmenus = ["/toko-saya/dashboard", "/toko-saya/jual", "/toko-saya/lelang", "/toko-saya/produk", "/toko-saya/pesanan-masuk", "/toko-saya/keuangan", "/toko-saya/upgrade"];
+    return pathname.startsWith("/toko-saya/profil") && !siblingSubmenus.some((sib) => pathname.startsWith(sib));
   }
 
-  if (subHref === "/user/pesanan") {
-    return pathname.startsWith("/user/pesanan") && !pathname.startsWith("/user/pesanan/riwayat-pembelian") && !pathname.startsWith("/user/pesanan/lelang") && !pathname.startsWith("/user/pesanan/pengembalian-dana");
+  if (subHref === "/akun/pesanan") {
+    return pathname.startsWith("/akun/pesanan") && !pathname.startsWith("/akun/pesanan/riwayat-pembelian") && !pathname.startsWith("/akun/pesanan/lelang") && !pathname.startsWith("/akun/pesanan/pengembalian-dana");
   }
 
   return pathname.startsWith(subHref + "/");
@@ -165,7 +165,7 @@ export default function UserSidebar() {
           }
         }
       } else if (item.href) {
-        const isActive = item.href === "/user/pengaturan" ? currentPath === item.href : item.href === "/" ? currentPath === "/" : currentPath.startsWith(item.href);
+        const isActive = item.href === "/akun/pengaturan" ? (currentPath === "/akun/pengaturan" || currentPath.startsWith("/akun/pengaturan/edit")) : item.href === "/" ? currentPath === "/" : currentPath.startsWith(item.href);
         if (isActive) {
           return { key: item.key, name: item.name };
         }
@@ -467,7 +467,7 @@ export default function UserSidebar() {
             const Icon = item.icon;
             const hasSubmenu = item.submenu && item.submenu.length > 0;
             const isSubmenuOpen = openSubmenus[item.name];
-            const isActive = item.submenu ? item.submenu.some((sub) => isSubmenuActive(sub.href, pathname)) : item.href === "/user/pengaturan" ? pathname === item.href : item.href === "/" ? pathname === "/" : pathname.startsWith(item.href);
+            const isActive = item.submenu ? item.submenu.some((sub) => isSubmenuActive(sub.href, pathname)) : item.href === "/akun/pengaturan" ? (pathname === "/akun/pengaturan" || pathname.startsWith("/akun/pengaturan/edit")) : item.href === "/" ? pathname === "/" : pathname.startsWith(item.href);
 
             return (
               <div key={item.name} className="space-y-1">
@@ -477,9 +477,9 @@ export default function UserSidebar() {
                     {!isCollapsed && (
                       <>
                         <span className="flex-1 text-left truncate flex items-center">
-                          {item.name}
-                          {parentStatus === "maintenance" && <span className="ml-2 px-1.5 py-0.5 rounded text-[8px] font-black uppercase bg-amber-500/10 text-amber-500 border border-amber-500/20 shrink-0">Maint</span>}
-                          {parentStatus === "development" && <span className="ml-2 px-1.5 py-0.5 rounded text-[8px] font-black uppercase bg-blue-500/10 text-blue-500 border border-blue-500/20 shrink-0">Dev</span>}
+                           {item.name}
+                           {parentStatus === "maintenance" && <span className="ml-2 px-1.5 py-0.5 rounded text-[8px] font-black uppercase bg-amber-500/10 text-amber-500 border border-amber-500/20 shrink-0">Maint</span>}
+                           {parentStatus === "development" && <span className="ml-2 px-1.5 py-0.5 rounded text-[8px] font-black uppercase bg-blue-500/10 text-blue-500 border border-blue-500/20 shrink-0">Dev</span>}
                         </span>
                         {item.name === "Pesanan Saya" && notifications.my_orders > 0 && <span className="mr-2 bg-red-500 text-white text-[10px] font-black px-2 py-0.5 rounded-full animate-pulse">{notifications.my_orders}</span>}
                         {item.name === "Dashboard Seller" && notifications.incoming_orders > 0 && <span className="mr-2 bg-emerald-500 text-zinc-950 text-[10px] font-black px-2 py-0.5 rounded-full animate-pulse">{notifications.incoming_orders}</span>}
@@ -492,7 +492,7 @@ export default function UserSidebar() {
                     href={item.href}
                     title={isCollapsed ? item.name : ""}
                     onClick={(e) => handleMenuClick(e, item.key, item.name)}
-                    className={`flex items-center gap-4 ${isCollapsed ? "px-0 justify-center" : "px-4"} py-3 rounded-xl font-semibold transition-all group ${isActive ? "bg-emerald-500 text-zinc-950" : "text-zinc-400 hover:bg-zinc-800 hover:text-white"}`}
+                    className={`flex items-center gap-4 ${isCollapsed ? "px-0 justify-center" : "px-4"} py-3 rounded-xl font-semibold transition-all group ${isActive ? "bg-emerald-50 text-zinc-950" : "text-zinc-400 hover:bg-zinc-800 hover:text-white"}`}
                   >
                     <Icon size={20} className={`shrink-0 ${isActive ? "" : "group-hover:scale-110 transition-transform"}`} />
                     {!isCollapsed && (
@@ -536,7 +536,7 @@ export default function UserSidebar() {
                       return (
                         <Link
                           key={sub.name}
-                          href={sub.name === "Profil Toko" && shopId ? `/user/toko/detail-toko/${shopId}` : sub.href}
+                          href={sub.name === "Profil Toko" && shopId ? `/toko-saya/profil/${shopId}` : sub.href}
                           onClick={(e) => handleMenuClick(e, sub.key, sub.name)}
                           className={`flex items-center justify-between px-4 py-2 rounded-lg text-sm font-medium transition-all ${isSubmenuActive(sub.href, pathname) ? "text-emerald-500 font-bold bg-emerald-500/5" : "text-zinc-500 hover:text-zinc-300"}`}
                         >
@@ -773,7 +773,7 @@ export default function UserSidebar() {
                 const Icon = item.icon;
                 const hasSubmenu = item.submenu && item.submenu.length > 0;
                 const isSubmenuOpen = openSubmenus[`mobile_${item.name}`];
-                const isActive = item.submenu ? item.submenu.some((sub) => isSubmenuActive(sub.href, pathname)) : item.href === "/user/pengaturan" ? pathname === item.href : item.href === "/" ? pathname === "/" : pathname.startsWith(item.href);
+                const isActive = item.submenu ? item.submenu.some((sub) => isSubmenuActive(sub.href, pathname)) : item.href === "/akun/pengaturan" ? (pathname === "/akun/pengaturan" || pathname.startsWith("/akun/pengaturan/edit")) : item.href === "/" ? pathname === "/" : pathname.startsWith(item.href);
 
                 return (
                   <div key={item.name} className="space-y-1">
@@ -823,7 +823,7 @@ export default function UserSidebar() {
                               return (
                                 <Link
                                   key={sub.name}
-                                  href={sub.name === "Profil Toko" && shopId ? `/user/toko/detail-toko/${shopId}` : sub.href}
+                                  href={sub.name === "Profil Toko" && shopId ? `/toko-saya/profil/${shopId}` : sub.href}
                                   onClick={(e) => {
                                     const blocked = handleMenuClick(e, sub.key, sub.name);
                                     if (!blocked) setIsMobileMenuOpen(false);
