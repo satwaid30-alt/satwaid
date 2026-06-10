@@ -236,7 +236,7 @@ const OrdersController = {
                     {
                         model: models.users,
                         as: 'user',
-                        attributes: ['id', 'username', 'email', 'phone', 'avatar_url', 'city', 'province']
+                        attributes: ['id', 'name', 'username', 'email', 'phone', 'avatar_url', 'city', 'province']
                     }
                 ]
             };

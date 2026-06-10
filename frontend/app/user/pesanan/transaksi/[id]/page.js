@@ -312,9 +312,7 @@ export default function TransactionProcessPage({ params }) {
                     <AlertCircle size={16} className="text-red-400 shrink-0 mt-0.5" />
                     <div className="space-y-1">
                       <p className="text-xs font-bold text-red-400 uppercase tracking-widest">Bukti Pembayaran Ditolak</p>
-                      <p className="text-[11px] text-zinc-450 font-medium leading-relaxed italic">
-                        &ldquo;{order.payment_rejection_reason}&rdquo;
-                      </p>
+                      <p className="text-[11px] text-zinc-450 font-medium leading-relaxed italic">&ldquo;{order.payment_rejection_reason}&rdquo;</p>
                     </div>
                   </div>
                 )}
@@ -362,15 +360,9 @@ export default function TransactionProcessPage({ params }) {
             <h3 className="text-[10px] font-black text-zinc-100 uppercase tracking-widest flex items-center gap-2">
               <Store size={14} className="text-blue-500" /> Kontak Penjual
             </h3>
-            <div className="p-5 bg-zinc-950/50 rounded-3xl border border-zinc-800/50 space-y-4">
+            <div className="p-4 bg-zinc-950/50 rounded-3xl border border-zinc-800/50 space-y-4">
               <div className="flex items-center gap-4">
-                <div className="w-12 h-12 bg-zinc-900 rounded-xl flex items-center justify-center text-emerald-500 shrink-0 border border-zinc-800 overflow-hidden">
-                  {order.shop?.logo_url ? (
-                    <img src={getLogoUrl(order.shop.logo_url)} className="w-full h-full object-cover" alt={order.shop?.name} />
-                  ) : (
-                    <Store size={24} />
-                  )}
-                </div>
+                <div className="w-12 h-12 bg-zinc-900 rounded-xl flex items-center justify-center text-emerald-500 shrink-0 border border-zinc-800 overflow-hidden">{order.shop?.logo_url ? <img src={getLogoUrl(order.shop.logo_url)} className="w-full h-full object-cover" alt={order.shop?.name} /> : <Store size={24} />}</div>
                 <div className="flex-1 min-w-0">
                   <p className="text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-0.5">Nama Toko</p>
                   <p className="text-sm font-black text-white truncate">{order.shop?.name || "Nama Toko"}</p>
@@ -379,14 +371,6 @@ export default function TransactionProcessPage({ params }) {
 
               {order.shop?.whatsapp ? (
                 <div className="space-y-3 pt-3 border-t border-zinc-800/50">
-                  <div className="flex items-center gap-2 text-zinc-400">
-                    <div className="w-6 h-6 rounded-lg bg-zinc-900 flex items-center justify-center border border-zinc-800">
-                      <svg className="w-3.5 h-3.5 fill-current text-emerald-500" viewBox="0 0 24 24">
-                        <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946C.06 5.348 5.397.01 12.008.01c3.202.001 6.212 1.246 8.477 3.514 2.266 2.268 3.507 5.28 3.505 8.484-.004 6.657-5.34 11.997-11.953 11.997-2.005-.001-3.973-.502-5.73-1.458L0 24zm6.59-4.846c1.6.95 3.188 1.449 4.825 1.451 5.436 0 9.86-4.37 9.864-9.799.002-2.63-1.023-5.101-2.885-6.967C16.68 1.973 14.198 1.94 11.99 1.94c-5.439 0-9.865 4.372-9.87 9.802 0 1.76.476 3.479 1.382 5.02L2.451 21.6l4.196-1.446zm11.393-5.263c-.293-.146-1.73-.853-1.998-.951-.267-.099-.462-.146-.657.146-.195.293-.756.951-.926 1.146-.17.195-.341.219-.634.073-.293-.146-1.238-.456-2.359-1.454-.872-.777-1.46-1.738-1.631-2.03-.17-.293-.018-.452.129-.597.132-.13.293-.341.439-.512.146-.17.195-.293.293-.488.097-.195.048-.366-.024-.512-.072-.146-.657-1.583-.9-2.17-.236-.57-.478-.492-.657-.502-.17-.008-.366-.01-.561-.01-.195 0-.512.073-.78.366-.268.293-1.024 1.001-1.024 2.441 0 1.439 1.048 2.83 1.195 3.025.147.195 2.062 3.149 4.996 4.417.697.302 1.24.482 1.66.617.7.223 1.338.192 1.843.117.563-.083 1.73-.707 1.976-1.39.244-.683.244-1.268.17-1.39-.074-.121-.268-.194-.561-.34z" />
-                      </svg>
-                    </div>
-                    <p className="text-[12px] font-bold tracking-tight text-white">{order.shop.whatsapp}</p>
-                  </div>
                   <a
                     href={getWhatsAppLink()}
                     target="_blank"

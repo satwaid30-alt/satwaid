@@ -32,6 +32,23 @@ export default function AdminDashboard() {
         fetchStats();
     }, []);
 
+    const formatDate = (value) => {
+        if (!value) return "-";
+        return new Date(value).toLocaleDateString("id-ID", {
+            day: "numeric",
+            month: "short",
+            year: "numeric"
+        });
+    };
+
+    const formatPrice = (price) => {
+        return new Intl.NumberFormat("id-ID", {
+            style: "currency",
+            currency: "IDR",
+            maximumFractionDigits: 0
+        }).format(Number(price) || 0);
+    };
+
     const fetchStats = async () => {
         try {
             const apiUrl = getApiUrl();
@@ -44,37 +61,66 @@ export default function AdminDashboard() {
             if (!response.ok) throw new Error("Gagal mengambil data dari server");
             const data = await response.json();
             if (data.success) {
-                setStats(data.stats);
-                setShopEarnings(data.shopEarnings || []);
-                
-                // Process recent activities into a unified format
-                const activities = [];
-                
-                data.recentActivity.products.forEach(p => {
-                    activities.push({
-                        title: "Produk Baru",
-                        desc: `${p.name} dari Toko ${p.shop?.name || 'Unknown'}`,
-                        time: new Date(p.created_at).toLocaleDateString(),
-                        type: "success"});
+                const nextStats = data.stats || {};
+                setStats({
+                    totalProducts: Number(nextStats.totalProducts) || 0,
+                    totalCommunities: Number(nextStats.totalCommunities) || 0,
+                    totalShops: Number(nextStats.totalShops) || 0,
+                    adminRevenue: Number(nextStats.adminRevenue) || 0
                 });
 
-                data.recentActivity.shops.forEach(s => {
+                setShopEarnings(
+                    (data.shopEarnings || [])
+                        .map((shop) => ({
+                            ...shop,
+                            totalEarnings: Number(shop.totalEarnings) || 0
+                        }))
+                        .filter((shop) => shop.totalEarnings > 0)
+                );
+
+                const recentActivity = data.recentActivity || {};
+                const activities = [];
+
+                (recentActivity.products || []).forEach((p) => {
+                    const timestamp = new Date(p.created_at).getTime();
+                    activities.push({
+                        title: "Produk Baru",
+                        desc: `${p.name} dari Toko ${p.shop?.name || "Tidak diketahui"}`,
+                        time: formatDate(p.created_at),
+                        timestamp,
+                        type: "success"
+                    });
+                });
+
+                (recentActivity.shops || []).forEach((s) => {
+                    const timestamp = new Date(s.created_at).getTime();
                     activities.push({
                         title: "Toko Baru",
                         desc: `Toko ${s.name} telah bergabung.`,
-                        time: new Date(s.created_at).toLocaleDateString(),
-                        type: "info"});
+                        time: formatDate(s.created_at),
+                        timestamp,
+                        type: "info"
+                    });
                 });
 
-                data.recentActivity.orders.forEach(o => {
+                (recentActivity.orders || []).forEach((o) => {
+                    const dateValue = o.updated_at || o.created_at;
+                    const timestamp = new Date(dateValue).getTime();
                     activities.push({
                         title: "Menunggu Pembayaran",
-                        desc: `Order #${o.order_id.substring(0, 8)} menunggu konfirmasi.`,
-                        time: new Date(o.updated_at || o.created_at).toLocaleDateString(),
-                        type: "warning"});
+                        desc: `Order #${(o.order_id || "").substring(0, 8)} menunggu konfirmasi.`,
+                        time: formatDate(dateValue),
+                        timestamp,
+                        type: "warning"
+                    });
                 });
 
-                setRecentActivities(activities.sort((a, b) => new Date(b.time) - new Date(a.time)).slice(0, 5));
+                setRecentActivities(
+                    activities
+                        .filter((activity) => !Number.isNaN(activity.timestamp))
+                        .sort((a, b) => b.timestamp - a.timestamp)
+                        .slice(0, 5)
+                );
             }
         } catch (error) {
             console.error("Error fetching stats:", error);
@@ -84,10 +130,10 @@ export default function AdminDashboard() {
     };
 
     const displayStats = [
-        { name: "Total Produk", value: stats.totalProducts, icon: ShoppingBag, trend: "Live Data", color: "text-emerald-500", bg: "bg-emerald-500/10" },
-        { name: "Total Komunitas", value: stats.totalCommunities, icon: Users2, trend: "Live Data", color: "text-blue-500", bg: "bg-blue-500/10" },
-        { name: "Total Toko", value: stats.totalShops, icon: Store, trend: "Live Data", color: "text-amber-500", bg: "bg-amber-500/10" },
-        { name: "Pendapatan Admin", value: new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(stats.adminRevenue), icon: Wallet, trend: "Live Data", color: "text-purple-500", bg: "bg-purple-500/10" },
+        { name: "Total Produk", value: stats.totalProducts, icon: ShoppingBag, color: "text-emerald-500", bg: "bg-emerald-500/10" },
+        { name: "Total Komunitas", value: stats.totalCommunities, icon: Users2, color: "text-blue-500", bg: "bg-blue-500/10" },
+        { name: "Total Toko", value: stats.totalShops, icon: Store, color: "text-amber-500", bg: "bg-amber-500/10" },
+        { name: "Pendapatan Admin", value: formatPrice(stats.adminRevenue), icon: Wallet, color: "text-purple-500", bg: "bg-purple-500/10" },
     ];
 
     return (
@@ -222,12 +268,12 @@ export default function AdminDashboard() {
                                                     </div>
                                                     <div>
                                                         <p className="text-sm font-bold group-hover:text-white transition-colors line-clamp-1">{shop.name}</p>
-                                                        <p className="text-[10px] text-zinc-500 font-bold uppercase tracking-tight">Seller Profile</p>
+                                                        <p className="text-[10px] text-zinc-500 font-bold uppercase tracking-tight">Pendapatan Bersih</p>
                                                     </div>
                                                 </td>
                                                 <td className="px-4 py-5 text-right">
                                                     <span className="text-emerald-500 font-black text-sm">
-                                                        {new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(shop.totalEarnings)}
+                                                        {formatPrice(shop.totalEarnings)}
                                                     </span>
                                                 </td>
                                             </tr>

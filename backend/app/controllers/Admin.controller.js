@@ -1,7 +1,9 @@
-const { Sequelize } = require('sequelize');
+const { Sequelize, Op } = require('sequelize');
 const initModels = require('../database/init');
 const sequelize = new Sequelize(process.env.DATABASE_URL);
 var models = initModels(sequelize);
+
+const COMPLETED_ORDER_STATUSES = ['completed', 'disbursement_requested', 'disbursed'];
 
 exports.getDashboardStats = async (req, res) => {
     try {
@@ -9,10 +11,14 @@ exports.getDashboardStats = async (req, res) => {
         
         // Execute queries independently to prevent one failure from blocking everything
         const [totalProducts, totalCommunities, totalShops, adminRevenue] = await Promise.all([
-            models.listings.count().catch(e => { console.error("Error count listings:", e); return 0; }),
+            models.listings.count({
+                where: { status: { [Op.notIn]: ['deleted', 'Deleted'] } }
+            }).catch(e => { console.error("Error count listings:", e); return 0; }),
             models.topics.count().catch(e => { console.error("Error count topics:", e); return 0; }),
             models.shops.count().catch(e => { console.error("Error count shops:", e); return 0; }),
-            models.orders.sum('admin_fee', { where: { status: 'completed' } }).catch(e => { console.error("Error sum admin fee:", e); return 0; })
+            models.orders.sum('admin_fee', {
+                where: { status: { [Op.in]: COMPLETED_ORDER_STATUSES } }
+            }).catch(e => { console.error("Error sum admin fee:", e); return 0; })
         ]);
 
         const recentProducts = await models.listings.findAll({
@@ -38,30 +44,36 @@ exports.getDashboardStats = async (req, res) => {
         try {
             shopEarnings = await models.shops.findAll({
                 attributes: [
-                    'id', 
-                    'name', 
+                    'id',
+                    'name',
                     'logo_url',
                     [
                         sequelize.literal(`(
-                            SELECT COALESCE(SUM(total_price), 0)
+                            SELECT COALESCE(SUM("orders"."total_price" - "orders"."admin_fee"), 0)
                             FROM "orders"
-                            WHERE "orders".shop_id = "shops".id
-                            AND "orders".status = 'completed'
+                            WHERE "orders"."shop_id" = "shops"."id"
+                            AND "orders"."status" IN ('completed', 'disbursement_requested', 'disbursed')
                         )`),
                         'totalEarnings'
                     ]
                 ],
+                where: sequelize.literal(`(
+                    SELECT COALESCE(SUM("orders"."total_price" - "orders"."admin_fee"), 0)
+                    FROM "orders"
+                    WHERE "orders"."shop_id" = "shops"."id"
+                    AND "orders"."status" IN ('completed', 'disbursement_requested', 'disbursed')
+                ) > 0`),
                 order: [[sequelize.literal(`(
-                            SELECT COALESCE(SUM(total_price), 0)
-                            FROM "orders"
-                            WHERE "orders".shop_id = "shops".id
-                            AND "orders".status = 'completed'
-                        )`), 'DESC']],
+                    SELECT COALESCE(SUM("orders"."total_price" - "orders"."admin_fee"), 0)
+                    FROM "orders"
+                    WHERE "orders"."shop_id" = "shops"."id"
+                    AND "orders"."status" IN ('completed', 'disbursement_requested', 'disbursed')
+                )`), 'DESC']],
                 limit: 5
             });
             shopEarnings = shopEarnings.map(s => ({
                 ...s.toJSON(),
-                totalEarnings: parseFloat(s.get('totalEarnings') || 0)
+                totalEarnings: Number(s.get('totalEarnings') || 0)
             }));
         } catch (e) {
             console.error("Error fetch shop earnings query:", e);
@@ -74,7 +86,7 @@ exports.getDashboardStats = async (req, res) => {
                 totalProducts,
                 totalCommunities,
                 totalShops,
-                adminRevenue: adminRevenue || 0
+                adminRevenue: Number(adminRevenue || 0)
             },
             recentActivity: {
                 products: recentProducts,

@@ -90,7 +90,7 @@ export default function Sidebar() {
           const Icon = item.icon;
           const hasSubMenu = item.subMenu && item.subMenu.length > 0;
           const isOpen = openSubMenu === item.name;
-          const isActive = pathname.startsWith(item.href) && !hasSubMenu;
+          const isActive = item.href === "/panel-admin" ? pathname === "/panel-admin" : pathname.startsWith(item.href) && !hasSubMenu;
           const isSubActive = hasSubMenu && item.subMenu.some((sub) => pathname === sub.href);
 
           if (hasSubMenu) {

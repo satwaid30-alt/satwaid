@@ -349,11 +349,7 @@ function DetailContent() {
           return str !== "" && str.toLowerCase() !== "null" && str.toLowerCase() !== "undefined";
         };
 
-        const isIncomplete = !isFieldFilled(freshUser.name) || 
-                             !isFieldFilled(freshUser.phone) || 
-                             !isFieldFilled(freshUser.address) || 
-                             !isFieldFilled(freshUser.city) || 
-                             !isFieldFilled(freshUser.province);
+        const isIncomplete = !isFieldFilled(freshUser.name) || !isFieldFilled(freshUser.phone) || !isFieldFilled(freshUser.address) || !isFieldFilled(freshUser.city) || !isFieldFilled(freshUser.province);
 
         if (isIncomplete) {
           setActionModal({
@@ -509,11 +505,7 @@ function DetailContent() {
           return str !== "" && str.toLowerCase() !== "null" && str.toLowerCase() !== "undefined";
         };
 
-        const isIncomplete = !isFieldFilled(freshUser.name) || 
-                             !isFieldFilled(freshUser.phone) || 
-                             !isFieldFilled(freshUser.address) || 
-                             !isFieldFilled(freshUser.city) || 
-                             !isFieldFilled(freshUser.province);
+        const isIncomplete = !isFieldFilled(freshUser.name) || !isFieldFilled(freshUser.phone) || !isFieldFilled(freshUser.address) || !isFieldFilled(freshUser.city) || !isFieldFilled(freshUser.province);
 
         if (isIncomplete) {
           setActionModal({
@@ -777,12 +769,7 @@ function DetailContent() {
           <div className="w-full lg:w-[45%] sticky-image-card bg-white border border-zinc-200 rounded-[2rem] p-4 lg:p-6 shadow-sm flex flex-col gap-4">
             <div className="bg-zinc-50 rounded-[1.5rem] relative group overflow-hidden border border-zinc-100 flex items-center justify-center aspect-square w-full">
               {parsedImages.length > 0 && parsedImages[activeImageIndex] ? (
-                <img
-                  src={parsedImages[activeImageIndex]}
-                  className="w-full h-full object-contain p-6 lg:p-12 transition-transform duration-700 group-hover:scale-105 cursor-zoom-in"
-                  alt={selectedProduct.name}
-                  onClick={() => setIsImageZoomed(true)}
-                />
+                <img src={parsedImages[activeImageIndex]} className="w-full h-full object-contain p-6 lg:p-12 transition-transform duration-700 group-hover:scale-105 cursor-zoom-in" alt={selectedProduct.name} onClick={() => setIsImageZoomed(true)} />
               ) : (
                 <div className="w-full h-full flex flex-col items-center justify-center text-zinc-400 bg-zinc-100">
                   <Tag size={64} strokeWidth={1} />
@@ -813,13 +800,7 @@ function DetailContent() {
             {parsedImages.length > 1 && (
               <div className="flex justify-center gap-2 overflow-x-auto no-scrollbar py-1">
                 {parsedImages.map((img, idx) => (
-                  <button
-                    key={idx}
-                    onClick={() => setActiveImageIndex(idx)}
-                    className={`w-14 h-14 rounded-xl border-2 overflow-hidden transition-all flex-shrink-0 bg-white ${
-                      activeImageIndex === idx ? "border-amber-500 scale-105" : "border-zinc-200 opacity-60 hover:opacity-100"
-                    }`}
-                  >
+                  <button key={idx} onClick={() => setActiveImageIndex(idx)} className={`w-14 h-14 rounded-xl border-2 overflow-hidden transition-all flex-shrink-0 bg-white ${activeImageIndex === idx ? "border-amber-500 scale-105" : "border-zinc-200 opacity-60 hover:opacity-100"}`}>
                     <img src={img} className="w-full h-full object-cover" alt={`Thumb ${idx}`} />
                   </button>
                 ))}
@@ -899,7 +880,7 @@ function DetailContent() {
                 </div>
               </div>
               {/* Main Auction Info Card */}
-              <div className="bg-transparent lg:bg-white rounded-none lg:rounded-[2rem] p-0 sm:p-0 lg:p-8 border-0 lg:border lg:border-zinc-200 space-y-6 relative overflow-hidden">
+              <div className="bg-transparent lg:bg-white rounded-none lg:rounded-[2rem] p-0 sm:p-0 lg:p-8 space-y-6 relative overflow-hidden">
                 <div className="absolute top-0 right-0 w-32 h-32 bg-amber-500/5 rounded-full blur-3xl pointer-events-none"></div>
 
                 {/* Live Countdown Header */}
@@ -1367,20 +1348,10 @@ function DetailContent() {
         />
 
         {isImageZoomed && parsedImages.length > 0 && (
-          <div 
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-md cursor-zoom-out select-none"
-            onClick={() => setIsImageZoomed(false)}
-          >
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-md cursor-zoom-out select-none" onClick={() => setIsImageZoomed(false)}>
             <div className="relative max-w-[90vw] max-h-[90vh]">
-              <img
-                src={parsedImages[activeImageIndex]}
-                className="max-w-full max-h-[90vh] object-contain rounded-xl"
-                alt={selectedProduct.name}
-              />
-              <button 
-                className="absolute top-4 right-4 text-white hover:text-zinc-300 transition-colors bg-white/10 hover:bg-white/20 p-2 rounded-full"
-                onClick={() => setIsImageZoomed(false)}
-              >
+              <img src={parsedImages[activeImageIndex]} className="max-w-full max-h-[90vh] object-contain rounded-xl" alt={selectedProduct.name} />
+              <button className="absolute top-4 right-4 text-white hover:text-zinc-300 transition-colors bg-white/10 hover:bg-white/20 p-2 rounded-full" onClick={() => setIsImageZoomed(false)}>
                 <XCircle size={24} />
               </button>
             </div>
