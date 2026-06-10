@@ -15,7 +15,8 @@ import {
     CreditCard,
     DollarSign,
     Info,
-    Receipt
+    Receipt,
+    Mail
 } from "lucide-react";
 import ActionModal from "@/components/ActionModal";
 
@@ -477,6 +478,15 @@ export default function UploadFinanceDocPage({ params }) {
                                     <div>
                                         <p className="text-[10px] font-black text-zinc-500 uppercase tracking-widest leading-none mb-1">Atas Nama</p>
                                         <p className="text-sm font-black text-white">{sellerBank.bankHolder}</p>
+                                    </div>
+                                </div>
+                                <div className="flex items-center gap-3">
+                                    <div className="w-8 h-8 rounded-lg bg-zinc-900 flex items-center justify-center border border-zinc-800">
+                                        <Mail size={14} className="text-violet-400" />
+                                    </div>
+                                    <div>
+                                        <p className="text-[10px] font-black text-zinc-500 uppercase tracking-widest leading-none mb-1">Email Pemilik</p>
+                                        <p className="text-sm font-black text-white">{order?.shop?.owner?.email || "-"}</p>
                                     </div>
                                 </div>
                             </div>

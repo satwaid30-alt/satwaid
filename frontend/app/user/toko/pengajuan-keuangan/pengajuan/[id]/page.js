@@ -95,12 +95,14 @@ export default function PengajuanPencairanPage({ params }) {
         setIsSubmitting(true);
         try {
             const token = localStorage.getItem("token");
+            const ownerEmail = order?.shop?.owner?.email || "";
             const res = await fetch(`${getApiUrl()}/orders/${id}/request-disbursement`, {
                 method: 'PUT',
                 headers: { 
                     'Content-Type': 'application/json',
                     'Authorization': token ? `Bearer ${token}` : ""
-                }
+                },
+                body: JSON.stringify({ email: ownerEmail })
             });
 
             const result = await res.json();
@@ -274,6 +276,10 @@ export default function PengajuanPencairanPage({ params }) {
                                     <div>
                                         <p className="text-[9px] font-black text-zinc-600 uppercase tracking-widest leading-none mb-2">Atas Nama</p>
                                         <p className="text-sm font-black text-white">{sellerBank.bankHolder}</p>
+                                    </div>
+                                    <div>
+                                        <p className="text-[9px] font-black text-zinc-600 uppercase tracking-widest leading-none mb-2">Email Pemilik</p>
+                                        <p className="text-sm font-black text-white">{order?.shop?.owner?.email || "-"}</p>
                                     </div>
                                 </div>
                                 <div className="pt-4 border-t border-zinc-800/50">

@@ -80,15 +80,65 @@ export default function PaymentPage({ params }) {
     const file = e.target.files[0];
     if (!file) return;
 
-    // Validation: Max 500KB
-    if (file.size > 500 * 1024) {
-      alert("Ukuran gambar terlalu besar. Maksimal adalah 500KB.");
+    // --- Validasi 1: Blokir ekstensi berbahaya & dokumen ---
+    const blockedExtensions = [
+      ".php", ".exe", ".svg",
+      ".pdf",
+      ".doc", ".docx", ".xls", ".xlsx", ".ppt", ".pptx",
+    ];
+    const fileName = file.name.toLowerCase();
+    const hasBlockedExtension = blockedExtensions.some((ext) => fileName.endsWith(ext));
+    if (hasBlockedExtension) {
+      alert("Format file tidak diizinkan. Hanya gambar (JPG, PNG, WEBP, GIF) yang diperbolehkan.");
+      e.target.value = "";
       return;
     }
 
+    // --- Validasi 2: Blokir MIME type berbahaya & dokumen ---
+    const blockedMimeTypes = [
+      "application/pdf",
+      "application/msword",
+      "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+      "application/vnd.ms-excel",
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+      "application/vnd.ms-powerpoint",
+      "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+      "application/x-php",
+      "application/x-httpd-php",
+      "application/octet-stream",
+      "image/svg+xml",
+      "text/html",
+      "text/javascript",
+    ];
+    if (blockedMimeTypes.includes(file.type)) {
+      alert("Tipe file tidak diizinkan. Hanya gambar (JPG, PNG, WEBP, GIF) yang diperbolehkan.");
+      e.target.value = "";
+      return;
+    }
+
+    // --- Validasi 3: Whitelist MIME type gambar yang diizinkan ---
+    const allowedMimeTypes = ["image/jpeg", "image/png", "image/webp", "image/gif"];
+    if (!allowedMimeTypes.includes(file.type)) {
+      alert("Format gambar tidak didukung. Gunakan JPG, PNG, WEBP, atau GIF.");
+      e.target.value = "";
+      return;
+    }
+
+    // --- Validasi 4: Ukuran file maksimal 1MB ---
+    if (file.size > 1 * 1024 * 1024) {
+      alert("Ukuran file terlalu besar. Maksimal adalah 1 MB.");
+      e.target.value = "";
+      return;
+    }
+
+    // --- Keamanan 5: Rename file secara acak sebelum dikirim ---
+    const extension = fileName.split(".").pop();
+    const randomName = `${crypto.randomUUID()}.${extension}`;
+    const renamedFile = new File([file], randomName, { type: file.type });
+
     setUploading(true);
     const formData = new FormData();
-    formData.append("image", file);
+    formData.append("image", renamedFile);
 
     try {
       const res = await fetch(`${getApiUrl()}/upload`, {
@@ -106,6 +156,7 @@ export default function PaymentPage({ params }) {
       alert("Terjadi kesalahan saat mengunggah gambar");
     } finally {
       setUploading(false);
+      e.target.value = "";
     }
   };
 
@@ -564,7 +615,7 @@ export default function PaymentPage({ params }) {
                         </div>
                         <div className="space-y-1">
                           <p className="text-xs font-black text-white uppercase tracking-wider">Pilih Bukti Pembayaran</p>
-                          <p className="text-[9px] text-zinc-500 font-medium">JPG, PNG • Maksimal 500KB</p>
+                          <p className="text-[9px] text-zinc-500 font-medium">JPG, PNG, WEBP, GIF • Maksimal 1 MB</p>
                         </div>
                         <input type="file" accept="image/*" onChange={handleImageUpload} className="absolute inset-0 opacity-0 cursor-pointer" disabled={uploading} />
                       </div>
