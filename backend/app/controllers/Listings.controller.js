@@ -68,7 +68,7 @@ const ListingsController = {
             }
 
             // === QUOTA CHECK: Max lifetime listings per shop ===
-            const LISTING_QUOTA_LIMIT = userShop.listing_limit || 500;
+            const LISTING_QUOTA_LIMIT = userShop.listing_limit || 300;
             const usedQuota = await models.listings.count({
                 where: {
                     shop_id: userShop.id
@@ -1007,7 +1007,7 @@ const ListingsController = {
             const { shopId } = req.params;
             const { Op } = require('sequelize');
             const shop = await models.shops.findByPk(shopId);
-            const limit = shop ? (shop.listing_limit || 500) : 500;
+            const limit = shop ? (shop.listing_limit || 300) : 300;
 
             const used = await models.listings.count({
                 where: {

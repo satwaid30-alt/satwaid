@@ -6,12 +6,14 @@ import { io } from "socket.io-client";
 import ActionModal from "@/components/ActionModal";
 import { getApiUrl, getSocketUrl, getImageUrl } from "@/app/utils/api";
 import ComplaintComments from "@/components/ComplaintComments";
+import { uploadImageToS3 } from "@/components/HandleUpload";
 
 export default function PengaduanUserPage() {
   const [user, setUser] = useState(null);
   const [token, setToken] = useState(null);
   const [complaints, setComplaints] = useState([]);
   const [isLoadingHistory, setIsLoadingHistory] = useState(true);
+  const [errorHistory, setErrorHistory] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
 
@@ -68,16 +70,29 @@ export default function PengaduanUserPage() {
   const fetchHistory = async (userToken) => {
     try {
       setIsLoadingHistory(true);
+      setErrorHistory(null);
+      const activeToken = userToken || token || (typeof window !== "undefined" ? localStorage.getItem("token") : null);
+      if (!activeToken) {
+        setIsLoadingHistory(false);
+        setErrorHistory("Sesi telah berakhir. Silakan masuk kembali.");
+        return;
+      }
       const res = await fetch(`${getApiUrl()}/complaints/user`, {
         headers: {
-          Authorization: `Bearer ${userToken || token}`,
+          Authorization: `Bearer ${activeToken}`,
         },
       });
       if (res.ok) {
         const result = await res.json();
         setComplaints(result.data || []);
+      } else {
+        const result = await res.json().catch(() => ({}));
+        const errMsg = result.message || `Gagal mengambil data dari server (Status: ${res.status})`;
+        setErrorHistory(errMsg);
+        console.error("Gagal mengambil riwayat pengaduan. Status:", res.status, errMsg);
       }
     } catch (err) {
+      setErrorHistory(err.message || "Terjadi kesalahan jaringan saat memuat riwayat pengaduan.");
       console.error("Gagal mengambil riwayat pengaduan:", err);
     } finally {
       setIsLoadingHistory(false);
@@ -198,33 +213,16 @@ export default function PengaduanUserPage() {
     const randomFilename = `${Date.now()}_complaint_${randomString}${fileExtension}`;
     const renamedFile = new File([file], randomFilename, { type: file.type });
 
-    const formData = new FormData();
-    formData.append("image", renamedFile);
-
     try {
-      const response = await fetch(`${getApiUrl()}/upload`, {
-        method: "POST",
-        body: formData,
-      });
-      const result = await response.json();
-      if (response.ok) {
-        setForm({ ...form, attachment_url: result.url });
-      } else {
-        setModalConfig({
-          isOpen: true,
-          type: "danger",
-          title: "Gagal Mengunggah",
-          message: result.message || "Gagal mengunggah lampiran gambar.",
-          onConfirm: null,
-        });
-      }
+      const { objectKey } = await uploadImageToS3(renamedFile, token, "complaints");
+      setForm({ ...form, attachment_url: "/" + objectKey });
     } catch (error) {
-      console.error("Error uploading file:", error);
+      console.error("Error uploading file to S3:", error);
       setModalConfig({
         isOpen: true,
         type: "danger",
-        title: "Kesalahan Koneksi",
-        message: "Terjadi kesalahan saat mengunggah lampiran.",
+        title: "Gagal Mengunggah",
+        message: error.message || "Gagal mengunggah lampiran gambar.",
         onConfirm: null,
       });
     } finally {
@@ -282,11 +280,12 @@ export default function PengaduanUserPage() {
         title: form.description.length > 60 ? form.description.substring(0, 60).trim() + "..." : form.description.trim()
       };
 
+      const activeToken = token || (typeof window !== "undefined" ? localStorage.getItem("token") : null);
       const response = await fetch(`${getApiUrl()}/complaints`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
+          Authorization: `Bearer ${activeToken}`,
         },
         body: JSON.stringify(payload),
       });
@@ -301,8 +300,13 @@ export default function PengaduanUserPage() {
           attachment_url: "",
         });
 
+        // Reset filters and page to ensure the new complaint is visible on page 1
+        setFilterStatus("all");
+        setFilterCategory("all");
+        setCurrentPage(1);
+
         // Refresh history
-        await fetchHistory(token);
+        await fetchHistory(activeToken);
 
         setModalConfig({
           isOpen: true,
@@ -547,6 +551,22 @@ export default function PengaduanUserPage() {
                   <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
                 </svg>
                 <span className="text-zinc-500 text-sm font-bold uppercase tracking-wider">Memuat riwayat pengaduan...</span>
+              </div>
+            ) : errorHistory ? (
+              <div className="py-12 px-6 text-center space-y-4 bg-red-500/10 border border-red-500/30 rounded-xl">
+                <div className="w-16 h-16 bg-red-500/20 text-red-400 rounded-2xl flex items-center justify-center mx-auto border border-red-500/30">
+                  <AlertTriangle size={32} />
+                </div>
+                <div className="space-y-2">
+                  <p className="text-red-400 font-bold text-lg">Gagal Memuat Riwayat Pengaduan</p>
+                  <p className="text-zinc-400 text-sm max-w-md mx-auto">{errorHistory}</p>
+                </div>
+                <button
+                  onClick={() => fetchHistory(token)}
+                  className="px-5 py-2.5 bg-red-500 hover:bg-red-400 text-zinc-950 font-black rounded-xl text-xs uppercase tracking-wider transition-colors"
+                >
+                  Coba Lagi
+                </button>
               </div>
             ) : filteredComplaints.length === 0 ? (
               <div className="py-20 text-center space-y-4">

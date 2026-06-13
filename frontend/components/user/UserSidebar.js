@@ -56,8 +56,54 @@ const isSubmenuActive = (subHref, pathname) => {
   return pathname.startsWith(subHref + "/");
 };
 
+const normalizePathname = (path) => {
+  if (!path) return "";
+  let p = path;
+
+  // Toko-Saya mappings
+  if (p.startsWith("/user/toko/daftar-produk")) {
+    p = p.replace("/user/toko/daftar-produk", "/toko-saya/produk");
+  } else if (p.startsWith("/user/toko/jual-produk")) {
+    p = p.replace("/user/toko/jual-produk", "/toko-saya/jual");
+  } else if (p.startsWith("/user/toko/lelang-produk")) {
+    p = p.replace("/user/toko/lelang-produk", "/toko-saya/lelang");
+  } else if (p.startsWith("/user/toko/pesanan-masuk")) {
+    p = p.replace("/user/toko/pesanan-masuk", "/toko-saya/pesanan-masuk");
+  } else if (p.startsWith("/user/toko/upgrade-toko")) {
+    p = p.replace("/user/toko/upgrade-toko", "/toko-saya/upgrade");
+  } else if (p.startsWith("/user/toko/detail-toko")) {
+    p = p.replace("/user/toko/detail-toko", "/toko-saya/profil");
+  } else if (p.startsWith("/user/toko/pengajuan-keuangan")) {
+    p = p.replace("/user/toko/pengajuan-keuangan", "/toko-saya/keuangan");
+  } else if (p.startsWith("/user/toko/dashboard")) {
+    p = p.replace("/user/toko/dashboard", "/toko-saya/dashboard");
+  } else if (p === "/user/toko" || p.startsWith("/user/toko/")) {
+    p = p.replace("/user/toko", "/toko-saya/profil");
+  }
+
+  // User/Akun mappings
+  if (p.startsWith("/user/pengaturan")) {
+    p = p.replace("/user/pengaturan", "/akun/pengaturan");
+  } else if (p.startsWith("/user/pesanan/riwayat-pembelian")) {
+    p = p.replace("/user/pesanan/riwayat-pembelian", "/akun/pesanan/riwayat-pembelian");
+  } else if (p.startsWith("/user/pesanan/lelang")) {
+    p = p.replace("/user/pesanan/lelang", "/akun/pesanan/lelang");
+  } else if (p.startsWith("/user/pesanan/pengembalian-dana")) {
+    p = p.replace("/user/pesanan/pengembalian-dana", "/akun/pesanan/pengembalian-dana");
+  } else if (p.startsWith("/user/pesanan")) {
+    p = p.replace("/user/pesanan", "/akun/pesanan");
+  } else if (p.startsWith("/user/komunitas")) {
+    p = p.replace("/user/komunitas", "/akun/komunitas");
+  } else if (p.startsWith("/user/pengaduan")) {
+    p = p.replace("/user/pengaduan", "/akun/pengaduan");
+  }
+
+  return p;
+};
+
 export default function UserSidebar() {
-  const pathname = usePathname();
+  const rawPathname = usePathname();
+  const pathname = normalizePathname(rawPathname);
   const router = useRouter();
   const [user, setUser] = useState(null);
   const [isLoaded, setIsLoaded] = useState(false);
@@ -196,7 +242,7 @@ export default function UserSidebar() {
     }
   };
 
-  // Auto-open submenu if active child exists
+  // Auto-open submenu if active child exists, and close other menus/dropdowns on path change
   useEffect(() => {
     if (typeof window !== "undefined") {
       const initialOpenStates = {};
@@ -206,9 +252,9 @@ export default function UserSidebar() {
           initialOpenStates[`mobile_${item.name}`] = true;
         }
       });
-      if (Object.keys(initialOpenStates).length > 0) {
-        setOpenSubmenus((prev) => ({ ...prev, ...initialOpenStates }));
-      }
+      setOpenSubmenus(initialOpenStates);
+      setIsMobileMenuOpen(false);
+      setShowNotifDropdown(false);
     }
   }, [pathname]);
 
@@ -345,7 +391,7 @@ export default function UserSidebar() {
 
   // Mark as read when entering community
   useEffect(() => {
-    if (pathname === "/user/komunitas" && user?.id) {
+    if (pathname === "/akun/komunitas" && user?.id) {
       const markAsRead = async () => {
         try {
           const token = localStorage.getItem("token");
@@ -372,7 +418,6 @@ export default function UserSidebar() {
 
   const toggleSubmenu = (name) => {
     setOpenSubmenus((prev) => ({
-      ...prev,
       [name]: !prev[name],
     }));
   };

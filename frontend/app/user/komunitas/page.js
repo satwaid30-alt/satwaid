@@ -3,7 +3,8 @@
 import { useState, useEffect } from "react";
 import { MessageSquare, Flame, TrendingUp, Clock, Plus, Filter, Search, Heart, Share2, MoreVertical, Edit, Trash2, X, Image as ImageIcon, Star } from "lucide-react";
 import Link from "next/link";
-import { getApiUrl } from "@/app/utils/api";
+import { getApiUrl, getImageUrl } from "@/app/utils/api";
+import { uploadImageToS3 } from "@/components/HandleUpload";
 
 export default function UserKomunitasPage() {
     const [searchQuery, setSearchQuery] = useState("");
@@ -81,12 +82,12 @@ export default function UserKomunitasPage() {
             return;
         }
 
-        // 2. Validasi ukuran maksimal 500KB (500 * 1024 bytes)
-        if (file.size > 500 * 1024) {
+        // 2. Validasi ukuran maksimal 1MB (1 * 1024 * 1024 bytes)
+        if (file.size > 1 * 1024 * 1024) {
             setErrorModal({ 
                 isOpen: true, 
                 title: "Ukuran Terlalu Besar",
-                message: "Maaf, ukuran gambar terlalu besar! Maksimal ukuran file adalah 500KB." 
+                message: "Maaf, ukuran gambar terlalu besar! Maksimal ukuran file adalah 1MB." 
             });
             e.target.value = ""; // Reset input file
             return;
@@ -99,22 +100,13 @@ export default function UserKomunitasPage() {
 
         setSelectedImage(URL.createObjectURL(renamedFile));
 
-        const formDataObj = new FormData();
-        formDataObj.append("image", renamedFile);
         try {
-            const res = await fetch(`${getApiUrl()}/upload`, {
-                method: "POST",
-                body: formDataObj
-            });
-            const data = await res.json();
-            if (res.ok) {
-                setFormData({ ...formData, image: data.url });
-            } else {
-                setErrorModal({ isOpen: true, title: "Gagal Mengunggah", message: data.message || "Gagal mengunggah gambar." });
-            }
+            const token = localStorage.getItem("token");
+            const { objectKey } = await uploadImageToS3(renamedFile, token, "listings");
+            setFormData({ ...formData, image: `/${objectKey}` });
         } catch (err) {
             console.error("Upload error:", err);
-            setErrorModal({ isOpen: true, title: "Kesalahan Koneksi", message: "Terjadi kesalahan koneksi saat mengunggah gambar." });
+            setErrorModal({ isOpen: true, title: "Gagal Mengunggah", message: err.message || "Gagal mengunggah gambar." });
         }
     };
 
@@ -321,7 +313,7 @@ export default function UserKomunitasPage() {
                                     <div key={topic.id} className="flex flex-col md:flex-row justify-between gap-4 p-4 rounded-xl border border-zinc-800 hover:border-zinc-700 bg-zinc-950/50 hover:bg-zinc-800/30 transition-all group">
                                         {topic.image && (
                                             <div className="w-full md:w-32 h-24 rounded-lg overflow-hidden shrink-0 border border-zinc-800">
-                                                <img src={topic.image.startsWith('http') ? topic.image : `${getApiUrl()}${topic.image}`} alt={topic.title} className="w-full h-full object-cover" />
+                                                <img src={getImageUrl(topic.image)} alt={topic.title} className="w-full h-full object-cover" />
                                             </div>
                                         )}
                                         <div className="flex-1 space-y-2">
@@ -494,7 +486,7 @@ export default function UserKomunitasPage() {
                                             <span className="truncate flex-1">{selectedImage ? "Gambar Dipilih" : "Pilih Gambar..."}</span>
                                         </label>
                                         <p className="text-xs text-zinc-500 mt-2 font-medium flex items-center gap-1.5">
-                                            <span className="text-amber-500 text-sm">⚠️</span> Maksimal ukuran file: 500KB
+                                            <span className="text-amber-500 text-sm">⚠️</span> Maksimal ukuran file: 1MB
                                         </p>
                                         {selectedImage && (
                                             <div className="mt-3 relative w-full h-32 rounded-xl overflow-hidden border border-zinc-800">

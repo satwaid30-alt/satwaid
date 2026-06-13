@@ -84,7 +84,7 @@ const allowedOrigins = process.env.ALLOWED_ORIGINS
     : [process.env.FRONTEND_URL || 'http://localhost:3000'];
 
 const corsOptions = {
-    origin: (origin, callback) => {
+    origin: process.env.NODE_ENV === 'development' ? true : (origin, callback) => {
         // Izinkan request tanpa origin (Postman, server-to-server, dll)
         if (!origin) return callback(null, true);
         if (allowedOrigins.includes(origin)) {

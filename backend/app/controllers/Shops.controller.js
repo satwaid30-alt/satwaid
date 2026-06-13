@@ -122,7 +122,7 @@ module.exports.getShopByUserId = async (req, res, next) => {
         });
 
         if (!shop) {
-            return res.status(404).json({ message: "Shop not found", data: null });
+            return res.status(200).json({ message: "Shop not found", data: null });
         }
 
         // Calculate average rating and total sales dynamically
@@ -183,7 +183,8 @@ module.exports.createShop = async (req, res, next) => {
             banner_url,
             nik,
             shipping_policy,
-            warranty_policy
+            warranty_policy,
+            listing_limit: 300
         });
 
         res.status(201).json({

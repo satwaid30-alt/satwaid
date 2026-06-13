@@ -4,8 +4,10 @@ import { useState, useEffect, use } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { io } from "socket.io-client";
-import { getApiUrl, getSocketUrl } from "@/app/utils/api";
+import { getApiUrl, getSocketUrl, getImageUrl } from "@/app/utils/api";
 import { Star, MessageSquare, AlertTriangle, Upload, CheckCircle2, XCircle, ChevronLeft, ShieldAlert, Camera, Send, Truck, Package } from "lucide-react";
+import ActionModal from "@/components/ActionModal";
+import { uploadImageToS3 } from "@/components/HandleUpload";
 
 export default function TransactionCompletePage({ params }) {
   const { id } = use(params);
@@ -222,16 +224,9 @@ export default function TransactionCompletePage({ params }) {
     try {
       let imageUrl = null;
       if (complaintImage) {
-        const formData = new FormData();
-        formData.append("image", complaintImage);
-        const uploadRes = await fetch(`${getApiUrl()}/upload`, {
-          method: "POST",
-          body: formData,
-        });
-        const uploadResult = await uploadRes.json();
-        if (uploadRes.ok) {
-          imageUrl = uploadResult.url;
-        }
+        const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
+        const { objectKey } = await uploadImageToS3(complaintImage, token, "complaints");
+        imageUrl = "/" + objectKey;
       }
 
       const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
@@ -300,7 +295,7 @@ export default function TransactionCompletePage({ params }) {
         {/* Product Header */}
         <div className="p-6 md:p-8 bg-zinc-950/50 border-b border-zinc-800 flex flex-col md:flex-row items-center gap-6 md:gap-8 text-center md:text-left">
           <div className="w-24 h-24 md:w-32 md:h-32 rounded-2xl md:rounded-[2rem] overflow-hidden border-2 border-zinc-800 shrink-0 relative group">
-            <img src={order.product?.images?.[0]} alt={order.product?.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
+            <img src={getImageUrl(order.product?.images) || "https://placehold.co/400x400/f4f4f5/71717a?text=No+Image"} alt={order.product?.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
           </div>
           <div className="flex-1">
             <p className="text-[9px] md:text-[10px] font-black text-blue-500 uppercase tracking-[0.2em] md:tracking-[0.3em] mb-1.5 md:mb-2">Konfirmasi Barang Sampai</p>

@@ -163,7 +163,7 @@ export default function KomunitasPage() {
           <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-emerald-700/10 blur-[120px] rounded-full" />
         </div>
 
-        <div className="relative z-10 max-w-7xl mx-auto px-6 text-center">
+        <div className="relative z-10 w-full max-w-[95%] xl:max-w-[1500px] 2xl:max-w-[1700px] mx-auto px-6 lg:px-8 text-center">
           <h1 className="text-4xl md:text-6xl font-extrabold text-white tracking-tight mb-6 leading-tight">
             Forum Diskusi <br />
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-teal-500">Dunia Satwa</span>
@@ -181,7 +181,7 @@ export default function KomunitasPage() {
         </div>
       </section>
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 pt-24 pb-16 md:py-16">
+      <main className="w-full max-w-[95%] xl:max-w-[1550px] 2xl:max-w-[1750px] mx-auto px-4 sm:px-6 lg:px-8 pt-24 pb-16 md:py-16">
         {/* Ad Card for Mobile (Visible on mobile only, at the top) */}
         {isLoading ? (
           <div className="block md:hidden mb-6 px-1">
@@ -221,9 +221,9 @@ export default function KomunitasPage() {
 
         {/* Mobile Menu Grid (Visible on mobile/handphones only, white cards) */}
         <MobileMenuGrid className="mb-6 px-1" />
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6" id="discussions">
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 xl:gap-8" id="discussions">
           {/* Left Sidebar */}
-          <div className="space-y-5">
+          <div className="space-y-5 order-2 lg:order-1 lg:col-span-1">
             {/* Categories */}
             <div className="bg-white border border-zinc-200/70 rounded-2xl p-5">
               <h3 className="text-[10px] font-black text-zinc-400 uppercase tracking-[0.2em] mb-4">Kategori Populer</h3>
@@ -342,7 +342,7 @@ export default function KomunitasPage() {
           </div>
 
           {/* Main Content */}
-          <div className="lg:col-span-3 space-y-4">
+          <div className="lg:col-span-3 space-y-4 order-1 lg:order-2">
             {/* Filter Bar */}
             <div className="bg-white border border-zinc-200/70 rounded-2xl p-2 sm:p-3 flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3">
               <div className="flex items-center gap-1 bg-zinc-100 rounded-xl p-1">
@@ -370,9 +370,9 @@ export default function KomunitasPage() {
             </div>
 
             {/* Topic Cards */}
-            <div className="space-y-3">
+            <div className="space-y-6">
               {isLoading ? (
-                <div className="space-y-4">
+                <div className="space-y-6">
                   {/* Inline loading indicator */}
                   <div className="flex flex-col items-center justify-center py-12 gap-4">
                     {/* Spinner */}
@@ -394,26 +394,30 @@ export default function KomunitasPage() {
                     </div>
                   </div>
 
-                  {/* Skeleton list cards below the spinner */}
-                  <div className="space-y-3">
-                    {[1, 2, 3, 4, 5].map((i) => (
-                      <div key={i} className="bg-white rounded-2xl p-5 sm:p-6 border border-zinc-200/70 animate-pulse space-y-4" style={{ animationDelay: `${(i - 1) * 80}ms` }}>
-                        {/* Author Row Skeleton */}
-                        <div className="flex items-center gap-3">
-                          <div className="w-9 h-9 rounded-xl bg-zinc-100" />
-                          <div className="space-y-1.5 flex-1">
-                            <div className="h-3.5 bg-zinc-100 w-24 rounded-full" />
-                            <div className="h-3 bg-zinc-50 w-16 rounded-full" />
+                  {/* Skeleton grid cards below the spinner */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                    {[1, 2, 3, 4, 5, 6].map((i) => (
+                      <div key={i} className="flex flex-col justify-between bg-white rounded-2xl p-5 border border-zinc-200/70 animate-pulse h-[360px]" style={{ animationDelay: `${(i - 1) * 80}ms` }}>
+                        <div className="space-y-4 flex-1 flex flex-col">
+                          {/* Author Row Skeleton */}
+                          <div className="flex items-center gap-3">
+                            <div className="w-9 h-9 rounded-xl bg-zinc-100" />
+                            <div className="space-y-1.5 flex-1">
+                              <div className="h-3.5 bg-zinc-100 w-24 rounded-full" />
+                              <div className="h-3 bg-zinc-50 w-16 rounded-full" />
+                            </div>
                           </div>
-                        </div>
-                        {/* Title and Body Skeleton */}
-                        <div className="space-y-2">
-                          <div className="h-5 bg-zinc-100 w-3/4 rounded-full" />
-                          <div className="h-3.5 bg-zinc-100 w-full rounded-full" />
-                          <div className="h-3.5 bg-zinc-100 w-5/6 rounded-full" />
+                          {/* Title and Body Skeleton */}
+                          <div className="space-y-2">
+                            <div className="h-4 bg-zinc-100 w-3/4 rounded-full" />
+                            <div className="h-3 bg-zinc-100 w-full rounded-full" />
+                            <div className="h-3 bg-zinc-100 w-5/6 rounded-full" />
+                          </div>
+                          {/* Image Placeholder Skeleton */}
+                          <div className="w-full aspect-video rounded-xl bg-zinc-50 border border-zinc-100/50 mt-auto" />
                         </div>
                         {/* Bottom Row Skeleton */}
-                        <div className="flex items-center justify-between pt-4 border-t border-zinc-50">
+                        <div className="flex items-center justify-between pt-4 border-t border-zinc-50 mt-4">
                           <div className="h-6 bg-zinc-100 w-20 rounded-full" />
                           <div className="flex gap-4">
                             <div className="h-4 bg-zinc-100 w-10 rounded-full" />
@@ -425,65 +429,76 @@ export default function KomunitasPage() {
                   </div>
                 </div>
               ) : currentTopics.length > 0 ? (
-                currentTopics.map((topic) => (
-                  <Link href={`/komunitas/${topic.id}`} key={topic.id} className="block bg-white border border-zinc-200/70 hover:border-emerald-400/50 rounded-2xl p-5 sm:p-6 transition-all duration-200 group hover:-translate-y-0.5">
-                    {/* Author Row */}
-                    <div className="flex items-center gap-3 mb-3">
-                      <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-emerald-100 to-teal-100 border border-emerald-200/50 overflow-hidden flex items-center justify-center text-emerald-700 font-black text-sm shrink-0">
-                        {topic.author?.avatar_url ? <img src={`${getApiUrl()}${topic.author.avatar_url}`} alt={topic.author.username} className="w-full h-full object-cover" /> : topic.author?.username ? topic.author.username.charAt(0).toUpperCase() : "U"}
-                      </div>
-                      <div className="flex items-center gap-2 flex-1 min-w-0 flex-wrap">
-                        <span className="text-sm font-bold text-zinc-700">@{topic.author?.username || "Unknown"}</span>
-
-                        {(topic.author?.stars > 0 || topic.author?.reputation > 0) && (
-                          <div className="flex items-center gap-1 bg-amber-50 border border-amber-200/50 px-2 py-0.5 rounded-full" title={`${topic.author?.reputation?.toLocaleString("id-ID") || 0} Poin Reputasi`}>
-                            {topic.author?.stars > 0 ? (
-                              <div className="flex text-amber-500 gap-0.5">
-                                {Array.from({ length: topic.author.stars }).map((_, i) => (
-                                  <Star key={i} size={10} className="fill-current" />
-                                ))}
-                              </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                  {currentTopics.map((topic) => (
+                    <Link
+                      href={`/komunitas/${topic.id}`}
+                      key={topic.id}
+                      className="flex flex-col justify-between bg-white border border-zinc-200/70 hover:border-emerald-400/50 rounded-2xl p-5 transition-all duration-200 group hover:-translate-y-1 hover:shadow-lg hover:shadow-zinc-200/50 h-full"
+                    >
+                      <div className="flex-1 flex flex-col">
+                        {/* Author Row */}
+                        <div className="flex items-center gap-3 mb-3">
+                          <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-emerald-100 to-teal-100 border border-emerald-200/50 overflow-hidden flex items-center justify-center text-emerald-700 font-black text-sm shrink-0">
+                            {topic.author?.avatar_url ? (
+                              <img src={`${getApiUrl()}${topic.author.avatar_url}`} alt={topic.author.username} className="w-full h-full object-cover" />
                             ) : (
-                              <span className="text-[10px] font-black text-amber-600">{topic.author?.reputation?.toLocaleString("id-ID")} pts</span>
+                              topic.author?.username ? topic.author.username.charAt(0).toUpperCase() : "U"
                             )}
                           </div>
+                          <div className="flex items-center gap-2 flex-1 min-w-0 flex-wrap">
+                            <span className="text-sm font-bold text-zinc-700 truncate max-w-[120px]">@{topic.author?.username || "Unknown"}</span>
+
+                            {(topic.author?.stars > 0 || topic.author?.reputation > 0) && (
+                              <div className="flex items-center gap-1 bg-amber-50 border border-amber-200/50 px-2 py-0.5 rounded-full" title={`${topic.author?.reputation?.toLocaleString("id-ID") || 0} Poin Reputasi`}>
+                                {topic.author?.stars > 0 ? (
+                                  <div className="flex text-amber-500 gap-0.5">
+                                    {Array.from({ length: topic.author.stars }).map((_, i) => (
+                                      <Star key={i} size={10} className="fill-current" />
+                                    ))}
+                                  </div>
+                                ) : (
+                                  <span className="text-[10px] font-black text-amber-600">{topic.author?.reputation?.toLocaleString("id-ID")} pts</span>
+                                )}
+                              </div>
+                            )}
+                            <span className="text-[10px] text-zinc-400 font-semibold ml-auto shrink-0">{new Date(topic.created_at).toLocaleDateString("id-ID", { day: "numeric", month: "short" })}</span>
+                          </div>
+                        </div>
+
+                        {/* Title & Description */}
+                        <h3 className="text-base font-black text-zinc-900 group-hover:text-emerald-600 transition-colors leading-snug mb-1.5 line-clamp-2">{topic.title}</h3>
+                        <p className="text-xs text-zinc-500 line-clamp-3 leading-relaxed mb-4">{topic.description}</p>
+
+                        {/* Image */}
+                        {topic.image && (
+                          <div className="w-full aspect-video rounded-xl overflow-hidden border border-zinc-100 mt-auto bg-zinc-50 mb-4">
+                            <img src={topic.image.startsWith("http") ? topic.image : `${getApiUrl()}${topic.image}`} alt={topic.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
+                          </div>
                         )}
-
-                        <span className="text-xs text-zinc-400 font-medium ml-auto shrink-0">{new Date(topic.created_at).toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" })}</span>
                       </div>
-                    </div>
 
-                    {/* Title & Description */}
-                    <h3 className="text-lg sm:text-xl font-black text-zinc-900 group-hover:text-emerald-600 transition-colors leading-tight mb-2">{topic.title}</h3>
-                    <p className="text-sm text-zinc-500 line-clamp-2 leading-relaxed">{topic.description}</p>
+                      {/* Bottom Row */}
+                      <div className="flex items-center justify-between pt-3 border-t border-zinc-100 mt-3">
+                        <span className="px-2.5 py-1 bg-zinc-50 text-zinc-500 text-[8px] font-black rounded-full uppercase tracking-[0.1em] border border-zinc-100 group-hover:bg-emerald-50 group-hover:text-emerald-600 group-hover:border-emerald-100 transition-all truncate min-w-0 max-w-[150px] md:max-w-none">{topic.category || "Diskusi Umum"}</span>
 
-                    {/* Image */}
-                    {topic.image && (
-                      <div className="w-full h-48 sm:h-60 rounded-xl overflow-hidden border border-zinc-100 mt-4 bg-zinc-50">
-                        <img src={topic.image.startsWith("http") ? topic.image : `${getApiUrl()}${topic.image}`} alt={topic.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
-                      </div>
-                    )}
-
-                    {/* Bottom Row */}
-                    <div className="flex items-center justify-between mt-4 pt-4 border-t border-zinc-100">
-                      <span className="px-3 py-1.5 bg-zinc-50 text-zinc-500 text-[9px] font-black rounded-full uppercase tracking-[0.1em] border border-zinc-100 group-hover:bg-emerald-50 group-hover:text-emerald-600 group-hover:border-emerald-100 transition-all">{topic.category || "Diskusi Umum"}</span>
-
-                      <div className="flex items-center gap-3 sm:gap-4">
-                        <div className="flex items-center gap-1.5 text-zinc-400 text-sm font-semibold">
-                          <MessageSquare size={14} className="text-blue-400" />
-                          <span>{topic.replies || 0}</span>
-                        </div>
-                        <button onClick={(e) => handleLike(e, topic.id)} className={`flex items-center gap-1.5 text-sm font-semibold transition-all hover:scale-110 active:scale-95 ${currentUser && topic.topic_likes?.some((like) => like.user_id === currentUser.id) ? "text-rose-500" : "text-zinc-400 hover:text-rose-500"}`}>
-                          <Heart size={14} className={currentUser && topic.topic_likes?.some((like) => like.user_id === currentUser.id) ? "fill-current" : ""} />
-                          <span>{topic.likes || 0}</span>
-                        </button>
-                        <div className="w-7 h-7 rounded-full bg-zinc-50 text-zinc-400 group-hover:bg-emerald-500 group-hover:text-white flex items-center justify-center transition-all duration-300">
-                          <ChevronRight size={14} />
+                        <div className="flex items-center gap-2.5">
+                          <div className="flex items-center gap-1 text-zinc-400 text-xs font-semibold">
+                            <MessageSquare size={12} className="text-blue-400" />
+                            <span>{topic.replies || 0}</span>
+                          </div>
+                          <button onClick={(e) => handleLike(e, topic.id)} className={`flex items-center gap-1 text-xs font-semibold transition-all hover:scale-115 active:scale-90 ${currentUser && topic.topic_likes?.some((like) => like.user_id === currentUser.id) ? "text-rose-500" : "text-zinc-400 hover:text-rose-500"}`}>
+                            <Heart size={12} className={currentUser && topic.topic_likes?.some((like) => like.user_id === currentUser.id) ? "fill-current" : ""} />
+                            <span>{topic.likes || 0}</span>
+                          </button>
+                          <div className="w-6 h-6 rounded-full bg-zinc-50 text-zinc-400 group-hover:bg-emerald-500 group-hover:text-white flex items-center justify-center transition-all duration-300">
+                            <ChevronRight size={12} />
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  </Link>
-                ))
+                    </Link>
+                  ))}
+                </div>
               ) : (
                 <div className="text-center py-20 bg-white border border-dashed border-zinc-200 rounded-2xl">
                   <div className="w-16 h-16 bg-zinc-50 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-zinc-100">

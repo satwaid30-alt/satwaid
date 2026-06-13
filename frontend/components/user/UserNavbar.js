@@ -62,6 +62,12 @@ export default function UserNavbar() {
     }
   }, [user]);
 
+  // Auto-close dropdowns on page navigation
+  useEffect(() => {
+    setShowNotifDropdown(false);
+    setShowProfileDropdown(false);
+  }, [pathname]);
+
   const fetchCounts = async () => {
     if (!user) return;
     try {

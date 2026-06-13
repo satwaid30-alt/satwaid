@@ -17,7 +17,7 @@ import {
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import ActionModal from "@/components/ActionModal";
-import { getApiUrl } from "@/app/utils/api";
+import { getApiUrl, getImageUrl } from "@/app/utils/api";
 
 export default function PengajuanPencairanPage({ params }) {
     const { id } = use(params);
@@ -188,7 +188,7 @@ export default function PengajuanPencairanPage({ params }) {
                                     </div>
                                     <div className="flex items-center gap-4">
                                         <div className="w-16 h-16 bg-zinc-900 rounded-2xl overflow-hidden border border-zinc-800 shrink-0">
-                                            <img src={order.product?.images?.[0] || "https://placehold.co/100x100"} className="w-full h-full object-cover" />
+                                            <img src={getImageUrl(order.product?.images) || "https://placehold.co/100x100?text=No+Image"} className="w-full h-full object-cover" />
                                         </div>
                                         <div className="min-w-0">
                                             <h3 className="text-white font-black text-sm line-clamp-1">{order.product?.name}</h3>

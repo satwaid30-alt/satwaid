@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
-import { getApiUrl, getSocketUrl } from "@/app/utils/api";
+import { getApiUrl, getSocketUrl, getImageUrl } from "@/app/utils/api";
 import { ShoppingBag, MapPin, DollarSign, Clock, CheckCircle2, AlertCircle, X, XCircle, Search, Filter, Package, Truck, Info, ChevronRight, ChevronLeft, Store, ScrollText, CreditCard, Hash, MessageCircle, ShieldAlert, Calendar } from "lucide-react";
 
 const getPaginationRange = (currentPage, totalPages) => {
@@ -509,8 +509,8 @@ export default function PesananMasukPage() {
               <div className="p-4 md:p-6 space-y-5 flex-1 flex flex-col">
                 {/* Product Detail Header */}
                 <div className="flex items-center gap-4 bg-zinc-950/20 p-3 rounded-2xl border border-zinc-800/40">
-                  <div onClick={() => setSelectedImage(order.product?.images?.[0])} className="w-16 h-16 md:w-20 md:h-20 rounded-xl overflow-hidden bg-zinc-950 shrink-0 border border-zinc-800 relative group/img cursor-zoom-in">
-                    <img src={order.product?.images?.[0]} className="w-full h-full object-cover group-hover/img:scale-105 transition-transform duration-500" alt={order.product?.name} />
+                  <div onClick={() => setSelectedImage(getImageUrl(order.product?.images))} className="w-16 h-16 md:w-20 md:h-20 rounded-xl overflow-hidden bg-zinc-950 shrink-0 border border-zinc-800 relative group/img cursor-zoom-in">
+                    <img src={getImageUrl(order.product?.images) || "https://placehold.co/400x400/f4f4f5/71717a?text=No+Image"} className="w-full h-full object-cover group-hover/img:scale-105 transition-transform duration-500" alt={order.product?.name} />
                     <div className="absolute inset-0 bg-gradient-to-t from-zinc-950/60 to-transparent"></div>
                     <div className="absolute inset-0 bg-black/40 opacity-0 group-hover/img:opacity-100 transition-opacity flex items-center justify-center">
                       <Search size={14} className="text-white" />
@@ -612,8 +612,8 @@ export default function PesananMasukPage() {
                           <p className="text-[9px] text-white leading-relaxed font-medium italic">{order.complaint_description || "Tidak ada deskripsi."}</p>
                         </div>
                         {order.complaint_image && (
-                          <div onClick={() => setSelectedImage(order.complaint_image.startsWith("http") ? order.complaint_image : `${getApiUrl()}${order.complaint_image}`)} className="relative h-20 w-full rounded-xl overflow-hidden border border-zinc-800 bg-zinc-950 cursor-zoom-in group/complaint">
-                            <img src={order.complaint_image.startsWith("http") ? order.complaint_image : `${getApiUrl()}${order.complaint_image}`} className="w-full h-full object-cover group-hover/complaint:scale-105 transition-transform duration-500" alt="Bukti Komplain" />
+                          <div onClick={() => setSelectedImage(getImageUrl(order.complaint_image))} className="relative h-20 w-full rounded-xl overflow-hidden border border-zinc-800 bg-zinc-950 cursor-zoom-in group/complaint">
+                            <img src={getImageUrl(order.complaint_image)} className="w-full h-full object-cover group-hover/complaint:scale-105 transition-transform duration-500" alt="Bukti Komplain" />
                             <div className="absolute inset-0 bg-black/40 opacity-0 group-hover/complaint:opacity-100 transition-opacity flex items-center justify-center">
                               <Search size={14} className="text-white" />
                             </div>

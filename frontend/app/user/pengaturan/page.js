@@ -5,6 +5,7 @@ import { User, Mail, Phone, MapPin, CreditCard, Edit2, Save, Plus, Trash2, Camer
 import Link from "next/link";
 import ActionModal from "@/components/ActionModal";
 import { getApiUrl } from "@/app/utils/api";
+import { uploadImageToS3 } from "@/components/HandleUpload";
 
 export default function PengaturanProfilPage() {
   const [user, setUser] = useState({
@@ -98,11 +99,7 @@ export default function PengaturanProfilPage() {
         return str !== "" && str.toLowerCase() !== "null" && str.toLowerCase() !== "undefined";
       };
 
-      const isIncomplete = !isFieldFilled(parsed.name) || 
-                           !isFieldFilled(parsed.phone) || 
-                           !isFieldFilled(parsed.address) || 
-                           !isFieldFilled(parsed.city) || 
-                           !isFieldFilled(parsed.province);
+      const isIncomplete = !isFieldFilled(parsed.name) || !isFieldFilled(parsed.phone) || !isFieldFilled(parsed.address) || !isFieldFilled(parsed.city) || !isFieldFilled(parsed.province);
 
       const hasDismissed = sessionStorage.getItem("profile_modal_dismissed") === "true";
 
@@ -191,7 +188,7 @@ export default function PengaturanProfilPage() {
         isOpen: true,
         type: "danger",
         title: "Format File Tidak Didukung",
-        message: "Hanya diperbolehkan mengunggah file gambar (JPG, JPEG, PNG, WEBP, GIF). File PDF, dokumen Office, SVG, PHP, atau EXE tidak diizinkan.",
+        message: "Hanya diperbolehkan mengunggah file gambar (JPG, JPEG, PNG, WEBP, GIF).",
         onConfirm: null,
       });
       e.target.value = ""; // Reset input file
@@ -219,33 +216,17 @@ export default function PengaturanProfilPage() {
     const randomFilename = `${Date.now()}_${randomString}${fileExtension}`;
     const renamedFile = new File([file], randomFilename, { type: file.type });
 
-    const formData = new FormData();
-    formData.append("image", renamedFile);
-
     try {
-      const response = await fetch(`${getApiUrl()}/upload`, {
-        method: "POST",
-        body: formData,
-      });
-      const result = await response.json();
-      if (response.ok) {
-        setUser({ ...user, avatar_url: result.url });
-      } else {
-        setModalConfig({
-          isOpen: true,
-          type: "danger",
-          title: "Gagal Mengunggah",
-          message: result.message || "Gagal mengunggah foto profil.",
-          onConfirm: null,
-        });
-      }
+      const token = localStorage.getItem("token");
+      const { objectKey } = await uploadImageToS3(renamedFile, token, "avatars");
+      setUser({ ...user, avatar_url: `/${objectKey}` });
     } catch (error) {
       console.error("Error uploading image:", error);
       setModalConfig({
         isOpen: true,
         type: "danger",
-        title: "Kesalahan Koneksi",
-        message: "Terjadi kesalahan koneksi saat mengunggah foto profil.",
+        title: "Gagal Mengunggah",
+        message: error.message || "Terjadi kesalahan saat mengunggah foto profil.",
         onConfirm: null,
       });
     } finally {
@@ -648,10 +629,13 @@ export default function PengaturanProfilPage() {
       {/* Modal Pengaturan Otomatis (Entry Modal) */}
       {showSettingsModal && (
         <div className="fixed inset-0 z-[150] flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-zinc-950/90 backdrop-blur-xl animate-in fade-in duration-700" onClick={() => {
-            setShowSettingsModal(false);
-            sessionStorage.setItem("profile_modal_dismissed", "true");
-          }}></div>
+          <div
+            className="absolute inset-0 bg-zinc-950/90 backdrop-blur-xl animate-in fade-in duration-700"
+            onClick={() => {
+              setShowSettingsModal(false);
+              sessionStorage.setItem("profile_modal_dismissed", "true");
+            }}
+          ></div>
           <div className="bg-zinc-900 border border-zinc-800 w-full max-w-lg rounded-[3rem] relative z-10 overflow-hidden animate-in zoom-in-95 slide-in-from-bottom-8 duration-500">
             <div className="p-10 lg:p-12 space-y-8 text-center relative">
               {/* Decorative element */}

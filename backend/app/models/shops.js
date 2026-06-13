@@ -77,7 +77,7 @@ module.exports = function (sequelize, DataTypes) {
     listing_limit: {
       type: DataTypes.INTEGER,
       allowNull: false,
-      defaultValue: 500
+      defaultValue: 300
     },
     membership_level: {
       type: DataTypes.STRING(50),

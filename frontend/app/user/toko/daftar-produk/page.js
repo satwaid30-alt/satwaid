@@ -5,7 +5,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import ActionModal from "@/components/ActionModal";
 import { io } from "socket.io-client";
-import { getApiUrl, getSocketUrl } from "@/app/utils/api";
+import { getApiUrl, getSocketUrl, getImageUrl } from "@/app/utils/api";
 import QuotaCard from "@/components/QuotaCard";
 import { useShopQuota } from "@/hooks/useShopQuota";
 
@@ -447,9 +447,7 @@ export default function DaftarJualanPage() {
             <div className="flex items-end justify-between gap-2">
               <div>
                 <div className="flex items-baseline gap-1.5">
-                  <span className={`text-2xl sm:text-3xl md:text-4xl font-black tabular-nums leading-none ${listings.filter((item) => getEffectiveStatus(item) === "pending").length > 0 ? "text-amber-400 animate-pulse" : "text-white"}`}>
-                    {listings.filter((item) => getEffectiveStatus(item) === "pending").length}
-                  </span>
+                  <span className={`text-2xl sm:text-3xl md:text-4xl font-black tabular-nums leading-none ${listings.filter((item) => getEffectiveStatus(item) === "pending").length > 0 ? "text-amber-400 animate-pulse" : "text-white"}`}>{listings.filter((item) => getEffectiveStatus(item) === "pending").length}</span>
                   <span className="text-zinc-600 font-bold text-xs sm:text-sm">produk</span>
                 </div>
                 <p className="text-[9px] sm:text-[10px] text-zinc-600 font-bold mt-0.5 uppercase tracking-wider">Menunggu verifikasi</p>
@@ -555,12 +553,10 @@ export default function DaftarJualanPage() {
                       <td className="p-6">
                         <div className="flex items-center gap-4">
                           <div className="w-14 h-14 rounded-2xl bg-zinc-950 border border-zinc-800 overflow-hidden shrink-0 group-hover:border-zinc-700 transition-all">
-                            <img src={item.images && item.images[0] ? item.images[0] : "https://placehold.co/400x400/18181b/52525b?text=No+Image"} alt={item.name} className="w-full h-full object-cover" />
+                            <img src={item.images && item.images[0] ? getImageUrl(item.images[0]) : "https://placehold.co/400x400/18181b/52525b?text=No+Image"} alt={item.name} className="w-full h-full object-cover" />
                           </div>
                           <div>
-                            <p className="text-xs font-black text-white line-clamp-1">
-                              {item.name}
-                            </p>
+                            <p className="text-xs font-black text-white line-clamp-1">{item.name}</p>
                             <div className="flex items-center gap-2 mt-0.5">
                               <p className="text-[10px] font-bold text-emerald-500 uppercase tracking-widest">{item.species}</p>
                               {item.product_id && (
@@ -679,12 +675,10 @@ export default function DaftarJualanPage() {
               <div className="p-5 space-y-4">
                 <div className="flex gap-4">
                   <div className="w-16 h-16 rounded-2xl bg-zinc-950 border border-zinc-800 overflow-hidden shrink-0">
-                    <img src={item.images && item.images[0] ? item.images[0] : "https://placehold.co/400x400/18181b/52525b?text=No+Image"} alt={item.name} className="w-full h-full object-cover" />
+                    <img src={item.images && item.images[0] ? getImageUrl(item.images[0]) : "https://placehold.co/400x400/18181b/52525b?text=No+Image"} alt={item.name} className="w-full h-full object-cover" />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <h3 className="text-sm font-black text-white line-clamp-1 mb-0.5">
-                      {item.name}
-                    </h3>
+                    <h3 className="text-sm font-black text-white line-clamp-1 mb-0.5">{item.name}</h3>
                     <div className="flex items-center gap-2 mb-2">
                       <p className="text-[10px] font-bold text-emerald-500 uppercase tracking-widest">{item.species}</p>
                       {item.product_id && <p className="text-[9px] font-mono font-black text-zinc-500 bg-zinc-950 px-1.5 py-0.5 rounded border border-zinc-800">{item.product_id}</p>}
@@ -718,9 +712,7 @@ export default function DaftarJualanPage() {
                   <>
                     <Link
                       href={item.type === "auction" ? `/user/toko/lelang-produk/detail/${item.id}` : `/user/toko/daftar-produk/detail/${item.id}`}
-                      className={`flex-1 min-w-[80px] flex items-center justify-center gap-1.5 py-3 bg-zinc-800 text-zinc-400 rounded-xl transition-all border border-zinc-700 ${
-                        item.type === "auction" ? "hover:bg-amber-500 hover:text-zinc-950 hover:border-amber-500" : "hover:bg-emerald-500 hover:text-zinc-950 hover:border-emerald-500"
-                      }`}
+                      className={`flex-1 min-w-[80px] flex items-center justify-center gap-1.5 py-3 bg-zinc-800 text-zinc-400 rounded-xl transition-all border border-zinc-700 ${item.type === "auction" ? "hover:bg-amber-500 hover:text-zinc-950 hover:border-amber-500" : "hover:bg-emerald-500 hover:text-zinc-950 hover:border-emerald-500"}`}
                     >
                       <Eye size={14} />
                       <span className="text-[9px] font-black uppercase tracking-widest">Detail</span>

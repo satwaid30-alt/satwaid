@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { Gavel, Search, Clock, CheckCircle2, XCircle, Store, ArrowRight, AlertCircle, Eye, Sparkles } from "lucide-react";
 import { io } from "socket.io-client";
-import { getApiUrl, getSocketUrl } from "@/app/utils/api";
+import { getApiUrl, getSocketUrl, getImageUrl } from "@/app/utils/api";
 
 // Individual Card Component with self-contained countdown state
 function AuctionCard({ listing, currentUserId }) {
@@ -98,7 +98,7 @@ function AuctionCard({ listing, currentUserId }) {
     <div className="bg-zinc-900/20 border border-zinc-800 hover:border-zinc-700 rounded-3xl overflow-hidden transition-all group p-4 md:p-6 flex flex-col md:flex-row items-center md:items-start gap-4 md:gap-6 animate-in slide-in-from-bottom-2 duration-500">
       {/* Image section */}
       <div className="w-24 h-24 md:w-28 md:h-28 rounded-2xl overflow-hidden bg-zinc-800 shrink-0 border border-zinc-700 relative mx-auto md:mx-0">
-        <img src={listing.images?.[0]} alt={listing.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
+        <img src={getImageUrl(listing.images) || "https://placehold.co/400x400/f4f4f5/71717a?text=No+Image"} alt={listing.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
         <div className={`absolute top-2 right-2 px-2.5 py-0.5 rounded-full border text-[8px] font-black uppercase tracking-wider ${statusStyle.badge} backdrop-blur-md`}>{statusStyle.label}</div>
       </div>
 

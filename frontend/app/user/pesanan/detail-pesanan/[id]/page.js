@@ -4,7 +4,7 @@ import { useState, useEffect, use } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { io } from "socket.io-client";
-import { getApiUrl, getSocketUrl, getLogoUrl } from "@/app/utils/api";
+import { getApiUrl, getSocketUrl, getLogoUrl, getImageUrl } from "@/app/utils/api";
 import { Package, Info, MapPin, Store, ScrollText, Truck, CreditCard, CheckCircle2, Clock, ShoppingCart, ShoppingBag, ChevronLeft, XCircle, Calendar, MessageCircle, AlertCircle } from "lucide-react";
 import ShippingInfo from "@/components/ShippingInfo";
 import OrderStepper from "@/components/OrderStepper";
@@ -338,7 +338,7 @@ export default function OrderDetailPage({ params }) {
                   </h3>
                   <div className="bg-zinc-950 border border-zinc-800 rounded-3xl overflow-hidden relative aspect-square group">
                     {order.product?.images?.length > 0 ? (
-                      <img src={order.product.images[activeImageIndex]} className="w-full h-full object-cover transition-all duration-500" alt={order.product.name} />
+                      <img src={getImageUrl(order.product.images[activeImageIndex])} className="w-full h-full object-cover transition-all duration-500" alt={order.product.name} />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center text-zinc-800">
                         <Package size={48} />

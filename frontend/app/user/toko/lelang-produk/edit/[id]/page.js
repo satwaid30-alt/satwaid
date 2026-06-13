@@ -22,8 +22,10 @@ import {
   Plus,
   Tag,
   RotateCcw,
+  Loader2,
 } from "lucide-react";
-import { getApiUrl } from "@/app/utils/api";
+import { getApiUrl, getImageUrl } from "@/app/utils/api";
+import { uploadImageToS3 } from "@/components/HandleUpload";
 
 // Import ReactQuill dynamically to avoid SSR errors
 const ReactQuill = dynamic(() => import("react-quill-new"), { ssr: false });
@@ -64,6 +66,7 @@ export default function EditLelangListingPage({ params }) {
 
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [showErrorModal, setShowErrorModal] = useState(false);
@@ -1113,7 +1116,7 @@ export default function EditLelangListingPage({ params }) {
                   className="relative aspect-square rounded-2xl overflow-hidden group border border-zinc-800 shadow-2xl"
                 >
                   <img
-                    src={img}
+                    src={getImageUrl(img)}
                     alt="Preview"
                     className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
                   />
@@ -1134,33 +1137,48 @@ export default function EditLelangListingPage({ params }) {
               ))}
 
               {reptileData.images.length < 3 && (
-                <label className="aspect-square bg-zinc-950 border-2 border-dashed border-zinc-800 rounded-2xl flex flex-col items-center justify-center gap-2 text-zinc-500 hover:border-amber-500 hover:text-amber-500 transition-all cursor-pointer group hover:bg-amber-500/5 shadow-inner">
-                  <input
-                    type="file"
-                    accept="image/jpeg,image/jpg,image/png,image/webp,image/gif"
-                    className="hidden"
-                    onChange={(e) => {
-                      const raw = e.target.files[0];
-                      if (!validateImageFile(raw, e.target)) return;
-                      const file = renameFileRandom(raw);
-                      const reader = new FileReader();
-                      reader.onload = (event) => {
-                        setReptileData((prev) => ({
-                          ...prev,
-                          images: [...prev.images, event.target.result],
-                        }));
-                      };
-                      reader.readAsDataURL(file);
-                      e.target.value = null;
-                    }}
-                  />
-                  <div className="w-12 h-12 rounded-full bg-zinc-900 flex items-center justify-center group-hover:bg-amber-500/20 group-hover:scale-110 transition-all shadow-lg">
-                    <ImageIcon size={24} />
+                isUploading ? (
+                  <div className="aspect-square bg-zinc-950 border border-zinc-800 rounded-2xl flex flex-col items-center justify-center gap-2 text-amber-500">
+                    <Loader2 className="w-8 h-8 animate-spin" />
+                    <span className="text-[10px] font-black uppercase tracking-[0.2em] animate-pulse">Mengunggah...</span>
                   </div>
-                  <span className="text-[10px] font-black uppercase tracking-[0.2em]">
-                    Upload Foto
-                  </span>
-                </label>
+                ) : (
+                  <label className="aspect-square bg-zinc-950 border-2 border-dashed border-zinc-800 rounded-2xl flex flex-col items-center justify-center gap-2 text-zinc-500 hover:border-amber-500 hover:text-amber-500 transition-all cursor-pointer group hover:bg-amber-500/5 shadow-inner">
+                    <input
+                      type="file"
+                      accept="image/jpeg,image/jpg,image/png,image/webp,image/gif"
+                      className="hidden"
+                      onChange={async (e) => {
+                        const raw = e.target.files[0];
+                        if (!validateImageFile(raw, e.target)) return;
+                        const file = renameFileRandom(raw);
+                        
+                        const token = localStorage.getItem("token");
+                        setIsUploading(true);
+                        try {
+                          const { objectKey } = await uploadImageToS3(file, token, "listings");
+                          setReptileData((prev) => ({
+                            ...prev,
+                            images: [...prev.images, objectKey],
+                          }));
+                        } catch (err) {
+                          console.error("Upload failed:", err);
+                          setErrorModalMessage(err.message || "Gagal mengunggah foto. Silakan coba lagi.");
+                          setShowErrorModal(true);
+                        } finally {
+                          setIsUploading(false);
+                          e.target.value = null;
+                        }
+                      }}
+                    />
+                    <div className="w-12 h-12 rounded-full bg-zinc-900 flex items-center justify-center group-hover:bg-amber-500/20 group-hover:scale-110 transition-all shadow-lg">
+                      <ImageIcon size={24} />
+                    </div>
+                    <span className="text-[10px] font-black uppercase tracking-[0.2em]">
+                      Upload Foto
+                    </span>
+                  </label>
+                )
               )}
             </div>
             <div className="px-1">
@@ -1197,7 +1215,7 @@ export default function EditLelangListingPage({ params }) {
 
             <button
               type="submit"
-              disabled={isSubmitting || reptileData.images.length === 0}
+              disabled={isSubmitting || isUploading || reptileData.images.length === 0}
               className="w-full py-5 rounded-[1.5rem] bg-amber-500 hover:bg-amber-400 text-zinc-950 font-black shadow-2xl shadow-amber-500/20 transition-all flex items-center justify-center gap-3 group active:scale-[0.98] disabled:opacity-50 disabled:grayscale disabled:cursor-not-allowed"
             >
               {isSubmitting ? (

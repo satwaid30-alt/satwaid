@@ -22,6 +22,7 @@ import {
     MapPin
 } from "lucide-react";
 import { io } from "socket.io-client";
+import { getImageUrl } from "@/app/utils/api";
 
 export default function AdminTransactionPage() {
     const [orders, setOrders] = useState([]);
@@ -428,7 +429,7 @@ export default function AdminTransactionPage() {
                                         <div className="flex justify-center">
                                             {order.payment_proof ? (
                                                 <button
-                                                    onClick={() => setSelectedProof(order.payment_proof)}
+                                                    onClick={() => setSelectedProof(getImageUrl(order.payment_proof))}
                                                     className="p-2.5 bg-emerald-500/10 border border-emerald-500/20 text-emerald-500 rounded-xl hover:bg-emerald-500 hover:text-zinc-950 transition-all flex items-center gap-2 shadow-lg shadow-emerald-500/5"
                                                 >
                                                     <ImageIcon size={16} />

@@ -4,7 +4,8 @@ import { useState, useEffect } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { ArrowLeft, ImageIcon, Save } from "lucide-react";
 import Link from "next/link";
-import { getApiUrl } from "@/app/utils/api";
+import { getApiUrl, getImageUrl } from "@/app/utils/api";
+import { uploadImageToS3 } from "@/components/HandleUpload";
 
 export default function EditKomunitasPage() {
     const router = useRouter();
@@ -43,7 +44,7 @@ export default function EditKomunitasPage() {
                         image: topic.image || ""
                     });
                     if (topic.image) {
-                        setSelectedImage(topic.image.startsWith('http') ? topic.image : `${getApiUrl()}${topic.image}`);
+                        setSelectedImage(getImageUrl(topic.image));
                     }
                 }
             }
@@ -88,9 +89,9 @@ export default function EditKomunitasPage() {
             return;
         }
 
-        // 2. Validasi ukuran maksimal 500KB (500 * 1024 bytes)
-        if (file.size > 500 * 1024) {
-            setErrorModal({ isOpen: true, message: "Maaf, ukuran gambar terlalu besar! Maksimal ukuran file adalah 500KB." });
+        // 2. Validasi ukuran maksimal 1MB (1 * 1024 * 1024 bytes)
+        if (file.size > 1 * 1024 * 1024) {
+            setErrorModal({ isOpen: true, message: "Maaf, ukuran gambar terlalu besar! Maksimal ukuran file adalah 1MB." });
             e.target.value = ""; // Reset input file
             return;
         }
@@ -102,22 +103,13 @@ export default function EditKomunitasPage() {
 
         setSelectedImage(URL.createObjectURL(renamedFile));
 
-        const formDataObj = new FormData();
-        formDataObj.append("image", renamedFile);
         try {
-            const res = await fetch(`${getApiUrl()}/upload`, {
-                method: "POST",
-                body: formDataObj
-            });
-            const data = await res.json();
-            if (res.ok) {
-                setFormData({ ...formData, image: data.url });
-            } else {
-                setErrorModal({ isOpen: true, message: data.message || "Gagal mengunggah gambar." });
-            }
+            const token = localStorage.getItem("token");
+            const { objectKey } = await uploadImageToS3(renamedFile, token, "listings");
+            setFormData({ ...formData, image: `/${objectKey}` });
         } catch (err) {
             console.error("Upload error:", err);
-            setErrorModal({ isOpen: true, message: "Terjadi kesalahan koneksi saat mengunggah gambar." });
+            setErrorModal({ isOpen: true, message: err.message || "Gagal mengunggah gambar." });
         }
     };
 
@@ -239,9 +231,9 @@ export default function EditKomunitasPage() {
                                 <ImageIcon size={20} className="group-hover:text-emerald-500 transition-colors" />
                                 <span className="truncate flex-1">{selectedImage ? "Ubah Gambar" : "Pilih Gambar..."}</span>
                             </label>
-                            <p className="text-xs text-zinc-500 mt-2 font-medium flex items-center gap-1.5">
-                                <span className="text-amber-500 text-sm">⚠️</span> Maksimal ukuran file: 500KB
-                            </p>
+                             <p className="text-xs text-zinc-500 mt-2 font-medium flex items-center gap-1.5">
+                                 <span className="text-amber-500 text-sm">⚠️</span> Maksimal ukuran file: 1MB
+                             </p>
                             {selectedImage && (
                                 <div className="mt-3 relative w-full h-40 rounded-xl overflow-hidden border border-zinc-800">
                                     <img src={selectedImage} alt="Preview" className="w-full h-full object-cover" />

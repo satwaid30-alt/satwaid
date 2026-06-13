@@ -17,7 +17,8 @@ import {
     ScrollText,
     Save, ChevronRight
 } from "lucide-react";
-import { getApiUrl } from "@/app/utils/api";
+import { getApiUrl, getImageUrl } from "@/app/utils/api";
+import { uploadImageToS3 } from "@/components/HandleUpload";
 
 // Import ReactQuill dynamically to avoid SSR errors
 const ReactQuill = dynamic(() => import("react-quill-new"), { ssr: false });
@@ -50,6 +51,7 @@ export default function EditListingPage({ params }) {
     const { id } = use(params);
     const router = useRouter();
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [isUploading, setIsUploading] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
     const [showSuccessModal, setShowSuccessModal] = useState(false);
     const [showConfirmModal, setShowConfirmModal] = useState(false);
@@ -557,7 +559,7 @@ export default function EditListingPage({ params }) {
                             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
                                 {reptileData.images.map((img, index) => (
                                     <div key={index} className="relative aspect-square rounded-2xl overflow-hidden group border border-zinc-800 bg-zinc-900">
-                                        <img src={img} alt="Preview" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
+                                        <img src={getImageUrl(img)} alt="Preview" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
                                         {/* Delete button - always visible on mobile, hover on desktop */}
                                         <div className="absolute top-2 right-2 sm:absolute sm:inset-0 sm:bg-black/60 sm:opacity-0 sm:group-hover:opacity-100 sm:transition-opacity sm:flex sm:items-center sm:justify-center sm:backdrop-blur-sm">
                                             <button
@@ -576,31 +578,46 @@ export default function EditListingPage({ params }) {
                                 ))}
 
                                 {reptileData.images.length < 3 && (
-                                    <label className="aspect-square bg-zinc-950 border-2 border-dashed border-zinc-800 rounded-2xl flex flex-col items-center justify-center gap-2 text-zinc-500 hover:border-emerald-500 hover:text-emerald-500 transition-all cursor-pointer group hover:bg-emerald-500/5">
-                                        <input
-                                            type="file"
-                                            accept="image/jpeg,image/jpg,image/png,image/webp,image/gif"
-                                            className="hidden"
-                                            onChange={(e) => {
-                                                const raw = e.target.files[0];
-                                                if (!validateImageFile(raw, e.target)) return;
-                                                const file = renameFileRandom(raw);
-                                                const reader = new FileReader();
-                                                reader.onload = (event) => {
-                                                    setReptileData(prev => ({
-                                                        ...prev,
-                                                        images: [...prev.images, event.target.result]
-                                                    }));
-                                                };
-                                                reader.readAsDataURL(file);
-                                                e.target.value = null;
-                                            }}
-                                        />
-                                        <div className="w-12 h-12 rounded-full bg-zinc-900 flex items-center justify-center group-hover:bg-emerald-500/20 group-hover:scale-110 transition-all">
-                                            <ImageIcon size={24} />
+                                    isUploading ? (
+                                        <div className="aspect-square bg-zinc-950 border border-zinc-800 rounded-2xl flex flex-col items-center justify-center gap-3">
+                                            <div className="w-8 h-8 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin"></div>
+                                            <span className="text-[9px] font-black text-zinc-500 uppercase tracking-widest animate-pulse">Mengunggah...</span>
                                         </div>
-                                        <span className="text-[10px] font-black uppercase tracking-[0.2em]">Upload Foto</span>
-                                    </label>
+                                    ) : (
+                                        <label className="aspect-square bg-zinc-950 border-2 border-dashed border-zinc-800 rounded-2xl flex flex-col items-center justify-center gap-2 text-zinc-500 hover:border-emerald-500 hover:text-emerald-500 transition-all cursor-pointer group hover:bg-emerald-500/5">
+                                            <input
+                                                type="file"
+                                                accept="image/jpeg,image/jpg,image/png,image/webp,image/gif"
+                                                className="hidden"
+                                                onChange={async (e) => {
+                                                    const raw = e.target.files[0];
+                                                    if (!validateImageFile(raw, e.target)) return;
+                                                    const file = renameFileRandom(raw);
+                                                    
+                                                    const token = localStorage.getItem("token");
+                                                    setIsUploading(true);
+                                                    try {
+                                                        const { objectKey } = await uploadImageToS3(file, token, "listings");
+                                                        setReptileData(prev => ({
+                                                            ...prev,
+                                                            images: [...prev.images, objectKey]
+                                                        }));
+                                                    } catch (err) {
+                                                        console.error("Upload failed:", err);
+                                                        setErrorModalMessage(err.message || "Gagal mengunggah foto. Silakan coba lagi.");
+                                                        setShowErrorModal(true);
+                                                    } finally {
+                                                        setIsUploading(false);
+                                                        e.target.value = null;
+                                                    }
+                                                }}
+                                            />
+                                            <div className="w-12 h-12 rounded-full bg-zinc-900 flex items-center justify-center group-hover:bg-emerald-500/20 group-hover:scale-110 transition-all">
+                                                <ImageIcon size={24} />
+                                            </div>
+                                            <span className="text-[10px] font-black uppercase tracking-[0.2em]">Upload Foto</span>
+                                        </label>
+                                    )
                                 )}
                             </div>
                             <div className="px-1">
@@ -613,7 +630,7 @@ export default function EditListingPage({ params }) {
                         <div className="pt-8 border-t border-zinc-800">
                             <button
                                 type="submit"
-                                disabled={isSubmitting || reptileData.images.length === 0}
+                                disabled={isSubmitting || isUploading || reptileData.images.length === 0}
                                 className={`w-full py-5 rounded-2xl font-black transition-all flex items-center justify-center gap-3 group active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed disabled:grayscale ${listingType === "sell"
                                     ? "bg-emerald-500 hover:bg-emerald-400 text-zinc-950"
                                     : "bg-amber-500 hover:bg-amber-400 text-zinc-950"}`}

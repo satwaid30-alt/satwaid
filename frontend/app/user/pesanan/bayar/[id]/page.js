@@ -8,7 +8,8 @@ import OrderStepper from "@/components/OrderStepper";
 import OrderTimeline from "@/components/OrderTimeline";
 import { copyToClipboard } from "@/app/utils/clipboard";
 import { io } from "socket.io-client";
-import { getApiUrl, getSocketUrl } from "@/app/utils/api";
+import { getApiUrl, getSocketUrl, getImageUrl } from "@/app/utils/api";
+import { uploadImageToS3 } from "@/components/HandleUpload";
 
 export default function PaymentPage({ params }) {
   const { id } = use(params);
@@ -136,24 +137,13 @@ export default function PaymentPage({ params }) {
     const randomName = `${crypto.randomUUID()}.${extension}`;
     const renamedFile = new File([file], randomName, { type: file.type });
 
-    setUploading(true);
-    const formData = new FormData();
-    formData.append("image", renamedFile);
-
     try {
-      const res = await fetch(`${getApiUrl()}/upload`, {
-        method: "POST",
-        body: formData,
-      });
-      const result = await res.json();
-      if (res.ok) {
-        setPaymentProof(getApiUrl() + result.url);
-      } else {
-        alert(result.message || "Gagal mengunggah gambar");
-      }
+      const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
+      const { objectKey } = await uploadImageToS3(renamedFile, token, "payments");
+      setPaymentProof("/" + objectKey);
     } catch (err) {
       console.error("Error uploading image:", err);
-      alert("Terjadi kesalahan saat mengunggah gambar");
+      alert(err.message || "Terjadi kesalahan saat mengunggah gambar");
     } finally {
       setUploading(false);
       e.target.value = "";
@@ -596,11 +586,11 @@ export default function PaymentPage({ params }) {
                   <div className="bg-zinc-950/40 border-2 border-dashed border-zinc-800 hover:border-emerald-500/40 rounded-2xl p-6 text-center space-y-4 relative group transition-all duration-300">
                     {paymentProof ? (
                       <div className="relative aspect-video rounded-xl overflow-hidden bg-zinc-950 border border-zinc-800 group/uploaded">
-                        <img src={paymentProof} alt="Bukti Bayar" className="w-full h-full object-contain" />
+                        <img src={getImageUrl(paymentProof)} alt="Bukti Bayar" className="w-full h-full object-contain" />
 
                         {/* Floating Action Bar */}
                         <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex items-center gap-2 bg-zinc-950/90 backdrop-blur-md px-3 py-1.5 rounded-full border border-white/10">
-                          <button type="button" onClick={() => setPreviewImage(paymentProof)} className="px-3 py-1.5 bg-emerald-500 hover:bg-emerald-400 text-zinc-950 rounded-lg text-[9px] font-black uppercase tracking-wider flex items-center gap-1.5 active:scale-95 transition-all">
+                          <button type="button" onClick={() => setPreviewImage(getImageUrl(paymentProof))} className="px-3 py-1.5 bg-emerald-500 hover:bg-emerald-400 text-zinc-950 rounded-lg text-[9px] font-black uppercase tracking-wider flex items-center gap-1.5 active:scale-95 transition-all">
                             <Eye size={12} /> Lihat
                           </button>
                           <button type="button" onClick={() => setPaymentProof("")} className="px-3 py-1.5 bg-red-500 hover:bg-red-400 text-white rounded-lg text-[9px] font-black uppercase tracking-wider flex items-center gap-1.5 active:scale-95 transition-all">

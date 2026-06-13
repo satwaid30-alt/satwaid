@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Package, ShoppingBag, LayoutDashboard, Image as ImageIcon, X, XCircle, ChevronRight, MapPin, MessageCircle, DollarSign, AlertCircle, CheckCircle2, Clock, Calendar, Truck, Info, Star, Search, Filter, ChevronLeft, LayoutGrid, Wallet, Store } from "lucide-react";
 import { io } from "socket.io-client";
-import { getApiUrl, getSocketUrl } from "@/app/utils/api";
+import { getApiUrl, getSocketUrl, getImageUrl } from "@/app/utils/api";
 import QuotaCard from "@/components/QuotaCard";
 import { useShopQuota } from "@/hooks/useShopQuota";
 
@@ -546,7 +546,7 @@ export default function SellerDashboardPage() {
                                     <div className="flex items-center gap-3">
                                       {order.product?.images?.[0] && (
                                         <div className="w-10 h-10 rounded-xl overflow-hidden bg-zinc-800 shrink-0 border border-zinc-700">
-                                          <img src={order.product.images[0]} className="w-full h-full object-cover" />
+                                          <img src={getImageUrl(order.product.images[0])} className="w-full h-full object-cover" />
                                         </div>
                                       )}
                                       <div>
@@ -827,7 +827,7 @@ export default function SellerDashboardPage() {
                                   <div className="flex items-center gap-3">
                                     {order.product?.images?.[0] && (
                                       <div className="w-10 h-10 rounded-xl overflow-hidden bg-zinc-800 shrink-0 border border-zinc-700">
-                                        <img src={order.product.images[0]} className="w-full h-full object-cover" />
+                                        <img src={getImageUrl(order.product.images[0])} className="w-full h-full object-cover" />
                                       </div>
                                     )}
                                     <div>

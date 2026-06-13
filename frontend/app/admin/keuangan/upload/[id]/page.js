@@ -16,9 +16,13 @@ import {
     DollarSign,
     Info,
     Receipt,
-    Mail
+    Mail,
+    Printer,
+    X
 } from "lucide-react";
 import ActionModal from "@/components/ActionModal";
+import { getImageUrl } from "@/app/utils/api";
+import { uploadImageToS3 } from "@/components/HandleUpload";
 
 export default function UploadFinanceDocPage({ params }) {
     const { id } = use(params);
@@ -31,6 +35,7 @@ export default function UploadFinanceDocPage({ params }) {
     const [previewUrl, setPreviewUrl] = useState(null);
     const [notes, setNotes] = useState("");
     const [additionalFee, setAdditionalFee] = useState(0);
+    const [invoiceOrder, setInvoiceOrder] = useState(null);
 
     // Helper to get Seller/Shop Owner bank info
     const getSellerBankInfo = () => {
@@ -65,24 +70,7 @@ export default function UploadFinanceDocPage({ params }) {
 
     const sellerBank = getSellerBankInfo();
 
-    const getImageUrl = (path) => {
-        if (!path) return "https://placehold.co/100x100?text=No+Image";
-        let finalPath = path;
-        try {
-            if (typeof path === 'string' && (path.startsWith('[') || path.startsWith('{'))) {
-                const parsed = JSON.parse(path);
-                finalPath = Array.isArray(parsed) ? parsed[0] : parsed;
-            } else if (Array.isArray(path)) {
-                finalPath = path[0];
-            }
-        } catch (e) { }
-        if (!finalPath) return "https://placehold.co/100x100?text=No+Image";
-        if (typeof finalPath !== 'string') return "https://placehold.co/100x100?text=Invalid+Path";
-        if (finalPath.startsWith('http') || finalPath.startsWith('data:')) return finalPath;
-        const baseUrl = process.env.NEXT_PUBLIC_API_URL || "";
-        const formattedPath = finalPath.startsWith('/') ? finalPath : `/${finalPath}`;
-        return `${baseUrl}${formattedPath}`;
-    };
+
 
     // Calculate total disbursement
     const totalDisbursement = (Number(order?.price || 0) * Number(order?.quantity || 1)) +
@@ -169,20 +157,10 @@ export default function UploadFinanceDocPage({ params }) {
         try {
             const token = localStorage.getItem("admin_token");
 
-            // 1. Upload the file first to get the URL
-            const formData = new FormData();
-            formData.append('image', selectedFile);
-
-            const uploadRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/upload`, {
-                method: 'POST',
-                headers: token ? { 'Authorization': `Bearer ${token}` } : {},
-                body: formData
-            });
-
-            const uploadData = await uploadRes.json();
-            if (!uploadRes.ok) throw new Error(uploadData.message || "Gagal mengunggah file");
-
-            const fileUrl = uploadData.url;
+            // 1. Upload the file first to S3
+            const s3Token = typeof window !== "undefined" ? localStorage.getItem("token") || localStorage.getItem("admin_token") : null;
+            const { objectKey } = await uploadImageToS3(selectedFile, s3Token, "disbursements");
+            const fileUrl = "/" + objectKey;
 
             // 2. Call the disburse API
             const disburseRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/orders/${id}/disburse`, {
@@ -239,7 +217,6 @@ export default function UploadFinanceDocPage({ params }) {
 
     return (
         <div className="max-w-5xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700 pb-20">
-            {/* Header */}
             <div className="flex items-center justify-between">
                 <Link
                     href={`/admin/keuangan/detail-pembayaran/${order.shop_id}`}
@@ -250,8 +227,16 @@ export default function UploadFinanceDocPage({ params }) {
                     </div>
                     <span className="font-black uppercase tracking-widest text-[10px]">Kembali ke Keuangan</span>
                 </Link>
-                <div className="px-4 py-2 bg-zinc-900 border border-zinc-800 rounded-xl">
-                    <span className="text-[10px] font-black text-emerald-500 font-mono tracking-wider">{order.order_id}</span>
+                <div className="flex items-center gap-3">
+                    <button
+                        onClick={() => setInvoiceOrder(order)}
+                        className="flex items-center gap-2 px-5 py-2.5 bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 hover:border-zinc-700 text-zinc-300 hover:text-white rounded-xl text-[10px] font-black uppercase tracking-widest transition-all active:scale-[0.98]"
+                    >
+                        <Printer size={14} className="text-emerald-500" /> Cetak Invoice
+                    </button>
+                    <div className="px-4 py-2 bg-zinc-900 border border-zinc-800 rounded-xl">
+                        <span className="text-[10px] font-black text-emerald-500 font-mono tracking-wider">{order.order_id}</span>
+                    </div>
                 </div>
             </div>
 
@@ -326,10 +311,17 @@ export default function UploadFinanceDocPage({ params }) {
                                         </div>
                                     )}
 
-                                    <div className="pt-4">
+                                    <div className="pt-4 flex flex-col sm:flex-row gap-4">
+                                        <button
+                                            type="button"
+                                            onClick={() => setInvoiceOrder(order)}
+                                            className="flex-1 py-5 bg-emerald-500 hover:bg-emerald-400 text-zinc-950 font-black rounded-2xl transition-all flex items-center justify-center gap-3 shadow-2xl active:scale-[0.98]"
+                                        >
+                                            <Printer size={20} /> Cetak Invoice
+                                        </button>
                                         <Link
                                             href={`/admin/keuangan/detail-pembayaran/${order.shop_id}`}
-                                            className="w-full py-5 bg-zinc-800 hover:bg-zinc-700 text-white font-black rounded-2xl transition-all flex items-center justify-center gap-3 border border-zinc-700"
+                                            className="flex-1 py-5 bg-zinc-800 hover:bg-zinc-700 text-white font-black rounded-2xl transition-all flex items-center justify-center gap-3 border border-zinc-700 active:scale-[0.98]"
                                         >
                                             <ChevronLeft size={20} /> Kembali ke Daftar
                                         </Link>
@@ -538,6 +530,313 @@ export default function UploadFinanceDocPage({ params }) {
                 message={actionModal.message}
                 onConfirm={actionModal.onConfirm}
             />
+
+            {/* ===== INVOICE MODAL ===== */}
+            {invoiceOrder &&
+                (() => {
+                    const inv = invoiceOrder;
+                    const subtotal = Number(inv.price || 0) * Number(inv.quantity || 1);
+                    const shipping = Number(inv.shipping_cost || 0);
+                    const packing = Number(inv.packing_cost || 0);
+                    const adminFee = Number(inv.admin_fee || 0);
+                    const addFee = Number(inv.additional_fee || 0);
+                    const total = subtotal + shipping + packing + adminFee;
+                    const disbursed = subtotal + shipping + packing - addFee;
+                    const shop = inv.shop;
+                    const bankAccounts = shop?.owner?.bank_accounts || [];
+                    
+                    let parsedBankAccounts = bankAccounts;
+                    if (typeof bankAccounts === 'string') {
+                        try {
+                            parsedBankAccounts = JSON.parse(bankAccounts);
+                        } catch (e) {
+                            parsedBankAccounts = [];
+                        }
+                    }
+                    const bank = Array.isArray(parsedBankAccounts) && parsedBankAccounts.length > 0 ? parsedBankAccounts[0] : null;
+
+                    return (
+                        <div id="invoice-print-wrapper" className="fixed inset-0 z-[200] flex items-start justify-center bg-black/80 backdrop-blur-sm overflow-y-auto py-8 px-4 no-print-bg">
+                            {/* Toolbar */}
+                            <div className="fixed top-4 right-4 flex items-center gap-3 z-[201] no-print">
+                                <button
+                                    onClick={() => window.print()}
+                                    className="flex items-center gap-2 px-5 py-2.5 bg-emerald-500 hover:bg-emerald-400 text-zinc-950 rounded-xl text-xs font-black uppercase tracking-widest transition-all shadow-lg active:scale-95"
+                                >
+                                    <Printer size={16} /> Cetak
+                                </button>
+                                <button
+                                    onClick={() => setInvoiceOrder(null)}
+                                    className="w-10 h-10 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 hover:text-white rounded-xl flex items-center justify-center transition-all active:scale-95"
+                                >
+                                    <X size={18} />
+                                </button>
+                            </div>
+
+                            {/* Invoice Paper */}
+                            <div
+                                id="satwaid-invoice"
+                                style={{
+                                    background: "#ffffff",
+                                    color: "#111827",
+                                    width: "794px",
+                                    minHeight: "1123px",
+                                    fontFamily: "'Segoe UI', Arial, sans-serif",
+                                    position: "relative",
+                                    overflow: "hidden",
+                                    boxShadow: "0 25px 80px rgba(0,0,0,0.6)",
+                                    padding: "40px 48px",
+                                }}
+                            >
+                                {/* Watermark Logo */}
+                                <div
+                                    style={{
+                                        position: "absolute",
+                                        top: 0,
+                                        left: 0,
+                                        right: 0,
+                                        bottom: 0,
+                                        display: "flex",
+                                        alignItems: "center",
+                                        justifyContent: "center",
+                                        pointerEvents: "none",
+                                        zIndex: 0,
+                                    }}
+                                >
+                                    <img
+                                        src="/images/Logo-Bg-2-2.png"
+                                        alt=""
+                                        style={{
+                                            width: "850px",
+                                            height: "650px",
+                                            objectFit: "contain",
+                                            opacity: 0.055,
+                                            transform: "rotate(-25deg)",
+                                        }}
+                                    />
+                                </div>
+
+                                {/* Header Strip */}
+                                <div
+                                    style={{
+                                        background: "#1e3a8a",
+                                        margin: "-40px -48px 40px -48px",
+                                        padding: "36px 48px",
+                                        display: "flex",
+                                        alignItems: "center",
+                                        justifyContent: "space-between",
+                                        position: "relative",
+                                        zIndex: 1,
+                                    }}
+                                >
+                                    <div>
+                                        <img src="/images/Logo-Bg-1-2.png" alt="SatwaiD" style={{ height: "72px", objectFit: "contain", display: "block" }} />
+                                    </div>
+                                    <div style={{ textAlign: "right" }}>
+                                        <div style={{ fontSize: "13px", color: "rgba(255,255,255,0.65)", fontWeight: "700", letterSpacing: "0.15em", textTransform: "uppercase" }}>Invoice Pengajuan Dana</div>
+                                        <div style={{ fontSize: "22px", fontWeight: "900", color: "#fff", fontFamily: "monospace", marginTop: "4px" }}>{inv.order_id}</div>
+                                        <div style={{ fontSize: "11px", color: "rgba(255,255,255,0.6)", marginTop: "6px" }}>Diterbitkan: {new Date().toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" })}</div>
+                                    </div>
+                                </div>
+
+                                {/* Body Content */}
+                                <div style={{ position: "relative", zIndex: 1 }}>
+                                    {/* Status Badge */}
+                                    <div style={{ marginBottom: "32px" }}>
+                                        <div
+                                            style={{
+                                                display: "inline-block",
+                                                padding: "8px 20px",
+                                                borderRadius: "100px",
+                                                background: "#d1fae5",
+                                                color: "#065f46",
+                                                fontSize: "11px",
+                                                fontWeight: "800",
+                                                letterSpacing: "0.12em",
+                                                textTransform: "uppercase",
+                                                border: "1px solid #6ee7b7",
+                                                verticalAlign: "middle",
+                                            }}
+                                        >
+                                            <span
+                                                style={{
+                                                    width: "8px",
+                                                    height: "8px",
+                                                    borderRadius: "50%",
+                                                    background: "#065f46",
+                                                    display: "inline-block",
+                                                    verticalAlign: "middle",
+                                                    marginRight: "8px",
+                                                }}
+                                            />
+                                            <span style={{ verticalAlign: "middle" }}>Dana Telah Dicairkan</span>
+                                        </div>
+                                        <span style={{ fontSize: "11px", color: "#6b7280", fontWeight: "600", marginLeft: "12px", verticalAlign: "middle", display: "inline-block" }}>
+                                            • Tanggal Transfer: {inv.disbursed_at ? new Date(inv.disbursed_at).toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" }) : new Date().toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" })}
+                                        </span>
+                                    </div>
+
+                                    {/* 2-column info grid */}
+                                    <div style={{ display: "flex", gap: "24px", marginBottom: "36px" }}>
+                                        {/* Seller */}
+                                        <div style={{ flex: 1, background: "#f9fafb", borderRadius: "16px", padding: "24px", border: "1px solid #e5e7eb" }}>
+                                            <div style={{ fontSize: "10px", fontWeight: "800", color: "#059669", letterSpacing: "0.15em", textTransform: "uppercase", marginBottom: "16px", display: "flex", alignItems: "center", gap: "6px" }}>
+                                                <span style={{ width: "3px", height: "14px", background: "#059669", borderRadius: "2px", display: "inline-block" }}></span>
+                                                Informasi Penjual
+                                            </div>
+                                            <div style={{ fontSize: "16px", fontWeight: "900", color: "#111827", marginBottom: "4px" }}>{shop?.name || "-"}</div>
+                                            <div style={{ fontSize: "12px", color: "#6b7280", fontWeight: "600", marginBottom: "2px" }}>
+                                                {shop?.city}
+                                                {shop?.province ? `, ${shop?.province}` : ""}
+                                            </div>
+                                            <div style={{ fontSize: "12px", color: "#6b7280", fontWeight: "600", marginBottom: "2px" }}>+62 {shop?.whatsapp || "-"}</div>
+                                            <div style={{ fontSize: "12px", color: "#6b7280", fontWeight: "600" }}>{shop?.owner?.email || "-"}</div>
+                                            {bank && (
+                                                <div style={{ marginTop: "14px", paddingTop: "14px", borderTop: "1px dashed #e5e7eb" }}>
+                                                    <div style={{ fontSize: "10px", color: "#9ca3af", fontWeight: "700", letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: "6px" }}>Rekening Penerima</div>
+                                                    <div style={{ fontSize: "13px", fontWeight: "800", color: "#111827" }}>{bank.bank_name || bank.bankName}</div>
+                                                    <div style={{ fontSize: "13px", fontWeight: "700", color: "#374151", fontFamily: "monospace", letterSpacing: "0.06em" }}>{bank.account_number || bank.accountNumber}</div>
+                                                    <div style={{ fontSize: "11px", color: "#6b7280", fontWeight: "600" }}>a.n. {bank.account_name || bank.accountName || shop?.owner?.name}</div>
+                                                </div>
+                                            )}
+                                        </div>
+
+                                        {/* Buyer */}
+                                        <div style={{ flex: 1, background: "#f9fafb", borderRadius: "16px", padding: "24px", border: "1px solid #e5e7eb" }}>
+                                            <div style={{ fontSize: "10px", fontWeight: "800", color: "#7c3aed", letterSpacing: "0.15em", textTransform: "uppercase", marginBottom: "16px", display: "flex", alignItems: "center", gap: "6px" }}>
+                                                <span style={{ width: "3px", height: "14px", background: "#7c3aed", borderRadius: "2px", display: "inline-block" }}></span>
+                                                Informasi Pembeli
+                                            </div>
+                                            <div style={{ fontSize: "16px", fontWeight: "900", color: "#111827", marginBottom: "4px" }}>{inv.user?.name || inv.user?.username || "-"}</div>
+                                            <div style={{ fontSize: "12px", color: "#6b7280", fontWeight: "600", marginBottom: "2px" }}>{inv.user?.email || "-"}</div>
+                                            <div style={{ fontSize: "12px", color: "#6b7280", fontWeight: "600", marginBottom: "2px" }}>{inv.user?.phone || "-"}</div>
+                                            <div style={{ marginTop: "14px", paddingTop: "14px", borderTop: "1px dashed #e5e7eb" }}>
+                                                <div style={{ fontSize: "10px", color: "#9ca3af", fontWeight: "700", letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: "6px" }}>Informasi Pesanan</div>
+                                                <div style={{ fontSize: "12px", color: "#374151", fontWeight: "600", marginBottom: "2px" }}>Tgl Order: {new Date(inv.created_at).toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" })}</div>
+                                                {inv.disbursement_requested_at && <div style={{ fontSize: "12px", color: "#374151", fontWeight: "600", marginBottom: "2px" }}>Tgl Pengajuan: {new Date(inv.disbursement_requested_at).toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" })}</div>}
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* Product Table */}
+                                    <div style={{ marginBottom: "32px" }}>
+                                        <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "13px" }}>
+                                            <thead>
+                                                <tr style={{ background: "#111827" }}>
+                                                    <th style={{ padding: "14px 20px", textAlign: "left", color: "#fff", fontWeight: "800", fontSize: "10px", letterSpacing: "0.12em", textTransform: "uppercase", borderRadius: "8px 0 0 8px" }}>Produk</th>
+                                                    <th style={{ padding: "14px 20px", textAlign: "center", color: "#fff", fontWeight: "800", fontSize: "10px", letterSpacing: "0.12em", textTransform: "uppercase" }}>Qty</th>
+                                                    <th style={{ padding: "14px 20px", textAlign: "right", color: "#fff", fontWeight: "800", fontSize: "10px", letterSpacing: "0.12em", textTransform: "uppercase" }}>Harga Satuan</th>
+                                                    <th style={{ padding: "14px 20px", textAlign: "right", color: "#fff", fontWeight: "800", fontSize: "10px", letterSpacing: "0.12em", textTransform: "uppercase", borderRadius: "0 8px 8px 0" }}>Subtotal</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <tr style={{ borderBottom: "1px solid #e5e7eb" }}>
+                                                    <td style={{ padding: "16px 20px" }}>
+                                                        <div style={{ fontWeight: "700", color: "#111827", fontSize: "14px" }}>{inv.product?.name || "Produk"}</div>
+                                                        <div style={{ fontSize: "11px", color: "#9ca3af", marginTop: "2px", fontWeight: "600" }}>
+                                                            ID: {inv.product?.product_id || "-"} • {inv.product?.species || ""}
+                                                        </div>
+                                                    </td>
+                                                    <td style={{ padding: "16px 20px", textAlign: "center", fontWeight: "700", color: "#374151" }}>{inv.quantity}</td>
+                                                    <td style={{ padding: "16px 20px", textAlign: "right", fontWeight: "700", color: "#374151" }}>{formatPrice(inv.price)}</td>
+                                                    <td style={{ padding: "16px 20px", textAlign: "right", fontWeight: "800", color: "#111827" }}>{formatPrice(subtotal)}</td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+
+                                    {/* Cost Breakdown */}
+                                    <div style={{ marginBottom: "32px", display: "flex" }}>
+                                        <div style={{ marginLeft: "auto", width: "340px", background: "#f9fafb", borderRadius: "16px", overflow: "hidden", border: "1px solid #e5e7eb" }}>
+                                            {[
+                                                { label: "Subtotal Produk", val: formatPrice(subtotal), color: "#374151" },
+                                                { label: "Ongkos Kirim", val: inv.product?.is_free_shipping ? "GRATIS" : formatPrice(shipping), color: inv.product?.is_free_shipping ? "#059669" : "#374151" },
+                                                { label: "Biaya Packing", val: inv.product?.is_free_packing ? "GRATIS" : formatPrice(packing), color: inv.product?.is_free_packing ? "#059669" : "#374151" },
+                                                { label: "Biaya Admin", val: formatPrice(adminFee), color: "#374151" },
+                                            ].map((row, i) => (
+                                                <div key={i} style={{ display: "flex", justifyContent: "space-between", padding: "12px 20px", borderBottom: "1px solid #e5e7eb" }}>
+                                                    <span style={{ fontSize: "12px", color: "#6b7280", fontWeight: "600" }}>{row.label}</span>
+                                                    <span style={{ fontSize: "12px", fontWeight: "700", color: row.color }}>{row.val}</span>
+                                                </div>
+                                            ))}
+                                            <div style={{ display: "flex", justifyContent: "space-between", padding: "16px 20px", background: "#111827" }}>
+                                                <span style={{ fontSize: "13px", color: "#fff", fontWeight: "800", textTransform: "uppercase", letterSpacing: "0.05em" }}>Total Tagihan Pembeli</span>
+                                                <span style={{ fontSize: "15px", fontWeight: "900", color: "#34d399", fontFamily: "monospace" }}>{formatPrice(total)}</span>
+                                            </div>
+                                            {addFee > 0 && (
+                                                <div style={{ display: "flex", justifyContent: "space-between", padding: "12px 20px", borderTop: "1px solid #e5e7eb", background: "#fff7ed" }}>
+                                                    <span style={{ fontSize: "12px", color: "#92400e", fontWeight: "700" }}>Potongan Biaya Transfer</span>
+                                                    <span style={{ fontSize: "12px", fontWeight: "800", color: "#dc2626" }}>-{formatPrice(addFee)}</span>
+                                                </div>
+                                            )}
+                                            <div style={{ display: "flex", justifyContent: "space-between", padding: "16px 20px", background: "#ecfdf5", borderTop: "2px solid #6ee7b7" }}>
+                                                <span style={{ fontSize: "13px", color: "#065f46", fontWeight: "800", textTransform: "uppercase", letterSpacing: "0.05em" }}>Dana Diterima Penjual</span>
+                                                <span style={{ fontSize: "15px", fontWeight: "900", color: "#059669", fontFamily: "monospace" }}>{formatPrice(disbursed)}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* Notes */}
+                                    {inv.disbursement_notes && (
+                                        <div style={{ background: "#f0fdf4", border: "1px solid #bbf7d0", borderRadius: "12px", padding: "16px 20px", marginBottom: "28px" }}>
+                                            <div style={{ fontSize: "10px", fontWeight: "800", color: "#059669", letterSpacing: "0.12em", textTransform: "uppercase", marginBottom: "6px" }}>Catatan Admin</div>
+                                            <div style={{ fontSize: "13px", color: "#374151", fontWeight: "600", fontStyle: "italic" }}>{`"${inv.disbursement_notes}"`}</div>
+                                        </div>
+                                    )}
+
+                                    {/* Footer */}
+                                    <div style={{ borderTop: "2px dashed #e5e7eb", paddingTop: "24px", display: "flex", justifyContent: "space-between", alignItems: "flex-end" }}>
+                                        <div>
+                                            <div style={{ fontSize: "10px", color: "#9ca3af", fontWeight: "700", letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: "4px" }}>Diterbitkan oleh</div>
+                                            <div style={{ fontSize: "16px", fontWeight: "900", color: "#059669" }}>SatwaiD</div>
+                                        </div>
+                                        <div style={{ textAlign: "right" }}>
+                                            <div style={{ fontSize: "10px", color: "#9ca3af", fontWeight: "700", letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: "4px" }}>Dokumen Resmi</div>
+                                            <div style={{ fontSize: "11px", color: "#9ca3af", fontWeight: "700", fontFamily: "monospace" }}>{inv.order_id}</div>
+                                            <div style={{ fontSize: "10px", color: "#9ca3af", fontWeight: "600", marginTop: "2px" }}>Dicetak: {new Date().toLocaleString("id-ID")}</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <style dangerouslySetInnerHTML={{ __html: `
+                                @media print {
+                                    body {
+                                        background: white !important;
+                                        color: black !important;
+                                    }
+                                    body * {
+                                        visibility: hidden;
+                                    }
+                                    #satwaid-invoice, #satwaid-invoice * {
+                                        visibility: visible;
+                                    }
+                                    #satwaid-invoice {
+                                        position: absolute !important;
+                                        left: 0 !important;
+                                        top: 0 !important;
+                                        width: 100% !important;
+                                        margin: 0 !important;
+                                        padding: 0 !important;
+                                        box-shadow: none !important;
+                                        border: none !important;
+                                        -webkit-print-color-adjust: exact !important;
+                                        print-color-adjust: exact !important;
+                                    }
+                                    .no-print {
+                                        display: none !important;
+                                    }
+                                }
+                                @media screen {
+                                    .no-print-bg {
+                                        background: rgba(0,0,0,0.85) !important;
+                                    }
+                                }
+                            `}} />
+                        </div>
+                    );
+                })()
+            }
         </div>
     );
 }

@@ -8,6 +8,7 @@ import "react-quill-new/dist/quill.snow.css";
 import { Image as ImageIcon, Upload, Info, Store, CheckCircle2, ChevronLeft, CloudUpload, XCircle, Star, ArrowLeft, AlertCircle } from "lucide-react";
 import ActionModal from "@/components/ActionModal";
 import { getApiUrl, getLogoUrl } from "@/app/utils/api";
+import { uploadImageToS3 } from "@/components/HandleUpload";
 
 const ReactQuill = dynamic(() => import("react-quill-new"), { ssr: false });
 
@@ -290,6 +291,33 @@ export default function EditTokoPage() {
     const ext = file.name.split(".").pop().toLowerCase();
     const randomName = `${Date.now()}-${Math.random().toString(36).substring(2, 10)}.${ext}`;
     return new File([file], randomName, { type: file.type });
+  };
+
+  const handleFileUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    if (!validateImageFile(file, e.target)) return;
+
+    setIsSubmitting(true);
+
+    const renamedFile = renameFileRandom(file);
+
+    try {
+      const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
+      const { objectKey } = await uploadImageToS3(renamedFile, token, "logos");
+      setShopData({ ...shopData, logo_url: `/${objectKey}` });
+    } catch (error) {
+      console.error("Error uploading image:", error);
+      setModalConfig({
+        isOpen: true,
+        type: "danger",
+        title: "Gagal Mengunggah",
+        message: error.message || "Gagal mengunggah logo toko.",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   if (isLoading) {
@@ -580,14 +608,7 @@ export default function EditTokoPage() {
                         type="file"
                         className="absolute inset-0 opacity-0 cursor-pointer"
                         accept="image/jpeg,image/jpg,image/png,image/webp,image/gif"
-                        onChange={(e) => {
-                          const raw = e.target.files[0];
-                          if (!validateImageFile(raw, e.target)) return;
-                          const file = renameFileRandom(raw);
-                          const reader = new FileReader();
-                          reader.onload = (ev) => setShopData({ ...shopData, logo_url: ev.target.result });
-                          reader.readAsDataURL(file);
-                        }}
+                        onChange={handleFileUpload}
                       />
                     </div>
                     {shopData.logo_url && (
@@ -608,14 +629,7 @@ export default function EditTokoPage() {
                         type="file"
                         className="hidden"
                         accept="image/jpeg,image/jpg,image/png,image/webp,image/gif"
-                        onChange={(e) => {
-                          const raw = e.target.files[0];
-                          if (!validateImageFile(raw, e.target)) return;
-                          const file = renameFileRandom(raw);
-                          const reader = new FileReader();
-                          reader.onload = (ev) => setShopData({ ...shopData, logo_url: ev.target.result });
-                          reader.readAsDataURL(file);
-                        }}
+                        onChange={handleFileUpload}
                       />
                     </label>
                   </div>

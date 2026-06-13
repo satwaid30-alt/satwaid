@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { MessageSquare, X, ChevronRight, User, ShoppingBag } from "lucide-react";
-import { getApiUrl } from "@/app/utils/api";
+import { getApiUrl, getImageUrl } from "@/app/utils/api";
 
 export default function ChatInboxModal({ isOpen, onClose, onSelectChat }) {
     const [chats, setChats] = useState([]);
@@ -126,7 +126,7 @@ export default function ChatInboxModal({ isOpen, onClose, onSelectChat }) {
                                 <div className="flex items-center gap-4 shrink-0 pl-4">
                                     {chat.product?.images?.[0] && (
                                         <div className="w-12 h-12 rounded-xl overflow-hidden border border-zinc-700 bg-zinc-950 shadow-lg group-hover:border-emerald-500/50 transition-all group-hover:scale-110">
-                                            <img src={chat.product.images[0]} alt="" className="w-full h-full object-cover group-hover:scale-110 transition-transform" />
+                                            <img src={getImageUrl(chat.product.images[0])} alt="" className="w-full h-full object-cover group-hover:scale-110 transition-transform" />
                                         </div>
                                     )}
                                     <div className="w-8 h-8 rounded-full bg-zinc-900 border border-zinc-800 flex items-center justify-center group-hover:bg-emerald-500 group-hover:text-zinc-950 transition-all">

@@ -4,10 +4,11 @@ import { useState, useEffect } from "react";
 import dynamic from "next/dynamic";
 import "react-quill-new/dist/quill.snow.css";
 import Link from "next/link";
-import { Tag, ChevronRight, ChevronDown, ChevronUp, CheckCircle2, X, Image as ImageIcon, Truck, AlertCircle, ScrollText, ArrowLeft } from "lucide-react";
+import { Tag, ChevronRight, ChevronDown, ChevronUp, CheckCircle2, X, Image as ImageIcon, Truck, AlertCircle, ScrollText, ArrowLeft, Loader2 } from "lucide-react";
 import { getApiUrl } from "@/app/utils/api";
 import QuotaCard from "@/components/QuotaCard";
 import { useShopQuota } from "@/hooks/useShopQuota";
+import { uploadImageToS3 } from "@/components/HandleUpload";
 
 // Import ReactQuill dynamically to avoid SSR errors
 const ReactQuill = dynamic(() => import("react-quill-new"), { ssr: false });
@@ -44,6 +45,7 @@ export default function JualProdukPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [shopStatus, setShopStatus] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [showErrorModal, setShowErrorModal] = useState(false);
@@ -88,8 +90,11 @@ export default function JualProdukPage() {
       "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
       "application/vnd.ms-powerpoint",
       "application/vnd.openxmlformats-officedocument.presentationml.presentation",
-      "application/x-php", "application/x-httpd-php", "text/x-php",
-      "application/octet-stream", "image/svg+xml",
+      "application/x-php",
+      "application/x-httpd-php",
+      "text/x-php",
+      "application/octet-stream",
+      "image/svg+xml",
     ];
     if (blockedMime.includes(file.type)) {
       setShowErrorModal(true);
@@ -645,7 +650,7 @@ export default function JualProdukPage() {
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
                     {reptileData.images.map((img, index) => (
                       <div key={index} className="relative aspect-square rounded-2xl overflow-hidden group border border-zinc-800 bg-zinc-900">
-                        <img src={img} alt="Preview" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
+                        <img src={img.startsWith("http") || img.startsWith("data:") ? img : `${process.env.NEXT_PUBLIC_S3_BASE_URL || ""}${img}`} alt="Preview" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
                         {/* Delete button - always visible on mobile, hover on desktop */}
                         <div className="absolute top-2 right-2 sm:absolute sm:inset-0 sm:bg-black/60 sm:opacity-0 sm:group-hover:opacity-100 sm:transition-opacity sm:flex sm:items-center sm:justify-center sm:backdrop-blur-sm">
                           <button
@@ -664,31 +669,46 @@ export default function JualProdukPage() {
                     ))}
 
                     {reptileData.images.length < 3 && (
-                      <label className="aspect-square bg-zinc-950 border-2 border-dashed border-zinc-800 rounded-2xl flex flex-col items-center justify-center gap-2 text-zinc-500 hover:border-emerald-500 hover:text-emerald-500 transition-all cursor-pointer group hover:bg-emerald-500/5">
-                        <input
-                          type="file"
-                          accept="image/jpeg,image/jpg,image/png,image/webp,image/gif"
-                          className="hidden"
-                          onChange={(e) => {
-                            const raw = e.target.files[0];
-                            if (!validateImageFile(raw, e.target)) return;
-                            const file = renameFileRandom(raw);
-                            const reader = new FileReader();
-                            reader.onload = (event) => {
-                              setReptileData((prev) => ({
-                                ...prev,
-                                images: [...prev.images, event.target.result],
-                              }));
-                            };
-                            reader.readAsDataURL(file);
-                            e.target.value = null;
-                          }}
-                        />
-                        <div className="w-12 h-12 rounded-full bg-zinc-900 flex items-center justify-center group-hover:bg-emerald-500/20 group-hover:scale-110 transition-all">
-                          <ImageIcon size={24} />
+                      isUploading ? (
+                        <div className="aspect-square bg-zinc-950 border border-zinc-800 rounded-2xl flex flex-col items-center justify-center gap-2 text-emerald-500">
+                          <Loader2 className="w-8 h-8 animate-spin" />
+                          <span className="text-[10px] font-black uppercase tracking-[0.2em] animate-pulse">Mengunggah...</span>
                         </div>
-                        <span className="text-[10px] font-black uppercase tracking-[0.2em]">Upload Foto</span>
-                      </label>
+                      ) : (
+                        <label className="aspect-square bg-zinc-950 border-2 border-dashed border-zinc-800 rounded-2xl flex flex-col items-center justify-center gap-2 text-zinc-500 hover:border-emerald-500 hover:text-emerald-500 transition-all cursor-pointer group hover:bg-emerald-500/5">
+                          <input
+                            type="file"
+                            accept="image/jpeg,image/jpg,image/png,image/webp,image/gif"
+                            className="hidden"
+                            onChange={async (e) => {
+                              const raw = e.target.files[0];
+                              if (!validateImageFile(raw, e.target)) return;
+                              const file = renameFileRandom(raw);
+                              
+                              const token = localStorage.getItem("token");
+                              setIsUploading(true);
+                              try {
+                                const { objectKey } = await uploadImageToS3(file, token, "listings");
+                                setReptileData((prev) => ({
+                                  ...prev,
+                                  images: [...prev.images, objectKey],
+                                }));
+                              } catch (err) {
+                                console.error("Upload failed:", err);
+                                setErrorModalMessage(err.message || "Gagal mengunggah foto. Silakan coba lagi.");
+                                setShowErrorModal(true);
+                              } finally {
+                                setIsUploading(false);
+                                e.target.value = null;
+                              }
+                            }}
+                          />
+                          <div className="w-12 h-12 rounded-full bg-zinc-900 flex items-center justify-center group-hover:bg-emerald-500/20 group-hover:scale-110 transition-all">
+                            <ImageIcon size={24} />
+                          </div>
+                          <span className="text-[10px] font-black uppercase tracking-[0.2em]">Upload Foto</span>
+                        </label>
+                      )
                     )}
                   </div>
                   <div className="px-1">
@@ -709,7 +729,7 @@ export default function JualProdukPage() {
 
                   <button
                     type="submit"
-                    disabled={isSubmitting || reptileData.images.length === 0}
+                    disabled={isSubmitting || isUploading || reptileData.images.length === 0}
                     className="w-full py-5 rounded-[1.5rem] bg-emerald-500 hover:bg-emerald-400 text-zinc-950 font-black transition-all flex items-center justify-center gap-3 group active:scale-[0.98] disabled:opacity-50 disabled:grayscale disabled:cursor-not-allowed"
                   >
                     {isSubmitting ? (
@@ -764,13 +784,10 @@ export default function JualProdukPage() {
                     <AlertCircle size={48} />
                   </div>
                   <h3 className="text-3xl font-black text-white mb-4">File Tidak Valid!</h3>
-                  <p className="text-zinc-400 mb-10 leading-relaxed font-medium">
-                    {errorModalMessage}
-                  </p>
+                  <p className="text-zinc-400 mb-10 leading-relaxed font-medium">{errorModalMessage}</p>
                   <button onClick={() => setShowErrorModal(false)} className="w-full bg-red-500 hover:bg-red-400 text-zinc-950 font-black py-4 rounded-2xl transition-all">
                     Saya Mengerti
                   </button>
-
                 </div>
               </div>
             )}

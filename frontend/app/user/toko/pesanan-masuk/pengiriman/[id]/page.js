@@ -4,7 +4,8 @@ import { useState, useEffect, use } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { io } from "socket.io-client";
-import { getApiUrl, getSocketUrl } from "@/app/utils/api";
+import { getApiUrl, getSocketUrl, getImageUrl } from "@/app/utils/api";
+import { uploadImageToS3 } from "@/components/HandleUpload";
 import { MapPin, Truck, Package, ChevronLeft, CheckCircle2, ShoppingBag, ArrowRight, Camera, Upload, FileText, Info, Check, Eye } from "lucide-react";
 import OrderStepper from "@/components/OrderStepper";
 import ActionModal from "@/components/ActionModal";
@@ -154,23 +155,13 @@ export default function ShippingConfirmationPage({ params }) {
     const randomFilename = `${randomString}${ext}`;
     const renamedFile = new File([file], randomFilename, { type: file.type });
 
-    const formData = new FormData();
-    formData.append("image", renamedFile);
-
     try {
-      const res = await fetch(`${getApiUrl()}/upload`, {
-        method: "POST",
-        body: formData,
-      });
-      const result = await res.json();
-      if (res.ok) {
-        setForm({ ...form, shipping_proof: result.url });
-      } else {
-        alert(result.message || "Gagal mengunggah gambar");
-      }
+      const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
+      const { objectKey } = await uploadImageToS3(renamedFile, token, "shipments");
+      setForm({ ...form, shipping_proof: "/" + objectKey });
     } catch (err) {
       console.error(err);
-      alert("Kesalahan koneksi saat mengunggah");
+      alert(err.message || "Gagal mengunggah gambar ke S3");
     } finally {
       setUploading(false);
     }
@@ -354,7 +345,7 @@ export default function ShippingConfirmationPage({ params }) {
                     >
                       {form.shipping_proof ? (
                         <>
-                          <img src={`${getApiUrl()}${form.shipping_proof}`} className="absolute inset-0 w-full h-full object-cover opacity-60 group-hover:opacity-40 transition-opacity" alt="Bukti Pengiriman" />
+                          <img src={getImageUrl(form.shipping_proof)} className="absolute inset-0 w-full h-full object-cover opacity-60 group-hover:opacity-40 transition-opacity" alt="Bukti Pengiriman" />
                           <div className="relative z-20 flex flex-col items-center gap-2.5">
                             <div className="w-12 h-12 bg-emerald-500 text-zinc-950 rounded-full flex items-center justify-center">
                               <Check size={24} />
@@ -439,7 +430,7 @@ export default function ShippingConfirmationPage({ params }) {
 
             <div className="flex gap-6">
               <div className="w-24 h-24 rounded-2xl overflow-hidden bg-zinc-950 border border-zinc-800 shrink-0">
-                <img src={order.product?.images?.[0]} alt={order.product?.name} className="w-full h-full object-cover" />
+                <img src={getImageUrl(order.product?.images) || "https://placehold.co/400x400/f4f4f5/71717a?text=No+Image"} alt={order.product?.name} className="w-full h-full object-cover" />
               </div>
               <div className="space-y-1">
                 <div className="flex flex-wrap items-center gap-2">
@@ -505,7 +496,7 @@ export default function ShippingConfirmationPage({ params }) {
             </button>
 
             <div className="bg-zinc-900 border border-zinc-800 rounded-3xl p-3 max-w-full overflow-hidden flex items-center justify-center">
-              <img src={`${getApiUrl()}${form.shipping_proof}`} className="max-w-full max-h-[70vh] object-contain rounded-2xl" alt="Review Bukti Pengiriman" />
+              <img src={getImageUrl(form.shipping_proof)} className="max-w-full max-h-[70vh] object-contain rounded-2xl" alt="Review Bukti Pengiriman" />
             </div>
             <p className="text-zinc-500 text-[10px] font-black uppercase tracking-widest">Review Bukti Pengiriman Anda</p>
           </div>

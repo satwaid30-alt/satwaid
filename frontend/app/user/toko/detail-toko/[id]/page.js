@@ -25,6 +25,7 @@ export default function UserTokoDetailPage() {
 
   const [currentUser, setCurrentUser] = useState(null);
   const [pendingRequest, setPendingRequest] = useState(null);
+  const [isUpgradeLocked, setIsUpgradeLocked] = useState(false);
 
   useEffect(() => {
     const userStr = localStorage.getItem("user");
@@ -52,6 +53,7 @@ export default function UserTokoDetailPage() {
         socket.on("shop_quota_updated", handleRefresh);
         socket.on("shop_membership_updated", handleRefresh);
         socket.on("shop_upgrade_status_updated", handleRefresh);
+        socket.on("menu_controls_updated", fetchMenuControls);
       } catch (e) {
         console.error("[Detail Toko Socket] Error:", e);
       }
@@ -60,6 +62,7 @@ export default function UserTokoDetailPage() {
       fetchShopDetail();
       fetchShopReviews();
     }
+    fetchMenuControls();
 
     return () => {
       if (socket) {
@@ -140,6 +143,23 @@ export default function UserTokoDetailPage() {
       router.push("/user/toko");
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const fetchMenuControls = async () => {
+    try {
+      const res = await fetch(`${getApiUrl()}/menu-controls`);
+      const result = await res.json();
+      if (res.ok && result.success && result.data) {
+        const upgradeCtrl = result.data.find((m) => m.menu_key === "upgrade_toko");
+        if (upgradeCtrl && upgradeCtrl.status !== "active") {
+          setIsUpgradeLocked(true);
+        } else {
+          setIsUpgradeLocked(false);
+        }
+      }
+    } catch (e) {
+      console.error("Error fetching menu controls:", e);
     }
   };
 
@@ -342,10 +362,21 @@ export default function UserTokoDetailPage() {
             </div>
             <div className="flex flex-col sm:flex-row gap-2.5 sm:gap-3 w-full sm:w-auto shrink-0 justify-center">
               {currentUser && currentUser.id === shopData.user_id && (
-                <Link href="/user/toko/upgrade-toko" className="w-full sm:w-auto px-5 py-3 sm:py-2.5 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-zinc-950 text-xs sm:text-sm font-black rounded-xl transition-all flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/10 hover:no-underline text-center">
-                  <ShieldCheck size={14} className="shrink-0" />
-                  Upgrade Toko
-                </Link>
+                isUpgradeLocked ? (
+                  <button
+                    disabled
+                    className="w-full sm:w-auto px-5 py-3 sm:py-2.5 bg-zinc-800 text-zinc-500 text-xs sm:text-sm font-bold rounded-xl transition-all flex items-center justify-center gap-2 cursor-not-allowed opacity-50 text-center"
+                    title="Fitur Upgrade Toko dinonaktifkan sementara oleh Admin"
+                  >
+                    <Lock size={14} className="shrink-0" />
+                    Upgrade Toko (Terkunci)
+                  </button>
+                ) : (
+                  <Link href="/toko-saya/upgrade" className="w-full sm:w-auto px-5 py-3 sm:py-2.5 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-zinc-950 text-xs sm:text-sm font-black rounded-xl transition-all flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/10 hover:no-underline text-center">
+                    <ShieldCheck size={14} className="shrink-0" />
+                    Upgrade Toko
+                  </Link>
+                )
               )}
               <Link href="/user/toko/edit-toko" className="w-full sm:w-auto px-5 py-3 sm:py-2.5 bg-zinc-800 hover:bg-zinc-700 text-white text-xs sm:text-sm font-bold rounded-xl transition-all flex items-center justify-center gap-2 text-center">
                 Edit Toko

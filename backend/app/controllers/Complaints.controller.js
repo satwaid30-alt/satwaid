@@ -56,8 +56,8 @@ module.exports.getUserComplaints = async (req, res) => {
           [
             Sequelize.literal(`(
               SELECT COUNT(*)
-              FROM "complaint_comments" AS "comments"
-              WHERE "comments"."complaint_id" = "complaints"."id"
+              FROM complaint_comments AS comments
+              WHERE comments.complaint_id = complaints.id
             )`),
             "comments_count"
           ]
@@ -72,7 +72,7 @@ module.exports.getUserComplaints = async (req, res) => {
     });
   } catch (err) {
     console.error("Error getting user complaints:", err);
-    res.status(500).json({ message: "Internal server error" });
+    res.status(500).json({ message: "Internal server error: " + err.message });
   }
 };
 
@@ -96,8 +96,8 @@ module.exports.getAllComplaints = async (req, res) => {
           [
             Sequelize.literal(`(
               SELECT COUNT(*)
-              FROM "complaint_comments" AS "comments"
-              WHERE "comments"."complaint_id" = "complaints"."id"
+              FROM complaint_comments AS comments
+              WHERE comments.complaint_id = complaints.id
             )`),
             "comments_count"
           ]

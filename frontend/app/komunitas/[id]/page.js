@@ -51,7 +51,13 @@ export default function DetailKomunitasPage() {
 
     const markAsRead = async (userId) => {
         try {
-            await fetch(`${getApiUrl()}/notifications/${userId}/read`, { method: 'PUT' });
+            const token = localStorage.getItem("token");
+            await fetch(`${getApiUrl()}/notifications/${userId}/read`, { 
+                method: 'PUT',
+                headers: {
+                    ...(token ? { "Authorization": `Bearer ${token}` } : {})
+                }
+            });
         } catch (e) {
             console.error("Error marking community as read:", e);
         }

@@ -8,6 +8,7 @@ import Link from "next/link";
 import { Store, ChevronRight, CheckCircle2, X, ScrollText, ShieldCheck, PencilLine, XCircle, Lock, LogOut, ArrowLeft, MapPin, Tag, ChevronDown, ChevronUp, AlertCircle, Star, Image as ImageIcon, Upload, Info } from "lucide-react";
 import ActionModal from "@/components/ActionModal";
 import { getApiUrl, getLogoUrl } from "@/app/utils/api";
+import { uploadImageToS3 } from "@/components/HandleUpload";
 
 // Import ReactQuill dynamically for shop description
 const ReactQuill = dynamic(() => import("react-quill-new"), { ssr: false });
@@ -138,9 +139,13 @@ export default function UserTokoPage() {
 
     setIsSubmitting(true);
     try {
+      const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
       const response = await fetch(`${getApiUrl()}/shops/${shopData.id}`, {
         method: "PUT",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          ...(token && { Authorization: `Bearer ${token}` }),
+        },
         body: JSON.stringify({
           status: "pending",
           rejection_reason: null, // Clear reason on resubmit
@@ -214,32 +219,17 @@ export default function UserTokoPage() {
     const randomFilename = `${Date.now()}_${randomString}${fileExtension}`;
     const renamedFile = new File([file], randomFilename, { type: file.type });
 
-    const formData = new FormData();
-    formData.append("image", renamedFile);
-
     try {
-      const response = await fetch(`${getApiUrl()}/upload`, {
-        method: "POST",
-        body: formData,
-      });
-      const result = await response.json();
-      if (response.ok) {
-        setShopData({ ...shopData, logo_url: result.url });
-      } else {
-        setModalConfig({
-          isOpen: true,
-          type: "danger",
-          title: "Gagal Mengunggah",
-          message: result.message || "Gagal mengunggah logo toko.",
-        });
-      }
+      const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
+      const { objectKey } = await uploadImageToS3(renamedFile, token, "logos");
+      setShopData({ ...shopData, logo_url: `/${objectKey}` });
     } catch (error) {
       console.error("Error uploading image:", error);
       setModalConfig({
         isOpen: true,
         type: "danger",
-        title: "Kesalahan Koneksi",
-        message: "Terjadi kesalahan koneksi saat mengunggah logo toko.",
+        title: "Gagal Mengunggah",
+        message: error.message || "Gagal mengunggah logo toko.",
       });
     } finally {
       setIsSubmitting(false);
@@ -317,9 +307,13 @@ export default function UserTokoPage() {
     const userData = JSON.parse(localStorage.getItem("user"));
 
     try {
+      const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
       const response = await fetch(`${getApiUrl()}/shops`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          ...(token && { Authorization: `Bearer ${token}` }),
+        },
         body: JSON.stringify({
           ...shopData,
           user_id: userData.id,
@@ -746,14 +740,7 @@ export default function UserTokoPage() {
                 Batalkan
               </Link>
               <button type="submit" disabled={isSubmitting} className="flex-[1.5] bg-emerald-500 hover:bg-emerald-400 text-zinc-950 font-black py-4 sm:py-5 rounded-xl sm:rounded-2xl transition-all flex items-center justify-center gap-3 group disabled:opacity-50 disabled:cursor-not-allowed text-sm sm:text-base">
-                {isSubmitting ? (
-                  <i className="fa-solid fa-circle-notch fa-spin text-xl"></i>
-                ) : (
-                  <>
-                    <i className="fa-solid fa-rocket text-lg group-hover:scale-110 transition-transform"></i>
-                    Buka Toko Sekarang
-                  </>
-                )}
+                {isSubmitting ? <i className="fa-solid fa-circle-notch fa-spin text-xl"></i> : <>Buka Toko Sekarang</>}
               </button>
             </div>
           </form>

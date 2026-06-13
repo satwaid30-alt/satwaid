@@ -4,7 +4,7 @@ import { useState, useEffect, use } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { io } from "socket.io-client";
-import { getApiUrl, getSocketUrl } from "@/app/utils/api";
+import { getApiUrl, getSocketUrl, getImageUrl } from "@/app/utils/api";
 import { MapPin, Truck, CreditCard, CheckCircle2, Clock, ChevronLeft, Info, Package, ShoppingBag, DollarSign, AlertCircle, ChevronRight, ArrowRight } from "lucide-react";
 import OrderStepper from "@/components/OrderStepper";
 import ActionModal from "@/components/ActionModal";
@@ -365,7 +365,7 @@ export default function InputShippingCostPage({ params }) {
 
             <div className="flex gap-6">
               <div className="w-24 h-24 rounded-2xl overflow-hidden bg-zinc-950 border border-zinc-800 shrink-0">
-                <img src={order.product?.images?.[0]} alt={order.product?.name} className="w-full h-full object-cover" />
+                <img src={getImageUrl(order.product?.images) || "https://placehold.co/400x400/f4f4f5/71717a?text=No+Image"} alt={order.product?.name} className="w-full h-full object-cover" />
               </div>
               <div className="space-y-1">
                 <div className="flex flex-wrap items-center gap-2">

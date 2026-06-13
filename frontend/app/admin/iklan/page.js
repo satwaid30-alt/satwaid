@@ -2,6 +2,8 @@
 
 import { useState, useEffect } from "react";
 import { Megaphone, Plus, Trash2, Edit2, ExternalLink, Image as ImageIcon, Link as LinkIcon, Save, X, CheckCircle, AlertCircle, Layout, ArrowRight } from "lucide-react";
+import { getImageUrl } from "@/app/utils/api";
+import { uploadImageToS3 } from "@/components/HandleUpload";
 
 export default function ManageAds() {
     const [ads, setAds] = useState([]);
@@ -94,8 +96,8 @@ export default function ManageAds() {
                 mobile_image_url: ad.mobile_image_url || "",
                 status: ad.status
             });
-            setPreviewImage(`${process.env.NEXT_PUBLIC_API_URL}${ad.image_url}`);
-            setPreviewMobileImage(ad.mobile_image_url ? `${process.env.NEXT_PUBLIC_API_URL}${ad.mobile_image_url}` : null);
+            setPreviewImage(getImageUrl(ad.image_url));
+            setPreviewMobileImage(ad.mobile_image_url ? getImageUrl(ad.mobile_image_url) : null);
         } else {
             setEditingAd(null);
             setFormData({
@@ -120,6 +122,14 @@ export default function ManageAds() {
         const file = e.target.files[0];
         if (!file) return;
 
+        // Size Validation: Max 5MB
+        const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5 MB
+        if (file.size > MAX_FILE_SIZE) {
+            showNotification("error", "Ukuran file gambar tidak boleh melebihi 5MB.");
+            e.target.value = ""; // Reset input
+            return;
+        }
+
         // Preview
         const reader = new FileReader();
         reader.onloadend = () => {
@@ -128,28 +138,28 @@ export default function ManageAds() {
         reader.readAsDataURL(file);
 
         // Upload
-        const uploadData = new FormData();
-        uploadData.append("image", file);
-
         try {
-            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/upload`, {
-                method: "POST",
-                body: uploadData
-            });
-            const data = await res.json();
-            if (res.ok) {
-                setFormData(prev => ({ ...prev, image_url: data.url }));
-                showNotification("success", "Gambar berhasil diunggah");
-            }
+            const token = localStorage.getItem("token") || localStorage.getItem("admin_token");
+            const { objectKey } = await uploadImageToS3(file, token, "advertisements");
+            setFormData(prev => ({ ...prev, image_url: "/" + objectKey }));
+            showNotification("success", "Gambar berhasil diunggah");
         } catch (err) {
             console.error("Upload failed", err);
-            showNotification("error", "Gagal mengunggah gambar");
+            showNotification("error", err.message || "Gagal mengunggah gambar");
         }
     };
 
     const handleMobileImageUpload = async (e) => {
         const file = e.target.files[0];
         if (!file) return;
+
+        // Size Validation: Max 5MB
+        const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5 MB
+        if (file.size > MAX_FILE_SIZE) {
+            showNotification("error", "Ukuran file gambar mobile tidak boleh melebihi 5MB.");
+            e.target.value = ""; // Reset input
+            return;
+        }
 
         // Preview
         const reader = new FileReader();
@@ -159,22 +169,14 @@ export default function ManageAds() {
         reader.readAsDataURL(file);
 
         // Upload
-        const uploadData = new FormData();
-        uploadData.append("image", file);
-
         try {
-            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/upload`, {
-                method: "POST",
-                body: uploadData
-            });
-            const data = await res.json();
-            if (res.ok) {
-                setFormData(prev => ({ ...prev, mobile_image_url: data.url }));
-                showNotification("success", "Gambar mobile berhasil diunggah");
-            }
+            const token = localStorage.getItem("token") || localStorage.getItem("admin_token");
+            const { objectKey } = await uploadImageToS3(file, token, "advertisements");
+            setFormData(prev => ({ ...prev, mobile_image_url: "/" + objectKey }));
+            showNotification("success", "Gambar mobile berhasil diunggah");
         } catch (err) {
             console.error("Mobile upload failed", err);
-            showNotification("error", "Gagal mengunggah gambar mobile");
+            showNotification("error", err.message || "Gagal mengunggah gambar mobile");
         }
     };
 
@@ -324,7 +326,7 @@ export default function ManageAds() {
                             {/* Image Preview */}
                             <div className="h-52 relative overflow-hidden bg-zinc-950">
                                 <img 
-                                    src={`${process.env.NEXT_PUBLIC_API_URL}${ad.image_url}`} 
+                                    src={getImageUrl(ad.image_url)} 
                                     alt={ad.placement} 
                                     className="w-full h-full object-cover opacity-80 group-hover:opacity-100 group-hover:scale-105 transition-all duration-700"
                                 />

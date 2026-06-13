@@ -14,7 +14,7 @@ import {
   HelpCircle,
 } from "lucide-react";
 import { useState, useEffect } from "react";
-import { getLogoUrl } from "@/app/utils/api";
+import { getLogoUrl, getImageUrl } from "@/app/utils/api";
 
 export default function ProductCard({ product }) {
   const router = useRouter();
@@ -90,7 +90,7 @@ export default function ProductCard({ product }) {
         <img
           src={
             product.images && product.images[0]
-              ? product.images[0]
+              ? getImageUrl(product.images[0])
               : "https://placehold.co/400x400/f4f4f5/71717a?text=No+Image"
           }
           alt={product.name}

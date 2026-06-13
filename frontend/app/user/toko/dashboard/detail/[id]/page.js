@@ -4,7 +4,7 @@ import { useState, useEffect, use } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { io } from "socket.io-client";
-import { getApiUrl, getSocketUrl } from "@/app/utils/api";
+import { getApiUrl, getSocketUrl, getImageUrl } from "@/app/utils/api";
 import { ShoppingBag, MapPin, DollarSign, Clock, CheckCircle2, AlertCircle, X, XCircle, Package, Truck, Info, ChevronLeft, ScrollText, ChevronDown, CreditCard, ShieldAlert, Gavel, Tag } from "lucide-react";
 import OrderStepper from "@/components/OrderStepper";
 import OrderTimeline from "@/components/OrderTimeline";
@@ -246,7 +246,7 @@ export default function OrderDetailPage({ params }) {
                   {/* Product Image */}
                   <div className="w-full md:w-64 aspect-square rounded-[2rem] overflow-hidden bg-zinc-950 border border-zinc-800 relative group">
                     {order.product?.images?.[activeImageIndex] ? (
-                      <img src={order.product.images[activeImageIndex]} alt={order.product.name} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
+                      <img src={getImageUrl(order.product.images[activeImageIndex])} alt={order.product.name} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center text-zinc-800">
                         <Package size={64} />

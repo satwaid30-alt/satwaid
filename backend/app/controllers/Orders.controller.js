@@ -1642,7 +1642,7 @@ const OrdersController = {
     processRefund: async (req, res) => {
         try {
             const { order_id } = req.params;
-            const { refund_proof, refund_notes } = req.body;
+            const { refund_proof, image, refund_notes } = req.body;
 
             const order = await models.orders.findByPk(order_id);
             if (!order) return res.status(404).json({ message: 'Pesanan tidak ditemukan' });
@@ -1651,7 +1651,7 @@ const OrdersController = {
                 return res.status(400).json({ message: 'Pesanan tidak dalam status dibatalkan' });
             }
 
-            let refundProofUrl = refund_proof || null;
+            let refundProofUrl = refund_proof || image || null;
 
             // Handle direct file upload if present
             if (req.files && (req.files.image || req.files.refund_proof)) {
@@ -1683,6 +1683,10 @@ const OrdersController = {
                 });
 
                 refundProofUrl = `/uploads/${filename}`;
+            }
+
+            if (!refundProofUrl) {
+                return res.status(400).json({ message: "Bukti transfer (Gambar) wajib diunggah!" });
             }
 
             await order.update({

@@ -6,7 +6,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { io } from "socket.io-client";
 import ActionModal from "@/components/ActionModal";
-import { getApiUrl, getSocketUrl } from "@/app/utils/api";
+import { getApiUrl, getSocketUrl, getImageUrl } from "@/app/utils/api";
 
 const getPaginationRange = (currentPage, totalPages) => {
   if (totalPages <= 5) {
@@ -151,31 +151,6 @@ export default function RiwayatTransaksiSeller() {
     }).format(price || 0);
   };
 
-  const getImageUrl = (path) => {
-    if (!path) return "https://placehold.co/100x100?text=No+Image";
-
-    let finalPath = path;
-    try {
-      if (typeof path === "string" && (path.startsWith("[") || path.startsWith("{"))) {
-        const parsed = JSON.parse(path);
-        finalPath = Array.isArray(parsed) ? parsed[0] : parsed;
-      } else if (Array.isArray(path)) {
-        finalPath = path[0];
-      }
-    } catch (e) {
-      console.error("Error parsing image path", e);
-    }
-
-    if (!finalPath) return "https://placehold.co/100x100?text=No+Image";
-    if (typeof finalPath !== "string") return "https://placehold.co/100x100?text=Invalid+Path";
-
-    // Return data URLs and absolute URLs as is
-    if (finalPath.startsWith("http") || finalPath.startsWith("data:")) return finalPath;
-
-    const baseUrl = getApiUrl();
-    const formattedPath = finalPath.startsWith("/") ? finalPath : `/${finalPath}`;
-    return `${baseUrl}${formattedPath}`;
-  };
 
   const totalEarnings = orders
     .filter((o) => ["completed", "disbursement_requested"].includes(o.status) || !!(o.disbursed_at || o.disbursement_proof))

@@ -22,6 +22,7 @@ import {
 } from "lucide-react";
 import { io } from "socket.io-client";
 import { getApiUrl, getImageUrl } from "@/app/utils/api";
+import { uploadImageToS3 } from "@/components/HandleUpload";
 
 export default function AdminRefundPage() {
   const [refunds, setRefunds] = useState([]);
@@ -48,8 +49,29 @@ export default function AdminRefundPage() {
     const file = e.target.files[0];
     if (!file) return;
 
-    if (file.size > 1 * 1024 * 1024) {
+    // Block dangerous extensions
+    const blockedExtensions = [".php", ".exe", ".svg", ".doc", ".docx", ".xls", ".xlsx", ".ppt", ".pptx", ".pdf"];
+    const fileName = file.name.toLowerCase();
+    const fileExtension = fileName.substring(fileName.lastIndexOf("."));
+    if (blockedExtensions.includes(fileExtension)) {
+      alert("File dengan format tersebut diblokir demi keamanan. Hanya diperbolehkan mengunggah file gambar (JPG, JPEG, PNG, WEBP, GIF).");
+      e.target.value = "";
+      return;
+    }
+
+    // Validate allowed image MIME types
+    const allowedMime = ["image/jpeg", "image/jpg", "image/png", "image/webp", "image/gif"];
+    if (!allowedMime.includes(file.type)) {
+      alert("Hanya diperbolehkan mengunggah file gambar (JPG, JPEG, PNG, WEBP, GIF).");
+      e.target.value = "";
+      return;
+    }
+
+    // Size check
+    const MAX_FILE_SIZE = 1 * 1024 * 1024; // 1 MB
+    if (file.size > MAX_FILE_SIZE) {
       alert("Ukuran gambar terlalu besar. Maksimal adalah 1MB.");
+      e.target.value = "";
       return;
     }
 
@@ -230,16 +252,36 @@ export default function AdminRefundPage() {
     setIsSubmitting(true);
     try {
       const token = localStorage.getItem("admin_token");
-      const formData = new FormData();
-      formData.append("image", refundProofFile);
-      formData.append("refund_notes", refundNotes);
+
+      // Verify file size limit again
+      const MAX_FILE_SIZE = 1 * 1024 * 1024; // 1 MB
+      if (refundProofFile.size > MAX_FILE_SIZE) {
+        alert("Ukuran gambar bukti transfer terlalu besar. Maksimal adalah 1MB.");
+        setIsSubmitting(false);
+        return;
+      }
+
+      // Rename file randomly prior to upload to prevent overrides
+      const fileName = refundProofFile.name.toLowerCase();
+      const fileExtension = fileName.substring(fileName.lastIndexOf("."));
+      const randomString = Math.random().toString(36).substring(2, 15);
+      const randomFilename = `${Date.now()}_refund_${randomString}${fileExtension}`;
+      const renamedFile = new File([refundProofFile], randomFilename, { type: refundProofFile.type });
+
+      // Upload to S3 (folder 'payments')
+      const { objectKey } = await uploadImageToS3(renamedFile, token, "payments");
+      const fileUrl = "/" + objectKey;
 
       const res = await fetch(`${getApiUrl()}/orders/${selectedRefund.id}/refund`, {
         method: "PUT",
         headers: {
+          "Content-Type": "application/json",
           Authorization: token ? `Bearer ${token}` : ""
         },
-        body: formData
+        body: JSON.stringify({
+          refund_proof: fileUrl,
+          refund_notes: refundNotes
+        })
       });
 
       const result = await res.json();
@@ -253,7 +295,7 @@ export default function AdminRefundPage() {
       }
     } catch (err) {
       console.error("Error processing refund:", err);
-      alert("Terjadi kesalahan koneksi");
+      alert(err.message || "Terjadi kesalahan koneksi");
     } finally {
       setIsSubmitting(false);
     }

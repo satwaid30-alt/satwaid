@@ -572,7 +572,9 @@ export default function Home() {
               {/* Empty State */}
               {listings.length === 0 && (
                 <div className="py-32 text-center bg-white rounded-[3rem] border-2 border-dashed border-zinc-100">
-                  <div className="text-7xl mb-8">🦎</div>
+                  <div className="flex justify-center mb-8 text-zinc-300">
+                    <ShoppingBag size={64} strokeWidth={1.5} />
+                  </div>
                   <h3 className="text-3xl font-black text-zinc-900 mb-3">Belum Ada Koleksi</h3>
                   <p className="text-zinc-500 max-w-md mx-auto text-lg">Saat ini belum ada produk aktif.</p>
                 </div>
