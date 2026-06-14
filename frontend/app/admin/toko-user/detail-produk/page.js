@@ -7,6 +7,12 @@ import ActionModal from "@/components/ActionModal";
 import { io } from "socket.io-client";
 import { getApiUrl, getSocketUrl, getLogoUrl, getImageUrl } from "@/app/utils/api";
 
+const isVideoUrl = (url) => {
+  if (!url) return false;
+  const lower = url.toLowerCase();
+  return lower.endsWith(".mp4") || lower.endsWith(".mov") || lower.endsWith(".avi") || lower.endsWith(".webm") || lower.endsWith(".mkv") || lower.endsWith(".3gp");
+};
+
 export default function AdminDetailProdukPage() {
   const [listings, setListings] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -484,7 +490,11 @@ export default function AdminDetailProdukPage() {
                         <div className="flex items-center gap-4">
                           <div className="w-14 h-14 rounded-2xl bg-zinc-950 border border-zinc-800 overflow-hidden shrink-0 shadow-inner group-hover:border-zinc-700 transition-all">
                             {item.images && item.images[0] ? (
-                              <img src={getImageUrl(item.images[0])} alt={item.name} className="w-full h-full object-cover" />
+                              isVideoUrl(item.images[0]) ? (
+                                <video src={getImageUrl(item.images[0])} className="w-full h-full object-cover" preload="metadata" muted playsInline />
+                              ) : (
+                                <img src={getImageUrl(item.images[0])} alt={item.name} className="w-full h-full object-cover" />
+                              )
                             ) : (
                               <div className="w-full h-full flex items-center justify-center text-zinc-800">
                                 <ShoppingBag size={20} />
@@ -630,7 +640,11 @@ export default function AdminDetailProdukPage() {
                   <div className="flex gap-4">
                     <div className="w-16 h-16 rounded-2xl bg-zinc-950 border border-zinc-800 overflow-hidden shrink-0 shadow-inner">
                       {item.images && item.images[0] ? (
-                        <img src={getImageUrl(item.images[0])} alt={item.name} className="w-full h-full object-cover" />
+                        isVideoUrl(item.images[0]) ? (
+                          <video src={getImageUrl(item.images[0])} className="w-full h-full object-cover" preload="metadata" muted playsInline />
+                        ) : (
+                          <img src={getImageUrl(item.images[0])} alt={item.name} className="w-full h-full object-cover" />
+                        )
                       ) : (
                         <div className="w-full h-full flex items-center justify-center text-zinc-800 bg-zinc-950">
                           <ShoppingBag size={24} />

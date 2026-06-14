@@ -9,6 +9,19 @@ import { getApiUrl, getSocketUrl, getImageUrl } from "@/app/utils/api";
 import QuotaCard from "@/components/QuotaCard";
 import { useShopQuota } from "@/hooks/useShopQuota";
 
+const isVideoUrl = (url) => {
+  if (!url) return false;
+  const lower = url.toLowerCase();
+  return (
+    lower.endsWith(".mp4") ||
+    lower.endsWith(".mov") ||
+    lower.endsWith(".avi") ||
+    lower.endsWith(".webm") ||
+    lower.endsWith(".mkv") ||
+    lower.endsWith(".3gp")
+  );
+};
+
 const getPaginationRange = (currentPage, totalPages) => {
   if (totalPages <= 5) {
     return Array.from({ length: totalPages }, (_, i) => i + 1);
@@ -546,7 +559,11 @@ export default function SellerDashboardPage() {
                                     <div className="flex items-center gap-3">
                                       {order.product?.images?.[0] && (
                                         <div className="w-10 h-10 rounded-xl overflow-hidden bg-zinc-800 shrink-0 border border-zinc-700">
-                                          <img src={getImageUrl(order.product.images[0])} className="w-full h-full object-cover" />
+                                          {isVideoUrl(order.product.images[0]) ? (
+                                            <video src={getImageUrl(order.product.images[0])} className="w-full h-full object-cover" preload="metadata" muted playsInline />
+                                          ) : (
+                                            <img src={getImageUrl(order.product.images[0])} className="w-full h-full object-cover" />
+                                          )}
                                         </div>
                                       )}
                                       <div>
@@ -827,7 +844,11 @@ export default function SellerDashboardPage() {
                                   <div className="flex items-center gap-3">
                                     {order.product?.images?.[0] && (
                                       <div className="w-10 h-10 rounded-xl overflow-hidden bg-zinc-800 shrink-0 border border-zinc-700">
-                                        <img src={getImageUrl(order.product.images[0])} className="w-full h-full object-cover" />
+                                        {isVideoUrl(order.product.images[0]) ? (
+                                          <video src={getImageUrl(order.product.images[0])} className="w-full h-full object-cover" preload="metadata" muted playsInline />
+                                        ) : (
+                                          <img src={getImageUrl(order.product.images[0])} className="w-full h-full object-cover" />
+                                        )}
                                       </div>
                                     )}
                                     <div>

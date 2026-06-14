@@ -6,6 +6,12 @@ import { useRouter } from "next/navigation";
 import { Tag, Trash2, Edit, ChevronLeft, ChevronRight, Truck, AlertCircle, CheckCircle2, XCircle, Calendar, ScrollText, ShoppingBag, History, Package, Globe, VenusAndMars, Clock, Gavel } from "lucide-react";
 import { getApiUrl } from "@/app/utils/api";
 
+const isVideoUrl = (url) => {
+  if (!url) return false;
+  const lower = url.toLowerCase();
+  return lower.endsWith(".mp4") || lower.endsWith(".mov") || lower.endsWith(".avi") || lower.endsWith(".webm") || lower.endsWith(".mkv") || lower.endsWith(".3gp");
+};
+
 export default function ListingDetailPage({ params }) {
   const { id } = use(params);
   const router = useRouter();
@@ -187,7 +193,11 @@ export default function ListingDetailPage({ params }) {
           <div className="bg-zinc-900 border border-zinc-800 rounded-3xl lg:rounded-[2.5rem] overflow-hidden relative">
             <div className="w-full aspect-square bg-zinc-950 relative group cursor-zoom-in">
               {parsedImages && parsedImages[activeImageIndex] ? (
-                <img src={parsedImages[activeImageIndex]} alt={listing.name} className="w-full h-full object-contain p-4 lg:p-8" />
+                isVideoUrl(parsedImages[activeImageIndex]) ? (
+                  <video src={parsedImages[activeImageIndex]} controls className="w-full h-full object-contain p-4 lg:p-8" />
+                ) : (
+                  <img src={parsedImages[activeImageIndex]} alt={listing.name} className="w-full h-full object-contain p-4 lg:p-8" />
+                )
               ) : (
                 <div className="w-full h-full flex items-center justify-center text-zinc-800">
                   <ShoppingBag size={80} />
@@ -209,7 +219,7 @@ export default function ListingDetailPage({ params }) {
               {/* Image Counter Badge */}
               {parsedImages?.length > 1 && (
                 <div className="absolute bottom-6 right-6 px-4 py-2 bg-zinc-950/60 backdrop-blur-md border border-zinc-800 rounded-full text-[10px] font-black text-white uppercase tracking-widest">
-                  {activeImageIndex + 1} / {parsedImages.length} Foto
+                  {activeImageIndex + 1} / {parsedImages.length} Media
                 </div>
               )}
             </div>
@@ -219,7 +229,11 @@ export default function ListingDetailPage({ params }) {
               <div className="p-4 lg:p-6 bg-zinc-950/30 border-t border-zinc-800 flex gap-3 lg:gap-4 overflow-x-auto custom-scrollbar">
                 {parsedImages?.map((img, idx) => (
                   <button key={idx} onClick={() => setActiveImageIndex(idx)} className={`w-16 h-16 lg:w-20 lg:h-20 rounded-xl lg:rounded-2xl overflow-hidden border-2 shrink-0 transition-all duration-300 ${activeImageIndex === idx ? "border-emerald-500 scale-105" : "border-zinc-800 opacity-40 hover:opacity-100"}`}>
-                    <img src={img} className="w-full h-full object-cover" />
+                    {isVideoUrl(img) ? (
+                      <video src={img} className="w-full h-full object-cover" />
+                    ) : (
+                      <img src={img} className="w-full h-full object-cover" />
+                    )}
                   </button>
                 ))}
               </div>

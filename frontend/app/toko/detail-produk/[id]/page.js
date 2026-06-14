@@ -12,6 +12,19 @@ import { copyToClipboard } from "../../../utils/clipboard";
 import { getApiUrl, getLogoUrl, getSocketUrl } from "@/app/utils/api";
 import { io } from "socket.io-client";
 
+const isVideoUrl = (url) => {
+  if (!url) return false;
+  const lower = url.toLowerCase();
+  return (
+    lower.endsWith(".mp4") ||
+    lower.endsWith(".mov") ||
+    lower.endsWith(".avi") ||
+    lower.endsWith(".webm") ||
+    lower.endsWith(".mkv") ||
+    lower.endsWith(".3gp")
+  );
+};
+
 function DetailContent() {
   const params = useParams();
   const productId = params.id;
@@ -471,12 +484,20 @@ function DetailContent() {
           <div className="w-full lg:w-[45%] sticky-image-card bg-white border border-zinc-200 rounded-[2rem] p-4 lg:p-6 shadow-sm flex flex-col gap-4">
             <div className="bg-zinc-50 rounded-[1.5rem] relative group overflow-hidden border border-zinc-100 flex items-center justify-center aspect-square w-full">
               {parsedImages.length > 0 && parsedImages[activeImageIndex] ? (
-                <img
-                  src={parsedImages[activeImageIndex]}
-                  className="w-full h-full object-contain p-6 lg:p-12 transition-transform duration-700 group-hover:scale-105 cursor-zoom-in"
-                  alt={selectedProduct.name}
-                  onClick={() => setIsImageZoomed(true)}
-                />
+                isVideoUrl(parsedImages[activeImageIndex]) ? (
+                  <video
+                    src={parsedImages[activeImageIndex]}
+                    controls
+                    className="w-full h-full object-contain p-6 lg:p-12"
+                  />
+                ) : (
+                  <img
+                    src={parsedImages[activeImageIndex]}
+                    className="w-full h-full object-contain p-6 lg:p-12 transition-transform duration-700 group-hover:scale-105 cursor-zoom-in"
+                    alt={selectedProduct.name}
+                    onClick={() => setIsImageZoomed(true)}
+                  />
+                )
               ) : (
                 <div className="w-full h-full flex flex-col items-center justify-center text-zinc-400 bg-zinc-100">
                   <Tag size={64} strokeWidth={1} />
@@ -514,7 +535,11 @@ function DetailContent() {
                       activeImageIndex === idx ? "border-emerald-500 scale-105" : "border-zinc-200 opacity-60 hover:opacity-100"
                     }`}
                   >
-                    <img src={img} className="w-full h-full object-cover" alt={`Thumb ${idx}`} />
+                    {isVideoUrl(img) ? (
+                      <video src={img} className="w-full h-full object-cover" preload="metadata" />
+                    ) : (
+                      <img src={img} className="w-full h-full object-cover" alt={`Thumb ${idx}`} />
+                    )}
                   </button>
                 ))}
               </div>
@@ -727,7 +752,11 @@ function DetailContent() {
       {isImageZoomed && parsedImages.length > 0 && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-md cursor-zoom-out select-none" onClick={() => setIsImageZoomed(false)}>
           <div className="relative max-w-[90vw] max-h-[90vh]">
-            <img src={parsedImages[activeImageIndex]} className="max-w-full max-h-[90vh] object-contain rounded-xl" alt={selectedProduct.name} />
+            {isVideoUrl(parsedImages[activeImageIndex]) ? (
+              <video src={parsedImages[activeImageIndex]} controls className="max-w-full max-h-[90vh] object-contain rounded-xl" onClick={(e) => e.stopPropagation()} />
+            ) : (
+              <img src={parsedImages[activeImageIndex]} className="max-w-full max-h-[90vh] object-contain rounded-xl" alt={selectedProduct.name} />
+            )}
             <button className="absolute top-4 right-4 text-white hover:text-zinc-300 transition-colors bg-white/10 hover:bg-white/20 p-2 rounded-full" onClick={() => setIsImageZoomed(false)}>
               <XCircle size={24} />
             </button>

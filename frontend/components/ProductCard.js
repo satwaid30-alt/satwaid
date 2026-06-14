@@ -16,6 +16,19 @@ import {
 import { useState, useEffect } from "react";
 import { getLogoUrl, getImageUrl } from "@/app/utils/api";
 
+const isVideoUrl = (url) => {
+  if (!url) return false;
+  const lower = url.toLowerCase();
+  return (
+    lower.endsWith(".mp4") ||
+    lower.endsWith(".mov") ||
+    lower.endsWith(".avi") ||
+    lower.endsWith(".webm") ||
+    lower.endsWith(".mkv") ||
+    lower.endsWith(".3gp")
+  );
+};
+
 export default function ProductCard({ product }) {
   const router = useRouter();
 
@@ -87,15 +100,26 @@ export default function ProductCard({ product }) {
     >
       {/* Image Container - Square */}
       <div className="relative aspect-square overflow-hidden bg-zinc-50">
-        <img
-          src={
-            product.images && product.images[0]
-              ? getImageUrl(product.images[0])
-              : "https://placehold.co/400x400/f4f4f5/71717a?text=No+Image"
-          }
-          alt={product.name}
-          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-        />
+        {product.images && product.images[0] && isVideoUrl(product.images[0]) ? (
+          <video
+            src={getImageUrl(product.images[0])}
+            muted
+            playsInline
+            loop
+            autoPlay
+            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+          />
+        ) : (
+          <img
+            src={
+              product.images && product.images[0]
+                ? getImageUrl(product.images[0])
+                : "https://placehold.co/400x400/f4f4f5/71717a?text=No+Image"
+            }
+            alt={product.name}
+            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+          />
+        )}
 
         {/* Labels - top left */}
         <div className="absolute top-2 left-2 flex flex-col gap-1.5">

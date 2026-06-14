@@ -7,6 +7,12 @@ import { useRouter } from "next/navigation";
 import ActionModal from "@/components/ActionModal";
 import { getApiUrl, getLogoUrl, getImageUrl } from "@/app/utils/api";
 
+const isVideoUrl = (url) => {
+  if (!url) return false;
+  const lower = url.toLowerCase();
+  return lower.endsWith(".mp4") || lower.endsWith(".mov") || lower.endsWith(".avi") || lower.endsWith(".webm") || lower.endsWith(".mkv") || lower.endsWith(".3gp");
+};
+
 export default function AdminProductDetailPage({ params }) {
   const { id } = use(params);
   console.log("Extracted ID:", id);
@@ -171,7 +177,11 @@ export default function AdminProductDetailPage({ params }) {
               <div className="flex flex-col md:flex-row gap-8 items-start md:items-center pb-8 border-b border-zinc-800">
                 <div className="w-24 h-24 rounded-2xl bg-zinc-950 border border-zinc-800 overflow-hidden shrink-0 shadow-inner">
                   {listing.images && listing.images[0] ? (
-                    <img src={getImageUrl(listing.images[0])} alt={listing.name} className="w-full h-full object-cover" />
+                    isVideoUrl(listing.images[0]) ? (
+                      <video src={getImageUrl(listing.images[0])} className="w-full h-full object-cover" />
+                    ) : (
+                      <img src={getImageUrl(listing.images[0])} alt={listing.name} className="w-full h-full object-cover" />
+                    )
                   ) : (
                     <div className="w-full h-full flex items-center justify-center text-zinc-800">
                       <ShoppingBag size={32} />
@@ -277,7 +287,11 @@ export default function AdminProductDetailPage({ params }) {
               {/* Image Area */}
               <div className="w-full h-[400px] md:h-[500px] bg-zinc-950 relative group shrink-0">
                 {listing.images && listing.images[activeImageIndex] ? (
-                  <img src={getImageUrl(listing.images[activeImageIndex])} alt={listing.name} className="w-full h-full object-contain bg-zinc-950" />
+                  isVideoUrl(listing.images[activeImageIndex]) ? (
+                    <video src={getImageUrl(listing.images[activeImageIndex])} controls className="w-full h-full object-contain bg-zinc-950" />
+                  ) : (
+                    <img src={getImageUrl(listing.images[activeImageIndex])} alt={listing.name} className="w-full h-full object-contain bg-zinc-950" />
+                  )
                 ) : (
                   <div className="w-full h-full flex items-center justify-center text-zinc-800">
                     <ShoppingBag size={120} />
@@ -300,7 +314,11 @@ export default function AdminProductDetailPage({ params }) {
                 <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex gap-3 p-3 bg-zinc-950/30 backdrop-blur-md rounded-[2rem] border border-white/5">
                   {listing.images?.map((img, idx) => (
                     <button key={idx} onClick={() => setActiveImageIndex(idx)} className={`w-14 h-14 rounded-2xl overflow-hidden border-2 transition-all ${activeImageIndex === idx ? "border-emerald-500 scale-110 shadow-lg shadow-emerald-500/20" : "border-transparent opacity-50 hover:opacity-100"}`}>
-                      <img src={getImageUrl(img)} className="w-full h-full object-cover" />
+                      {isVideoUrl(img) ? (
+                        <video src={getImageUrl(img)} className="w-full h-full object-cover" />
+                      ) : (
+                        <img src={getImageUrl(img)} className="w-full h-full object-cover" />
+                      )}
                     </button>
                   ))}
                 </div>

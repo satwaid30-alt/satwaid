@@ -8,6 +8,19 @@ import ActionModal from "@/components/ActionModal";
 import { io } from "socket.io-client";
 import { getApiUrl, getSocketUrl, getImageUrl } from "@/app/utils/api";
 
+const isVideoUrl = (url) => {
+  if (!url) return false;
+  const lower = url.toLowerCase();
+  return (
+    lower.endsWith(".mp4") ||
+    lower.endsWith(".mov") ||
+    lower.endsWith(".avi") ||
+    lower.endsWith(".webm") ||
+    lower.endsWith(".mkv") ||
+    lower.endsWith(".3gp")
+  );
+};
+
 export default function PesananPage() {
   const [activeTab, setActiveTab] = useState("semua");
   const [searchQuery, setSearchQuery] = useState("");
@@ -656,7 +669,14 @@ export default function PesananPage() {
                 {filteredCart.map((item) => (
                   <div key={item.id} className="bg-zinc-900/20 border border-zinc-800 hover:border-emerald-500/30 rounded-3xl overflow-hidden transition-all group p-6 flex flex-col md:flex-row items-center gap-6 animate-in slide-in-from-bottom-2 duration-500">
                     <div className="w-24 h-24 rounded-2xl overflow-hidden bg-zinc-800 shrink-0 border border-zinc-700">
-                      <img src={getImageUrl(item.product?.images) || "https://placehold.co/400x400/f4f4f5/71717a?text=No+Image"} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
+                      {(() => {
+                        const mediaUrl = getImageUrl(item.product?.images);
+                        return isVideoUrl(mediaUrl) ? (
+                          <video src={mediaUrl} className="w-full h-full object-cover" preload="metadata" muted playsInline />
+                        ) : (
+                          <img src={mediaUrl || "https://placehold.co/400x400/f4f4f5/71717a?text=No+Image"} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
+                        );
+                      })()}
                     </div>
                     <div className="flex-1 min-w-0 text-center md:text-left">
                       <div className="flex items-center justify-center md:justify-start gap-2 text-zinc-500 mb-1">
@@ -774,7 +794,14 @@ export default function PesananPage() {
                         {/* Card Body */}
                         <div className="p-4 md:p-6 flex flex-col md:flex-row items-center md:items-start gap-4 md:gap-6">
                           <div className="w-24 h-24 rounded-2xl overflow-hidden bg-zinc-800 shrink-0 border border-zinc-700 mx-auto md:mx-0">
-                            <img src={getImageUrl(order.product?.images) || "https://placehold.co/400x400/f4f4f5/71717a?text=No+Image"} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
+                            {(() => {
+                              const mediaUrl = getImageUrl(order.product?.images);
+                              return isVideoUrl(mediaUrl) ? (
+                                <video src={mediaUrl} className="w-full h-full object-cover" preload="metadata" muted playsInline />
+                              ) : (
+                                <img src={mediaUrl || "https://placehold.co/400x400/f4f4f5/71717a?text=No+Image"} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
+                              );
+                            })()}
                           </div>
                           <div className="flex-1 min-w-0 text-center md:text-left">
                             <div className="flex items-center justify-center md:justify-start gap-2 text-zinc-500 mb-1">

@@ -9,6 +9,19 @@ import { getApiUrl, getSocketUrl, getImageUrl } from "@/app/utils/api";
 import QuotaCard from "@/components/QuotaCard";
 import { useShopQuota } from "@/hooks/useShopQuota";
 
+const isVideoUrl = (url) => {
+  if (!url) return false;
+  const lower = url.toLowerCase();
+  return (
+    lower.endsWith(".mp4") ||
+    lower.endsWith(".mov") ||
+    lower.endsWith(".avi") ||
+    lower.endsWith(".webm") ||
+    lower.endsWith(".mkv") ||
+    lower.endsWith(".3gp")
+  );
+};
+
 const getPaginationRange = (currentPage, totalPages) => {
   if (totalPages <= 5) {
     return Array.from({ length: totalPages }, (_, i) => i + 1);
@@ -553,7 +566,11 @@ export default function DaftarJualanPage() {
                       <td className="p-6">
                         <div className="flex items-center gap-4">
                           <div className="w-14 h-14 rounded-2xl bg-zinc-950 border border-zinc-800 overflow-hidden shrink-0 group-hover:border-zinc-700 transition-all">
-                            <img src={item.images && item.images[0] ? getImageUrl(item.images[0]) : "https://placehold.co/400x400/18181b/52525b?text=No+Image"} alt={item.name} className="w-full h-full object-cover" />
+                            {item.images && item.images[0] && isVideoUrl(item.images[0]) ? (
+                              <video src={getImageUrl(item.images[0])} className="w-full h-full object-cover" preload="metadata" muted playsInline />
+                            ) : (
+                              <img src={item.images && item.images[0] ? getImageUrl(item.images[0]) : "https://placehold.co/400x400/18181b/52525b?text=No+Image"} alt={item.name} className="w-full h-full object-cover" />
+                            )}
                           </div>
                           <div>
                             <p className="text-xs font-black text-white line-clamp-1">{item.name}</p>
@@ -675,7 +692,11 @@ export default function DaftarJualanPage() {
               <div className="p-5 space-y-4">
                 <div className="flex gap-4">
                   <div className="w-16 h-16 rounded-2xl bg-zinc-950 border border-zinc-800 overflow-hidden shrink-0">
-                    <img src={item.images && item.images[0] ? getImageUrl(item.images[0]) : "https://placehold.co/400x400/18181b/52525b?text=No+Image"} alt={item.name} className="w-full h-full object-cover" />
+                    {item.images && item.images[0] && isVideoUrl(item.images[0]) ? (
+                      <video src={getImageUrl(item.images[0])} className="w-full h-full object-cover" preload="metadata" muted playsInline />
+                    ) : (
+                      <img src={item.images && item.images[0] ? getImageUrl(item.images[0]) : "https://placehold.co/400x400/18181b/52525b?text=No+Image"} alt={item.name} className="w-full h-full object-cover" />
+                    )}
                   </div>
                   <div className="flex-1 min-w-0">
                     <h3 className="text-sm font-black text-white line-clamp-1 mb-0.5">{item.name}</h3>

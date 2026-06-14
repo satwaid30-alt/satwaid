@@ -19,6 +19,12 @@ const quillModules = {
 
 const quillFormats = ["header", "bold", "italic", "underline", "strike", "list", "blockquote", "code-block"];
 
+const isVideoUrl = (url) => {
+  if (!url) return false;
+  const lower = url.toLowerCase();
+  return lower.endsWith(".mp4") || lower.endsWith(".mov") || lower.endsWith(".avi") || lower.endsWith(".webm") || lower.endsWith(".mkv") || lower.endsWith(".3gp");
+};
+
 const formatRupiah = (value) => {
   if (value === null || value === undefined) return "";
   const clean = value.toString().replace(/\D/g, "");
@@ -56,6 +62,69 @@ export default function JualProdukPage() {
   const [reptileData, setReptileData] = useState({ ...initialReptileData });
   const [isAgreed, setIsAgreed] = useState(false);
   const [errorModalMessage, setErrorModalMessage] = useState("Ukuran foto tidak boleh melebihi 1MB. Silakan kompres foto Anda.");
+  const [mediaType, setMediaType] = useState("image");
+
+  const validateVideoFile = (file, inputRef) => {
+    return new Promise((resolve) => {
+      if (!file) {
+        resolve(false);
+        return;
+      }
+
+      // 1. Block dangerous extensions
+      const blockedExtensions = [".php", ".exe", ".svg", ".doc", ".docx", ".xls", ".xlsx", ".ppt", ".pptx", ".pdf"];
+      const fileName = file.name.toLowerCase();
+      if (blockedExtensions.some((ext) => fileName.endsWith(ext))) {
+        setShowErrorModal(true);
+        setErrorModalMessage("Format file tersebut tidak diperbolehkan. Silakan unggah file video.");
+        if (inputRef) inputRef.value = null;
+        resolve(false);
+        return;
+      }
+
+      // 2. Validate allowed video MIME types
+      if (!file.type.startsWith("video/")) {
+        setShowErrorModal(true);
+        setErrorModalMessage("Hanya file video yang diperbolehkan.");
+        if (inputRef) inputRef.value = null;
+        resolve(false);
+        return;
+      }
+
+      // 3. Validate file size (max 20 MB)
+      const MAX_VIDEO_SIZE = 20 * 1024 * 1024; // 20 MB
+      if (file.size > MAX_VIDEO_SIZE) {
+        setShowErrorModal(true);
+        setErrorModalMessage("Ukuran video tidak boleh melebihi 20MB. Silakan pilih video yang lebih kecil.");
+        if (inputRef) inputRef.value = null;
+        resolve(false);
+        return;
+      }
+
+      // 4. Validate duration (max 15 seconds)
+      const video = document.createElement("video");
+      video.preload = "metadata";
+      video.onloadedmetadata = function () {
+        window.URL.revokeObjectURL(video.src);
+        const duration = video.duration;
+        if (duration > 15.5) {
+          setShowErrorModal(true);
+          setErrorModalMessage("Durasi video maksimal adalah 15 detik.");
+          if (inputRef) inputRef.value = null;
+          resolve(false);
+        } else {
+          resolve(true);
+        }
+      };
+      video.onerror = function () {
+        setShowErrorModal(true);
+        setErrorModalMessage("Gagal membaca metadata video. Pastikan file video valid.");
+        if (inputRef) inputRef.value = null;
+        resolve(false);
+      };
+      video.src = URL.createObjectURL(file);
+    });
+  };
 
   const resetForm = () => {
     setReptileData((prev) => ({
@@ -65,6 +134,7 @@ export default function JualProdukPage() {
     setIsAgreed(false);
     setShowRules(false);
     setIsSubmitting(false);
+    setMediaType("image");
   };
 
   // ── Image Upload Security Validator ──────────────────────────────────────────
@@ -483,7 +553,17 @@ export default function JualProdukPage() {
                       <label className="text-xs font-black text-zinc-300 uppercase tracking-widest ml-1">
                         Kategori / Spesies <span className="text-red-500">*</span>
                       </label>
-                      <select required className="w-full bg-zinc-950 border border-zinc-800 text-white rounded-2xl px-5 py-4 focus:outline-none focus:border-emerald-500 transition-all font-bold appearance-none cursor-pointer" value={reptileData.species} onChange={(e) => setReptileData({ ...reptileData, species: e.target.value })}>
+                      <select required className="w-full bg-zinc-950 border border-zinc-800 text-white rounded-2xl px-5 py-4 focus:outline-none focus:border-emerald-500 transition-all font-bold appearance-none cursor-pointer" value={reptileData.species} onChange={(e) => {
+                        const val = e.target.value;
+                        setReptileData(prev => ({
+                          ...prev,
+                          species: val,
+                          images: val !== "Ikan" && mediaType === "video" ? [] : prev.images
+                        }));
+                        if (val !== "Ikan") {
+                          setMediaType("image");
+                        }
+                      }}>
                         <option value="">Pilih Kategori</option>
                         <option value="Reptil">Reptil</option>
                         <option value="Mamalia">Mamalia</option>
@@ -639,18 +719,61 @@ export default function JualProdukPage() {
                   </div>
                 </div>
 
-                {/* Image Upload */}
+                {/* Tipe Media Selection (Only for Ikan Category) */}
+                {reptileData.species === "Ikan" && (
+                  <div className="space-y-3 bg-zinc-900/40 p-5 border border-zinc-800 rounded-2xl">
+                    <label className="text-xs font-black text-zinc-300 uppercase tracking-widest ml-1">
+                      Tipe Media Produk <span className="text-red-500">*</span>
+                    </label>
+                    <div className="grid grid-cols-2 gap-4">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setMediaType("image");
+                          setReptileData(prev => ({ ...prev, images: [] }));
+                        }}
+                        className={`py-3.5 rounded-xl font-bold text-xs uppercase tracking-wider transition-all border ${
+                          mediaType === "image"
+                            ? "bg-emerald-500 border-emerald-500 text-zinc-950 font-black shadow-md shadow-emerald-500/10"
+                            : "bg-zinc-950 border-zinc-800 text-zinc-400 hover:text-white"
+                        }`}
+                      >
+                        Gambar / Foto
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setMediaType("video");
+                          setReptileData(prev => ({ ...prev, images: [] }));
+                        }}
+                        className={`py-3.5 rounded-xl font-bold text-xs uppercase tracking-wider transition-all border ${
+                          mediaType === "video"
+                            ? "bg-emerald-500 border-emerald-500 text-zinc-950 font-black shadow-md shadow-emerald-500/10"
+                            : "bg-zinc-950 border-zinc-800 text-zinc-400 hover:text-white"
+                        }`}
+                      >
+                        Video
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {/* Media Upload (Images/Video) */}
                 <div className="space-y-4">
                   <div className="flex items-center justify-between ml-1">
                     <label className="text-xs font-black text-zinc-300 uppercase tracking-widest">
-                      Foto Produk (Maks 3) <span className="text-red-500">*</span>
+                      {mediaType === "video" ? "Video Produk (Maks 1)" : "Foto Produk (Maks 3)"} <span className="text-red-500">*</span>
                     </label>
                   </div>
 
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
                     {reptileData.images.map((img, index) => (
-                      <div key={index} className="relative aspect-square rounded-2xl overflow-hidden group border border-zinc-800 bg-zinc-900">
-                        <img src={img.startsWith("http") || img.startsWith("data:") ? img : `${process.env.NEXT_PUBLIC_S3_BASE_URL || ""}${img}`} alt="Preview" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
+                      <div key={index} className="relative aspect-square rounded-2xl overflow-hidden group border border-zinc-800 bg-zinc-900 flex items-center justify-center">
+                        {isVideoUrl(img) ? (
+                          <video src={img.startsWith("http") || img.startsWith("data:") ? img : `${process.env.NEXT_PUBLIC_S3_BASE_URL || ""}${img}`} controls className="w-full h-full object-cover" />
+                        ) : (
+                          <img src={img.startsWith("http") || img.startsWith("data:") ? img : `${process.env.NEXT_PUBLIC_S3_BASE_URL || ""}${img}`} alt="Preview" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
+                        )}
                         {/* Delete button - always visible on mobile, hover on desktop */}
                         <div className="absolute top-2 right-2 sm:absolute sm:inset-0 sm:bg-black/60 sm:opacity-0 sm:group-hover:opacity-100 sm:transition-opacity sm:flex sm:items-center sm:justify-center sm:backdrop-blur-sm">
                           <button
@@ -668,51 +791,104 @@ export default function JualProdukPage() {
                       </div>
                     ))}
 
-                    {reptileData.images.length < 3 && (
-                      isUploading ? (
-                        <div className="aspect-square bg-zinc-950 border border-zinc-800 rounded-2xl flex flex-col items-center justify-center gap-2 text-emerald-500">
-                          <Loader2 className="w-8 h-8 animate-spin" />
-                          <span className="text-[10px] font-black uppercase tracking-[0.2em] animate-pulse">Mengunggah...</span>
-                        </div>
-                      ) : (
-                        <label className="aspect-square bg-zinc-950 border-2 border-dashed border-zinc-800 rounded-2xl flex flex-col items-center justify-center gap-2 text-zinc-500 hover:border-emerald-500 hover:text-emerald-500 transition-all cursor-pointer group hover:bg-emerald-500/5">
-                          <input
-                            type="file"
-                            accept="image/jpeg,image/jpg,image/png,image/webp,image/gif"
-                            className="hidden"
-                            onChange={async (e) => {
-                              const raw = e.target.files[0];
-                              if (!validateImageFile(raw, e.target)) return;
-                              const file = renameFileRandom(raw);
-                              
-                              const token = localStorage.getItem("token");
-                              setIsUploading(true);
-                              try {
-                                const { objectKey } = await uploadImageToS3(file, token, "listings");
-                                setReptileData((prev) => ({
-                                  ...prev,
-                                  images: [...prev.images, objectKey],
-                                }));
-                              } catch (err) {
-                                console.error("Upload failed:", err);
-                                setErrorModalMessage(err.message || "Gagal mengunggah foto. Silakan coba lagi.");
-                                setShowErrorModal(true);
-                              } finally {
-                                setIsUploading(false);
-                                e.target.value = null;
-                              }
-                            }}
-                          />
-                          <div className="w-12 h-12 rounded-full bg-zinc-900 flex items-center justify-center group-hover:bg-emerald-500/20 group-hover:scale-110 transition-all">
-                            <ImageIcon size={24} />
+                    {mediaType === "video" ? (
+                      // Video Upload Input
+                      reptileData.images.length < 1 && (
+                        isUploading ? (
+                          <div className="aspect-square bg-zinc-950 border border-zinc-800 rounded-2xl flex flex-col items-center justify-center gap-2 text-emerald-500">
+                            <Loader2 className="w-8 h-8 animate-spin" />
+                            <span className="text-[10px] font-black uppercase tracking-[0.2em] animate-pulse">Mengunggah...</span>
                           </div>
-                          <span className="text-[10px] font-black uppercase tracking-[0.2em]">Upload Foto</span>
-                        </label>
+                        ) : (
+                          <label className="aspect-square bg-zinc-950 border-2 border-dashed border-zinc-800 rounded-2xl flex flex-col items-center justify-center gap-2 text-zinc-500 hover:border-emerald-500 hover:text-emerald-500 transition-all cursor-pointer group hover:bg-emerald-500/5">
+                            <input
+                              type="file"
+                              accept="video/mp4,video/mkv,video/avi,video/quicktime,video/*"
+                              className="hidden"
+                              onChange={async (e) => {
+                                const raw = e.target.files[0];
+                                if (!raw) return;
+                                const isValid = await validateVideoFile(raw, e.target);
+                                if (!isValid) return;
+                                const file = renameFileRandom(raw);
+                                
+                                const token = localStorage.getItem("token");
+                                setIsUploading(true);
+                                try {
+                                  const { objectKey } = await uploadImageToS3(file, token, "listings");
+                                  setReptileData((prev) => ({
+                                    ...prev,
+                                    images: [...prev.images, objectKey],
+                                  }));
+                                } catch (err) {
+                                  console.error("Upload failed:", err);
+                                  setErrorModalMessage(err.message || "Gagal mengunggah video. Silakan coba lagi.");
+                                  setShowErrorModal(true);
+                                } finally {
+                                  setIsUploading(false);
+                                  e.target.value = null;
+                                }
+                              }}
+                            />
+                            <div className="w-12 h-12 rounded-full bg-zinc-900 flex items-center justify-center group-hover:bg-emerald-500/20 group-hover:scale-110 transition-all">
+                              <ImageIcon size={24} />
+                            </div>
+                            <span className="text-[10px] font-black uppercase tracking-[0.2em]">Upload Video</span>
+                          </label>
+                        )
+                      )
+                    ) : (
+                      // Image Upload Input
+                      reptileData.images.length < 3 && (
+                        isUploading ? (
+                          <div className="aspect-square bg-zinc-950 border border-zinc-800 rounded-2xl flex flex-col items-center justify-center gap-2 text-emerald-500">
+                            <Loader2 className="w-8 h-8 animate-spin" />
+                            <span className="text-[10px] font-black uppercase tracking-[0.2em] animate-pulse">Mengunggah...</span>
+                          </div>
+                        ) : (
+                          <label className="aspect-square bg-zinc-950 border-2 border-dashed border-zinc-800 rounded-2xl flex flex-col items-center justify-center gap-2 text-zinc-500 hover:border-emerald-500 hover:text-emerald-500 transition-all cursor-pointer group hover:bg-emerald-500/5">
+                            <input
+                              type="file"
+                              accept="image/jpeg,image/jpg,image/png,image/webp,image/gif"
+                              className="hidden"
+                              onChange={async (e) => {
+                                const raw = e.target.files[0];
+                                if (!validateImageFile(raw, e.target)) return;
+                                const file = renameFileRandom(raw);
+                                
+                                const token = localStorage.getItem("token");
+                                setIsUploading(true);
+                                try {
+                                  const { objectKey } = await uploadImageToS3(file, token, "listings");
+                                  setReptileData((prev) => ({
+                                    ...prev,
+                                    images: [...prev.images, objectKey],
+                                  }));
+                                } catch (err) {
+                                  console.error("Upload failed:", err);
+                                  setErrorModalMessage(err.message || "Gagal mengunggah foto. Silakan coba lagi.");
+                                  setShowErrorModal(true);
+                                } finally {
+                                  setIsUploading(false);
+                                  e.target.value = null;
+                                }
+                              }}
+                            />
+                            <div className="w-12 h-12 rounded-full bg-zinc-900 flex items-center justify-center group-hover:bg-emerald-500/20 group-hover:scale-110 transition-all">
+                              <ImageIcon size={24} />
+                            </div>
+                            <span className="text-[10px] font-black uppercase tracking-[0.2em]">Upload Foto</span>
+                          </label>
+                        )
                       )
                     )}
                   </div>
                   <div className="px-1">
-                    <p className="text-[11px] font-bold text-amber-500/80 italic">* Ukuran foto maksimal 1MB per file. Pastikan foto jelas dan terang (Maks 3 Foto).</p>
+                    {mediaType === "video" ? (
+                      <p className="text-[11px] font-bold text-amber-500/80 italic">* Durasi video maksimal 15 detik dan ukuran maksimal 20MB (Maks 1 Video).</p>
+                    ) : (
+                      <p className="text-[11px] font-bold text-amber-500/80 italic">* Ukuran foto maksimal 1MB per file. Pastikan foto jelas dan terang (Maks 3 Foto).</p>
+                    )}
                   </div>
                 </div>
 

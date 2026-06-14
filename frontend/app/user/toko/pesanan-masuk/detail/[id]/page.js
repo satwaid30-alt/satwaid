@@ -9,6 +9,19 @@ import { ShoppingBag, MapPin, DollarSign, Clock, CheckCircle2, AlertCircle, X, X
 import OrderStepper from "@/components/OrderStepper";
 import OrderTimeline from "@/components/OrderTimeline";
 
+const isVideoUrl = (url) => {
+  if (!url) return false;
+  const lower = url.toLowerCase();
+  return (
+    lower.endsWith(".mp4") ||
+    lower.endsWith(".mov") ||
+    lower.endsWith(".avi") ||
+    lower.endsWith(".webm") ||
+    lower.endsWith(".mkv") ||
+    lower.endsWith(".3gp")
+  );
+};
+
 function ShippedNotification() {
   return (
     <div className="flex items-start gap-3 p-4 bg-amber-500/10 border border-amber-500/20 text-amber-500 rounded-2xl w-full text-left">
@@ -246,7 +259,14 @@ export default function OrderDetailPage({ params }) {
                   {/* Product Image */}
                   <div className="w-full md:w-64 aspect-square rounded-[2rem] overflow-hidden bg-zinc-950 border border-zinc-800 relative group">
                     {order.product?.images?.[activeImageIndex] ? (
-                      <img src={getImageUrl(order.product.images[activeImageIndex])} alt={order.product.name} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
+                      (() => {
+                        const mediaUrl = getImageUrl(order.product.images[activeImageIndex]);
+                        return isVideoUrl(mediaUrl) ? (
+                          <video src={mediaUrl} className="w-full h-full object-cover" controls preload="metadata" />
+                        ) : (
+                          <img src={mediaUrl} alt={order.product.name} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
+                        );
+                      })()
                     ) : (
                       <div className="w-full h-full flex items-center justify-center text-zinc-800">
                         <Package size={64} />

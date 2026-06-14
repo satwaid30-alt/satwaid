@@ -13,6 +13,19 @@ const getPaginationRange = (currentPage, totalPages) => {
 };
 import { io } from "socket.io-client";
 
+const isVideoUrl = (url) => {
+  if (!url) return false;
+  const lower = url.toLowerCase();
+  return (
+    lower.endsWith(".mp4") ||
+    lower.endsWith(".mov") ||
+    lower.endsWith(".avi") ||
+    lower.endsWith(".webm") ||
+    lower.endsWith(".mkv") ||
+    lower.endsWith(".3gp")
+  );
+};
+
 export default function PesananMasukPage() {
   const [shop, setShop] = useState(null);
   const [orders, setOrders] = useState([]);
@@ -510,7 +523,14 @@ export default function PesananMasukPage() {
                 {/* Product Detail Header */}
                 <div className="flex items-center gap-4 bg-zinc-950/20 p-3 rounded-2xl border border-zinc-800/40">
                   <div onClick={() => setSelectedImage(getImageUrl(order.product?.images))} className="w-16 h-16 md:w-20 md:h-20 rounded-xl overflow-hidden bg-zinc-950 shrink-0 border border-zinc-800 relative group/img cursor-zoom-in">
-                    <img src={getImageUrl(order.product?.images) || "https://placehold.co/400x400/f4f4f5/71717a?text=No+Image"} className="w-full h-full object-cover group-hover/img:scale-105 transition-transform duration-500" alt={order.product?.name} />
+                    {(() => {
+                      const mediaUrl = getImageUrl(order.product?.images);
+                      return isVideoUrl(mediaUrl) ? (
+                        <video src={mediaUrl} className="w-full h-full object-cover animate-in fade-in" preload="metadata" muted playsInline />
+                      ) : (
+                        <img src={mediaUrl || "https://placehold.co/400x400/f4f4f5/71717a?text=No+Image"} className="w-full h-full object-cover group-hover/img:scale-105 transition-transform duration-500" alt={order.product?.name} />
+                      );
+                    })()}
                     <div className="absolute inset-0 bg-gradient-to-t from-zinc-950/60 to-transparent"></div>
                     <div className="absolute inset-0 bg-black/40 opacity-0 group-hover/img:opacity-100 transition-opacity flex items-center justify-center">
                       <Search size={14} className="text-white" />
@@ -763,7 +783,11 @@ export default function PesananMasukPage() {
               <X size={24} className="group-hover:rotate-90 transition-transform duration-500" />
             </button>
             <div className="w-full h-full flex items-center justify-center p-4 md:p-12">
-              <img src={selectedImage} className="max-w-full max-h-full object-contain rounded-2xl" alt="Zoomed View" />
+              {isVideoUrl(selectedImage) ? (
+                <video src={selectedImage} controls className="max-w-full max-h-[85vh] object-contain rounded-2xl shadow-2xl" autoPlay />
+              ) : (
+                <img src={selectedImage} className="max-w-full max-h-full object-contain rounded-2xl" alt="Zoomed View" />
+              )}
             </div>
           </div>
         </div>
