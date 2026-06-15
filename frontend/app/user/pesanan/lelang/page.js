@@ -6,6 +6,20 @@ import { Gavel, Search, Clock, CheckCircle2, XCircle, Store, ArrowRight, AlertCi
 import { io } from "socket.io-client";
 import { getApiUrl, getSocketUrl, getImageUrl } from "@/app/utils/api";
 
+const isVideoUrl = (url) => {
+  if (!url) return false;
+  const lower = url.toLowerCase();
+  return (
+    lower.endsWith(".mp4") ||
+    lower.endsWith(".mov") ||
+    lower.endsWith(".avi") ||
+    lower.endsWith(".webm") ||
+    lower.endsWith(".mkv") ||
+    lower.endsWith(".3gp")
+  );
+};
+
+
 // Individual Card Component with self-contained countdown state
 function AuctionCard({ listing, currentUserId }) {
   const [timeLeft, setTimeLeft] = useState(null);
@@ -96,9 +110,16 @@ function AuctionCard({ listing, currentUserId }) {
 
   return (
     <div className="bg-zinc-900/20 border border-zinc-800 hover:border-zinc-700 rounded-3xl overflow-hidden transition-all group p-4 md:p-6 flex flex-col md:flex-row items-center md:items-start gap-4 md:gap-6 animate-in slide-in-from-bottom-2 duration-500">
-      {/* Image section */}
+      {/* Image/Video section */}
       <div className="w-24 h-24 md:w-28 md:h-28 rounded-2xl overflow-hidden bg-zinc-800 shrink-0 border border-zinc-700 relative mx-auto md:mx-0">
-        <img src={getImageUrl(listing.images) || "https://placehold.co/400x400/f4f4f5/71717a?text=No+Image"} alt={listing.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
+        {(() => {
+          const mediaUrl = getImageUrl(listing.images);
+          return isVideoUrl(mediaUrl) ? (
+            <video src={mediaUrl} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" preload="metadata" muted playsInline />
+          ) : (
+            <img src={mediaUrl || "https://placehold.co/400x400/f4f4f5/71717a?text=No+Image"} alt={listing.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
+          );
+        })()}
         <div className={`absolute top-2 right-2 px-2.5 py-0.5 rounded-full border text-[8px] font-black uppercase tracking-wider ${statusStyle.badge} backdrop-blur-md`}>{statusStyle.label}</div>
       </div>
 
@@ -241,19 +262,16 @@ export default function LelangPage() {
   }, [currentUser]);
 
   const filteredListings = listings.filter((item) => {
-    // Exclude ended/finished auctions
-    const now = new Date().getTime();
-    const end = item.end_date ? new Date(item.end_date).getTime() : 0;
-    const isEnded = item.status === "ended" || item.status === "sold" || end <= now;
-
-    if (isEnded) return false;
-
     // Search query filter
     const matchesSearch = (item.name || "").toLowerCase().includes(searchQuery.toLowerCase()) || (item.shop?.name || "").toLowerCase().includes(searchQuery.toLowerCase());
 
     // Tab filter
     let matchesTab = true;
     if (activeTab === "berjalan") {
+      const now = new Date().getTime();
+      const end = item.end_date ? new Date(item.end_date).getTime() : 0;
+      const isEnded = item.status === "ended" || item.status === "sold" || end <= now;
+      if (isEnded) return false;
       matchesTab = item.user_status === "highest" || item.user_status === "outbid";
     } else if (activeTab === "menang") {
       matchesTab = item.user_status === "won" || item.user_status === "highest";
@@ -265,22 +283,20 @@ export default function LelangPage() {
   });
 
   const getTabCount = (tabId) => {
-    const activeListings = listings.filter((item) => {
-      const now = new Date().getTime();
-      const end = item.end_date ? new Date(item.end_date).getTime() : 0;
-      const isEnded = item.status === "ended" || item.status === "sold" || end <= now;
-      return !isEnded;
-    });
-
-    if (tabId === "semua") return activeListings.length;
+    if (tabId === "semua") return listings.length;
     if (tabId === "berjalan") {
-      return activeListings.filter((item) => item.user_status === "highest" || item.user_status === "outbid").length;
+      return listings.filter((item) => {
+        const now = new Date().getTime();
+        const end = item.end_date ? new Date(item.end_date).getTime() : 0;
+        const isEnded = item.status === "ended" || item.status === "sold" || end <= now;
+        return !isEnded && (item.user_status === "highest" || item.user_status === "outbid");
+      }).length;
     }
     if (tabId === "menang") {
-      return activeListings.filter((item) => item.user_status === "won" || item.user_status === "highest").length;
+      return listings.filter((item) => item.user_status === "won" || item.user_status === "highest").length;
     }
     if (tabId === "kalah") {
-      return activeListings.filter((item) => item.user_status === "lost" || item.user_status === "outbid").length;
+      return listings.filter((item) => item.user_status === "lost" || item.user_status === "outbid").length;
     }
     return 0;
   };

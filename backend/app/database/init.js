@@ -11,6 +11,7 @@ var _advertisements = require("../models/advertisements");
 var _shops = require("../models/shops");
 var _listings = require("../models/listings");
 var _orders = require("../models/orders");
+var _order_items = require("../models/order_items");
 var _carts = require("../models/carts");
 var _chats = require("../models/chats");
 var _chat_messages = require("../models/chat_messages");
@@ -35,6 +36,7 @@ function initModels(sequelize) {
   var shops = _shops(sequelize, DataTypes);
   var listings = _listings(sequelize, DataTypes);
   var orders = _orders(sequelize, DataTypes);
+  var order_items = _order_items(sequelize, DataTypes);
   var carts = _carts(sequelize, DataTypes);
   var chats = _chats(sequelize, DataTypes);
   var chat_messages = _chat_messages(sequelize, DataTypes);
@@ -46,9 +48,6 @@ function initModels(sequelize) {
   var complaints = _complaints(sequelize, DataTypes);
   var complaint_comments = _complaint_comments(sequelize, DataTypes);
 
-
-
-  
   topics.belongsTo(users, { as: "author", foreignKey: "user_id"});
   users.hasMany(topics, { as: "topics", foreignKey: "user_id"});
 
@@ -82,6 +81,11 @@ function initModels(sequelize) {
   orders.belongsTo(shops, { as: "shop", foreignKey: "shop_id" });
   shops.hasMany(orders, { as: "orders", foreignKey: "shop_id" });
 
+  orders.hasMany(order_items, { as: "items", foreignKey: "order_id" });
+  order_items.belongsTo(orders, { as: "order", foreignKey: "order_id" });
+  order_items.belongsTo(listings, { as: "product", foreignKey: "listing_id" });
+  listings.hasMany(order_items, { as: "order_items", foreignKey: "listing_id" });
+
   carts.belongsTo(users, { as: "user", foreignKey: "user_id" });
   users.hasMany(carts, { as: "carts", foreignKey: "user_id" });
 
@@ -90,9 +94,6 @@ function initModels(sequelize) {
 
   carts.belongsTo(shops, { as: "shop", foreignKey: "shop_id" });
   shops.hasMany(carts, { as: "carts", foreignKey: "shop_id" });
-
-  // topics.belongsTo(listings, { as: "product", foreignKey: "image"});
-  // listings.hasMany(topics, { as: "chats", foreignKey: "image"});
 
   // Dedicated Chat System (Separate from Community)
   chats.belongsTo(users, { as: "buyer", foreignKey: "buyer_id" });
@@ -122,13 +123,10 @@ function initModels(sequelize) {
   complaint_comments.belongsTo(users, { as: "author", foreignKey: "user_id" });
   users.hasMany(complaint_comments, { as: "complaint_comments", foreignKey: "user_id" });
 
-
   return {
-
     master_user,
     master_account,
     users,
-
     topics,
     comments,
     topic_likes,
@@ -136,6 +134,7 @@ function initModels(sequelize) {
     shops,
     listings,
     orders,
+    order_items,
     carts,
     chats,
     chat_messages,

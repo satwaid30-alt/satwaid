@@ -20,27 +20,40 @@ const BACKEND_PORT = 4000;
  * otherwise dynamically determines it from window.location.hostname.
  */
 export function getApiUrl() {
-  if (process.env.NEXT_PUBLIC_API_URL) {
-    return process.env.NEXT_PUBLIC_API_URL;
-  }
+  const envUrl = process.env.NEXT_PUBLIC_API_URL;
   if (typeof window !== "undefined") {
+    if (envUrl) {
+      try {
+        const urlObj = new URL(envUrl);
+        const host = urlObj.hostname;
+        const isLocalOrIp = 
+          host === "localhost" ||
+          host === "127.0.0.1" ||
+          host.startsWith("10.") ||
+          host.startsWith("192.168.") ||
+          host.startsWith("172.") ||
+          /^[0-9.]+$/.test(host);
+        
+        if (isLocalOrIp) {
+          urlObj.hostname = window.location.hostname;
+          return urlObj.toString().replace(/\/$/, "");
+        }
+      } catch (e) {
+        // Fallback if URL parsing fails
+      }
+      return envUrl;
+    }
     return `http://${window.location.hostname}:${BACKEND_PORT}`;
   }
   // SSR fallback
-  return `http://localhost:${BACKEND_PORT}`;
+  return envUrl || `http://localhost:${BACKEND_PORT}`;
 }
 
 /**
  * Returns the Socket.IO server URL, same logic as getApiUrl().
  */
 export function getSocketUrl() {
-  if (process.env.NEXT_PUBLIC_API_URL) {
-    return process.env.NEXT_PUBLIC_API_URL;
-  }
-  if (typeof window !== "undefined") {
-    return `http://${window.location.hostname}:${BACKEND_PORT}`;
-  }
-  return `http://localhost:${BACKEND_PORT}`;
+  return getApiUrl();
 }
 
 /**

@@ -16,14 +16,7 @@ import { io } from "socket.io-client";
 const isVideoUrl = (url) => {
   if (!url) return false;
   const lower = url.toLowerCase();
-  return (
-    lower.endsWith(".mp4") ||
-    lower.endsWith(".mov") ||
-    lower.endsWith(".avi") ||
-    lower.endsWith(".webm") ||
-    lower.endsWith(".mkv") ||
-    lower.endsWith(".3gp")
-  );
+  return lower.endsWith(".mp4") || lower.endsWith(".mov") || lower.endsWith(".avi") || lower.endsWith(".webm") || lower.endsWith(".mkv") || lower.endsWith(".3gp");
 };
 
 export default function PesananMasukPage() {
@@ -520,35 +513,74 @@ export default function PesananMasukPage() {
 
               {/* Card Body - Responsive Inner Grid */}
               <div className="p-4 md:p-6 space-y-5 flex-1 flex flex-col">
-                {/* Product Detail Header */}
-                <div className="flex items-center gap-4 bg-zinc-950/20 p-3 rounded-2xl border border-zinc-800/40">
-                  <div onClick={() => setSelectedImage(getImageUrl(order.product?.images))} className="w-16 h-16 md:w-20 md:h-20 rounded-xl overflow-hidden bg-zinc-950 shrink-0 border border-zinc-800 relative group/img cursor-zoom-in">
-                    {(() => {
-                      const mediaUrl = getImageUrl(order.product?.images);
-                      return isVideoUrl(mediaUrl) ? (
-                        <video src={mediaUrl} className="w-full h-full object-cover animate-in fade-in" preload="metadata" muted playsInline />
-                      ) : (
-                        <img src={mediaUrl || "https://placehold.co/400x400/f4f4f5/71717a?text=No+Image"} className="w-full h-full object-cover group-hover/img:scale-105 transition-transform duration-500" alt={order.product?.name} />
-                      );
-                    })()}
-                    <div className="absolute inset-0 bg-gradient-to-t from-zinc-950/60 to-transparent"></div>
-                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover/img:opacity-100 transition-opacity flex items-center justify-center">
-                      <Search size={14} className="text-white" />
+                {order.items && order.items.length > 0 ? (
+                  <div className="space-y-3">
+                    {order.items.map((item, idx) => (
+                      <div key={item.id || idx} className="flex items-center gap-4 bg-zinc-950/20 p-3 rounded-2xl border border-zinc-800/40">
+                        <div onClick={() => setSelectedImage(getImageUrl(item.product?.images))} className="w-16 h-16 md:w-20 md:h-20 rounded-xl overflow-hidden bg-zinc-950 shrink-0 border border-zinc-800 relative group/img cursor-zoom-in">
+                          {(() => {
+                            const mediaUrl = getImageUrl(item.product?.images);
+                            return isVideoUrl(mediaUrl) ? (
+                              <video src={mediaUrl} className="w-full h-full object-cover animate-in fade-in" preload="metadata" muted playsInline />
+                            ) : (
+                              <img src={mediaUrl || "https://placehold.co/400x400/f4f4f5/71717a?text=No+Image"} className="w-full h-full object-cover group-hover/img:scale-105 transition-transform duration-500" alt={item.product?.name} />
+                            );
+                          })()}
+                          <div className="absolute inset-0 bg-gradient-to-t from-zinc-950/60 to-transparent"></div>
+                          <div className="absolute inset-0 bg-black/40 opacity-0 group-hover/img:opacity-100 transition-opacity flex items-center justify-center">
+                            <Search size={14} className="text-white" />
+                          </div>
+                        </div>
+                        <div className="space-y-1 flex-1 min-w-0">
+                          <div className="flex flex-wrap items-center gap-1.5">
+                            <span className="px-1.5 py-0.5 bg-zinc-800 text-[8px] text-zinc-400 rounded font-black uppercase tracking-widest">{item.product?.species}</span>
+                            <span className="text-zinc-700 font-bold text-[8px]">•</span>
+                            <span className="text-[8px] font-black text-zinc-500 uppercase tracking-widest">Qty: {item.quantity}</span>
+                          </div>
+                          <h3 className="text-xs md:text-sm font-black text-white tracking-tight leading-snug truncate hover:whitespace-normal transition-all duration-300">{item.product?.name}</h3>
+                          <div className="flex items-center gap-2 text-[10px] font-bold text-zinc-400">
+                            <span className="text-[8px] font-black text-zinc-500 uppercase tracking-widest">Harga:</span>
+                            <span className="text-emerald-500 font-black">{formatPrice(item.price)}</span>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                    <div className="flex items-center justify-between px-4 py-2 bg-zinc-950/20 rounded-xl border border-zinc-800/40 text-[9px] font-black uppercase tracking-wider">
+                      <span className="text-zinc-500">Pembeli:</span>
+                      <span className="text-emerald-500 font-black">{order.user?.username}</span>
                     </div>
                   </div>
-                  <div className="space-y-1 flex-1 min-w-0">
-                    <div className="flex flex-wrap items-center gap-1.5">
-                      <span className="px-1.5 py-0.5 bg-zinc-800 text-[8px] text-zinc-400 rounded font-black uppercase tracking-widest">{order.product?.species}</span>
-                      <span className="text-zinc-700 font-bold text-[8px]">•</span>
-                      <span className="text-[8px] font-black text-zinc-500 uppercase tracking-widest">Qty: {order.quantity}</span>
+                ) : (
+                  /* Legacy Product Detail Header */
+                  <div className="flex items-center gap-4 bg-zinc-950/20 p-3 rounded-2xl border border-zinc-800/40">
+                    <div onClick={() => setSelectedImage(getImageUrl(order.product?.images))} className="w-16 h-16 md:w-20 md:h-20 rounded-xl overflow-hidden bg-zinc-950 shrink-0 border border-zinc-800 relative group/img cursor-zoom-in">
+                      {(() => {
+                        const mediaUrl = getImageUrl(order.product?.images);
+                        return isVideoUrl(mediaUrl) ? (
+                          <video src={mediaUrl} className="w-full h-full object-cover animate-in fade-in" preload="metadata" muted playsInline />
+                        ) : (
+                          <img src={mediaUrl || "https://placehold.co/400x400/f4f4f5/71717a?text=No+Image"} className="w-full h-full object-cover group-hover/img:scale-105 transition-transform duration-500" alt={order.product?.name} />
+                        );
+                      })()}
+                      <div className="absolute inset-0 bg-gradient-to-t from-zinc-950/60 to-transparent"></div>
+                      <div className="absolute inset-0 bg-black/40 opacity-0 group-hover/img:opacity-100 transition-opacity flex items-center justify-center">
+                        <Search size={14} className="text-white" />
+                      </div>
                     </div>
-                    <h3 className="text-xs md:text-sm font-black text-white tracking-tight leading-snug truncate hover:whitespace-normal transition-all duration-300">{order.product?.name}</h3>
-                    <div className="flex items-center gap-1">
-                      <span className="text-[8px] font-black text-zinc-500 uppercase tracking-widest">Pembeli:</span>
-                      <span className="text-[8px] font-black text-emerald-500 uppercase tracking-widest">{order.user?.username}</span>
+                    <div className="space-y-1 flex-1 min-w-0">
+                      <div className="flex flex-wrap items-center gap-1.5">
+                        <span className="px-1.5 py-0.5 bg-zinc-800 text-[8px] text-zinc-400 rounded font-black uppercase tracking-widest">{order.product?.species}</span>
+                        <span className="text-zinc-700 font-bold text-[8px]">•</span>
+                        <span className="text-[8px] font-black text-zinc-500 uppercase tracking-widest">Qty: {order.quantity}</span>
+                      </div>
+                      <h3 className="text-xs md:text-sm font-black text-white tracking-tight leading-snug truncate hover:whitespace-normal transition-all duration-300">{order.product?.name}</h3>
+                      <div className="flex items-center gap-1">
+                        <span className="text-[8px] font-black text-zinc-500 uppercase tracking-widest">Pembeli:</span>
+                        <span className="text-[8px] font-black text-emerald-500 uppercase tracking-widest">{order.user?.username}</span>
+                      </div>
                     </div>
                   </div>
-                </div>
+                )}
 
                 {/* Billing Details (Receipt) & Actions */}
                 <div className="w-full space-y-3">
@@ -556,9 +588,16 @@ export default function PesananMasukPage() {
                     <span className="text-[10px] md:text-xs font-black uppercase tracking-widest">Rincian Biaya</span>
                   </div>
                   <div className="bg-zinc-950/40 rounded-2xl p-4 border border-zinc-800/40 space-y-2.5">
-                    <div className="flex justify-between items-center group/cost">
-                      <span className="text-[10px] md:text-xs font-bold text-zinc-500 uppercase tracking-tight">Harga Produk</span>
-                      <span className="text-[11px] md:text-xs font-black text-zinc-300 group-hover/cost:text-white transition-colors">{formatPrice(order.price * order.quantity)}</span>
+                    <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-1.5 group/cost border-b border-zinc-800/40 pb-2.5 font-bold">
+                      <div className="flex flex-col text-left">
+                        <span className="text-[10px] md:text-xs font-bold text-zinc-500 uppercase tracking-tight">Harga Produk</span>
+                        {order.items && order.items.length > 1 && (
+                          <span className="text-[9px] text-zinc-500 font-bold mt-1 leading-normal max-w-full sm:max-w-[320px] bg-zinc-950/40 p-2 rounded-xl border border-zinc-800/20">
+                            {order.items.map((item) => `${item.product?.name || "Produk"} (x${item.quantity})`).join(", ")}
+                          </span>
+                        )}
+                      </div>
+                      <span className="text-[11px] md:text-xs font-black text-zinc-300 group-hover/cost:text-white transition-colors">{formatPrice(order.items && order.items.length > 0 ? order.items.reduce((sum, item) => sum + Number(item.price) * (item.quantity || 1), 0) : order.price * order.quantity)}</span>
                     </div>
                     <div className="flex justify-between items-center group/cost">
                       <span className="text-[10px] md:text-xs font-bold text-zinc-500 uppercase tracking-tight">Biaya Admin</span>
@@ -783,11 +822,7 @@ export default function PesananMasukPage() {
               <X size={24} className="group-hover:rotate-90 transition-transform duration-500" />
             </button>
             <div className="w-full h-full flex items-center justify-center p-4 md:p-12">
-              {isVideoUrl(selectedImage) ? (
-                <video src={selectedImage} controls className="max-w-full max-h-[85vh] object-contain rounded-2xl shadow-2xl" autoPlay />
-              ) : (
-                <img src={selectedImage} className="max-w-full max-h-full object-contain rounded-2xl" alt="Zoomed View" />
-              )}
+              {isVideoUrl(selectedImage) ? <video src={selectedImage} controls className="max-w-full max-h-[85vh] object-contain rounded-2xl shadow-2xl" autoPlay /> : <img src={selectedImage} className="max-w-full max-h-full object-contain rounded-2xl" alt="Zoomed View" />}
             </div>
           </div>
         </div>

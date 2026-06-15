@@ -46,9 +46,20 @@ const OrdersController = {
                         attributes: ['id', 'product_id', 'name', 'images', 'type', 'species', 'price', 'description', 'sex', 'shipping_description', 'is_free_shipping', 'is_free_packing', 'stock', 'shipping_type']
                     },
                     {
+                        model: models.order_items,
+                        as: 'items',
+                        include: [
+                            {
+                                model: models.listings,
+                                as: 'product',
+                                attributes: ['id', 'product_id', 'name', 'images', 'type', 'species', 'price', 'description', 'sex', 'shipping_description', 'is_free_shipping', 'is_free_packing', 'stock', 'shipping_type']
+                            }
+                        ]
+                    },
+                    {
                         model: models.shops,
                         as: 'shop',
-                        attributes: ['id', 'name', 'city', 'address', 'logo_url', 'whatsapp', 'shop_code'],
+                        attributes: ['id', 'name', 'city', 'address', 'logo_url', 'whatsapp', 'shop_code', 'shipping_policy', 'warranty_policy'],
                         include: [
                             {
                                 model: models.users,
@@ -128,9 +139,20 @@ const OrdersController = {
                         attributes: ['id', 'product_id', 'name', 'images', 'type', 'is_free_shipping', 'is_free_packing', 'species', 'price', 'description', 'sex', 'shipping_description', 'stock', 'status', 'shipping_type']
                     },
                     {
+                        model: models.order_items,
+                        as: 'items',
+                        include: [
+                            {
+                                model: models.listings,
+                                as: 'product',
+                                attributes: ['id', 'product_id', 'name', 'images', 'type', 'is_free_shipping', 'is_free_packing', 'species', 'price', 'description', 'sex', 'shipping_description', 'stock', 'status', 'shipping_type']
+                            }
+                        ]
+                    },
+                    {
                         model: models.shops,
                         as: 'shop',
-                        attributes: ['id', 'name', 'city', 'address', 'logo_url', 'whatsapp', 'shop_code']
+                        attributes: ['id', 'name', 'city', 'address', 'logo_url', 'whatsapp', 'shop_code', 'shipping_policy', 'warranty_policy']
                     }
                 ],
                 order: [['created_at', 'DESC']]
@@ -162,6 +184,17 @@ const OrdersController = {
                         model: models.listings,
                         as: 'product',
                         attributes: ['id', 'product_id', 'name', 'images', 'type', 'species', 'price', 'description', 'shipping_description', 'is_free_shipping', 'is_free_packing', 'shipping_type']
+                    },
+                    {
+                        model: models.order_items,
+                        as: 'items',
+                        include: [
+                            {
+                                model: models.listings,
+                                as: 'product',
+                                attributes: ['id', 'product_id', 'name', 'images', 'type', 'species', 'price', 'description', 'shipping_description', 'is_free_shipping', 'is_free_packing', 'shipping_type']
+                            }
+                        ]
                     },
                     {
                         model: models.users,
@@ -222,9 +255,20 @@ const OrdersController = {
                         attributes: ['id', 'product_id', 'name', 'images', 'type', 'is_free_shipping', 'is_free_packing', 'species', 'price', 'description', 'sex', 'shipping_description', 'stock', 'shipping_type']
                     },
                     {
+                        model: models.order_items,
+                        as: 'items',
+                        include: [
+                            {
+                                model: models.listings,
+                                as: 'product',
+                                attributes: ['id', 'product_id', 'name', 'images', 'type', 'is_free_shipping', 'is_free_packing', 'species', 'price', 'description', 'sex', 'shipping_description', 'stock', 'shipping_type']
+                            }
+                        ]
+                    },
+                    {
                         model: models.shops,
                         as: 'shop',
-                        attributes: ['id', 'name', 'city', 'address', 'logo_url', 'whatsapp', 'shop_code'],
+                        attributes: ['id', 'name', 'city', 'address', 'logo_url', 'whatsapp', 'shop_code', 'shipping_policy', 'warranty_policy'],
                         include: [
                             {
                                 model: models.users,
@@ -275,174 +319,223 @@ const OrdersController = {
         const transaction = await sequelize.transaction();
 
         try {
-            const { user_id, listing_id, quantity } = req.body;
+            let { user_id, listing_id, quantity, items, from_cart, is_bin } = req.body;
 
-            // Validasi listing dengan LOCK (mencegah race condition double checkout)
-            const listing = await models.listings.findByPk(listing_id, {
-                transaction,
-                lock: transaction.LOCK.UPDATE
-            });
-
-            if (!listing) {
-                await transaction.rollback();
-                return res.status(404).json({ message: 'Listing tidak ditemukan' });
+            if (!items || !Array.isArray(items) || items.length === 0) {
+                if (!listing_id) {
+                    await transaction.rollback();
+                    return res.status(400).json({ message: 'listing_id atau items wajib diisi' });
+                }
+                items = [{ listing_id, quantity: quantity || 1 }];
             }
 
-            // Cek stok
-            const requestedQty = parseInt(quantity) || 1;
-            if (listing.stock < requestedQty) {
-                await transaction.rollback();
-                return res.status(400).json({ message: `Maaf, produk sudah laku terjual atau stok tidak mencukupi.` });
-            }
+            let shopId = null;
+            const listingsMap = new Map(); // listing_id -> listing
+            const resolvedPrices = new Map(); // listing_id -> price
 
-            // REMOVED: Check for existing active order for the same product
-            // Each purchase should create a new distinct invoice/order.
+            for (const item of items) {
+                const requestedQty = parseInt(item.quantity) || 1;
+                const lst = await models.listings.findByPk(item.listing_id, {
+                    transaction,
+                    lock: transaction.LOCK.UPDATE
+                });
+
+                if (!lst) {
+                    await transaction.rollback();
+                    return res.status(404).json({ message: `Produk dengan ID ${item.listing_id} tidak ditemukan.` });
+                }
+
+                if (lst.stock < requestedQty) {
+                    await transaction.rollback();
+                    return res.status(400).json({ message: `Maaf, produk "${lst.name}" sudah laku terjual atau stok tidak mencukupi.` });
+                }
+
+                if (shopId === null) {
+                    shopId = lst.shop_id;
+                } else if (lst.shop_id !== shopId) {
+                    await transaction.rollback();
+                    return res.status(400).json({ message: 'Semua produk harus berasal dari toko yang sama.' });
+                }
+
+                let productPrice;
+                if (lst.type === 'auction') {
+                    if (is_bin === true) {
+                        if (!lst.bin_price) {
+                            await transaction.rollback();
+                            return res.status(400).json({ message: `Harga BIN tidak tersedia untuk produk lelang "${lst.name}".` });
+                        }
+                        productPrice = Number(lst.bin_price);
+                    } else {
+                        const highestBid = await models.bids.findOne({
+                            where: { listing_id: lst.id },
+                            order: [['bid_amount', 'DESC']],
+                            transaction
+                        });
+
+                        if (!highestBid) {
+                            await transaction.rollback();
+                            return res.status(400).json({ message: `Produk lelang "${lst.name}" tidak memiliki penawaran, tidak dapat memproses transaksi.` });
+                        }
+
+                        if (highestBid.user_id !== user_id) {
+                            await transaction.rollback();
+                            return res.status(403).json({ message: `Hanya pemenang lelang (penawar tertinggi) yang dapat memproses transaksi untuk "${lst.name}".` });
+                        }
+
+                        productPrice = Number(highestBid.bid_amount);
+                    }
+                } else {
+                    productPrice = Number(lst.price) || 0;
+                }
+
+                listingsMap.set(item.listing_id, lst);
+                resolvedPrices.set(item.listing_id, productPrice);
+            }
 
             // Cek apakah produk sudah ada di keranjang (jika bukan checkout dari keranjang)
-            if (!req.body.from_cart) {
-                const existingCartItem = await models.carts.findOne({
-                    where: { user_id, listing_id },
-                    transaction
-                });
-                if (existingCartItem) {
-                    await transaction.rollback();
-                    return res.status(400).json({ message: 'Produk ini sudah ada di dalam keranjang Anda. Silakan checkout melalui keranjang untuk mencegah pembelian ganda.' });
-                }
-            }
-
-            const orderId = generateOrderId();
-
-            // Resolve product price:
-            // - BIN purchase (is_bin: true): always charge the bin_price
-            // - Normal auction checkout (ended auction, winner pays their bid): use highest bid amount
-            // - Regular product: use listing price
-            let productPrice;
-            const isBIN = req.body.is_bin === true;
-            if (listing.type === 'auction') {
-                if (isBIN) {
-                    // BIN purchase — must have a bin_price
-                    if (!listing.bin_price) {
-                        await transaction.rollback();
-                        return res.status(400).json({ message: 'Harga BIN tidak tersedia untuk produk lelang ini.' });
-                    }
-                    productPrice = Number(listing.bin_price);
-                } else {
-                    // Normal ended-auction checkout: must be the highest bidder (winner)
-                    const highestBid = await models.bids.findOne({
-                        where: { listing_id },
-                        order: [['bid_amount', 'DESC']],
+            if (!from_cart) {
+                for (const item of items) {
+                    const existingCartItem = await models.carts.findOne({
+                        where: { user_id, listing_id: item.listing_id },
                         transaction
                     });
-
-                    if (!highestBid) {
+                    if (existingCartItem) {
                         await transaction.rollback();
-                        return res.status(400).json({ message: 'Lelang ini tidak memiliki penawaran, tidak dapat memproses transaksi.' });
+                        return res.status(400).json({ message: 'Produk ini sudah ada di dalam keranjang Anda. Silakan checkout melalui keranjang untuk mencegah pembelian ganda.' });
                     }
-
-                    if (highestBid.user_id !== user_id) {
-                        await transaction.rollback();
-                        return res.status(403).json({ message: 'Hanya pemenang lelang (penawar tertinggi) yang dapat memproses transaksi ini.' });
-                    }
-
-                    productPrice = Number(highestBid.bid_amount);
                 }
-            } else {
-                productPrice = Number(listing.price) || 0;
             }
 
-            const subtotal = productPrice * requestedQty;
-            const totalPrice = subtotal + ADMIN_FEE;
+            let totalSubtotal = 0;
+            for (const item of items) {
+                const requestedQty = parseInt(item.quantity) || 1;
+                const price = resolvedPrices.get(item.listing_id);
+                totalSubtotal += price * requestedQty;
+            }
+            const totalPrice = totalSubtotal + ADMIN_FEE;
+
+            const firstItem = items[0];
+            const firstListing = listingsMap.get(firstItem.listing_id);
+            const firstPrice = resolvedPrices.get(firstItem.listing_id);
+            const firstQty = parseInt(firstItem.quantity) || 1;
+
+            const orderId = generateOrderId();
 
             const order = await models.orders.create({
                 order_id: orderId,
                 user_id,
-                listing_id,
-                shop_id: listing.shop_id,
-                quantity: requestedQty,
-                price: productPrice,
+                listing_id: firstItem.listing_id,
+                shop_id: shopId,
+                quantity: firstQty,
+                price: firstPrice,
                 admin_fee: ADMIN_FEE,
                 total_price: totalPrice,
                 status: 'pending_shipping_info'
             }, { transaction });
 
-            // Kurangi stok produk & update status lelang jika bertipe lelang
-            const newStock = listing.stock - requestedQty;
-            const updateFields = {
-                stock: newStock,
-                updated_at: new Date()
-            };
-            if (listing.type === 'auction') {
-                updateFields.end_date = new Date();
-                updateFields.status = 'ended';
+            for (const item of items) {
+                const qty = parseInt(item.quantity) || 1;
+                const price = resolvedPrices.get(item.listing_id);
+                await models.order_items.create({
+                    order_id: order.id,
+                    listing_id: item.listing_id,
+                    quantity: qty,
+                    price: price
+                }, { transaction });
             }
-            await listing.update(updateFields, { transaction });
 
-            // Sinkronisasi Keranjang (Cart)
-            if (newStock <= 0) {
-                // Jika stok habis, hapus produk ini dari keranjang SEMUA pembeli lain
-                await models.carts.destroy({
-                    where: { listing_id: listing_id },
-                    transaction
-                });
-            } else {
-                // Jika masih ada stok, cukup hapus dari keranjang pembeli ini saja
-                await models.carts.destroy({
-                    where: {
-                        user_id: user_id,
-                        listing_id: listing_id
-                    },
-                    transaction
-                });
+            for (const item of items) {
+                const qty = parseInt(item.quantity) || 1;
+                const lst = listingsMap.get(item.listing_id);
+                const newStock = lst.stock - qty;
+                const updateFields = {
+                    stock: newStock,
+                    updated_at: new Date()
+                };
+                if (lst.type === 'auction') {
+                    updateFields.end_date = new Date();
+                    updateFields.status = 'ended';
+                }
+                await lst.update(updateFields, { transaction });
+
+                // Sinkronisasi Keranjang (Cart)
+                if (newStock <= 0) {
+                    await models.carts.destroy({
+                        where: { listing_id: item.listing_id },
+                        transaction
+                    });
+                } else {
+                    await models.carts.destroy({
+                        where: {
+                            user_id: user_id,
+                            listing_id: item.listing_id
+                        },
+                        transaction
+                    });
+                }
             }
 
             await transaction.commit();
 
-            // Emit Notification to Seller
+            // Emit Notifications & Sockets
             const io = req.app.get('socketio');
             if (io) {
-                console.log(`[Socket] Broadcasting listing_stock_updated for listing ${listing.id}: stock=${newStock}`);
-                io.emit('listing_stock_updated', {
-                    listing_id: listing.id,
-                    stock: newStock
-                });
+                for (const item of items) {
+                    const lst = listingsMap.get(item.listing_id);
+                    const qty = parseInt(item.quantity) || 1;
+                    const newStock = lst.stock - qty;
+                    console.log(`[Socket] Broadcasting listing_stock_updated for listing ${lst.id}: stock=${newStock}`);
+                    io.emit('listing_stock_updated', {
+                        listing_id: lst.id,
+                        stock: newStock
+                    });
+
+                    if (is_bin === true && lst.type === 'auction') {
+                        const buyer = await models.users.findByPk(user_id);
+                        const buyerName = buyer?.name || buyer?.username || 'Seseorang';
+                        io.to(`auction_${lst.id}`).emit('auction_ended', {
+                            listing_id: lst.id,
+                            ended_at: new Date().toISOString(),
+                            reason: 'bin_purchase',
+                            buyer_name: buyerName,
+                            winner_id: user_id,
+                            order_uuid: order.id,
+                            order_id: order.order_id
+                        });
+                    }
+                }
+
                 io.to('admin_room').emit('order_updated_admin', { order_id: orderId, status: 'pending_shipping_info' });
-                const shop = await models.shops.findByPk(listing.shop_id);
+
+                const shop = await models.shops.findByPk(shopId);
                 if (shop) {
                     const buyer = await models.users.findByPk(user_id);
                     const buyerName = buyer?.name || buyer?.username || 'Seseorang';
+
+                    let sellerMessage = `${buyerName} memesan "${firstListing.name}".`;
+                    let buyerMessage = `Pesanan "${firstListing.name}" berhasil dibuat. Silakan tunggu informasi pengiriman.`;
+
+                    if (items.length > 1) {
+                        sellerMessage = `${buyerName} memesan "${firstListing.name}" dan ${items.length - 1} produk lainnya.`;
+                        buyerMessage = `Pesanan "${firstListing.name}" dan ${items.length - 1} produk lainnya berhasil dibuat. Silakan tunggu informasi pengiriman.`;
+                    }
 
                     console.log(`Emitting new_notification to user_${shop.user_id} for new order ${orderId}`);
 
                     io.to(`user_${shop.user_id}`).emit('new_notification', {
                         type: 'order_seller',
                         title: 'Pesanan Baru Diterima',
-                        message: `${buyerName} memesan "${listing.name}".`,
+                        message: sellerMessage,
                         link: '/user/toko/dashboard',
                         time: new Date()
                     });
 
-                    // Emit to Buyer to refresh their Navbar counts
                     io.to(`user_${user_id}`).emit('new_notification', {
                         type: 'order_buyer',
                         title: 'Pesanan Berhasil Dibuat',
-                        message: `Pesanan "${listing.name}" berhasil dibuat. Silakan tunggu informasi pengiriman.`,
+                        message: buyerMessage,
                         link: `/user/pesanan`,
                         time: new Date()
-                    });
-                }
-
-                // If this was a BIN purchase, notify all users in the auction room that auction ended
-                if (isBIN && listing.type === 'auction') {
-                    const buyer = await models.users.findByPk(user_id);
-                    const buyerName = buyer?.name || buyer?.username || 'Seseorang';
-                    io.to(`auction_${listing_id}`).emit('auction_ended', {
-                        listing_id: listing.id,
-                        ended_at: new Date().toISOString(),
-                        reason: 'bin_purchase',
-                        buyer_name: buyerName,
-                        winner_id: user_id,
-                        order_uuid: order.id,
-                        order_id: order.order_id
                     });
                 }
             }
@@ -529,7 +622,21 @@ const OrdersController = {
             const packingCost = parseInt(packing_cost) || 0;
             const adminFee = ADMIN_FEE;
 
-            const newTotal = (order.price * order.quantity) + shippingCost + packingCost + adminFee;
+            // Load all items under the order to sum up prices for multi-product orders
+            const items = await models.order_items.findAll({
+                where: { order_id: order.id }
+            });
+
+            let productSubtotal = 0;
+            if (items && items.length > 0) {
+                for (const item of items) {
+                    productSubtotal += (Number(item.price) * (item.quantity || 1));
+                }
+            } else {
+                productSubtotal = Number(order.price) * Number(order.quantity);
+            }
+
+            const newTotal = productSubtotal + shippingCost + packingCost + adminFee;
 
             await order.update({
                 shipping_cost: shippingCost,
@@ -1615,9 +1722,27 @@ const OrdersController = {
                         attributes: ['id', 'product_id', 'name', 'images', 'type', 'species', 'price']
                     },
                     {
+                        model: models.order_items,
+                        as: 'items',
+                        include: [
+                            {
+                                model: models.listings,
+                                as: 'product',
+                                attributes: ['id', 'product_id', 'name', 'images', 'type', 'species', 'price']
+                            }
+                        ]
+                    },
+                    {
                         model: models.shops,
                         as: 'shop',
-                        attributes: ['id', 'name', 'city', 'logo_url']
+                        attributes: ['id', 'name', 'city', 'logo_url', 'user_id'],
+                        include: [
+                            {
+                                model: models.users,
+                                as: 'owner',
+                                attributes: ['id', 'name', 'username', 'email']
+                            }
+                        ]
                     },
                     {
                         model: models.users,

@@ -11,6 +11,29 @@ import { io } from "socket.io-client";
 import { getApiUrl, getSocketUrl, getImageUrl } from "@/app/utils/api";
 import { uploadImageToS3 } from "@/components/HandleUpload";
 
+const isVideoUrl = (url) => {
+  if (!url) return false;
+  let finalPath = url;
+  try {
+    if (typeof url === "string" && (url.startsWith("[") || url.startsWith("{"))) {
+      const parsed = JSON.parse(url);
+      finalPath = Array.isArray(parsed) ? parsed[0] : parsed;
+    } else if (Array.isArray(url)) {
+      finalPath = url[0];
+    }
+  } catch (e) {}
+  if (!finalPath || typeof finalPath !== "string") return false;
+  const lower = finalPath.toLowerCase();
+  return (
+    lower.endsWith(".mp4") ||
+    lower.endsWith(".mov") ||
+    lower.endsWith(".avi") ||
+    lower.endsWith(".webm") ||
+    lower.endsWith(".mkv") ||
+    lower.endsWith(".3gp")
+  );
+};
+
 export default function PaymentPage({ params }) {
   const { id } = use(params);
   const router = useRouter();
@@ -212,31 +235,6 @@ export default function PaymentPage({ params }) {
     }).format(price);
   };
 
-  const getImageUrl = (path) => {
-    if (!path) return "/placeholder.png";
-
-    let finalPath = path;
-    try {
-      if (typeof path === "string" && (path.startsWith("[") || path.startsWith("{"))) {
-        const parsed = JSON.parse(path);
-        finalPath = Array.isArray(parsed) ? parsed[0] : parsed;
-      } else if (Array.isArray(path)) {
-        finalPath = path[0];
-      }
-    } catch (e) {
-      console.error("Error parsing image path", e);
-    }
-
-    if (!finalPath) return "/placeholder.png";
-    if (typeof finalPath !== "string") return "/placeholder.png";
-
-    // Return data URLs and absolute URLs as is
-    if (finalPath.startsWith("http") || finalPath.startsWith("data:")) return finalPath;
-
-    const baseUrl = getApiUrl();
-    const formattedPath = finalPath.startsWith("/") ? finalPath : `/${finalPath}`;
-    return `${baseUrl}${formattedPath}`;
-  };
 
   const handleCopy = async (text, type) => {
     const success = await copyToClipboard(text);
@@ -497,27 +495,68 @@ export default function PaymentPage({ params }) {
               </div>
 
               {/* Product Summary */}
-              <div className="flex gap-4 items-center bg-zinc-950/40 p-4 rounded-2xl border border-zinc-800/60 group/prod">
-                <div className="w-16 h-16 rounded-xl overflow-hidden bg-zinc-900 border border-zinc-800 shrink-0 relative">
-                  <img src={getImageUrl(order.product?.images)} alt="Product" className="w-full h-full object-cover group-hover/prod:scale-105 transition-transform duration-500" />
+              {order.items && order.items.length > 1 ? (
+                <div className="space-y-3 max-h-60 overflow-y-auto pr-1">
+                  {order.items.map((item, idx) => (
+                    <div key={item.id || idx} className="flex gap-3 items-center bg-zinc-950/40 p-3 rounded-xl border border-zinc-850">
+                      <div className="w-12 h-12 rounded-lg overflow-hidden bg-zinc-900 border border-zinc-850 shrink-0 relative">
+                        {(() => {
+                          const mediaUrl = getImageUrl(item.product?.images);
+                          return isVideoUrl(mediaUrl) ? (
+                            <video src={mediaUrl} className="w-full h-full object-cover" muted playsInline preload="metadata" />
+                          ) : (
+                            <img src={mediaUrl || "/placeholder.png"} className="w-full h-full object-cover" alt={item.product?.name} />
+                          );
+                        })()}
+                      </div>
+                      <div className="space-y-0.5 flex-1 min-w-0 text-left">
+                        <h5 className="text-[11px] font-black text-white truncate">{item.product?.name}</h5>
+                        <p className="text-[9px] font-bold text-zinc-500">
+                          {item.quantity} x <span className="text-emerald-400 font-black">{formatPrice(item.price)}</span>
+                        </p>
+                      </div>
+                    </div>
+                  ))}
                 </div>
-                <div className="space-y-1 flex-1 min-w-0">
-                  <div className="flex items-center gap-2">
-                    <span className="text-[9px] font-black text-emerald-500 bg-emerald-500/5 px-2 py-0.5 rounded border border-emerald-500/10 uppercase tracking-widest">{order.product?.species}</span>
-                    <span className="text-[8px] font-black text-zinc-500 font-mono">ID: {order.product?.product_id || "-"}</span>
+              ) : (
+                <div className="flex gap-4 items-center bg-zinc-950/40 p-4 rounded-2xl border border-zinc-800/60 group/prod">
+                  <div className="w-16 h-16 rounded-xl overflow-hidden bg-zinc-900 border border-zinc-800 shrink-0 relative">
+                    {order.product?.images && isVideoUrl(order.product.images) ? (
+                      <video
+                        src={getImageUrl(order.product.images)}
+                        className="w-full h-full object-cover group-hover/prod:scale-105 transition-transform duration-500"
+                        muted
+                        playsInline
+                        preload="metadata"
+                      />
+                    ) : (
+                      <img
+                        src={getImageUrl(order.product?.images) || "/placeholder.png"}
+                        alt="Product"
+                        className="w-full h-full object-cover group-hover/prod:scale-105 transition-transform duration-500"
+                      />
+                    )}
                   </div>
-                  <h5 className="text-xs font-black text-white truncate">{order.product?.name}</h5>
-                  <p className="text-[10px] font-bold text-zinc-400">
-                    {order.quantity} x <span className="text-emerald-400 font-black">{formatPrice(order.price)}</span>
-                  </p>
+                  <div className="space-y-1 flex-1 min-w-0">
+                    <div className="flex items-center gap-2">
+                      <span className="text-[9px] font-black text-emerald-500 bg-emerald-500/5 px-2 py-0.5 rounded border border-emerald-500/10 uppercase tracking-widest">{order.product?.species}</span>
+                      <span className="text-[8px] font-black text-zinc-500 font-mono">ID: {order.product?.product_id || "-"}</span>
+                    </div>
+                    <h5 className="text-xs font-black text-white truncate">{order.product?.name}</h5>
+                    <p className="text-[10px] font-bold text-zinc-400">
+                      {order.quantity} x <span className="text-emerald-400 font-black">{formatPrice(order.price)}</span>
+                    </p>
+                  </div>
                 </div>
-              </div>
+              )}
 
               {/* Cost Breakdown */}
               <div className="space-y-3.5 pt-2">
                 <div className="flex justify-between items-center text-xs">
                   <span className="text-zinc-500 font-bold uppercase tracking-wider text-[10px]">Subtotal Produk</span>
-                  <span className="text-zinc-300 font-bold font-mono">{formatPrice(order.price * order.quantity)}</span>
+                  <span className="text-zinc-300 font-bold font-mono">
+                    {formatPrice(order.items && order.items.length > 0 ? order.items.reduce((sum, item) => sum + (Number(item.price) * (item.quantity || 1)), 0) : (order.price * order.quantity))}
+                  </span>
                 </div>
                 <div className="flex justify-between items-center text-xs">
                   <span className="text-zinc-500 font-bold uppercase tracking-wider text-[10px]">Biaya Admin</span>
@@ -586,11 +625,11 @@ export default function PaymentPage({ params }) {
                   <div className="bg-zinc-950/40 border-2 border-dashed border-zinc-800 hover:border-emerald-500/40 rounded-2xl p-6 text-center space-y-4 relative group transition-all duration-300">
                     {paymentProof ? (
                       <div className="relative aspect-video rounded-xl overflow-hidden bg-zinc-950 border border-zinc-800 group/uploaded">
-                        <img src={getImageUrl(paymentProof)} alt="Bukti Bayar" className="w-full h-full object-contain" />
+                        <img src={getImageUrl(paymentProof) || "/placeholder.png"} alt="Bukti Bayar" className="w-full h-full object-contain" />
 
                         {/* Floating Action Bar */}
                         <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex items-center gap-2 bg-zinc-950/90 backdrop-blur-md px-3 py-1.5 rounded-full border border-white/10">
-                          <button type="button" onClick={() => setPreviewImage(getImageUrl(paymentProof))} className="px-3 py-1.5 bg-emerald-500 hover:bg-emerald-400 text-zinc-950 rounded-lg text-[9px] font-black uppercase tracking-wider flex items-center gap-1.5 active:scale-95 transition-all">
+                          <button type="button" onClick={() => setPreviewImage(getImageUrl(paymentProof) || "/placeholder.png")} className="px-3 py-1.5 bg-emerald-500 hover:bg-emerald-400 text-zinc-950 rounded-lg text-[9px] font-black uppercase tracking-wider flex items-center gap-1.5 active:scale-95 transition-all">
                             <Eye size={12} /> Lihat
                           </button>
                           <button type="button" onClick={() => setPaymentProof("")} className="px-3 py-1.5 bg-red-500 hover:bg-red-400 text-white rounded-lg text-[9px] font-black uppercase tracking-wider flex items-center gap-1.5 active:scale-95 transition-all">

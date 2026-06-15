@@ -11,6 +11,12 @@ import OrderStepper from "@/components/OrderStepper";
 import ActionModal from "@/components/ActionModal";
 import OrderTimeline from "@/components/OrderTimeline";
 
+const isVideoUrl = (url) => {
+  if (!url) return false;
+  const lower = url.toLowerCase();
+  return lower.endsWith(".mp4") || lower.endsWith(".mov") || lower.endsWith(".avi") || lower.endsWith(".webm") || lower.endsWith(".mkv") || lower.endsWith(".3gp");
+};
+
 export default function ShippingConfirmationPage({ params }) {
   const { id } = use(params);
   const router = useRouter();
@@ -428,21 +434,69 @@ export default function ShippingConfirmationPage({ params }) {
               <ShoppingBag size={16} className="text-blue-500" /> Ringkasan Pesanan
             </h3>
 
-            <div className="flex gap-6">
-              <div className="w-24 h-24 rounded-2xl overflow-hidden bg-zinc-950 border border-zinc-800 shrink-0">
-                <img src={getImageUrl(order.product?.images) || "https://placehold.co/400x400/f4f4f5/71717a?text=No+Image"} alt={order.product?.name} className="w-full h-full object-cover" />
+            {order.items && order.items.length > 0 ? (
+              <div className="space-y-4">
+                {order.items.map((item, idx) => (
+                  <div key={item.id || idx} className="flex gap-4 p-3 bg-zinc-950/40 border border-zinc-800/80 rounded-2xl">
+                    <div className="w-16 h-16 rounded-xl overflow-hidden bg-zinc-950 border border-zinc-800 shrink-0 relative aspect-square">
+                      {(() => {
+                        const mediaUrl = getImageUrl(item.product?.images);
+                        return isVideoUrl(mediaUrl) ? (
+                          <video src={mediaUrl} className="w-full h-full object-cover" preload="metadata" muted playsInline />
+                        ) : (
+                          <img src={mediaUrl || "https://placehold.co/400x400/f4f4f5/71717a?text=No+Image"} className="w-full h-full object-cover" alt={item.product?.name} />
+                        );
+                      })()}
+                    </div>
+                    <div className="space-y-1 min-w-0 flex-1">
+                      <div className="flex flex-wrap items-center gap-1.5">
+                        <span className="px-1.5 py-0.5 bg-zinc-800 text-[8px] text-zinc-400 rounded font-black uppercase tracking-widest border border-zinc-700">{item.product?.species}</span>
+                        <span className="px-1.5 py-0.5 bg-zinc-800 text-[8px] text-zinc-400 rounded font-black uppercase tracking-widest border border-zinc-700">Qty: {item.quantity}</span>
+                        {item.product?.is_free_shipping && (
+                          <span className="px-1.5 py-0.5 bg-emerald-500/15 text-emerald-400 rounded text-[8px] font-black uppercase tracking-widest border border-emerald-500/20">Bebas Ongkir</span>
+                        )}
+                        {item.product?.is_free_packing && (
+                          <span className="px-1.5 py-0.5 bg-blue-500/15 text-blue-400 rounded text-[8px] font-black uppercase tracking-widest border border-blue-500/20">Gratis Packing</span>
+                        )}
+                      </div>
+                      <h4 className="text-xs font-black text-white leading-tight truncate">{item.product?.name}</h4>
+                      <p className="text-[10px] font-bold text-zinc-500">
+                        {formatPrice(item.price)} / ekor
+                      </p>
+                    </div>
+                  </div>
+                ))}
               </div>
-              <div className="space-y-1">
-                <div className="flex flex-wrap items-center gap-2">
-                  <span className="px-2 py-0.5 bg-zinc-800 text-[8px] text-zinc-400 rounded font-black uppercase tracking-widest border border-zinc-700">{order.product?.species}</span>
-                  <span className="px-2 py-0.5 bg-zinc-800 text-[8px] text-zinc-400 rounded font-black uppercase tracking-widest border border-zinc-700">ID : {order.product?.product_id || "-"}</span>
+            ) : (
+              <div className="flex gap-6">
+                <div className="w-24 h-24 rounded-2xl overflow-hidden bg-zinc-950 border border-zinc-800 shrink-0">
+                  {(() => {
+                    const mediaUrl = getImageUrl(order.product?.images);
+                    return isVideoUrl(mediaUrl) ? (
+                      <video src={mediaUrl} className="w-full h-full object-cover" preload="metadata" muted playsInline />
+                    ) : (
+                      <img src={mediaUrl || "https://placehold.co/400x400/f4f4f5/71717a?text=No+Image"} alt={order.product?.name} className="w-full h-full object-cover" />
+                    );
+                  })()}
                 </div>
-                <h4 className="text-lg font-black text-white leading-tight">{order.product?.name}</h4>
-                <p className="text-sm font-bold text-zinc-500">
-                  {order.quantity} Ekor • {formatPrice(order.price)} / ekor
-                </p>
+                <div className="space-y-1">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="px-2 py-0.5 bg-zinc-800 text-[8px] text-zinc-400 rounded font-black uppercase tracking-widest border border-zinc-700">{order.product?.species}</span>
+                    <span className="px-2 py-0.5 bg-zinc-800 text-[8px] text-zinc-400 rounded font-black uppercase tracking-widest border border-zinc-700">ID : {order.product?.product_id || "-"}</span>
+                    {order.product?.is_free_shipping && (
+                      <span className="px-2 py-0.5 bg-emerald-500/15 text-emerald-400 rounded text-[8px] font-black uppercase tracking-widest border border-emerald-500/20">Bebas Ongkir</span>
+                    )}
+                    {order.product?.is_free_packing && (
+                      <span className="px-2 py-0.5 bg-blue-500/15 text-blue-400 rounded text-[8px] font-black uppercase tracking-widest border border-blue-500/20">Gratis Packing</span>
+                    )}
+                  </div>
+                  <h4 className="text-lg font-black text-white leading-tight">{order.product?.name}</h4>
+                  <p className="text-sm font-bold text-zinc-500">
+                    {order.quantity} Ekor • {formatPrice(order.price)} / ekor
+                  </p>
+                </div>
               </div>
-            </div>
+            )}
 
             <div className="space-y-4 pt-6 border-t border-zinc-800">
               <div className="flex justify-between items-center text-sm">

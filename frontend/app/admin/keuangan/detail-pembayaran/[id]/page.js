@@ -2,10 +2,71 @@
 
 import { useState, useEffect, use } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { Search, Filter, Download, Upload, FileText, CheckCircle2, Clock, MoreVertical, DollarSign, ArrowLeft, ShoppingBag, Calendar, ArrowUpRight, Store, MapPin, CreditCard, Phone, Mail, User, Printer, X } from "lucide-react";
+import { Search, Filter, Download, Upload, FileText, CheckCircle2, Clock, MoreVertical, DollarSign, ArrowLeft, ShoppingBag, Calendar, ArrowUpRight, Store, MapPin, CreditCard, Phone, Mail, User, Printer, X, Eye } from "lucide-react";
 import Link from "next/link";
 import ActionModal from "@/components/ActionModal";
 import { getApiUrl, getImageUrl } from "@/app/utils/api";
+import { uploadImageToS3 } from "@/components/HandleUpload";
+
+const isVideoUrl = (url) => {
+  if (!url) return false;
+  let finalPath = url;
+  try {
+    if (typeof url === "string" && (url.startsWith("[") || url.startsWith("{"))) {
+      const parsed = JSON.parse(url);
+      finalPath = Array.isArray(parsed) ? parsed[0] : parsed;
+    } else if (Array.isArray(url)) {
+      finalPath = url[0];
+    }
+  } catch (e) {}
+  if (!finalPath || typeof finalPath !== "string") return false;
+  const lower = finalPath.toLowerCase();
+  return (
+    lower.endsWith(".mp4") ||
+    lower.endsWith(".mov") ||
+    lower.endsWith(".avi") ||
+    lower.endsWith(".mkv") ||
+    lower.endsWith(".webm") ||
+    lower.endsWith(".3gp") ||
+    lower.endsWith(".ogg")
+  );
+};
+
+const loadHtml2Canvas = () => {
+  return new Promise((resolve, reject) => {
+    if (typeof window === "undefined") return reject(new Error("DOM is only available in browser"));
+    if (window.html2canvas) {
+      resolve(window.html2canvas);
+      return;
+    }
+    const script = document.createElement("script");
+    script.src = "https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js";
+    script.onload = () => resolve(window.html2canvas);
+    script.onerror = (err) => reject(err);
+    document.body.appendChild(script);
+  });
+};
+
+const waitForImages = async (node) => {
+  if (document.fonts && document.fonts.ready) {
+    await document.fonts.ready;
+  }
+  const images = Array.from(node.querySelectorAll("img"));
+  await Promise.all(
+    images.map((img) => {
+      if (img.complete && img.naturalWidth !== 0) return Promise.resolve();
+      return new Promise((resolve) => {
+        img.onload = resolve;
+        img.onerror = resolve;
+        // Safety timeout 3s
+        setTimeout(resolve, 3000);
+      });
+    }),
+  );
+  // Two animation frames so browser finishes paint
+  await new Promise((r) => requestAnimationFrame(r));
+  await new Promise((r) => requestAnimationFrame(r));
+};
 
 export default function DetailPembayaranPage({ params: paramsPromise }) {
   const params = use(paramsPromise);
@@ -34,6 +95,8 @@ export default function DetailPembayaranPage({ params: paramsPromise }) {
   const [additionalFee, setAdditionalFee] = useState(0);
   const [isSubmittingBulk, setIsSubmittingBulk] = useState(false);
   const [invoiceOrder, setInvoiceOrder] = useState(null);
+  const [bulkInvoiceOrders, setBulkInvoiceOrders] = useState(null);
+  const [bulkInvoiceId, setBulkInvoiceId] = useState("");
   const [showEmailModal, setShowEmailModal] = useState(false);
   const [sentInvoices, setSentInvoices] = useState({});
 
@@ -116,20 +179,10 @@ export default function DetailPembayaranPage({ params: paramsPromise }) {
     try {
       const token = localStorage.getItem("admin_token");
 
-      // 1. Upload proof file
-      const formData = new FormData();
-      formData.append("image", selectedFile);
-
-      const uploadRes = await fetch(`${getApiUrl()}/upload`, {
-        method: "POST",
-        headers: token ? { Authorization: `Bearer ${token}` } : {},
-        body: formData,
-      });
-
-      const uploadData = await uploadRes.json();
-      if (!uploadRes.ok) throw new Error(uploadData.message || "Gagal mengunggah file bukti transfer");
-
-      const fileUrl = uploadData.url;
+      // 1. Upload the file first to S3
+      const s3Token = typeof window !== "undefined" ? localStorage.getItem("token") || localStorage.getItem("admin_token") : null;
+      const { objectKey } = await uploadImageToS3(selectedFile, s3Token, "disbursements");
+      const fileUrl = "/" + objectKey;
 
       // 2. Call bulk disburse API
       const disburseRes = await fetch(`${getApiUrl()}/orders/bulk-disburse`, {
@@ -261,7 +314,540 @@ export default function DetailPembayaranPage({ params: paramsPromise }) {
     }).format(price || 0);
   };
 
-  // Removed local getImageUrl function in favor of central helper from @/app/utils/api
+  const handleDownloadInvoice = async (inv) => {
+    try {
+      const html2canvas = await loadHtml2Canvas();
+      const INVOICE_WIDTH = 794;
+
+      const subtotal = Number(inv.price || 0) * Number(inv.quantity || 1);
+      const shipping = Number(inv.shipping_cost || 0);
+      const packing = Number(inv.packing_cost || 0);
+      const adminFee = Number(inv.admin_fee || 0);
+      const addFee = Number(inv.additional_fee || 0);
+      const total = subtotal + shipping + packing + adminFee;
+      const disbursed = subtotal + shipping + packing - addFee;
+      const bankAccounts = shop?.owner?.bank_accounts || [];
+
+      let parsedBankAccounts = bankAccounts;
+      if (typeof bankAccounts === "string") {
+        try {
+          parsedBankAccounts = JSON.parse(bankAccounts);
+        } catch (e) {
+          parsedBankAccounts = [];
+        }
+      }
+      const bank = Array.isArray(parsedBankAccounts) && parsedBankAccounts.length > 0 ? parsedBankAccounts[0] : null;
+
+      const dateStr = (d) => (d ? new Date(d).toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" }) : new Date().toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" }));
+      const priceStr = (v) => new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", minimumFractionDigits: 0 }).format(parseFloat(v) || 0);
+
+      const logoBase = window.location.origin;
+
+      const badgeBg = inv.disbursed_at || inv.disbursement_proof ? "#d1fae5" : "#fef3c7";
+      const badgeColor = inv.disbursed_at || inv.disbursement_proof ? "#065f46" : "#92400e";
+      const badgeBorder = inv.disbursed_at || inv.disbursement_proof ? "#6ee7b7" : "#fcd34d";
+      const badgeText = inv.disbursed_at || inv.disbursement_proof ? "Dana Telah Dicairkan" : "Menunggu Pencairan";
+      const transferDateStr = inv.disbursed_at ? dateStr(inv.disbursed_at) : dateStr(new Date());
+
+      const sellerName = shop?.name || "-";
+      const sellerOwnerName = shop?.owner?.name || shop?.user?.name || "-";
+      const sellerEmail = shop?.owner?.email || "-";
+      const sellerPhone = shop?.whatsapp ? `+62 ${shop.whatsapp}` : "-";
+
+      const bankDetails = bank
+        ? {
+            bankName: bank.bank_name || bank.bankName || "-",
+            accountNumber: bank.account_number || bank.accountNumber || "-",
+            accountName: bank.account_name || bank.accountName || shop?.owner?.name || "-",
+          }
+        : null;
+
+      const buyerName = inv.user?.name || inv.user?.username || "-";
+      const buyerUsername = inv.user?.username || "user";
+      const buyerEmail = inv.user?.email || "-";
+      const buyerPhone = inv.user?.phone || "-";
+      const orderDate = dateStr(inv.created_at);
+      const requestDate = inv.disbursement_requested_at ? dateStr(inv.disbursement_requested_at) : "-";
+
+      const productName = inv.product?.name || "Produk";
+      const productId = inv.product?.product_id || "-";
+      const productSpecies = inv.product?.species || "-";
+      const qty = inv.quantity || 1;
+      const unitPrice = inv.price || 0;
+
+      const wrapper = document.createElement("div");
+      Object.assign(wrapper.style, {
+        position: "fixed",
+        left: "-9999px",
+        top: "0",
+        zIndex: "-1",
+        background: "#ffffff",
+      });
+
+      const invoice = document.createElement("div");
+      Object.assign(invoice.style, {
+        background: "#ffffff",
+        color: "#111827",
+        width: `${INVOICE_WIDTH}px`,
+        minHeight: "1123px",
+        fontFamily: "'Segoe UI', Arial, sans-serif",
+        position: "relative",
+        overflow: "hidden",
+        padding: "40px 48px",
+        boxSizing: "border-box",
+      });
+
+      invoice.innerHTML = `
+        <!-- Watermark -->
+        <div style="position:absolute;top:0;left:0;right:0;bottom:0;display:flex;align-items:center;justify-content:center;pointer-events:none;z-index:0;opacity:0.055;">
+          <img src="${logoBase}/images/Logo-Bg-2-2.png" crossorigin="anonymous" style="width:400px;height:100px;object-fit:contain;transform:rotate(-20deg);margin-top:40%;" />
+        </div>
+
+        <!-- Header Strip -->
+        <div style="background:#1e3a8a;margin:-40px -48px 40px -48px;padding:36px 48px;display:flex;align-items:center;justify-content:space-between;position:relative;z-index:1;">
+          <img src="${logoBase}/images/Logo-Bg-1-2.png" crossorigin="anonymous" style="height:72px;object-fit:contain;display:block;" />
+          <div style="text-align:right;">
+            <div style="font-size:13px;color:rgba(255,255,255,0.65);font-weight:700;letter-spacing:0.15em;text-transform:uppercase;">Invoice Pencairan Dana</div>
+            <div style="font-size:22px;font-weight:900;color:#fff;font-family:monospace;margin-top:4px;">${inv.order_id}</div>
+            <div style="font-size:11px;color:rgba(255,255,255,0.6);margin-top:6px;">Diterbitkan: ${new Date().toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" })}</div>
+          </div>
+        </div>
+
+        <!-- Body -->
+        <div style="position:relative;z-index:1;">
+
+          <!-- Status Badge -->
+          <div style="margin-bottom:32px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+            <div style="display:inline-flex;align-items:center;gap:8px;padding:8px 20px;border-radius:100px;background:${badgeBg};color:${badgeColor};font-size:11px;font-weight:800;letter-spacing:0.12em;text-transform:uppercase;border:1px solid ${badgeBorder};">
+              <span style="width:8px;height:8px;border-radius:50%;background:${badgeColor};display:inline-block;flex-shrink:0;"></span>
+              <span style="line-height:1; vertical-align:text-top;margin-top:-12px;">${badgeText}</span>
+            </div>
+            <span style="font-size:11px;color:#6b7280;font-weight:600;line-height:1;vertical-align:text-top;margin-top:-12px;">• Tanggal Transfer: ${transferDateStr}</span>
+          </div>
+
+          <!-- 2-col Info Grid -->
+          <div style="display:flex;gap:24px;margin-bottom:36px;">
+            <!-- Seller -->
+            <div style="flex:1;background:#f9fafb;border-radius:16px;padding:24px;border:1px solid #e5e7eb;">
+              <div style="font-size:10px;font-weight:800;color:#059669;letter-spacing:0.15em;text-transform:uppercase;margin-bottom:16px;display:flex;align-items:center;gap:6px;">
+                <span style="width:3px;height:14px;background:#059669;border-radius:2px;display:inline-block;flex-shrink:0;"></span><span style="line-height:1;vertical-align:text-top;margin-top:-12px;">Penerima Pencairan (Penjual)</span>
+              </div>
+              <div style="font-size:16px;font-weight:900;color:#111827;margin-bottom:4px;">${sellerName}</div>
+              <div style="font-size:12px;color:#6b7280;font-weight:600;margin-bottom:2px;">Owner: ${sellerOwnerName}</div>
+              <div style="font-size:12px;color:#6b7280;font-weight:600;margin-bottom:2px;">${sellerEmail}</div>
+              <div style="font-size:12px;color:#6b7280;font-weight:600;">${sellerPhone}</div>
+              ${
+                bankDetails
+                  ? `<div style="margin-top:14px;padding-top:14px;border-top:1px dashed #e5e7eb;">
+                <div style="font-size:10px;color:#9ca3af;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;margin-bottom:6px;">Rekening Penerima</div>
+                <div style="font-size:13px;font-weight:800;color:#111827;">${bankDetails.bankName}</div>
+                <div style="font-size:13px;font-weight:700;color:#374151;font-family:monospace;letter-spacing:0.06em;">${bankDetails.accountNumber}</div>
+                <div style="font-size:11px;color:#6b7280;font-weight:600;">a.n. ${bankDetails.accountName}</div>
+              </div>`
+                  : ""
+              }
+            </div>
+
+            <!-- Buyer -->
+            <div style="flex:1;background:#f9fafb;border-radius:16px;padding:24px;border:1px solid #e5e7eb;">
+              <div style="font-size:10px;font-weight:800;color:#7c3aed;letter-spacing:0.15em;text-transform:uppercase;margin-bottom:16px;display:flex;align-items:center;gap:6px;">
+                <span style="width:3px;height:14px;background:#7c3aed;border-radius:2px;display:inline-block;flex-shrink:0;"></span><span style="line-height:1;vertical-align:text-top;margin-top:-12px;">Informasi Pembeli &amp; Pesanan</span>
+              </div>
+              <div style="font-size:16px;font-weight:900;color:#111827;margin-bottom:4px;">${buyerName}</div>
+              <div style="font-size:12px;color:#6b7280;font-weight:600;margin-bottom:2px;">@${buyerUsername}</div>
+              <div style="font-size:12px;color:#6b7280;font-weight:600;margin-bottom:2px;">${buyerEmail}</div>
+              <div style="font-size:12px;color:#6b7280;font-weight:600;">${buyerPhone}</div>
+              <div style="margin-top:14px;padding-top:14px;border-top:1px dashed #e5e7eb;">
+                <div style="font-size:10px;color:#9ca3af;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;margin-bottom:6px;">Detail Pesanan</div>
+                <div style="font-size:12px;color:#374151;font-weight:600;margin-bottom:2px;">Tgl Order: ${orderDate}</div>
+                <div style="font-size:12px;color:#374151;font-weight:600;margin-bottom:2px;">Tgl Pengajuan: ${requestDate}</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Product Table -->
+          <div style="margin-bottom:32px;">
+            <table style="width:100%;border-collapse:collapse;font-size:13px;">
+              <thead>
+                <tr style="background:#111827;">
+                  <th style="padding:14px 20px;text-align:left;color:#fff;font-weight:800;font-size:10px;letter-spacing:0.12em;text-transform:uppercase;border-radius:8px 0 0 8px;">Produk</th>
+                  <th style="padding:14px 20px;text-align:center;color:#fff;font-weight:800;font-size:10px;letter-spacing:0.12em;text-transform:uppercase;">Qty</th>
+                  <th style="padding:14px 20px;text-align:right;color:#fff;font-weight:800;font-size:10px;letter-spacing:0.12em;text-transform:uppercase;">Harga Satuan</th>
+                  <th style="padding:14px 20px;text-align:right;color:#fff;font-weight:800;font-size:10px;letter-spacing:0.12em;text-transform:uppercase;border-radius:0 8px 8px 0;">Subtotal</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr style="border-bottom:1px solid #e5e7eb;">
+                  <td style="padding:16px 20px;">
+                    <div style="font-weight:700;color:#111827;font-size:14px;">${productName}</div>
+                    <div style="font-size:11px;color:#9ca3af;margin-top:2px;font-weight:600;">ID: ${productId} • Kategori: ${productSpecies}</div>
+                  </td>
+                  <td style="padding:16px 20px;text-align:center;font-weight:700;color:#374151;">${qty}</td>
+                  <td style="padding:16px 20px;text-align:right;font-weight:700;color:#374151;">${priceStr(unitPrice)}</td>
+                  <td style="padding:16px 20px;text-align:right;font-weight:800;color:#111827;">${priceStr(subtotal)}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Cost Breakdown -->
+          <div style="margin-bottom:32px;display:flex;justify-content:flex-end;">
+            <div style="width:340px;background:#f9fafb;border-radius:16px;overflow:hidden;border:1px solid #e5e7eb;">
+              <div style="display:flex;justify-content:space-between;padding:12px 20px;border-bottom:1px solid #e5e7eb;">
+                <span style="font-size:12px;color:#6b7280;font-weight:600;">Subtotal Produk</span>
+                <span style="font-size:12px;font-weight:700;color:#374151;">${priceStr(subtotal)}</span>
+              </div>
+              <div style="display:flex;justify-content:space-between;padding:12px 20px;border-bottom:1px solid #e5e7eb;">
+                <span style="font-size:12px;color:#6b7280;font-weight:600;">Ongkos Kirim</span>
+                <span style="font-size:12px;font-weight:700;color:${inv.product?.is_free_shipping ? "#059669" : "#374151"};">${inv.product?.is_free_shipping ? "GRATIS" : priceStr(shipping)}</span>
+              </div>
+              <div style="display:flex;justify-content:space-between;padding:12px 20px;border-bottom:1px solid #e5e7eb;">
+                <span style="font-size:12px;color:#6b7280;font-weight:600;">Biaya Packing</span>
+                <span style="font-size:12px;font-weight:700;color:${inv.product?.is_free_packing ? "#059669" : "#374151"};">${inv.product?.is_free_packing ? "GRATIS" : priceStr(packing)}</span>
+              </div>
+              <div style="display:flex;justify-content:space-between;padding:12px 20px;border-bottom:1px solid #e5e7eb;">
+                <span style="font-size:12px;color:#6b7280;font-weight:600;">Biaya Admin</span>
+                <span style="font-size:12px;font-weight:700;color:#374151;">${priceStr(adminFee)}</span>
+              </div>
+              <div style="display:flex;justify-content:space-between;padding:16px 20px;background:#111827;">
+                <span style="font-size:13px;color:#fff;font-weight:800;text-transform:uppercase;letter-spacing:0.05em;">Total Tagihan Pembeli</span>
+                <span style="font-size:15px;font-weight:900;color:#34d399;font-family:monospace;">${priceStr(total)}</span>
+              </div>
+              ${
+                addFee > 0
+                  ? `
+                  <div style="display:flex;justify-content:space-between;padding:12px 20px;border-top:1px solid #e5e7eb;background:#fff7ed;">
+                    <span style="font-size:12px;color:#92400e;font-weight:700;">Potongan Biaya Transfer</span>
+                    <span style="font-size:12px;font-weight:800;color:#dc2626;">-${priceStr(addFee)}</span>
+                  </div>
+                  `
+                  : ""
+              }
+              <div style="display:flex;justify-content:space-between;padding:16px 20px;background:#ecfdf5;border-top:2px solid #6ee7b7;">
+                <span style="font-size:13px;color:#065f46;font-weight:800;text-transform:uppercase;letter-spacing:0.05em;">Dana Diterima Penjual</span>
+                <span style="font-size:15px;font-weight:900;color:#059669;font-family:monospace;">${priceStr(disbursed)}</span>
+              </div>
+            </div>
+          </div>
+
+          ${
+            inv.disbursement_notes
+              ? `
+          <!-- Notes -->
+          <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:12px;padding:16px 20px;margin-bottom:28px;">
+            <div style="font-size:10px;font-weight:800;color:#059669;letter-spacing:0.12em;text-transform:uppercase;margin-bottom:6px;">Catatan Admin</div>
+            <div style="font-size:13px;color:#374151;font-weight:600;font-style:italic;">&ldquo;${inv.disbursement_notes}&rdquo;</div>
+          </div>`
+              : ""
+          }
+
+          <!-- Footer -->
+          <div style="border-top:2px dashed #e5e7eb;padding-top:24px;display:flex;justify-content:space-between;align-items:flex-end;margin-top:40px;">
+            <div>
+              <div style="font-size:10px;color:#9ca3af;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;margin-bottom:4px;">Diterbitkan oleh</div>
+              <div style="font-size:16px;font-weight:900;color:#059669;">SatwaiD Platform</div>
+            </div>
+            <div style="text-align:right;">
+              <div style="font-size:10px;color:#9ca3af;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;margin-bottom:4px;">Dokumen Verifikasi</div>
+              <div style="font-size:11px;color:#9ca3af;font-weight:700;font-family:monospace;">${inv.order_id}</div>
+              <div style="font-size:10px;color:#9ca3af;font-weight:600;margin-top:2px;">Dicetak: ${new Date().toLocaleString("id-ID")}</div>
+            </div>
+          </div>
+        </div>
+      `;
+
+      wrapper.appendChild(invoice);
+      document.body.appendChild(wrapper);
+
+      await waitForImages(invoice);
+
+      const canvas = await html2canvas(invoice, {
+        scale: 2,
+        useCORS: true,
+        allowTaint: true,
+        backgroundColor: "#ffffff",
+        logging: false,
+        width: INVOICE_WIDTH,
+        height: invoice.scrollHeight,
+        windowWidth: INVOICE_WIDTH,
+        windowHeight: invoice.scrollHeight,
+      });
+
+      const dataUrl = canvas.toDataURL("image/png", 1.0);
+      const link = document.createElement("a");
+      link.download = `Invoice_${inv.order_id || "Download"}.png`;
+      link.href = dataUrl;
+      link.click();
+
+      document.body.removeChild(wrapper);
+    } catch (err) {
+      console.error("Gagal mendownload invoice:", err);
+      alert("Terjadi kesalahan saat mengunduh invoice. Silakan coba lagi.");
+    }
+  };
+
+  const handleDownloadBulkInvoice = async () => {
+    if (!bulkInvoiceOrders) return;
+
+    try {
+      const html2canvas = await loadHtml2Canvas();
+      const INVOICE_WIDTH = 794;
+
+      const sellerName = shop?.name || "-";
+      const sellerOwnerName = shop?.owner?.name || shop?.user?.name || "-";
+      const sellerEmail = shop?.owner?.email || "-";
+      const sellerPhone = shop?.whatsapp ? `+62 ${shop.whatsapp}` : "-";
+
+      const bankAccounts = shop?.owner?.bank_accounts || [];
+      let parsedBankAccounts = bankAccounts;
+      if (typeof bankAccounts === "string") {
+        try {
+          parsedBankAccounts = JSON.parse(bankAccounts);
+        } catch (e) {
+          parsedBankAccounts = [];
+        }
+      }
+      const bank = Array.isArray(parsedBankAccounts) && parsedBankAccounts.length > 0 ? parsedBankAccounts[0] : null;
+
+      const dateStr = (d) => (d ? new Date(d).toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" }) : new Date().toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" }));
+      const priceStr = (v) => new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", minimumFractionDigits: 0 }).format(parseFloat(v) || 0);
+
+      const logoBase = window.location.origin;
+
+      const badgeBg = "#d1fae5";
+      const badgeColor = "#065f46";
+      const badgeBorder = "#6ee7b7";
+      const badgeText = "Dana Telah Dicairkan (Gabungan)";
+      const transferDateStr = new Date().toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" });
+
+      const bankDetails = bank
+        ? {
+            bankName: bank.bank_name || bank.bankName || "-",
+            accountNumber: bank.account_number || bank.accountNumber || "-",
+            accountName: bank.account_name || bank.accountName || shop?.owner?.name || "-",
+          }
+        : null;
+
+      const sumSubtotal = bulkInvoiceOrders.reduce((sum, o) => sum + Number(o.price || 0) * Number(o.quantity || 1), 0);
+      const sumShipping = bulkInvoiceOrders.reduce((sum, o) => sum + Number(o.shipping_cost || 0), 0);
+      const sumPacking = bulkInvoiceOrders.reduce((sum, o) => sum + Number(o.packing_cost || 0), 0);
+      const sumAdminFee = bulkInvoiceOrders.reduce((sum, o) => sum + Number(o.admin_fee || 0), 0);
+      const totalDiterima = totalAccumulatedAmount - Number(additionalFee || 0);
+
+      const wrapper = document.createElement("div");
+      Object.assign(wrapper.style, {
+        position: "fixed",
+        left: "-9999px",
+        top: "0",
+        zIndex: "-1",
+        background: "#ffffff",
+      });
+
+      const invoice = document.createElement("div");
+      Object.assign(invoice.style, {
+        background: "#ffffff",
+        color: "#111827",
+        width: `${INVOICE_WIDTH}px`,
+        minHeight: "1123px",
+        fontFamily: "'Segoe UI', Arial, sans-serif",
+        position: "relative",
+        overflow: "hidden",
+        padding: "40px 48px",
+        boxSizing: "border-box",
+      });
+
+      invoice.innerHTML = `
+        <!-- Watermark -->
+        <div style="position:absolute;top:0;left:0;right:0;bottom:0;display:flex;align-items:center;justify-content:center;pointer-events:none;z-index:0;opacity:0.055;">
+          <img src="${logoBase}/images/Logo-Bg-2-2.png" crossorigin="anonymous" style="width:400px;height:100px;object-fit:contain;transform:rotate(-20deg);margin-top:40%;" />
+        </div>
+
+        <!-- Header Strip -->
+        <div style="background:#1e3a8a;margin:-40px -48px 40px -48px;padding:36px 48px;display:flex;align-items:center;justify-content:space-between;position:relative;z-index:1;">
+          <img src="${logoBase}/images/Logo-Bg-1-2.png" crossorigin="anonymous" style="height:72px;object-fit:contain;display:block;" />
+          <div style="text-align:right;">
+            <div style="font-size:13px;color:rgba(255,255,255,0.65);font-weight:700;letter-spacing:0.15em;text-transform:uppercase;">Invoice Pencairan Gabungan</div>
+            <div style="font-size:20px;font-weight:900;color:#fff;font-family:monospace;margin-top:4px;">${bulkInvoiceId}</div>
+            <div style="font-size:11px;color:rgba(255,255,255,0.6);margin-top:6px;">Diterbitkan: ${new Date().toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" })}</div>
+          </div>
+        </div>
+
+        <!-- Body -->
+        <div style="position:relative;z-index:1;">
+
+          <!-- Status Badge -->
+          <div style="margin-bottom:32px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+            <div style="display:inline-flex;align-items:center;gap:8px;padding:8px 20px;border-radius:100px;background:${badgeBg};color:${badgeColor};font-size:11px;font-weight:800;letter-spacing:0.12em;text-transform:uppercase;border:1px solid ${badgeBorder};">
+              <span style="width:8px;height:8px;border-radius:50%;background:${badgeColor};display:inline-block;flex-shrink:0;"></span>
+              <span style="line-height:1; vertical-align:text-top;margin-top:-12px;">${badgeText}</span>
+            </div>
+            <span style="font-size:11px;color:#6b7280;font-weight:600;line-height:1;vertical-align:text-top;margin-top:-12px;">• Total Transaksi: ${bulkInvoiceOrders.length} Pesanan</span>
+          </div>
+
+          <!-- 2-col Info Grid -->
+          <div style="display:flex;gap:24px;margin-bottom:36px;">
+            <!-- Seller -->
+            <div style="flex:1;background:#f9fafb;border-radius:16px;padding:24px;border:1px solid #e5e7eb;">
+              <div style="font-size:10px;font-weight:800;color:#059669;letter-spacing:0.15em;text-transform:uppercase;margin-bottom:16px;display:flex;align-items:center;gap:6px;">
+                <span style="width:3px;height:14px;background:#059669;border-radius:2px;display:inline-block;flex-shrink:0;"></span><span style="line-height:1;vertical-align:text-top;margin-top:-12px;">Penerima Pencairan (Penjual)</span>
+              </div>
+              <div style="font-size:16px;font-weight:900;color:#111827;margin-bottom:4px;">${sellerName}</div>
+              <div style="font-size:12px;color:#6b7280;font-weight:600;margin-bottom:2px;">Owner: ${sellerOwnerName}</div>
+              <div style="font-size:12px;color:#6b7280;font-weight:600;margin-bottom:2px;">${sellerEmail}</div>
+              <div style="font-size:12px;color:#6b7280;font-weight:600;">${sellerPhone}</div>
+              ${
+                bankDetails
+                  ? `<div style="margin-top:14px;padding-top:14px;border-top:1px dashed #e5e7eb;">
+                <div style="font-size:10px;color:#9ca3af;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;margin-bottom:6px;">Rekening Penerima</div>
+                <div style="font-size:13px;font-weight:800;color:#111827;">${bankDetails.bankName}</div>
+                <div style="font-size:13px;font-weight:700;color:#374151;font-family:monospace;letter-spacing:0.06em;">${bankDetails.accountNumber}</div>
+                <div style="font-size:11px;color:#6b7280;font-weight:600;">a.n. ${bankDetails.accountName}</div>
+              </div>`
+                  : ""
+              }
+            </div>
+
+            <!-- Detail Pencairan -->
+            <div style="flex:1;background:#f9fafb;border-radius:16px;padding:24px;border:1px solid #e5e7eb;">
+              <div style="font-size:10px;font-weight:800;color:#7c3aed;letter-spacing:0.15em;text-transform:uppercase;margin-bottom:16px;display:flex;align-items:center;gap:6px;">
+                <span style="width:3px;height:14px;background:#7c3aed;border-radius:2px;display:inline-block;flex-shrink:0;"></span><span style="line-height:1;vertical-align:text-top;margin-top:-12px;">Detail Pencairan Sekaligus</span>
+              </div>
+              <div style="font-size:14px;font-weight:900;color:#111827;margin-bottom:6px;">Pencairan Kolektif</div>
+              <div style="font-size:12px;color:#374151;font-weight:600;margin-bottom:2px;">Jumlah Transaksi: ${bulkInvoiceOrders.length} Pesanan</div>
+              <div style="font-size:12px;color:#374151;font-weight:600;margin-bottom:2px;">Tanggal Transfer: ${transferDateStr}</div>
+              ${
+                notes
+                  ? `<div style="font-size:11px;color:#6b7280;font-weight:600;margin-top:8px;font-style:italic;">Catatan: &quot;${notes}&quot;</div>`
+                  : ""
+              }
+            </div>
+          </div>
+
+          <!-- Product Table -->
+          <div style="margin-bottom:32px;">
+            <table style="width:100%;border-collapse:collapse;font-size:12px;">
+              <thead>
+                <tr style="background:#111827;">
+                  <th style="padding:12px 14px;text-align:center;color:#fff;font-weight:800;font-size:10px;letter-spacing:0.08em;text-transform:uppercase;border-radius:8px 0 0 8px;width:40px;">No</th>
+                  <th style="padding:12px 14px;text-align:left;color:#fff;font-weight:800;font-size:10px;letter-spacing:0.08em;text-transform:uppercase;width:120px;">Invoice ID</th>
+                  <th style="padding:12px 14px;text-align:left;color:#fff;font-weight:800;font-size:10px;letter-spacing:0.08em;text-transform:uppercase;">Produk</th>
+                  <th style="padding:12px 14px;text-align:right;color:#fff;font-weight:800;font-size:10px;letter-spacing:0.08em;text-transform:uppercase;width:90px;">Subtotal</th>
+                  <th style="padding:12px 14px;text-align:right;color:#fff;font-weight:800;font-size:10px;letter-spacing:0.08em;text-transform:uppercase;width:80px;">Ongkir</th>
+                  <th style="padding:12px 14px;text-align:right;color:#fff;font-weight:800;font-size:10px;letter-spacing:0.08em;text-transform:uppercase;width:80px;">Packing</th>
+                  <th style="padding:12px 14px;text-align:right;color:#fff;font-weight:800;font-size:10px;letter-spacing:0.08em;text-transform:uppercase;border-radius:0 8px 8px 0;width:100px;">Total</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${bulkInvoiceOrders
+                  .map((o, idx) => {
+                    const sub = Number(o.price || 0) * Number(o.quantity || 1);
+                    const ship = Number(o.shipping_cost || 0);
+                    const pack = Number(o.packing_cost || 0);
+                    const singleTotal = sub + ship + pack;
+                    return `
+                    <tr style="border-bottom:1px solid #e5e7eb;">
+                      <td style="padding:12px 14px;text-align:center;font-weight:700;color:#374151;">${idx + 1}</td>
+                      <td style="padding:12px 14px;font-family:monospace;font-size:11px;font-weight:700;color:#111827;">${o.order_id}</td>
+                      <td style="padding:12px 14px;">
+                        <div style="font-weight:700;color:#111827;">${o.product?.name || "Produk"}</div>
+                        <div style="font-size:10px;color:#9ca3af;font-weight:600;">Qty: ${o.quantity} • Kategori: ${o.product?.species || "-"}</div>
+                      </td>
+                      <td style="padding:12px 14px;text-align:right;color:#374151;font-weight:600;">${priceStr(sub)}</td>
+                      <td style="padding:12px 14px;text-align:right;color:#374151;font-weight:600;">${priceStr(ship)}</td>
+                      <td style="padding:12px 14px;text-align:right;color:#374151;font-weight:600;">${priceStr(pack)}</td>
+                      <td style="padding:12px 14px;text-align:right;font-weight:800;color:#111827;">${priceStr(singleTotal)}</td>
+                    </tr>
+                  `;
+                  })
+                  .join("")}
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Cost Breakdown -->
+          <div style="margin-bottom:32px;display:flex;justify-content:flex-end;">
+            <div style="width:340px;background:#f9fafb;border-radius:16px;overflow:hidden;border:1px solid #e5e7eb;">
+              <div style="display:flex;justify-content:space-between;padding:12px 20px;border-bottom:1px solid #e5e7eb;">
+                <span style="font-size:12px;color:#6b7280;font-weight:600;">Total Subtotal Produk</span>
+                <span style="font-size:12px;font-weight:700;color:#374151;">${priceStr(sumSubtotal)}</span>
+              </div>
+              <div style="display:flex;justify-content:space-between;padding:12px 20px;border-bottom:1px solid #e5e7eb;">
+                <span style="font-size:12px;color:#6b7280;font-weight:600;">Total Ongkos Kirim</span>
+                <span style="font-size:12px;font-weight:700;color:#374151;">${priceStr(sumShipping)}</span>
+              </div>
+              <div style="display:flex;justify-content:space-between;padding:12px 20px;border-bottom:1px solid #e5e7eb;">
+                <span style="font-size:12px;color:#6b7280;font-weight:600;">Total Biaya Packing</span>
+                <span style="font-size:12px;font-weight:700;color:#374151;">${priceStr(sumPacking)}</span>
+              </div>
+              <div style="display:flex;justify-content:space-between;padding:12px 20px;border-bottom:1px solid #e5e7eb;">
+                <span style="font-size:12px;color:#6b7280;font-weight:600;">Total Biaya Admin</span>
+                <span style="font-size:12px;font-weight:700;color:#374151;">${priceStr(sumAdminFee)}</span>
+              </div>
+              <div style="display:flex;justify-content:space-between;padding:16px 20px;background:#111827;">
+                <span style="font-size:13px;color:#fff;font-weight:800;text-transform:uppercase;letter-spacing:0.05em;">Total Dana Kotor</span>
+                <span style="font-size:15px;font-weight:900;color:#34d399;font-family:monospace;">${priceStr(totalAccumulatedAmount)}</span>
+              </div>
+              ${
+                Number(additionalFee) > 0
+                  ? `
+                  <div style="display:flex;justify-content:space-between;padding:12px 20px;border-top:1px solid #e5e7eb;background:#fff7ed;">
+                    <span style="font-size:12px;color:#92400e;font-weight:700;">Potongan Biaya Transfer</span>
+                    <span style="font-size:12px;font-weight:800;color:#dc2626;">-${priceStr(additionalFee)}</span>
+                  </div>
+                  `
+                  : ""
+              }
+              <div style="display:flex;justify-content:space-between;padding:16px 20px;background:#ecfdf5;border-top:2px solid #6ee7b7;">
+                <span style="font-size:13px;color:#065f46;font-weight:800;text-transform:uppercase;letter-spacing:0.05em;">Total Dana Dicairkan</span>
+                <span style="font-size:15px;font-weight:900;color:#059669;font-family:monospace;">${priceStr(totalDiterima)}</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Footer -->
+          <div style="border-top:2px dashed #e5e7eb;padding-top:24px;display:flex;justify-content:space-between;align-items:flex-end;margin-top:40px;">
+            <div>
+              <div style="font-size:10px;color:#9ca3af;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;margin-bottom:4px;">Diterbitkan oleh</div>
+              <div style="font-size:16px;font-weight:900;color:#059669;">SatwaiD Platform</div>
+            </div>
+            <div style="text-align:right;">
+              <div style="font-size:10px;color:#9ca3af;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;margin-bottom:4px;">Dokumen Verifikasi</div>
+              <div style="font-size:11px;color:#9ca3af;font-weight:700;font-family:monospace;">${bulkInvoiceId}</div>
+              <div style="font-size:10px;color:#9ca3af;font-weight:600;margin-top:2px;">Dicetak: ${new Date().toLocaleString("id-ID")}</div>
+            </div>
+          </div>
+        </div>
+      `;
+
+      wrapper.appendChild(invoice);
+      document.body.appendChild(wrapper);
+
+      await waitForImages(invoice);
+
+      const canvas = await html2canvas(invoice, {
+        scale: 2,
+        useCORS: true,
+        allowTaint: true,
+        backgroundColor: "#ffffff",
+        logging: false,
+        width: INVOICE_WIDTH,
+        height: invoice.scrollHeight,
+        windowWidth: INVOICE_WIDTH,
+        windowHeight: invoice.scrollHeight,
+      });
+
+      const dataUrl = canvas.toDataURL("image/png", 1.0);
+      const link = document.createElement("a");
+      link.download = `Invoice_Gabungan_${sellerName.replace(/\s+/g, "_")}_${Date.now()}.png`;
+      link.href = dataUrl;
+      link.click();
+
+      document.body.removeChild(wrapper);
+    } catch (err) {
+      console.error("Gagal mendownload invoice gabungan:", err);
+      alert("Terjadi kesalahan saat mengunduh invoice gabungan. Silakan coba lagi.");
+    }
+  };
 
   const getDisbursementStatus = (order) => {
     if (order.disbursed_at || order.disbursement_proof) {
@@ -451,7 +1037,6 @@ export default function DetailPembayaranPage({ params: paramsPromise }) {
                 <th className="px-8 py-5 text-[10px] font-black text-zinc-500 uppercase tracking-widest text-center">Tanggal Transfer</th>
                 <th className="px-8 py-5 text-[10px] font-black text-zinc-500 uppercase tracking-widest">Nominal</th>
                 <th className="px-8 py-5 text-[10px] font-black text-zinc-500 uppercase tracking-widest text-center">Status Transfer</th>
-                <th className="px-8 py-5 text-[10px] font-black text-zinc-500 uppercase tracking-widest text-center">Cetak Invoice</th>
                 <th className="px-8 py-5 text-[10px] font-black text-zinc-500 uppercase tracking-widest text-center">Aksi</th>
               </tr>
             </thead>
@@ -480,8 +1065,12 @@ export default function DetailPembayaranPage({ params: paramsPromise }) {
                     <td className="px-6 py-6 text-center text-xs font-bold text-zinc-500 font-mono">{index + 1}</td>
                     <td className="px-8 py-6">
                       <div className="flex items-center gap-4">
-                        <div className="w-12 h-12 rounded-xl overflow-hidden bg-zinc-950 border border-zinc-800 shrink-0">
-                          <img src={getImageUrl(order.product?.images)} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" alt="" />
+                        <div className="w-12 h-12 rounded-xl overflow-hidden bg-zinc-950 border border-zinc-800 shrink-0 animate-in fade-in duration-300">
+                          {order.product?.images && isVideoUrl(order.product.images) ? (
+                            <video src={getImageUrl(order.product.images)} className="w-full h-full object-cover" preload="metadata" muted playsInline />
+                          ) : (
+                            <img src={getImageUrl(order.product?.images) || "/placeholder.png"} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" alt="" />
+                          )}
                         </div>
                         <div>
                           <p className="text-sm font-black text-white line-clamp-1">{order.product?.name || "Produk dihapus"}</p>
@@ -564,27 +1153,6 @@ export default function DetailPembayaranPage({ params: paramsPromise }) {
                       </div>
                     </td>
                     <td className="px-8 py-6">
-                      <div className="flex items-center justify-center gap-2">
-                        <button
-                          onClick={() => setInvoiceOrder(order)}
-                          className="flex items-center gap-2 px-4 py-2.5 bg-violet-500/10 hover:bg-violet-500 border border-violet-500/30 hover:border-violet-500 text-violet-400 hover:text-white rounded-xl text-[10px] font-black uppercase tracking-widest transition-all group/inv"
-                          title="Cetak Invoice"
-                        >
-                          <Printer size={14} className="group-hover/inv:scale-110 transition-transform" />
-                          Invoice
-                        </button>
-                        <button
-                          onClick={() => toggleInvoiceSent(order.order_id)}
-                          className={`flex items-center justify-center p-2.5 rounded-xl transition-all border shrink-0 ${
-                            isInvoiceSent(order.order_id) ? "bg-emerald-500/20 text-emerald-400 border-emerald-500/30 hover:bg-emerald-500/30 hover:text-emerald-300" : "bg-zinc-800 text-zinc-500 border-zinc-700 hover:text-zinc-300 hover:border-zinc-600"
-                          }`}
-                          title={isInvoiceSent(order.order_id) ? "Tandai Belum Terkirim" : "Tandai Sudah Terkirim"}
-                        >
-                          <CheckCircle2 size={14} className={isInvoiceSent(order.order_id) ? "fill-emerald-500/10" : ""} />
-                        </button>
-                      </div>
-                    </td>
-                    <td className="px-8 py-6">
                       <div className="flex justify-center items-center gap-2">
                         <Link href={`/admin/keuangan/upload/${order.id}`} className="flex items-center gap-2 px-4 py-2.5 bg-zinc-800 hover:bg-zinc-700 text-white rounded-xl text-[10px] font-black uppercase tracking-widest transition-all border border-zinc-700 hover:border-zinc-600 group/btn shadow-inner min-w-[140px] justify-center">
                           {order.disbursed_at || order.disbursement_proof ? (
@@ -605,7 +1173,7 @@ export default function DetailPembayaranPage({ params: paramsPromise }) {
                 ))
               ) : (
                 <tr>
-                  <td colSpan={11} className="px-8 py-20 text-center">
+                  <td colSpan={10} className="px-8 py-20 text-center">
                     <div className="flex flex-col items-center gap-4">
                       <div className="w-16 h-16 bg-zinc-800 rounded-full flex items-center justify-center text-zinc-700 shadow-inner">
                         <FileText size={32} />
@@ -704,6 +1272,17 @@ export default function DetailPembayaranPage({ params: paramsPromise }) {
                 <span className="text-base font-black text-emerald-400">{formatPrice(totalAccumulatedAmount - (Number(additionalFee) || 0))}</span>
               </div>
             </div>
+
+            <button
+              type="button"
+              onClick={() => {
+                setBulkInvoiceOrders(orders.filter((o) => selectedOrders.includes(o.id)));
+                setBulkInvoiceId(`BULK-${shop.id.slice(0, 8).toUpperCase()}-${Date.now().toString().slice(-6)}`);
+              }}
+              className="w-full flex items-center justify-center gap-2 py-3.5 bg-zinc-800 hover:bg-zinc-700 text-white rounded-xl text-xs font-black uppercase tracking-widest transition-all border border-zinc-700 active:scale-95 shadow-inner"
+            >
+              <Eye size={14} className="text-emerald-500" /> Pratinjau Invoice Gabungan
+            </button>
 
             {/* File Upload Section */}
             <div className="space-y-2">
@@ -806,10 +1385,52 @@ export default function DetailPembayaranPage({ params: paramsPromise }) {
           const disbursed = subtotal + shipping + packing - addFee;
           const bankAccounts = shop?.owner?.bank_accounts || [];
           const bank = Array.isArray(bankAccounts) && bankAccounts.length > 0 ? bankAccounts[0] : null;
+
+          const dateStr = (d) => (d ? new Date(d).toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" }) : new Date().toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" }));
+          const priceStr = (v) => new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", minimumFractionDigits: 0 }).format(parseFloat(v) || 0);
+
+          const badgeBg = inv.disbursed_at || inv.disbursement_proof ? "#d1fae5" : "#fef3c7";
+          const badgeColor = inv.disbursed_at || inv.disbursement_proof ? "#065f46" : "#92400e";
+          const badgeBorder = inv.disbursed_at || inv.disbursement_proof ? "#6ee7b7" : "#fcd34d";
+          const badgeText = inv.disbursed_at || inv.disbursement_proof ? "Dana Telah Dicairkan" : "Menunggu Pencairan";
+          const transferDateStr = inv.disbursed_at ? dateStr(inv.disbursed_at) : dateStr(new Date());
+
+          const sellerName = shop?.name || "-";
+          const sellerOwnerName = shop?.owner?.name || shop?.user?.name || "-";
+          const sellerEmail = shop?.owner?.email || "-";
+          const sellerPhone = shop?.whatsapp ? `+62 ${shop.whatsapp}` : "-";
+
+          const bankDetails = bank
+            ? {
+                bankName: bank.bank_name || bank.bankName || "-",
+                accountNumber: bank.account_number || bank.accountNumber || "-",
+                accountName: bank.account_name || bank.accountName || shop?.owner?.name || "-",
+              }
+            : null;
+
+          const buyerName = inv.user?.name || inv.user?.username || "-";
+          const buyerUsername = inv.user?.username || "user";
+          const buyerEmail = inv.user?.email || "-";
+          const buyerPhone = inv.user?.phone || "-";
+          const orderDate = dateStr(inv.created_at);
+          const requestDate = inv.disbursement_requested_at ? dateStr(inv.disbursement_requested_at) : "-";
+
+          const productName = inv.product?.name || "Produk";
+          const productId = inv.product?.product_id || "-";
+          const productSpecies = inv.product?.species || "-";
+          const qty = inv.quantity || 1;
+          const unitPrice = inv.price || 0;
+
           return (
             <div className="fixed inset-0 z-[200] flex items-start justify-center bg-black/80 backdrop-blur-sm overflow-y-auto py-8 px-4">
               {/* Toolbar */}
               <div className="fixed top-4 right-4 flex items-center gap-3 z-[201] no-print">
+                <button
+                  onClick={() => handleDownloadInvoice(inv)}
+                  className="flex items-center gap-2 px-5 py-2.5 bg-emerald-500 hover:bg-emerald-400 text-zinc-950 rounded-xl text-xs font-black uppercase tracking-widest transition-all shadow-lg"
+                >
+                  <Download size={16} /> Unduh Gambar (PNG)
+                </button>
                 <button onClick={() => setShowEmailModal(true)} className="flex items-center gap-2 px-5 py-2.5 bg-amber-500 hover:bg-amber-400 text-zinc-950 rounded-xl text-xs font-black uppercase tracking-widest transition-all shadow-lg">
                   <Mail size={16} /> Teks Email
                 </button>
@@ -836,7 +1457,8 @@ export default function DetailPembayaranPage({ params: paramsPromise }) {
                   position: "relative",
                   overflow: "hidden",
                   boxShadow: "0 25px 80px rgba(0,0,0,0.6)",
-                  padding: "0",
+                  padding: "40px 48px",
+                  boxSizing: "border-box",
                 }}
               >
                 {/* Watermark Logo */}
@@ -852,17 +1474,19 @@ export default function DetailPembayaranPage({ params: paramsPromise }) {
                     justifyContent: "center",
                     pointerEvents: "none",
                     zIndex: 0,
+                    opacity: 0.055,
                   }}
                 >
                   <img
                     src="/images/Logo-Bg-2-2.png"
                     alt=""
+                    crossOrigin="anonymous"
                     style={{
-                      width: "850px",
-                      height: "650px",
+                      width: "400px",
+                      height: "100px",
                       objectFit: "contain",
-                      opacity: 0.055,
-                      transform: "rotate(-25deg)",
+                      transform: "rotate(-20deg)",
+                      marginTop: "40%",
                     }}
                   />
                 </div>
@@ -871,6 +1495,7 @@ export default function DetailPembayaranPage({ params: paramsPromise }) {
                 <div
                   style={{
                     background: "#1e3a8a",
+                    margin: "-40px -48px 40px -48px",
                     padding: "36px 48px",
                     display: "flex",
                     alignItems: "center",
@@ -879,33 +1504,32 @@ export default function DetailPembayaranPage({ params: paramsPromise }) {
                     zIndex: 1,
                   }}
                 >
-                  <div>
-                    <img src="/images/Logo-Bg-1-2.png" alt="SatwaiD" style={{ height: "72px", objectFit: "contain", display: "block" }} />
-                  </div>
+                  <img src="/images/Logo-Bg-1-2.png" alt="SatwaiD" crossOrigin="anonymous" style={{ height: "72px", objectFit: "contain", display: "block" }} />
                   <div style={{ textAlign: "right" }}>
-                    <div style={{ fontSize: "13px", color: "rgba(255,255,255,0.65)", fontWeight: "700", letterSpacing: "0.15em", textTransform: "uppercase" }}>Invoice Pengajuan Dana</div>
+                    <div style={{ fontSize: "13px", color: "rgba(255,255,255,0.65)", fontWeight: "700", letterSpacing: "0.15em", textTransform: "uppercase" }}>Invoice Pencairan Dana</div>
                     <div style={{ fontSize: "22px", fontWeight: "900", color: "#fff", fontFamily: "monospace", marginTop: "4px" }}>{inv.order_id}</div>
                     <div style={{ fontSize: "11px", color: "rgba(255,255,255,0.6)", marginTop: "6px" }}>Diterbitkan: {new Date().toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" })}</div>
                   </div>
                 </div>
 
                 {/* Body */}
-                <div style={{ padding: "40px 48px", position: "relative", zIndex: 1 }}>
+                <div style={{ position: "relative", zIndex: 1 }}>
                   {/* Status Badge */}
-                  <div style={{ marginBottom: "32px" }}>
+                  <div style={{ marginBottom: "32px", display: "flex", alignItems: "center", gap: "12px", flexWrap: "wrap" }}>
                     <div
                       style={{
-                        display: "inline-block",
+                        display: "inline-flex",
+                        alignItems: "center",
+                        gap: "8px",
                         padding: "8px 20px",
                         borderRadius: "100px",
-                        background: inv.disbursed_at || inv.disbursement_proof ? "#d1fae5" : "#fef3c7",
-                        color: inv.disbursed_at || inv.disbursement_proof ? "#065f46" : "#92400e",
+                        background: badgeBg,
+                        color: badgeColor,
                         fontSize: "11px",
                         fontWeight: "800",
                         letterSpacing: "0.12em",
                         textTransform: "uppercase",
-                        border: `1px solid ${inv.disbursed_at || inv.disbursement_proof ? "#6ee7b7" : "#fcd34d"}`,
-                        verticalAlign: "middle",
+                        border: `1px solid ${badgeBorder}`,
                       }}
                     >
                       <span
@@ -913,38 +1537,33 @@ export default function DetailPembayaranPage({ params: paramsPromise }) {
                           width: "8px",
                           height: "8px",
                           borderRadius: "50%",
-                          background: inv.disbursed_at || inv.disbursement_proof ? "#065f46" : "#92400e",
+                          background: badgeColor,
                           display: "inline-block",
-                          verticalAlign: "middle",
-                          marginRight: "8px",
+                          flexShrink: 0,
                         }}
                       />
-                      <span style={{ verticalAlign: "middle" }}>{inv.disbursed_at || inv.disbursement_proof ? "Dana Telah Dicairkan" : "Menunggu Pencairan"}</span>
+                      <span style={{ lineHeight: "1", verticalAlign: "text-top", marginTop: "-12px" }}>{badgeText}</span>
                     </div>
-                    {inv.disbursed_at && <span style={{ fontSize: "11px", color: "#6b7280", fontWeight: "600", marginLeft: "12px", verticalAlign: "middle", display: "inline-block" }}>• Tanggal Transfer: {new Date(inv.disbursed_at).toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" })}</span>}
+                    <span style={{ fontSize: "11px", color: "#6b7280", fontWeight: "600", lineHeight: "1", verticalAlign: "text-top", marginTop: "-12px" }}>• Tanggal Transfer: {transferDateStr}</span>
                   </div>
 
-                  {/* 2-column info grid */}
+                  {/* 2-col Info Grid */}
                   <div style={{ display: "flex", gap: "24px", marginBottom: "36px" }}>
                     {/* Seller */}
                     <div style={{ flex: 1, background: "#f9fafb", borderRadius: "16px", padding: "24px", border: "1px solid #e5e7eb" }}>
                       <div style={{ fontSize: "10px", fontWeight: "800", color: "#059669", letterSpacing: "0.15em", textTransform: "uppercase", marginBottom: "16px", display: "flex", alignItems: "center", gap: "6px" }}>
-                        <span style={{ width: "3px", height: "14px", background: "#059669", borderRadius: "2px", display: "inline-block" }}></span>
-                        Informasi Penjual
+                        <span style={{ width: "3px", height: "14px", background: "#059669", borderRadius: "2px", display: "inline-block", flexShrink: 0 }}></span><span style={{ lineHeight: "1", verticalAlign: "text-top", marginTop: "-12px" }}>Penerima Pencairan (Penjual)</span>
                       </div>
-                      <div style={{ fontSize: "16px", fontWeight: "900", color: "#111827", marginBottom: "4px" }}>{shop?.name || "-"}</div>
-                      <div style={{ fontSize: "12px", color: "#6b7280", fontWeight: "600", marginBottom: "2px" }}>
-                        {shop?.city}
-                        {shop?.province ? `, ${shop?.province}` : ""}
-                      </div>
-                      <div style={{ fontSize: "12px", color: "#6b7280", fontWeight: "600", marginBottom: "2px" }}>+62 {shop?.whatsapp || "-"}</div>
-                      <div style={{ fontSize: "12px", color: "#6b7280", fontWeight: "600" }}>{shop?.owner?.email || "-"}</div>
-                      {bank && (
+                      <div style={{ fontSize: "16px", fontWeight: "900", color: "#111827", marginBottom: "4px" }}>{sellerName}</div>
+                      <div style={{ fontSize: "12px", color: "#6b7280", fontWeight: "600", marginBottom: "2px" }}>Owner: {sellerOwnerName}</div>
+                      <div style={{ fontSize: "12px", color: "#6b7280", fontWeight: "600", marginBottom: "2px" }}>{sellerEmail}</div>
+                      <div style={{ fontSize: "12px", color: "#6b7280", fontWeight: "600" }}>{sellerPhone}</div>
+                      {bankDetails && (
                         <div style={{ marginTop: "14px", paddingTop: "14px", borderTop: "1px dashed #e5e7eb" }}>
                           <div style={{ fontSize: "10px", color: "#9ca3af", fontWeight: "700", letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: "6px" }}>Rekening Penerima</div>
-                          <div style={{ fontSize: "13px", fontWeight: "800", color: "#111827" }}>{bank.bank_name || bank.bankName}</div>
-                          <div style={{ fontSize: "13px", fontWeight: "700", color: "#374151", fontFamily: "monospace", letterSpacing: "0.06em" }}>{bank.account_number || bank.accountNumber}</div>
-                          <div style={{ fontSize: "11px", color: "#6b7280", fontWeight: "600" }}>a.n. {bank.account_name || bank.accountName || shop?.owner?.name}</div>
+                          <div style={{ fontSize: "13px", fontWeight: "800", color: "#111827" }}>{bankDetails.bankName}</div>
+                          <div style={{ fontSize: "13px", fontWeight: "700", color: "#374151", fontFamily: "monospace", letterSpacing: "0.06em" }}>{bankDetails.accountNumber}</div>
+                          <div style={{ fontSize: "11px", color: "#6b7280", fontWeight: "600" }}>a.n. {bankDetails.accountName}</div>
                         </div>
                       )}
                     </div>
@@ -952,16 +1571,16 @@ export default function DetailPembayaranPage({ params: paramsPromise }) {
                     {/* Buyer */}
                     <div style={{ flex: 1, background: "#f9fafb", borderRadius: "16px", padding: "24px", border: "1px solid #e5e7eb" }}>
                       <div style={{ fontSize: "10px", fontWeight: "800", color: "#7c3aed", letterSpacing: "0.15em", textTransform: "uppercase", marginBottom: "16px", display: "flex", alignItems: "center", gap: "6px" }}>
-                        <span style={{ width: "3px", height: "14px", background: "#7c3aed", borderRadius: "2px", display: "inline-block" }}></span>
-                        Informasi Pembeli
+                        <span style={{ width: "3px", height: "14px", background: "#7c3aed", borderRadius: "2px", display: "inline-block", flexShrink: 0 }}></span><span style={{ lineHeight: "1", verticalAlign: "text-top", marginTop: "-12px" }}>Informasi Pembeli &amp; Pesanan</span>
                       </div>
-                      <div style={{ fontSize: "16px", fontWeight: "900", color: "#111827", marginBottom: "4px" }}>{inv.user?.name || inv.user?.username || "-"}</div>
-                      <div style={{ fontSize: "12px", color: "#6b7280", fontWeight: "600", marginBottom: "2px" }}>{inv.user?.email || "-"}</div>
-                      <div style={{ fontSize: "12px", color: "#6b7280", fontWeight: "600", marginBottom: "2px" }}>{inv.user?.phone || "-"}</div>
+                      <div style={{ fontSize: "16px", fontWeight: "900", color: "#111827", marginBottom: "4px" }}>{buyerName}</div>
+                      <div style={{ fontSize: "12px", color: "#6b7280", fontWeight: "600", marginBottom: "2px" }}>@{buyerUsername}</div>
+                      <div style={{ fontSize: "12px", color: "#6b7280", fontWeight: "600", marginBottom: "2px" }}>{buyerEmail}</div>
+                      <div style={{ fontSize: "12px", color: "#6b7280", fontWeight: "600" }}>{buyerPhone}</div>
                       <div style={{ marginTop: "14px", paddingTop: "14px", borderTop: "1px dashed #e5e7eb" }}>
-                        <div style={{ fontSize: "10px", color: "#9ca3af", fontWeight: "700", letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: "6px" }}>Informasi Pesanan</div>
-                        <div style={{ fontSize: "12px", color: "#374151", fontWeight: "600", marginBottom: "2px" }}>Tgl Order: {new Date(inv.created_at).toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" })}</div>
-                        {inv.disbursement_requested_at && <div style={{ fontSize: "12px", color: "#374151", fontWeight: "600", marginBottom: "2px" }}>Tgl Pengajuan: {new Date(inv.disbursement_requested_at).toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" })}</div>}
+                        <div style={{ fontSize: "10px", color: "#9ca3af", fontWeight: "700", letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: "6px" }}>Detail Pesanan</div>
+                        <div style={{ fontSize: "12px", color: "#374151", fontWeight: "600", marginBottom: "2px" }}>Tgl Order: {orderDate}</div>
+                        <div style={{ fontSize: "12px", color: "#374151", fontWeight: "600", marginBottom: "2px" }}>Tgl Pengajuan: {requestDate}</div>
                       </div>
                     </div>
                   </div>
@@ -980,46 +1599,49 @@ export default function DetailPembayaranPage({ params: paramsPromise }) {
                       <tbody>
                         <tr style={{ borderBottom: "1px solid #e5e7eb" }}>
                           <td style={{ padding: "16px 20px" }}>
-                            <div style={{ fontWeight: "700", color: "#111827", fontSize: "14px" }}>{inv.product?.name || "Produk"}</div>
-                            <div style={{ fontSize: "11px", color: "#9ca3af", marginTop: "2px", fontWeight: "600" }}>
-                              ID: {inv.product?.product_id || "-"} • {inv.product?.species || ""}
-                            </div>
+                            <div style={{ fontWeight: "700", color: "#111827", fontSize: "14px" }}>{productName}</div>
+                            <div style={{ fontSize: "11px", color: "#9ca3af", marginTop: "2px", fontWeight: "600" }}>ID: {productId} • Kategori: {productSpecies}</div>
                           </td>
-                          <td style={{ padding: "16px 20px", textAlign: "center", fontWeight: "700", color: "#374151" }}>{inv.quantity}</td>
-                          <td style={{ padding: "16px 20px", textAlign: "right", fontWeight: "700", color: "#374151" }}>{formatPrice(inv.price)}</td>
-                          <td style={{ padding: "16px 20px", textAlign: "right", fontWeight: "800", color: "#111827" }}>{formatPrice(subtotal)}</td>
+                          <td style={{ padding: "16px 20px", textAlign: "center", fontWeight: "700", color: "#374151" }}>{qty}</td>
+                          <td style={{ padding: "16px 20px", textAlign: "right", fontWeight: "700", color: "#374151" }}>{priceStr(unitPrice)}</td>
+                          <td style={{ padding: "16px 20px", textAlign: "right", fontWeight: "800", color: "#111827" }}>{priceStr(subtotal)}</td>
                         </tr>
                       </tbody>
                     </table>
                   </div>
 
                   {/* Cost Breakdown */}
-                  <div style={{ marginBottom: "32px", display: "flex" }}>
-                    <div style={{ marginLeft: "auto", width: "340px", background: "#f9fafb", borderRadius: "16px", overflow: "hidden", border: "1px solid #e5e7eb" }}>
-                      {[
-                        { label: "Subtotal Produk", val: formatPrice(subtotal), color: "#374151" },
-                        { label: "Ongkos Kirim", val: inv.product?.is_free_shipping ? "GRATIS" : formatPrice(shipping), color: inv.product?.is_free_shipping ? "#059669" : "#374151" },
-                        { label: "Biaya Packing", val: inv.product?.is_free_packing ? "GRATIS" : formatPrice(packing), color: inv.product?.is_free_packing ? "#059669" : "#374151" },
-                        { label: "Biaya Admin", val: formatPrice(adminFee), color: "#374151" },
-                      ].map((row, i) => (
-                        <div key={i} style={{ display: "flex", justifyContent: "space-between", padding: "12px 20px", borderBottom: "1px solid #e5e7eb" }}>
-                          <span style={{ fontSize: "12px", color: "#6b7280", fontWeight: "600" }}>{row.label}</span>
-                          <span style={{ fontSize: "12px", fontWeight: "700", color: row.color }}>{row.val}</span>
-                        </div>
-                      ))}
+                  <div style={{ marginBottom: "32px", display: "flex", justifyContent: "flex-end" }}>
+                    <div style={{ width: "340px", background: "#f9fafb", borderRadius: "16px", overflow: "hidden", border: "1px solid #e5e7eb" }}>
+                      <div style={{ display: "flex", justifyContent: "space-between", padding: "12px 20px", borderBottom: "1px solid #e5e7eb" }}>
+                        <span style={{ fontSize: "12px", color: "#6b7280", fontWeight: "600" }}>Subtotal Produk</span>
+                        <span style={{ fontSize: "12px", fontWeight: "700", color: "#374151" }}>{priceStr(subtotal)}</span>
+                      </div>
+                      <div style={{ display: "flex", justifyContent: "space-between", padding: "12px 20px", borderBottom: "1px solid #e5e7eb" }}>
+                        <span style={{ fontSize: "12px", color: "#6b7280", fontWeight: "600" }}>Ongkos Kirim</span>
+                        <span style={{ fontSize: "12px", fontWeight: "700", color: inv.product?.is_free_shipping ? "#059669" : "#374151" }}>{inv.product?.is_free_shipping ? "GRATIS" : priceStr(shipping)}</span>
+                      </div>
+                      <div style={{ display: "flex", justifyContent: "space-between", padding: "12px 20px", borderBottom: "1px solid #e5e7eb" }}>
+                        <span style={{ fontSize: "12px", color: "#6b7280", fontWeight: "600" }}>Biaya Packing</span>
+                        <span style={{ fontSize: "12px", fontWeight: "700", color: inv.product?.is_free_packing ? "#059669" : "#374151" }}>{inv.product?.is_free_packing ? "GRATIS" : priceStr(packing)}</span>
+                      </div>
+                      <div style={{ display: "flex", justifyContent: "space-between", padding: "12px 20px", borderBottom: "1px solid #e5e7eb" }}>
+                        <span style={{ fontSize: "12px", color: "#6b7280", fontWeight: "600" }}>Biaya Admin</span>
+                        <span style={{ fontSize: "12px", fontWeight: "700", color: "#374151" }}>{priceStr(adminFee)}</span>
+                      </div>
                       <div style={{ display: "flex", justifyContent: "space-between", padding: "16px 20px", background: "#111827" }}>
                         <span style={{ fontSize: "13px", color: "#fff", fontWeight: "800", textTransform: "uppercase", letterSpacing: "0.05em" }}>Total Tagihan Pembeli</span>
-                        <span style={{ fontSize: "15px", fontWeight: "900", color: "#34d399", fontFamily: "monospace" }}>{formatPrice(total)}</span>
+                        <span style={{ fontSize: "15px", fontWeight: "900", color: "#34d399", fontFamily: "monospace" }}>{priceStr(total)}</span>
                       </div>
                       {addFee > 0 && (
                         <div style={{ display: "flex", justifyContent: "space-between", padding: "12px 20px", borderTop: "1px solid #e5e7eb", background: "#fff7ed" }}>
                           <span style={{ fontSize: "12px", color: "#92400e", fontWeight: "700" }}>Potongan Biaya Transfer</span>
-                          <span style={{ fontSize: "12px", fontWeight: "800", color: "#dc2626" }}>-{formatPrice(addFee)}</span>
+                          <span style={{ fontSize: "12px", fontWeight: "800", color: "#dc2626" }}>-{priceStr(addFee)}</span>
                         </div>
                       )}
                       <div style={{ display: "flex", justifyContent: "space-between", padding: "16px 20px", background: "#ecfdf5", borderTop: "2px solid #6ee7b7" }}>
                         <span style={{ fontSize: "13px", color: "#065f46", fontWeight: "800", textTransform: "uppercase", letterSpacing: "0.05em" }}>Dana Diterima Penjual</span>
-                        <span style={{ fontSize: "15px", fontWeight: "900", color: "#059669", fontFamily: "monospace" }}>{formatPrice(disbursed)}</span>
+                        <span style={{ fontSize: "15px", fontWeight: "900", color: "#059669", fontFamily: "monospace" }}>{priceStr(disbursed)}</span>
                       </div>
                     </div>
                   </div>
@@ -1028,18 +1650,17 @@ export default function DetailPembayaranPage({ params: paramsPromise }) {
                   {inv.disbursement_notes && (
                     <div style={{ background: "#f0fdf4", border: "1px solid #bbf7d0", borderRadius: "12px", padding: "16px 20px", marginBottom: "28px" }}>
                       <div style={{ fontSize: "10px", fontWeight: "800", color: "#059669", letterSpacing: "0.12em", textTransform: "uppercase", marginBottom: "6px" }}>Catatan Admin</div>
-                      <div style={{ fontSize: "13px", color: "#374151", fontWeight: "600", fontStyle: "italic" }}>{`"${inv.disbursement_notes}"`}</div>
+                      <div style={{ fontSize: "13px", color: "#374151", fontWeight: "600", fontStyle: "italic" }}>&ldquo;{inv.disbursement_notes}&rdquo;</div>
                     </div>
                   )}
 
-                  {/* Footer */}
-                  <div style={{ borderTop: "2px dashed #e5e7eb", paddingTop: "24px", display: "flex", justifyContent: "space-between", alignItems: "flex-end" }}>
+                  <div style={{ borderTop: "2px dashed #e5e7eb", paddingTop: "24px", display: "flex", justifyContent: "space-between", alignItems: "flex-end", marginTop: "40px" }}>
                     <div>
                       <div style={{ fontSize: "10px", color: "#9ca3af", fontWeight: "700", letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: "4px" }}>Diterbitkan oleh</div>
-                      <div style={{ fontSize: "16px", fontWeight: "900", color: "#059669" }}>SatwaiD</div>
+                      <div style={{ fontSize: "16px", fontWeight: "900", color: "#059669" }}>SatwaiD Platform</div>
                     </div>
                     <div style={{ textAlign: "right" }}>
-                      <div style={{ fontSize: "10px", color: "#9ca3af", fontWeight: "700", letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: "4px" }}>Dokumen Resmi</div>
+                      <div style={{ fontSize: "10px", color: "#9ca3af", fontWeight: "700", letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: "4px" }}>Dokumen Verifikasi</div>
                       <div style={{ fontSize: "11px", color: "#9ca3af", fontWeight: "700", fontFamily: "monospace" }}>{inv.order_id}</div>
                       <div style={{ fontSize: "10px", color: "#9ca3af", fontWeight: "600", marginTop: "2px" }}>Dicetak: {new Date().toLocaleString("id-ID")}</div>
                     </div>
@@ -1154,6 +1775,271 @@ Platform Jual Beli Satwa Terpercaya`;
                     </div>
                   );
                 })()}
+            </div>
+          );
+        })()}
+
+      {/* ===== BULK INVOICE PREVIEW MODAL ===== */}
+      {bulkInvoiceOrders &&
+        (() => {
+          const sellerName = shop?.name || "-";
+          const shopCity = shop?.city || "";
+          const shopProvince = shop?.province ? ", " + shop.province : "";
+          const sellerOwnerName = shop?.owner?.name || shop?.user?.name || "-";
+          const sellerEmail = shop?.owner?.email || "-";
+          const sellerPhone = shop?.whatsapp ? `+62 ${shop.whatsapp}` : "-";
+
+          const bankAccounts = shop?.owner?.bank_accounts || [];
+          let parsedBankAccounts = bankAccounts;
+          if (typeof bankAccounts === "string") {
+            try {
+              parsedBankAccounts = JSON.parse(bankAccounts);
+            } catch (e) {
+              parsedBankAccounts = [];
+            }
+          }
+          const bank = Array.isArray(parsedBankAccounts) && parsedBankAccounts.length > 0 ? parsedBankAccounts[0] : null;
+
+          const dateStr = (d) => (d ? new Date(d).toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" }) : new Date().toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" }));
+          const priceStr = (v) => new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", minimumFractionDigits: 0 }).format(parseFloat(v) || 0);
+
+          const badgeBg = "#d1fae5";
+          const badgeColor = "#065f46";
+          const badgeBorder = "#6ee7b7";
+          const badgeText = "Dana Telah Dicairkan (Gabungan)";
+          const transferDateStr = new Date().toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" });
+
+          const bankDetails = bank ? {
+            bankName: bank.bank_name || bank.bankName || "-",
+            accountNumber: bank.account_number || bank.accountNumber || "-",
+            accountName: bank.account_name || bank.accountName || shop?.owner?.name || "-"
+          } : null;
+
+          const sumSubtotal = bulkInvoiceOrders.reduce((sum, o) => sum + Number(o.price || 0) * Number(o.quantity || 1), 0);
+          const sumShipping = bulkInvoiceOrders.reduce((sum, o) => sum + Number(o.shipping_cost || 0), 0);
+          const sumPacking = bulkInvoiceOrders.reduce((sum, o) => sum + Number(o.packing_cost || 0), 0);
+          const sumAdminFee = bulkInvoiceOrders.reduce((sum, o) => sum + Number(o.admin_fee || 0), 0);
+          const totalDiterima = totalAccumulatedAmount - Number(additionalFee || 0);
+
+          return (
+            <div className="fixed inset-0 z-[200] flex items-start justify-center bg-black/80 backdrop-blur-sm overflow-y-auto py-8 px-4">
+              {/* Toolbar */}
+              <div className="fixed top-4 right-4 flex items-center gap-3 z-[201] no-print">
+                <button
+                  onClick={handleDownloadBulkInvoice}
+                  className="flex items-center gap-2 px-5 py-2.5 bg-emerald-500 hover:bg-emerald-400 text-zinc-950 rounded-xl text-xs font-black uppercase tracking-widest transition-all shadow-lg"
+                >
+                  <Download size={16} /> Unduh Gambar (PNG)
+                </button>
+                <button
+                  onClick={() => setBulkInvoiceOrders(null)}
+                  className="w-10 h-10 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 hover:text-white rounded-xl flex items-center justify-center transition-all"
+                >
+                  <X size={18} />
+                </button>
+              </div>
+
+              {/* Invoice Paper */}
+              <div
+                id="satwaid-invoice-bulk"
+                style={{
+                  background: "#ffffff",
+                  color: "#111827",
+                  width: "794px",
+                  minHeight: "1123px",
+                  fontFamily: "'Segoe UI', Arial, sans-serif",
+                  position: "relative",
+                  overflow: "hidden",
+                  boxShadow: "0 25px 80px rgba(0,0,0,0.6)",
+                  padding: "40px 48px",
+                  boxSizing: "border-box",
+                }}
+              >
+                {/* Watermark */}
+                <div style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0, display: "flex", alignItems: "center", justifyContent: "center", pointerEvents: "none", zIndex: 0, opacity: 0.055 }}>
+                  <img src="/images/Logo-Bg-2-2.png" alt="" crossOrigin="anonymous" style={{ width: "400px", height: "100px", objectFit: "contain", transform: "rotate(-20deg)", marginTop: "40%" }} />
+                </div>
+
+                {/* Header Strip */}
+                <div
+                  style={{
+                    background: "#1e3a8a",
+                    margin: "-40px -48px 40px -48px",
+                    padding: "36px 48px",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    position: "relative",
+                    zIndex: 1,
+                  }}
+                >
+                  <img src="/images/Logo-Bg-1-2.png" alt="SatwaiD" crossOrigin="anonymous" style={{ height: "72px", objectFit: "contain", display: "block" }} />
+                  <div style={{ textAlign: "right" }}>
+                    <div style={{ fontSize: "13px", color: "rgba(255,255,255,0.65)", fontWeight: "700", letterSpacing: "0.15em", textTransform: "uppercase" }}>Invoice Pencairan Gabungan</div>
+                    <div style={{ fontSize: "20px", fontWeight: "900", color: "#fff", fontFamily: "monospace", marginTop: "4px" }}>{bulkInvoiceId}</div>
+                    <div style={{ fontSize: "11px", color: "rgba(255,255,255,0.6)", marginTop: "6px" }}>Diterbitkan: {new Date().toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" })}</div>
+                  </div>
+                </div>
+
+                {/* Body Content */}
+                <div style={{ position: "relative", zIndex: 1 }}>
+                  {/* Status Badge */}
+                  <div style={{ marginBottom: "32px", display: "flex", alignItems: "center", gap: "12px", flexWrap: "wrap" }}>
+                    <div
+                      style={{
+                        display: "inline-flex",
+                        alignItems: "center",
+                        gap: "8px",
+                        padding: "8px 20px",
+                        borderRadius: "100px",
+                        background: badgeBg,
+                        color: badgeColor,
+                        fontSize: "11px",
+                        fontWeight: "800",
+                        letterSpacing: "0.12em",
+                        textTransform: "uppercase",
+                        border: `1px solid ${badgeBorder}`,
+                      }}
+                    >
+                      <span
+                        style={{
+                          width: "8px",
+                          height: "8px",
+                          borderRadius: "50%",
+                          background: badgeColor,
+                          display: "inline-block",
+                          flexShrink: 0,
+                        }}
+                      />
+                      <span style={{ lineHeight: "1", verticalAlign: "text-top", marginTop: "-12px" }}>{badgeText}</span>
+                    </div>
+                    <span style={{ fontSize: "11px", color: "#6b7280", fontWeight: "600", lineHeight: "1", verticalAlign: "text-top", marginTop: "-12px" }}>
+                      • Total Transaksi: {bulkInvoiceOrders.length} Pesanan
+                    </span>
+                  </div>
+
+                  {/* 2-column info grid */}
+                  <div style={{ display: "flex", gap: "24px", marginBottom: "36px" }}>
+                    {/* Seller */}
+                    <div style={{ flex: 1, background: "#f9fafb", borderRadius: "16px", padding: "24px", border: "1px solid #e5e7eb" }}>
+                      <div style={{ fontSize: "10px", fontWeight: "800", color: "#059669", letterSpacing: "0.15em", textTransform: "uppercase", marginBottom: "16px", display: "flex", alignItems: "center", gap: "6px" }}>
+                        <span style={{ width: "3px", height: "14px", background: "#059669", borderRadius: "2px", display: "inline-block", flexShrink: 0 }}></span><span style={{ lineHeight: "1", verticalAlign: "text-top", marginTop: "-12px" }}>Penerima Pencairan (Penjual)</span>
+                      </div>
+                      <div style={{ fontSize: "16px", fontWeight: "900", color: "#111827", marginBottom: "4px" }}>{sellerName}</div>
+                      <div style={{ fontSize: "12px", color: "#6b7280", fontWeight: "600", marginBottom: "2px" }}>Owner: {sellerOwnerName}</div>
+                      <div style={{ fontSize: "12px", color: "#6b7280", fontWeight: "600", marginBottom: "2px" }}>{sellerEmail}</div>
+                      <div style={{ fontSize: "12px", color: "#6b7280", fontWeight: "600" }}>{sellerPhone}</div>
+                      {bankDetails && (
+                        <div style={{ marginTop: "14px", paddingTop: "14px", borderTop: "1px dashed #e5e7eb" }}>
+                          <div style={{ fontSize: "10px", color: "#9ca3af", fontWeight: "700", letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: "6px" }}>Rekening Penerima</div>
+                          <div style={{ fontSize: "13px", fontWeight: "800", color: "#111827" }}>{bankDetails.bankName}</div>
+                          <div style={{ fontSize: "13px", fontWeight: "700", color: "#374151", fontFamily: "monospace", letterSpacing: "0.06em" }}>{bankDetails.accountNumber}</div>
+                          <div style={{ fontSize: "11px", color: "#6b7280", fontWeight: "600" }}>a.n. {bankDetails.accountName}</div>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* platform details */}
+                    <div style={{ flex: 1, background: "#f9fafb", borderRadius: "16px", padding: "24px", border: "1px solid #e5e7eb" }}>
+                      <div style={{ fontSize: "10px", fontWeight: "800", color: "#7c3aed", letterSpacing: "0.15em", textTransform: "uppercase", marginBottom: "16px", display: "flex", alignItems: "center", gap: "6px" }}>
+                        <span style={{ width: "3px", height: "14px", background: "#7c3aed", borderRadius: "2px", display: "inline-block", flexShrink: 0 }}></span><span style={{ lineHeight: "1", verticalAlign: "text-top", marginTop: "-12px" }}>Detail Pencairan Sekaligus</span>
+                      </div>
+                      <div style={{ fontSize: "14px", fontWeight: "900", color: "#111827", marginBottom: "6px" }}>Pencairan Kolektif</div>
+                      <div style={{ fontSize: "12px", color: "#374151", fontWeight: "600", marginBottom: "2px" }}>Jumlah Transaksi: {bulkInvoiceOrders.length} Pesanan</div>
+                      <div style={{ fontSize: "12px", color: "#374151", fontWeight: "600", marginBottom: "2px" }}>Tanggal Transfer: {transferDateStr}</div>
+                      {notes && <div style={{ fontSize: "11px", color: "#6b7280", fontWeight: "600", marginTop: "8px", fontStyle: "italic" }}>Catatan: &quot;{notes}&quot;</div>}
+                    </div>
+                  </div>
+
+                  {/* Product Table */}
+                  <div style={{ marginBottom: "32px" }}>
+                    <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "12px" }}>
+                      <thead>
+                        <tr style={{ background: "#111827" }}>
+                          <th style={{ padding: "12px 14px", textAlign: "center", color: "#fff", fontWeight: "800", fontSize: "10px", letterSpacing: "0.08em", textTransform: "uppercase", borderRadius: "8px 0 0 8px", width: "40px" }}>No</th>
+                          <th style={{ padding: "12px 14px", textAlign: "left", color: "#fff", fontWeight: "800", fontSize: "10px", letterSpacing: "0.08em", textTransform: "uppercase", width: "120px" }}>Invoice ID</th>
+                          <th style={{ padding: "12px 14px", textAlign: "left", color: "#fff", fontWeight: "800", fontSize: "10px", letterSpacing: "0.08em", textTransform: "uppercase" }}>Produk</th>
+                          <th style={{ padding: "12px 14px", textAlign: "right", color: "#fff", fontWeight: "800", fontSize: "10px", letterSpacing: "0.08em", textTransform: "uppercase", width: "90px" }}>Subtotal</th>
+                          <th style={{ padding: "12px 14px", textAlign: "right", color: "#fff", fontWeight: "800", fontSize: "10px", letterSpacing: "0.08em", textTransform: "uppercase", width: "80px" }}>Ongkir</th>
+                          <th style={{ padding: "12px 14px", textAlign: "right", color: "#fff", fontWeight: "800", fontSize: "10px", letterSpacing: "0.08em", textTransform: "uppercase", width: "80px" }}>Packing</th>
+                          <th style={{ padding: "12px 14px", textAlign: "right", color: "#fff", fontWeight: "800", fontSize: "10px", letterSpacing: "0.08em", textTransform: "uppercase", borderRadius: "0 8px 8px 0", width: "100px" }}>Total</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {bulkInvoiceOrders.map((o, idx) => {
+                          const sub = Number(o.price || 0) * Number(o.quantity || 1);
+                          const ship = Number(o.shipping_cost || 0);
+                          const pack = Number(o.packing_cost || 0);
+                          const singleTotal = sub + ship + pack;
+                          return (
+                            <tr key={o.id} style={{ borderBottom: "1px solid #e5e7eb" }}>
+                              <td style={{ padding: "12px 14px", textAlign: "center", fontWeight: "700", color: "#374151" }}>{idx + 1}</td>
+                              <td style={{ padding: "12px 14px", fontFamily: "monospace", fontSize: "11px", fontWeight: "700", color: "#111827" }}>{o.order_id}</td>
+                              <td style={{ padding: "12px 14px" }}>
+                                <div style={{ fontWeight: "700", color: "#111827" }}>{o.product?.name || "Produk"}</div>
+                                <div style={{ fontSize: "10px", color: "#9ca3af", fontWeight: "600" }}>Qty: {o.quantity} • Kategori: {o.product?.species || "-"}</div>
+                              </td>
+                              <td style={{ padding: "12px 14px", textAlign: "right", color: "#374151", fontWeight: "600" }}>{priceStr(sub)}</td>
+                              <td style={{ padding: "12px 14px", textAlign: "right", color: "#374151", fontWeight: "600" }}>{priceStr(ship)}</td>
+                              <td style={{ padding: "12px 14px", textAlign: "right", color: "#374151", fontWeight: "600" }}>{priceStr(pack)}</td>
+                              <td style={{ padding: "12px 14px", textAlign: "right", fontWeight: "800", color: "#111827" }}>{priceStr(singleTotal)}</td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+
+                  {/* Cost Breakdown */}
+                  <div style={{ marginBottom: "32px", display: "flex", justifyContent: "flex-end" }}>
+                    <div style={{ width: "340px", background: "#f9fafb", borderRadius: "16px", overflow: "hidden", border: "1px solid #e5e7eb" }}>
+                      <div style={{ display: "flex", justifyContent: "space-between", padding: "12px 20px", borderBottom: "1px solid #e5e7eb" }}>
+                        <span style={{ fontSize: "12px", color: "#6b7280", fontWeight: "600" }}>Total Subtotal Produk</span>
+                        <span style={{ fontSize: "12px", fontWeight: "700", color: "#374151" }}>{priceStr(sumSubtotal)}</span>
+                      </div>
+                      <div style={{ display: "flex", justifyContent: "space-between", padding: "12px 20px", borderBottom: "1px solid #e5e7eb" }}>
+                        <span style={{ fontSize: "12px", color: "#6b7280", fontWeight: "600" }}>Total Ongkos Kirim</span>
+                        <span style={{ fontSize: "12px", fontWeight: "700", color: "#374151" }}>{priceStr(sumShipping)}</span>
+                      </div>
+                      <div style={{ display: "flex", justifyContent: "space-between", padding: "12px 20px", borderBottom: "1px solid #e5e7eb" }}>
+                        <span style={{ fontSize: "12px", color: "#6b7280", fontWeight: "600" }}>Total Biaya Packing</span>
+                        <span style={{ fontSize: "12px", fontWeight: "700", color: "#374151" }}>{priceStr(sumPacking)}</span>
+                      </div>
+                      <div style={{ display: "flex", justifyContent: "space-between", padding: "12px 20px", borderBottom: "1px solid #e5e7eb" }}>
+                        <span style={{ fontSize: "12px", color: "#6b7280", fontWeight: "600" }}>Total Biaya Admin</span>
+                        <span style={{ fontSize: "12px", fontWeight: "700", color: "#374151" }}>{priceStr(sumAdminFee)}</span>
+                      </div>
+                      <div style={{ display: "flex", justifyContent: "space-between", padding: "16px 20px", background: "#111827" }}>
+                        <span style={{ fontSize: "13px", color: "#fff", fontWeight: "800", textTransform: "uppercase", letterSpacing: "0.05em" }}>Total Dana Kotor</span>
+                        <span style={{ fontSize: "15px", fontWeight: "900", color: "#34d399", fontFamily: "monospace" }}>{priceStr(totalAccumulatedAmount)}</span>
+                      </div>
+                      {Number(additionalFee) > 0 ? (
+                        <div style={{ display: "flex", justifyContent: "space-between", padding: "12px 20px", borderTop: "1px solid #e5e7eb", background: "#fff7ed" }}>
+                          <span style={{ fontSize: "12px", color: "#92400e", fontWeight: "700" }}>Potongan Biaya Transfer</span>
+                          <span style={{ fontSize: "12px", fontWeight: "800", color: "#dc2626" }}>-{priceStr(additionalFee)}</span>
+                        </div>
+                      ) : null}
+                      <div style={{ display: "flex", justifyContent: "space-between", padding: "16px 20px", background: "#ecfdf5", borderTop: "2px solid #6ee7b7" }}>
+                        <span style={{ fontSize: "13px", color: "#065f46", fontWeight: "800", textTransform: "uppercase", letterSpacing: "0.05em" }}>Total Dana Dicairkan</span>
+                        <span style={{ fontSize: "15px", fontWeight: "900", color: "#059669", fontFamily: "monospace" }}>{priceStr(totalDiterima)}</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Footer */}
+                  <div style={{ borderTop: "2px dashed #e5e7eb", paddingTop: "24px", display: "flex", justifyContent: "space-between", alignItems: "flex-end", marginTop: "40px" }}>
+                    <div>
+                      <div style={{ fontSize: "10px", color: "#9ca3af", fontWeight: "700", letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: "4px" }}>Diterbitkan oleh</div>
+                      <div style={{ fontSize: "16px", fontWeight: "900", color: "#059669" }}>SatwaiD Platform</div>
+                    </div>
+                    <div style={{ textAlign: "right" }}>
+                      <div style={{ fontSize: "10px", color: "#9ca3af", fontWeight: "700", letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: "4px" }}>Dokumen Verifikasi</div>
+                      <div style={{ fontSize: "11px", color: "#9ca3af", fontWeight: "700", fontFamily: "monospace" }}>{bulkInvoiceId}</div>
+                      <div style={{ fontSize: "10px", color: "#9ca3af", fontWeight: "600", marginTop: "2px" }}>Dicetak: {new Date().toLocaleString("id-ID")}</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
           );
         })()}

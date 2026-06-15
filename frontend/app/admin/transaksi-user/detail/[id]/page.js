@@ -7,6 +7,30 @@ import { ChevronLeft, Receipt, User, Store, Package, Truck, CreditCard, Clock, C
 import OrderStepper from "@/components/OrderStepper";
 import OrderTimeline from "@/components/OrderTimeline";
 import { copyToClipboard } from "@/app/utils/clipboard";
+import { getImageUrl } from "@/app/utils/api";
+
+const isVideoUrl = (url) => {
+  if (!url) return false;
+  let finalPath = url;
+  try {
+    if (typeof url === "string" && (url.startsWith("[") || url.startsWith("{"))) {
+      const parsed = JSON.parse(url);
+      finalPath = Array.isArray(parsed) ? parsed[0] : parsed;
+    } else if (Array.isArray(url)) {
+      finalPath = url[0];
+    }
+  } catch (e) {}
+  if (!finalPath || typeof finalPath !== "string") return false;
+  const lower = finalPath.toLowerCase();
+  return (
+    lower.endsWith(".mp4") ||
+    lower.endsWith(".mov") ||
+    lower.endsWith(".avi") ||
+    lower.endsWith(".webm") ||
+    lower.endsWith(".mkv") ||
+    lower.endsWith(".3gp")
+  );
+};
 
 export default function AdminTransactionDetailPage({ params }) {
   const { id } = use(params);
@@ -104,14 +128,6 @@ export default function AdminTransactionDetailPage({ params }) {
     }
   };
 
-  const getImageUrl = (path) => {
-    if (!path) return "/placeholder.png";
-    if (path.startsWith("data:image")) return path;
-    if (path.startsWith("http")) {
-      return path.replace("localhost:3000", "localhost:4000");
-    }
-    return `${process.env.NEXT_PUBLIC_API_URL}${path.startsWith("/") ? "" : "/"}${path}`;
-  };
 
   const handleConfirmPayment = async () => {
     setIsConfirming(true);
@@ -396,61 +412,136 @@ export default function AdminTransactionDetailPage({ params }) {
                 </div>
               </button>
 
-              <div className={`overflow-hidden transition-all duration-700 ease-in-out ${openProductAccordion ? "max-h-[4000px] opacity-100 p-8 sm:p-10 pt-0" : "max-h-0 opacity-0"}`}>
-                <div className="flex flex-col lg:flex-row gap-10">
-                  <div className="w-full lg:w-64 aspect-square rounded-[2rem] overflow-hidden bg-zinc-800 shrink-0 border border-zinc-800 shadow-2xl relative group/img">
-                    <img src={getImageUrl(getImagesArray(order.product?.images)[0])} alt="Product" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent"></div>
-                  </div>
-
-                  <div className="space-y-6 flex-1">
-                    <div className="space-y-3">
-                      <div className="flex items-center gap-3 flex-wrap">
-                        <span className="px-3.5 py-1 bg-emerald-500/10 border border-emerald-500/20 rounded-full text-[10px] font-semibold text-emerald-500 uppercase tracking-wider">{order.product?.species || "REPTIL"}</span>
-                        {order.product?.product_id && <span className="px-3.5 py-1 bg-zinc-950 border border-zinc-800 rounded-full text-[10px] font-mono font-semibold text-zinc-400 uppercase tracking-wider">ID: {order.product.product_id}</span>}
-                      </div>
-                      <h4 className="text-2xl font-bold text-white tracking-tight leading-none">{order.product?.name}</h4>
-                    </div>
-
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                      {[
-                        { label: "Harga Satuan", value: formatPrice(order.price) },
-                        { label: "Kuantitas", value: `${order.quantity} Ekor` },
-                        { label: "Gender", value: order.product?.sex?.toUpperCase() || "-" },
-                        { label: "Sisa Stok", value: order.product?.stock || "0", color: "text-emerald-500" },
-                      ].map((stat, i) => (
-                        <div key={i} className="bg-zinc-950 p-4 rounded-xl border border-zinc-800/80 shadow-inner">
-                          <p className="text-[10px] font-semibold text-zinc-500 uppercase tracking-wider mb-1">{stat.label}</p>
-                          <p className={`text-sm font-bold ${stat.color || "text-white"} tracking-tight`}>{stat.value}</p>
+              <div className={`overflow-hidden transition-all duration-700 ease-in-out ${openProductAccordion ? "max-h-[8000px] opacity-100 p-8 sm:p-10 pt-0" : "max-h-0 opacity-0"}`}>
+                {order.items && order.items.length > 0 ? (
+                  <div className="space-y-8 divide-y divide-zinc-800/60">
+                    {order.items.map((item, idx) => (
+                      <div key={item.id || idx} className={`flex flex-col lg:flex-row gap-10 ${idx > 0 ? "pt-8" : ""}`}>
+                        <div className="w-full lg:w-64 aspect-square rounded-[2rem] overflow-hidden bg-zinc-800 shrink-0 border border-zinc-800 shadow-2xl relative group/img">
+                          {(() => {
+                            const mediaPath = getImagesArray(item.product?.images)[0];
+                            return isVideoUrl(mediaPath) ? (
+                              <video src={getImageUrl(mediaPath)} className="w-full h-full object-cover" preload="metadata" muted playsInline controls />
+                            ) : (
+                              <img src={getImageUrl(mediaPath) || "/placeholder.png"} alt={item.product?.name || "Product"} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
+                            );
+                          })()}
+                          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent pointer-events-none"></div>
                         </div>
-                      ))}
-                    </div>
 
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                      {/* Deskripsi Card */}
-                      <div className="p-5 bg-zinc-950 border border-zinc-800 rounded-[1.5rem] space-y-3 relative overflow-hidden group/desc flex flex-col justify-between shadow-inner">
-                        <div className="space-y-2">
-                          <div className="flex items-center gap-2 text-emerald-500 border-b border-zinc-800/80 pb-2">
-                            <ScrollText size={14} />
-                            <p className="text-[10px] font-bold uppercase tracking-wider">Deskripsi Produk</p>
+                        <div className="space-y-6 flex-1">
+                          <div className="space-y-3">
+                            <div className="flex items-center gap-3 flex-wrap">
+                              <span className="px-3.5 py-1 bg-emerald-500/10 border border-emerald-500/20 rounded-full text-[10px] font-semibold text-emerald-500 uppercase tracking-wider">{item.product?.species || "REPTIL"}</span>
+                              {item.product?.product_id && <span className="px-3.5 py-1 bg-zinc-950 border border-zinc-800 rounded-full text-[10px] font-mono font-semibold text-zinc-400 uppercase tracking-wider">ID: {item.product.product_id}</span>}
+                            </div>
+                            <h4 className="text-2xl font-bold text-white tracking-tight leading-none">{item.product?.name}</h4>
                           </div>
-                          <div className="text-xs text-zinc-400 font-normal leading-relaxed description-content pl-1" dangerouslySetInnerHTML={{ __html: order.product?.description || "Tidak ada deskripsi." }} />
+
+                          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                            {[
+                              { label: "Harga Satuan", value: formatPrice(item.price) },
+                              { label: "Kuantitas", value: `${item.quantity} Ekor` },
+                              { label: "Gender", value: item.product?.sex?.toUpperCase() || "-" },
+                              { label: "Subtotal", value: formatPrice(Number(item.price) * item.quantity), color: "text-emerald-500" },
+                            ].map((stat, i) => (
+                              <div key={i} className="bg-zinc-950 p-4 rounded-xl border border-zinc-800/80 shadow-inner">
+                                <p className="text-[10px] font-semibold text-zinc-500 uppercase tracking-wider mb-1">{stat.label}</p>
+                                <p className={`text-sm font-bold ${stat.color || "text-white"} tracking-tight`}>{stat.value}</p>
+                              </div>
+                            ))}
+                          </div>
+
+                          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                            {/* Deskripsi Card */}
+                            <div className="p-5 bg-zinc-950 border border-zinc-800 rounded-[1.5rem] space-y-3 relative overflow-hidden group/desc flex flex-col justify-between shadow-inner">
+                              <div className="space-y-2">
+                                <div className="flex items-center gap-2 text-emerald-500 border-b border-zinc-800/80 pb-2">
+                                  <ScrollText size={14} />
+                                  <p className="text-[10px] font-bold uppercase tracking-wider">Deskripsi Produk</p>
+                                </div>
+                                <div className="text-xs text-zinc-400 font-normal leading-relaxed description-content pl-1" dangerouslySetInnerHTML={{ __html: item.product?.description || "Tidak ada deskripsi." }} />
+                              </div>
+                            </div>
+
+                            {/* Catatan Pengiriman Card */}
+                            <div className="p-5 bg-zinc-950 border border-zinc-800 rounded-[1.5rem] space-y-3 relative overflow-hidden group/ship flex flex-col justify-between shadow-inner">
+                              <div className="space-y-2">
+                                <div className="flex items-center gap-2 text-emerald-500 border-b border-zinc-800/80 pb-2">
+                                  <Truck size={14} />
+                                  <p className="text-[10px] font-bold uppercase tracking-wider">Catatan Pengiriman</p>
+                                </div>
+                                <div className="text-xs text-zinc-400 font-normal leading-relaxed description-content pl-1" dangerouslySetInnerHTML={{ __html: item.product?.shipping_description || "Tidak ada catatan pengiriman." }} />
+                              </div>
+                            </div>
+                          </div>
                         </div>
                       </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="flex flex-col lg:flex-row gap-10">
+                    <div className="w-full lg:w-64 aspect-square rounded-[2rem] overflow-hidden bg-zinc-800 shrink-0 border border-zinc-800 shadow-2xl relative group/img">
+                      {(() => {
+                        const mediaPath = getImagesArray(order.product?.images)[0];
+                        return isVideoUrl(mediaPath) ? (
+                          <video src={getImageUrl(mediaPath)} className="w-full h-full object-cover" preload="metadata" muted playsInline controls />
+                        ) : (
+                          <img src={getImageUrl(mediaPath) || "/placeholder.png"} alt="Product" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
+                        );
+                      })()}
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent pointer-events-none"></div>
+                    </div>
 
-                      {/* Catatan Pengiriman Card */}
-                      <div className="p-5 bg-zinc-950 border border-zinc-800 rounded-[1.5rem] space-y-3 relative overflow-hidden group/ship flex flex-col justify-between shadow-inner">
-                        <div className="space-y-2">
-                          <div className="flex items-center gap-2 text-emerald-500 border-b border-zinc-800/80 pb-2">
-                            <Truck size={14} />
-                            <p className="text-[10px] font-bold uppercase tracking-wider">Catatan Pengiriman</p>
+                    <div className="space-y-6 flex-1">
+                      <div className="space-y-3">
+                        <div className="flex items-center gap-3 flex-wrap">
+                          <span className="px-3.5 py-1 bg-emerald-500/10 border border-emerald-500/20 rounded-full text-[10px] font-semibold text-emerald-500 uppercase tracking-wider">{order.product?.species || "REPTIL"}</span>
+                          {order.product?.product_id && <span className="px-3.5 py-1 bg-zinc-950 border border-zinc-800 rounded-full text-[10px] font-mono font-semibold text-zinc-400 uppercase tracking-wider">ID: {order.product.product_id}</span>}
+                        </div>
+                        <h4 className="text-2xl font-bold text-white tracking-tight leading-none">{order.product?.name}</h4>
+                      </div>
+
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        {[
+                          { label: "Harga Satuan", value: formatPrice(order.price) },
+                          { label: "Kuantitas", value: `${order.quantity} Ekor` },
+                          { label: "Gender", value: order.product?.sex?.toUpperCase() || "-" },
+                          { label: "Sisa Stok", value: order.product?.stock || "0", color: "text-emerald-500" },
+                        ].map((stat, i) => (
+                          <div key={i} className="bg-zinc-950 p-4 rounded-xl border border-zinc-800/80 shadow-inner">
+                            <p className="text-[10px] font-semibold text-zinc-500 uppercase tracking-wider mb-1">{stat.label}</p>
+                            <p className={`text-sm font-bold ${stat.color || "text-white"} tracking-tight`}>{stat.value}</p>
                           </div>
-                          <div className="text-xs text-zinc-400 font-normal leading-relaxed description-content pl-1" dangerouslySetInnerHTML={{ __html: order.product?.shipping_description || "Tidak ada catatan pengiriman." }} />
+                        ))}
+                      </div>
+
+                      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        {/* Deskripsi Card */}
+                        <div className="p-5 bg-zinc-950 border border-zinc-800 rounded-[1.5rem] space-y-3 relative overflow-hidden group/desc flex flex-col justify-between shadow-inner">
+                          <div className="space-y-2">
+                            <div className="flex items-center gap-2 text-emerald-500 border-b border-zinc-800/80 pb-2">
+                              <ScrollText size={14} />
+                              <p className="text-[10px] font-bold uppercase tracking-wider">Deskripsi Produk</p>
+                            </div>
+                            <div className="text-xs text-zinc-400 font-normal leading-relaxed description-content pl-1" dangerouslySetInnerHTML={{ __html: order.product?.description || "Tidak ada deskripsi." }} />
+                          </div>
+                        </div>
+
+                        {/* Catatan Pengiriman Card */}
+                        <div className="p-5 bg-zinc-950 border border-zinc-800 rounded-[1.5rem] space-y-3 relative overflow-hidden group/ship flex flex-col justify-between shadow-inner">
+                          <div className="space-y-2">
+                            <div className="flex items-center gap-2 text-emerald-500 border-b border-zinc-800/80 pb-2">
+                              <Truck size={14} />
+                              <p className="text-[10px] font-bold uppercase tracking-wider">Catatan Pengiriman</p>
+                            </div>
+                            <div className="text-xs text-zinc-400 font-normal leading-relaxed description-content pl-1" dangerouslySetInnerHTML={{ __html: order.product?.shipping_description || "Tidak ada catatan pengiriman." }} />
+                          </div>
                         </div>
                       </div>
                     </div>
                   </div>
-                </div>
+                )}
               </div>
             </div>
 
@@ -482,7 +573,14 @@ export default function AdminTransactionDetailPage({ params }) {
 
                 <div className="space-y-3.5 px-2">
                   {[
-                    { label: "Subtotal Produk", value: formatPrice(order.price * order.quantity) },
+                    {
+                      label: "Subtotal Produk",
+                      value: formatPrice(
+                        order.items && order.items.length > 0
+                          ? order.items.reduce((sum, item) => sum + (Number(item.price) * (item.quantity || 1)), 0)
+                          : (order.price * order.quantity)
+                      )
+                    },
                     { label: "Biaya Admin", value: formatPrice(order.admin_fee || 5000) },
                     { label: "Ongkos Kirim", value: order.product?.is_free_shipping ? <span className="text-emerald-500 font-bold">Gratis</span> : formatPrice(order.shipping_cost || 0) },
                     { label: "Biaya Packing", value: order.product?.is_free_packing ? <span className="text-emerald-500 font-bold">Gratis</span> : formatPrice(order.packing_cost || 0) },
@@ -520,9 +618,9 @@ export default function AdminTransactionDetailPage({ params }) {
               {order.payment_proof ? (
                 <div className="space-y-4 relative z-10">
                   <div className="max-h-[320px] bg-zinc-950 rounded-2xl border border-zinc-800 overflow-hidden group/proof relative shadow-2xl transition-all hover:border-emerald-500/30 flex items-center justify-center p-2">
-                    <img src={getImageUrl(order.payment_proof)} alt="Proof" className="max-h-[300px] object-contain rounded-xl" />
+                    <img src={getImageUrl(order.payment_proof) || "/placeholder.png"} alt="Proof" className="max-h-[300px] object-contain rounded-xl" />
                     <div className="absolute inset-0 bg-black/80 flex flex-col items-center justify-center opacity-0 group-hover/proof:opacity-100 transition-all backdrop-blur-sm">
-                      <a href={getImageUrl(order.payment_proof)} target="_blank" rel="noreferrer" className="px-6 py-3 bg-emerald-500 text-zinc-950 rounded-xl text-xs font-bold uppercase tracking-wider flex items-center gap-2 hover:scale-105 transition-all">
+                      <a href={getImageUrl(order.payment_proof) || "/placeholder.png"} target="_blank" rel="noreferrer" className="px-6 py-3 bg-emerald-500 text-zinc-950 rounded-xl text-xs font-bold uppercase tracking-wider flex items-center gap-2 hover:scale-105 transition-all">
                         <ExternalLink size={16} /> Buka Gambar
                       </a>
                     </div>

@@ -4,7 +4,30 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { ShoppingBag, Search, CheckCircle2, Store, Eye, AlertCircle, Calendar, ArrowLeft, Clock, Package, ChevronLeft, ChevronRight, XCircle } from "lucide-react";
 import ActionModal from "@/components/ActionModal";
-import { getApiUrl } from "@/app/utils/api";
+import { getApiUrl, getImageUrl } from "@/app/utils/api";
+
+const isVideoUrl = (url) => {
+  if (!url) return false;
+  let finalPath = url;
+  try {
+    if (typeof url === "string" && (url.startsWith("[") || url.startsWith("{"))) {
+      const parsed = JSON.parse(url);
+      finalPath = Array.isArray(parsed) ? parsed[0] : parsed;
+    } else if (Array.isArray(url)) {
+      finalPath = url[0];
+    }
+  } catch (e) {}
+  if (!finalPath || typeof finalPath !== "string") return false;
+  const lower = finalPath.toLowerCase();
+  return (
+    lower.endsWith(".mp4") ||
+    lower.endsWith(".mov") ||
+    lower.endsWith(".avi") ||
+    lower.endsWith(".webm") ||
+    lower.endsWith(".mkv") ||
+    lower.endsWith(".3gp")
+  );
+};
 
 const getPaginationRange = (currentPage, totalPages) => {
   if (totalPages <= 5) {
@@ -96,26 +119,6 @@ export default function RiwayatPembelianPage() {
     }
   };
 
-  const getImageUrl = (path) => {
-    if (!path) return "/placeholder.png";
-    if (path.startsWith("data:image")) return path;
-    if (path.startsWith("http")) {
-      if (typeof window !== "undefined") {
-        try {
-          const urlObj = new URL(path);
-          if (urlObj.hostname === "localhost" || urlObj.hostname === "127.0.0.1" || urlObj.port === "4000" || urlObj.port === "3000") {
-            urlObj.hostname = window.location.hostname;
-            urlObj.port = "4000";
-          }
-          return urlObj.toString();
-        } catch (e) {
-          return path;
-        }
-      }
-      return path.replace("localhost:3000", "localhost:4000");
-    }
-    return `${getApiUrl()}${path.startsWith("/") ? "" : "/"}${path}`;
-  };
 
   const filteredOrders = orders.filter((order) => {
     const isCompleted = ["completed", "disbursement_requested", "disbursed"].includes(order.status);
@@ -250,7 +253,14 @@ export default function RiwayatPembelianPage() {
                           <td className="px-6 py-6">
                             <div className="flex items-center gap-4">
                               <div className="w-12 h-12 rounded-xl overflow-hidden bg-zinc-800 shrink-0 border border-zinc-700">
-                                <img src={getImageUrl(getImagesArray(order.product?.images)[0])} alt={order.product?.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
+                                {(() => {
+                                  const mediaPath = getImagesArray(order.product?.images)[0];
+                                  return isVideoUrl(mediaPath) ? (
+                                    <video src={getImageUrl(mediaPath)} className="w-full h-full object-cover" preload="metadata" muted playsInline />
+                                  ) : (
+                                    <img src={getImageUrl(mediaPath) || "/placeholder.png"} alt={order.product?.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
+                                  );
+                                })()}
                               </div>
                               <div className="min-w-0">
                                 <p className="text-sm font-black text-white truncate max-w-[200px]">{order.product?.name}</p>
@@ -332,7 +342,14 @@ export default function RiwayatPembelianPage() {
                     {/* Card Body */}
                     <div className="p-5 flex gap-4">
                       <div className="w-20 h-20 rounded-2xl overflow-hidden bg-zinc-800 shrink-0 border border-zinc-700">
-                        <img src={getImageUrl(getImagesArray(order.product?.images)[0])} alt={order.product?.name} className="w-full h-full object-cover" />
+                        {(() => {
+                          const mediaPath = getImagesArray(order.product?.images)[0];
+                          return isVideoUrl(mediaPath) ? (
+                            <video src={getImageUrl(mediaPath)} className="w-full h-full object-cover" preload="metadata" muted playsInline />
+                          ) : (
+                            <img src={getImageUrl(mediaPath) || "/placeholder.png"} alt={order.product?.name} className="w-full h-full object-cover" />
+                          );
+                        })()}
                       </div>
                       <div className="flex-1 min-w-0 flex flex-col justify-between">
                         <div>

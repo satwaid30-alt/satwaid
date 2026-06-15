@@ -8,6 +8,29 @@ import { io } from "socket.io-client";
 import ActionModal from "@/components/ActionModal";
 import { getApiUrl, getSocketUrl, getImageUrl } from "@/app/utils/api";
 
+const isVideoUrl = (url) => {
+  if (!url) return false;
+  let finalPath = url;
+  try {
+    if (typeof url === "string" && (url.startsWith("[") || url.startsWith("{"))) {
+      const parsed = JSON.parse(url);
+      finalPath = Array.isArray(parsed) ? parsed[0] : parsed;
+    } else if (Array.isArray(url)) {
+      finalPath = url[0];
+    }
+  } catch (e) {}
+  if (!finalPath || typeof finalPath !== "string") return false;
+  const lower = finalPath.toLowerCase();
+  return (
+    lower.endsWith(".mp4") ||
+    lower.endsWith(".mov") ||
+    lower.endsWith(".avi") ||
+    lower.endsWith(".webm") ||
+    lower.endsWith(".mkv") ||
+    lower.endsWith(".3gp")
+  );
+};
+
 const getPaginationRange = (currentPage, totalPages) => {
   if (totalPages <= 5) {
     return Array.from({ length: totalPages }, (_, i) => i + 1);
@@ -398,7 +421,11 @@ export default function RiwayatTransaksiSeller() {
                     <td className="px-8 py-6">
                       <div className="flex items-center gap-4">
                         <div className="w-12 h-12 rounded-xl overflow-hidden bg-zinc-950 border border-zinc-800 shrink-0">
-                          <img src={getImageUrl(order.product?.images)} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" alt="" />
+                          {order.product?.images && isVideoUrl(order.product.images) ? (
+                            <video src={getImageUrl(order.product.images)} className="w-full h-full object-cover" preload="metadata" muted playsInline />
+                          ) : (
+                            <img src={getImageUrl(order.product?.images) || "/placeholder.png"} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" alt="" />
+                          )}
                         </div>
                         <div>
                           <p className="text-sm font-black text-white line-clamp-1">{order.product?.name || "Produk dihapus"}</p>
@@ -594,7 +621,11 @@ export default function RiwayatTransaksiSeller() {
               {/* Card Body: Product Image & Details */}
               <div className="flex items-start gap-4">
                 <div className="w-16 h-16 rounded-2xl overflow-hidden bg-zinc-950 border border-zinc-800 shrink-0">
-                  <img src={getImageUrl(order.product?.images)} className="w-full h-full object-cover" alt="" />
+                  {order.product?.images && isVideoUrl(order.product.images) ? (
+                    <video src={getImageUrl(order.product.images)} className="w-full h-full object-cover" preload="metadata" muted playsInline />
+                  ) : (
+                    <img src={getImageUrl(order.product?.images) || "/placeholder.png"} className="w-full h-full object-cover" alt="" />
+                  )}
                 </div>
                 <div className="min-w-0 flex-1 space-y-1">
                   <p className="text-xs font-black text-white line-clamp-1">{order.product?.name || "Produk dihapus"}</p>

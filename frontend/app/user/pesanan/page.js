@@ -11,14 +11,7 @@ import { getApiUrl, getSocketUrl, getImageUrl } from "@/app/utils/api";
 const isVideoUrl = (url) => {
   if (!url) return false;
   const lower = url.toLowerCase();
-  return (
-    lower.endsWith(".mp4") ||
-    lower.endsWith(".mov") ||
-    lower.endsWith(".avi") ||
-    lower.endsWith(".webm") ||
-    lower.endsWith(".mkv") ||
-    lower.endsWith(".3gp")
-  );
+  return lower.endsWith(".mp4") || lower.endsWith(".mov") || lower.endsWith(".avi") || lower.endsWith(".webm") || lower.endsWith(".mkv") || lower.endsWith(".3gp");
 };
 
 export default function PesananPage() {
@@ -417,6 +410,118 @@ export default function PesananPage() {
     }
   };
 
+  const handleCheckoutCartGroup = async (group) => {
+    const userStr = localStorage.getItem("user");
+    if (!userStr) return;
+    const userObj = JSON.parse(userStr);
+
+    try {
+      const response = await fetch(`${getApiUrl()}/users/${userObj.id}`);
+      if (response.ok) {
+        const result = await response.json();
+        const freshUser = result.data;
+        localStorage.setItem("user", JSON.stringify(freshUser));
+
+        const isFieldFilled = (val) => {
+          if (val === undefined || val === null) return false;
+          const str = String(val).trim();
+          return str !== "" && str.toLowerCase() !== "null" && str.toLowerCase() !== "undefined";
+        };
+
+        const isIncomplete = !isFieldFilled(freshUser.name) || !isFieldFilled(freshUser.phone) || !isFieldFilled(freshUser.address) || !isFieldFilled(freshUser.city) || !isFieldFilled(freshUser.province);
+
+        if (isIncomplete) {
+          setActionModal({
+            isOpen: true,
+            type: "danger",
+            title: "Profil Belum Lengkap",
+            message: "Anda wajib melengkapi data profil terlebih dahulu (Nama, No. WhatsApp, Alamat, Kota, Provinsi) di halaman pengaturan sebelum dapat melakukan pembelian.",
+            confirmText: "Lengkapi Profil",
+            cancelText: "Batal",
+            onConfirm: () => {
+              window.location.href = "/user/pengaturan";
+            },
+          });
+          return;
+        }
+      }
+    } catch (err) {
+      console.error("Error verifying profile completeness:", err);
+    }
+
+    setActionModal({
+      isOpen: true,
+      type: "checkout",
+      title: "Konfirmasi Pembelian Toko",
+      message: `Apakah Anda yakin ingin membeli semua produk (${group.items.length} item) dari toko "${group.shopName}"? (Pilih YA berarti Anda setuju untuk membelinya)`,
+      confirmText: "Ya, Beli Semua",
+      cancelText: "Batal",
+      onConfirm: () => executeCheckoutGroup(group),
+    });
+  };
+
+  const executeCheckoutGroup = async (group) => {
+    const userStr = localStorage.getItem("user");
+    if (!userStr) return;
+    const user = JSON.parse(userStr);
+
+    setActionModal((prev) => ({ ...prev, isLoading: true }));
+    try {
+      const token = localStorage.getItem("token");
+
+      const payloadItems = group.items.map((item) => ({
+        listing_id: item.listing_id,
+        quantity: item.quantity,
+      }));
+
+      const response = await fetch(`${getApiUrl()}/orders`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: token ? `Bearer ${token}` : "",
+        },
+        body: JSON.stringify({
+          user_id: user.id,
+          items: payloadItems,
+          from_cart: true,
+        }),
+      });
+
+      if (response.ok) {
+        // Remove all items in group from cart after successful order
+        for (const item of group.items) {
+          await fetch(`${getApiUrl()}/cart/${item.id}`, {
+            method: "DELETE",
+            headers: token ? { Authorization: `Bearer ${token}` } : {},
+          });
+        }
+        fetchOrders();
+        fetchCartItems();
+        setActiveTab("pending_shipping_info");
+        setActionModal({
+          isOpen: true,
+          type: "success",
+          title: "Berhasil Memesan!",
+          message: "Pesanan kelompok Anda telah dibuat. Silakan lengkapi data pengiriman Anda sekarang.",
+          onConfirm: null,
+        });
+      } else {
+        const err = await response.json();
+        setActionModal({
+          isOpen: true,
+          type: "danger",
+          title: "Gagal Checkout",
+          message: err.message || "Terjadi kesalahan saat memproses pesanan kelompok.",
+          onConfirm: null,
+        });
+      }
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setActionModal((prev) => ({ ...prev, isLoading: false }));
+    }
+  };
+
   const handleShippingSubmit = async (e) => {
     e.preventDefault();
     if (!selectedOrder) return;
@@ -586,6 +691,23 @@ export default function PesananPage() {
 
   const filteredCart = cartItems.filter((item) => item.product?.name?.toLowerCase().includes(searchQuery.toLowerCase()) && item.product?.stock > 0);
 
+  const groupedCart = (() => {
+    const groups = {};
+    filteredCart.forEach((item) => {
+      const shopId = item.product?.shop?.id || "unknown";
+      const shopName = item.product?.shop?.name || "Toko Tidak Dikenal";
+      if (!groups[shopId]) {
+        groups[shopId] = {
+          shopId,
+          shopName,
+          items: [],
+        };
+      }
+      groups[shopId].items.push(item);
+    });
+    return Object.values(groups);
+  })();
+
   return (
     <div className="max-w-7xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
       {/* Header Section */}
@@ -657,7 +779,7 @@ export default function PesananPage() {
           <>
             {/* Cart Items - Show in 'Semua' or 'Keranjang' */}
             {(activeTab === "semua" || activeTab === "keranjang") && filteredCart.length > 0 && (
-              <div className="space-y-4">
+              <div className="space-y-6">
                 {activeTab === "semua" && (
                   <div className="flex items-center gap-4 px-2 pt-4">
                     <p className="text-[10px] font-black text-emerald-500 uppercase tracking-[0.3em] flex items-center gap-2 whitespace-nowrap">
@@ -666,47 +788,55 @@ export default function PesananPage() {
                     <div className="flex-1 h-px bg-zinc-800/50"></div>
                   </div>
                 )}
-                {filteredCart.map((item) => (
-                  <div key={item.id} className="bg-zinc-900/20 border border-zinc-800 hover:border-emerald-500/30 rounded-3xl overflow-hidden transition-all group p-6 flex flex-col md:flex-row items-center gap-6 animate-in slide-in-from-bottom-2 duration-500">
-                    <div className="w-24 h-24 rounded-2xl overflow-hidden bg-zinc-800 shrink-0 border border-zinc-700">
-                      {(() => {
-                        const mediaUrl = getImageUrl(item.product?.images);
-                        return isVideoUrl(mediaUrl) ? (
-                          <video src={mediaUrl} className="w-full h-full object-cover" preload="metadata" muted playsInline />
-                        ) : (
-                          <img src={mediaUrl || "https://placehold.co/400x400/f4f4f5/71717a?text=No+Image"} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
-                        );
-                      })()}
-                    </div>
-                    <div className="flex-1 min-w-0 text-center md:text-left">
-                      <div className="flex items-center justify-center md:justify-start gap-2 text-zinc-500 mb-1">
-                        <Store size={14} className="text-emerald-500" />
-                        <span className="text-[10px] font-black uppercase tracking-widest">{item.product?.shop?.name}</span>
+                {groupedCart.map((group) => (
+                  <div key={group.shopId} className="bg-zinc-900/10 border border-zinc-800/80 p-6 rounded-3xl space-y-4">
+                    {/* Group Header */}
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-zinc-800/50">
+                      <div className="flex items-center gap-2">
+                        <Store size={18} className="text-emerald-500" />
+                        <span className="text-sm font-black uppercase tracking-wider text-white">{group.shopName}</span>
                       </div>
-                      <h3 className="text-base md:text-xl font-black text-white mb-1 line-clamp-2">{item.product?.name}</h3>
-                      <div className="flex items-center justify-center md:justify-start gap-4">
-                        <p className="text-lg font-black text-emerald-500">{formatPrice(item.product?.price || 0)}</p>
-                        <div className="flex items-center gap-2 px-3 py-1 bg-zinc-900 border border-zinc-800 rounded-lg text-xs font-bold text-zinc-400">
-                          <span>Jumlah: {item.quantity}</span>
+                      <button onClick={() => handleCheckoutCartGroup(group)} disabled={isProcessingCart} className="px-6 py-2.5 bg-emerald-500 hover:bg-emerald-400 text-zinc-950 font-black text-xs uppercase tracking-wider rounded-xl transition-all flex items-center justify-center gap-2">
+                        <ShoppingBag size={14} /> Beli Semua dari Toko Ini
+                      </button>
+                    </div>
+
+                    {/* Group Items */}
+                    <div className="space-y-4">
+                      {group.items.map((item) => (
+                        <div key={item.id} className="bg-zinc-900/20 border border-zinc-800/50 hover:border-emerald-500/20 rounded-2xl p-4 flex flex-col md:flex-row items-center gap-4 group transition-all">
+                          <div className="w-20 h-20 rounded-xl overflow-hidden bg-zinc-800 shrink-0 border border-zinc-700">
+                            {(() => {
+                              const mediaUrl = getImageUrl(item.product?.images);
+                              return isVideoUrl(mediaUrl) ? (
+                                <video src={mediaUrl} className="w-full h-full object-cover" preload="metadata" muted playsInline />
+                              ) : (
+                                <img src={mediaUrl || "https://placehold.co/400x400/f4f4f5/71717a?text=No+Image"} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                              );
+                            })()}
+                          </div>
+                          <div className="flex-1 min-w-0 text-center md:text-left">
+                            <h3 className="text-sm md:text-base font-black text-white mb-1 line-clamp-2">{item.product?.name}</h3>
+                            <div className="flex items-center justify-center md:justify-start gap-4">
+                              <p className="text-sm font-black text-emerald-500">{formatPrice(item.product?.price || 0)}</p>
+                              <div className="px-2.5 py-0.5 bg-zinc-900 border border-zinc-800 rounded-lg text-[10px] font-bold text-zinc-400">
+                                <span>Jumlah: {item.quantity}</span>
+                              </div>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-2 w-full md:w-auto shrink-0 justify-center">
+                            <Link href={`/user/pesanan/detail-pesanan/${item.id}?source=cart`} className="p-3 bg-zinc-950 text-zinc-400 hover:text-white hover:bg-zinc-800 rounded-xl border border-zinc-800 transition-all" title="Lihat Detail Produk">
+                              <Eye size={16} />
+                            </Link>
+                            <button onClick={() => handleRemoveFromCart(item.id)} className="p-3 bg-zinc-950 text-zinc-600 hover:text-red-500 hover:bg-red-500/10 rounded-xl border border-zinc-800 transition-all" title="Hapus dari Keranjang">
+                              <Trash2 size={16} />
+                            </button>
+                            <button onClick={() => handleCheckoutCart(item)} disabled={isProcessingCart} className="px-4 py-3 bg-zinc-800 hover:bg-zinc-700 text-white font-black text-xs rounded-xl transition-all flex items-center gap-2">
+                              Beli Satuan
+                            </button>
+                          </div>
                         </div>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-3 w-full md:w-auto">
-                      <Link href={`/user/pesanan/detail-pesanan/${item.id}?source=cart`} className="p-4 bg-zinc-950 text-zinc-400 hover:text-white hover:bg-zinc-800 rounded-2xl border border-zinc-800 transition-all" title="Lihat Detail Produk">
-                        <Eye size={20} />
-                      </Link>
-                      <button onClick={() => handleRemoveFromCart(item.id)} className="p-4 bg-zinc-950 text-zinc-600 hover:text-red-500 hover:bg-red-500/10 rounded-2xl border border-zinc-800 transition-all" title="Hapus dari Keranjang">
-                        <Trash2 size={20} />
-                      </button>
-                      <button onClick={() => handleCheckoutCart(item)} disabled={isProcessingCart} className="flex-1 md:flex-none px-8 py-4 bg-emerald-500 hover:bg-emerald-400 text-zinc-950 font-black rounded-2xl transition-all flex items-center justify-center gap-3 active:scale-95 disabled:opacity-50 h-[54px]">
-                        {isProcessingCart ? (
-                          <div className="w-5 h-5 border-2 border-zinc-950 border-t-transparent rounded-full animate-spin"></div>
-                        ) : (
-                          <>
-                            <ShoppingBag size={20} /> Beli Sekarang
-                          </>
-                        )}
-                      </button>
+                      ))}
                     </div>
                   </div>
                 ))}
@@ -792,58 +922,117 @@ export default function PesananPage() {
                         )}
 
                         {/* Card Body */}
-                        <div className="p-4 md:p-6 flex flex-col md:flex-row items-center md:items-start gap-4 md:gap-6">
-                          <div className="w-24 h-24 rounded-2xl overflow-hidden bg-zinc-800 shrink-0 border border-zinc-700 mx-auto md:mx-0">
-                            {(() => {
-                              const mediaUrl = getImageUrl(order.product?.images);
-                              return isVideoUrl(mediaUrl) ? (
-                                <video src={mediaUrl} className="w-full h-full object-cover" preload="metadata" muted playsInline />
+                        <div className="p-4 md:p-6 space-y-6">
+                          {/* Store Name & Info */}
+                          <div className="flex items-center gap-2 text-zinc-500">
+                            <Store size={14} />
+                            <span className="text-[10px] font-black uppercase tracking-widest">{order.shop?.name}</span>
+                          </div>
+
+                          <div className="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-6">
+                            {/* Products Section */}
+                            <div className="flex-1 w-full space-y-3">
+                              {order.items && order.items.length > 0 ? (
+                                order.items.map((item, idx) => (
+                                  <div key={item.id || idx} className="flex items-center gap-4 bg-zinc-950/20 p-3 rounded-2xl border border-zinc-800/40">
+                                    <div className="w-16 h-16 rounded-xl overflow-hidden bg-zinc-800 shrink-0 border border-zinc-700 relative group/img">
+                                      {(() => {
+                                        const mediaUrl = getImageUrl(item.product?.images);
+                                        return isVideoUrl(mediaUrl) ? (
+                                          <video src={mediaUrl} className="w-full h-full object-cover animate-in fade-in" preload="metadata" muted playsInline />
+                                        ) : (
+                                          <img src={mediaUrl || "https://placehold.co/400x400/f4f4f5/71717a?text=No+Image"} className="w-full h-full object-cover group-hover/img:scale-105 transition-transform duration-500" alt={item.product?.name} />
+                                        );
+                                      })()}
+                                    </div>
+                                    <div className="space-y-1 flex-1 min-w-0 text-left">
+                                      <div className="flex flex-wrap items-center gap-1.5">
+                                        <span className="px-1.5 py-0.5 bg-zinc-800 text-[8px] text-zinc-400 rounded font-black uppercase tracking-widest">{item.product?.species}</span>
+                                        <span className="text-zinc-700 font-bold text-[8px]">•</span>
+                                        <span className="text-[8px] font-black text-zinc-500 uppercase tracking-widest">Qty: {item.quantity}</span>
+                                      </div>
+                                      <h3 className="text-xs md:text-sm font-black text-white tracking-tight leading-snug truncate">{item.product?.name}</h3>
+                                      <div className="flex items-center gap-2 text-[10px] font-bold text-zinc-400">
+                                        <span className="text-[8px] font-black text-zinc-500 uppercase tracking-widest">Harga:</span>
+                                        <span className="text-emerald-500 font-black">{formatPrice(item.price)}</span>
+                                      </div>
+                                    </div>
+                                  </div>
+                                ))
                               ) : (
-                                <img src={mediaUrl || "https://placehold.co/400x400/f4f4f5/71717a?text=No+Image"} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
-                              );
-                            })()}
-                          </div>
-                          <div className="flex-1 min-w-0 text-center md:text-left">
-                            <div className="flex items-center justify-center md:justify-start gap-2 text-zinc-500 mb-1">
-                              <Store size={14} />
-                              <span className="text-[10px] font-black uppercase tracking-widest">{order.shop?.name}</span>
+                                /* Fallback for legacy orders */
+                                <div className="flex items-center gap-4 bg-zinc-950/20 p-3 rounded-2xl border border-zinc-800/40">
+                                  <div className="w-16 h-16 rounded-xl overflow-hidden bg-zinc-800 shrink-0 border border-zinc-700 relative group/img">
+                                    {(() => {
+                                      const mediaUrl = getImageUrl(order.product?.images);
+                                      return isVideoUrl(mediaUrl) ? (
+                                        <video src={mediaUrl} className="w-full h-full object-cover animate-in fade-in" preload="metadata" muted playsInline />
+                                      ) : (
+                                        <img src={mediaUrl || "https://placehold.co/400x400/f4f4f5/71717a?text=No+Image"} className="w-full h-full object-cover group-hover/img:scale-105 transition-transform duration-500" alt={order.product?.name} />
+                                      );
+                                    })()}
+                                  </div>
+                                  <div className="space-y-1 flex-1 min-w-0 text-left">
+                                    <div className="flex flex-wrap items-center gap-1.5">
+                                      <span className="px-1.5 py-0.5 bg-zinc-800 text-[8px] text-zinc-400 rounded font-black uppercase tracking-widest">{order.product?.species}</span>
+                                      <span className="text-zinc-700 font-bold text-[8px]">•</span>
+                                      <span className="text-[8px] font-black text-zinc-500 uppercase tracking-widest">Qty: {order.quantity}</span>
+                                    </div>
+                                    <h3 className="text-xs md:text-sm font-black text-white tracking-tight leading-snug truncate">{order.product?.name}</h3>
+                                    <div className="flex items-center gap-2 text-[10px] font-bold text-zinc-400">
+                                      <span className="text-[8px] font-black text-zinc-500 uppercase tracking-widest">Harga:</span>
+                                      <span className="text-emerald-500 font-black">{formatPrice(order.price)}</span>
+                                    </div>
+                                  </div>
+                                </div>
+                              )}
                             </div>
-                            <h3 className="text-base md:text-xl font-black text-white mb-2 line-clamp-2">{order.product?.name}</h3>
-                            <div className="flex items-center justify-center md:justify-start gap-4">
-                              <p className="text-lg font-black text-white">{formatPrice(order.total_price)}</p>
-                              <div className="flex items-center gap-1 text-zinc-500 text-xs font-bold">
-                                <span>{order.quantity} Item</span>
-                                <span>•</span>
-                                <span className="uppercase">{order.product?.type === "sell" ? "Beli Langsung" : "Lelang"}</span>
+
+                            {/* Summary & Actions Column */}
+                            <div className="w-full lg:w-auto flex flex-col sm:flex-row lg:flex-col items-start sm:items-center lg:items-end justify-between lg:justify-center gap-6 shrink-0 pt-4 lg:pt-0 border-t lg:border-t-0 border-zinc-800/60">
+                              {/* Total price info */}
+                              <div className="space-y-1 w-full text-right flex flex-col items-end">
+                                <span className="text-[9px] font-black text-zinc-500 uppercase tracking-wider">Total Tagihan</span>
+                                <div className="flex flex-col items-end gap-1">
+                                  <p className="text-xl font-black text-white whitespace-nowrap">{formatPrice(order.total_price)}</p>
+                                  <span className="text-[9px] text-zinc-400 font-bold leading-normal bg-zinc-950/40 py-1 rounded-xl border border-zinc-800/20 whitespace-nowrap">(termasuk biaya admin Rp 5.000)</span>
+                                </div>
+                                <div className="flex items-center justify-end gap-1.5 text-zinc-500 text-[10px] font-bold pt-1">
+                                  <span>{order.items && order.items.length > 0 ? order.items.reduce((sum, i) => sum + (i.quantity || 1), 0) : order.quantity} Item</span>
+                                  <span>•</span>
+                                  <span className="uppercase">{order.product?.type === "sell" ? "Beli Langsung" : "Lelang"}</span>
+                                </div>
                               </div>
-                            </div>
-                          </div>
-                          <div className="flex flex-col sm:flex-row justify-center items-end gap-3 w-full md:w-auto">
-                            {!["completed", "cancelled"].includes(order.status) && (
-                              <>
-                                <Link href={`/user/pesanan/transaksi/${order.id}`} className="w-full sm:w-auto px-6 py-3 bg-emerald-500 hover:bg-emerald-400 text-zinc-950 rounded-2xl transition-all text-xs font-black flex items-center justify-center gap-2">
-                                  <ShoppingBag size={14} /> Proses Transaksi
-                                </Link>
-                                {!["completed", "cancelled", "shipped"].includes(order.status) && (
-                                  <button onClick={() => handleCancelOrder(order.id)} className="w-full sm:w-auto px-6 py-3 bg-red-500/10 hover:bg-red-500 text-red-500 hover:text-white border border-red-500/20 rounded-2xl transition-all text-xs font-black flex items-center justify-center gap-2">
-                                    <XCircle size={14} /> Batal
+
+                              {/* Buttons */}
+                              <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto self-stretch sm:self-auto">
+                                {!["completed", "cancelled"].includes(order.status) && (
+                                  <>
+                                    <Link href={`/user/pesanan/transaksi/${order.id}`} className="w-full sm:w-auto px-6 py-3 bg-emerald-500 hover:bg-emerald-400 text-zinc-950 rounded-2xl transition-all text-xs font-black flex items-center justify-center gap-2">
+                                      <ShoppingBag size={14} /> Proses Transaksi
+                                    </Link>
+                                    {!["completed", "cancelled", "shipped"].includes(order.status) && (
+                                      <button onClick={() => handleCancelOrder(order.id)} className="w-full sm:w-auto px-6 py-3 bg-red-500/10 hover:bg-red-500 text-red-500 hover:text-white border border-red-500/20 rounded-2xl transition-all text-xs font-black flex items-center justify-center gap-2">
+                                        <XCircle size={14} /> Batal
+                                      </button>
+                                    )}
+                                  </>
+                                )}
+                                {order.status === "complained" && (
+                                  <button onClick={() => handleResolveComplaint(order.id)} className="w-full sm:w-auto px-6 py-3 bg-emerald-500/10 hover:bg-emerald-500 text-emerald-500 hover:text-zinc-950 border border-emerald-500/20 rounded-2xl transition-all text-xs font-black flex items-center justify-center gap-2">
+                                    <CheckCircle2 size={14} /> Selesaikan Komplain
                                   </button>
                                 )}
-                              </>
-                            )}
-                            {order.status === "complained" && (
-                              <button onClick={() => handleResolveComplaint(order.id)} className="w-full sm:w-auto px-6 py-3 bg-emerald-500/10 hover:bg-emerald-500 text-emerald-500 hover:text-zinc-950 border border-emerald-500/20 rounded-2xl transition-all text-xs font-black flex items-center justify-center gap-2">
-                                <CheckCircle2 size={14} /> Selesaikan Komplain
-                              </button>
-                            )}
-                            {order.status === "cancelled" && (
-                              <button onClick={() => handleDeleteOrderHistory(order.id)} className="w-full sm:w-auto px-6 py-3 bg-red-500/10 hover:bg-red-500 text-red-500 hover:text-white border border-red-500/20 rounded-2xl transition-all text-xs font-black flex items-center justify-center gap-2">
-                                <Trash2 size={14} /> Hapus
-                              </button>
-                            )}
-                            <Link href={`/user/pesanan/detail-pesanan/${order.id}`} className="w-full sm:w-auto px-8 py-3 bg-zinc-800 hover:bg-zinc-700 text-white rounded-2xl border border-zinc-700 transition-all text-xs font-black text-center">
-                              Detail
-                            </Link>
+                                {order.status === "cancelled" && (
+                                  <button onClick={() => handleDeleteOrderHistory(order.id)} className="w-full sm:w-auto px-6 py-3 bg-red-500/10 hover:bg-red-500 text-red-500 hover:text-white border border-red-500/20 rounded-2xl transition-all text-xs font-black flex items-center justify-center gap-2">
+                                    <Trash2 size={14} /> Hapus
+                                  </button>
+                                )}
+                                <Link href={`/user/pesanan/detail-pesanan/${order.id}`} className="w-full sm:w-auto px-8 py-3 bg-zinc-800 hover:bg-zinc-700 text-white rounded-2xl border border-zinc-700 transition-all text-xs font-black text-center flex items-center justify-center">
+                                  Detail
+                                </Link>
+                              </div>
+                            </div>
                           </div>
                         </div>
                       </div>

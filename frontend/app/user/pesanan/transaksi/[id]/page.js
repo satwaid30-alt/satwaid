@@ -449,7 +449,7 @@ export default function TransactionProcessPage({ params }) {
             <div className="space-y-4">
               <div className="flex justify-between text-xs font-bold">
                 <span className="text-zinc-100 uppercase tracking-tighter">Harga Produk</span>
-                <span className="text-white">{formatPrice(order.price * order.quantity)}</span>
+                <span className="text-white">{formatPrice(order.items && order.items.length > 0 ? order.items.reduce((sum, item) => sum + (Number(item.price) * (item.quantity || 1)), 0) : (order.price * order.quantity))}</span>
               </div>
               <div className="flex justify-between text-xs font-bold">
                 <span className="text-zinc-100 uppercase tracking-tighter">Biaya Pengiriman</span>

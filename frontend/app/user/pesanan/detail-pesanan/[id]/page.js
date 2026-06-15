@@ -5,10 +5,16 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { io } from "socket.io-client";
 import { getApiUrl, getSocketUrl, getLogoUrl, getImageUrl } from "@/app/utils/api";
-import { Package, Info, MapPin, Store, ScrollText, Truck, CreditCard, CheckCircle2, Clock, ShoppingCart, ShoppingBag, ChevronLeft, XCircle, Calendar, MessageCircle, AlertCircle } from "lucide-react";
+import { Package, Info, MapPin, Store, ScrollText, Truck, CreditCard, CheckCircle2, Clock, ShoppingCart, ShoppingBag, ChevronLeft, XCircle, Calendar, MessageCircle, AlertCircle, ShieldAlert, ChevronDown } from "lucide-react";
 import ShippingInfo from "@/components/ShippingInfo";
 import OrderStepper from "@/components/OrderStepper";
 import OrderTimeline from "@/components/OrderTimeline";
+
+const isVideoUrl = (url) => {
+  if (!url) return false;
+  const lower = url.toLowerCase();
+  return lower.endsWith(".mp4") || lower.endsWith(".mov") || lower.endsWith(".avi") || lower.endsWith(".webm") || lower.endsWith(".mkv") || lower.endsWith(".3gp");
+};
 
 export default function OrderDetailPage({ params }) {
   const { id } = use(params);
@@ -34,6 +40,8 @@ export default function OrderDetailPage({ params }) {
     customReason: "",
     isLoading: false,
   });
+
+  const [isDetailsOpen, setIsDetailsOpen] = useState(false);
 
   useEffect(() => {
     fetchOrderDetail();
@@ -287,7 +295,7 @@ export default function OrderDetailPage({ params }) {
     <div className="max-w-7xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700 pb-20">
       {/* Header Navigation */}
       <div className="flex items-center justify-between">
-        <Link href="/user/pesanan/riwayat-pembelian" className="flex items-center gap-2 text-zinc-400 hover:text-white transition-colors group">
+        <Link href="/akun/pesanan" className="flex items-center gap-2 text-zinc-400 hover:text-white transition-colors group">
           <div className="w-8 h-8 rounded-lg bg-zinc-900 border border-zinc-800 flex items-center justify-center group-hover:bg-zinc-800 transition-all">
             <ChevronLeft size={18} />
           </div>
@@ -330,132 +338,218 @@ export default function OrderDetailPage({ params }) {
           {/* Product & Order Info */}
           <div className="bg-zinc-900 border border-zinc-800 rounded-[2.5rem] overflow-hidden">
             <div className="p-8 lg:p-10 space-y-10">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
-                {/* Image Carousel */}
-                <div className="space-y-4">
-                  <h3 className="text-xs font-black text-zinc-500 uppercase tracking-widest flex items-center gap-2">
-                    <Package size={14} className="text-emerald-500" /> Foto Produk
-                  </h3>
-                  <div className="bg-zinc-950 border border-zinc-800 rounded-3xl overflow-hidden relative aspect-square group">
-                    {order.product?.images?.length > 0 ? (
-                      <img src={getImageUrl(order.product.images[activeImageIndex])} className="w-full h-full object-cover transition-all duration-500" alt={order.product.name} />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center text-zinc-800">
-                        <Package size={48} />
-                      </div>
-                    )}
-                    {order.product?.images?.length > 1 && (
-                      <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-1.5 px-3 py-1.5 bg-zinc-950/50 backdrop-blur-md rounded-full border border-white/10">
-                        {order.product.images.map((_, i) => (
-                          <div key={i} onClick={() => setActiveImageIndex(i)} className={`w-1.5 h-1.5 rounded-full transition-all cursor-pointer ${activeImageIndex === i ? "bg-emerald-500 w-3" : "bg-white/30"}`}></div>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                {/* Order Meta */}
+              {order.items && order.items.length > 1 ? (
+                // Multi-product checkout display
                 <div className="space-y-8">
                   <div className="space-y-4">
                     <h3 className="text-xs font-black text-zinc-500 uppercase tracking-widest flex items-center gap-2">
-                      <Info size={14} className="text-emerald-500" /> Informasi Produk
+                      <Package size={14} className="text-emerald-500" /> Daftar Produk ({order.items.length} Item)
                     </h3>
-                    <div>
-                      <h4 className="text-2xl font-black text-white mb-3">{order.product?.name}</h4>
-                      <div className="flex flex-wrap gap-2">
-                        <span className="px-3 py-1 bg-zinc-800 text-[10px] text-zinc-300 rounded-lg border border-zinc-700 font-bold uppercase tracking-wider">{order.product?.species}</span>
-                        <span
-                          className={`px-3 py-1 text-[10px] rounded-lg border font-bold uppercase tracking-wider ${order.product?.sex === "Male" ? "bg-blue-500/10 text-blue-400 border-blue-500/20" : order.product?.sex === "Female" ? "bg-pink-500/10 text-pink-400 border-pink-500/20" : "bg-zinc-500/10 text-zinc-400 border-zinc-500/20"}`}
-                        >
-                          {order.product?.sex || "Unsex"}
-                        </span>
-                        <span className="px-3 py-1 bg-emerald-500/10 text-emerald-400 rounded-lg border border-emerald-500/20 text-[10px] font-bold uppercase tracking-wider">{order.product?.type === "sell" ? "Jual Langsung" : "Lelang"}</span>
-                        <span className="px-3 py-1 bg-zinc-800 text-[10px] text-zinc-400 rounded-lg border border-zinc-700 font-bold uppercase tracking-wider">ID Produk: {order.product?.product_id || "-"}</span>
-                      </div>
+                    <div className="space-y-4">
+                      {order.items.map((item, idx) => (
+                        <div key={item.id || idx} className="bg-zinc-950/40 border border-zinc-800/80 rounded-3xl p-6 flex flex-col md:flex-row items-center gap-6 group hover:border-emerald-500/20 transition-all">
+                          <div className="w-24 h-24 rounded-2xl overflow-hidden bg-zinc-800 shrink-0 border border-zinc-700 relative aspect-square">
+                            {(() => {
+                              const mediaUrl = getImageUrl(item.product?.images);
+                              return isVideoUrl(mediaUrl) ? <video src={mediaUrl} className="w-full h-full object-cover" preload="metadata" muted playsInline /> : <img src={mediaUrl || "https://placehold.co/400x400/f4f4f5/71717a?text=No+Image"} className="w-full h-full object-cover" alt={item.product?.name} />;
+                            })()}
+                          </div>
+                          <div className="flex-1 min-w-0 text-center md:text-left space-y-2">
+                            <div>
+                              <h4 className="text-lg font-black text-white">{item.product?.name}</h4>
+                              <div className="flex flex-wrap gap-2 mt-1.5 justify-center md:justify-start">
+                                <span className="px-2 py-0.5 bg-zinc-900 text-[9px] text-zinc-400 rounded border border-zinc-800 font-bold uppercase tracking-wider">{item.product?.species}</span>
+                                <span className="px-2 py-0.5 bg-zinc-900 text-[9px] text-zinc-400 rounded border border-zinc-800 font-bold uppercase tracking-wider">{item.product?.sex || "Unsex"}</span>
+                                <span className="px-2 py-0.5 bg-zinc-900 text-[9px] text-zinc-400 rounded border border-zinc-800 font-bold uppercase tracking-wider">ID: {item.product?.product_id || "-"}</span>
+                              </div>
+                            </div>
+                            <div className="flex flex-wrap items-center justify-center md:justify-start gap-x-4 gap-y-1 text-xs text-zinc-500 font-medium">
+                              <p>
+                                Harga Satuan: <strong className="text-emerald-400 font-black">{formatPrice(item.price)}</strong>
+                              </p>
+                              <p>
+                                Jumlah: <strong className="text-white font-black">{item.quantity} Item</strong>
+                              </p>
+                            </div>
+                            <p className="text-[10px] text-zinc-500 font-bold flex items-center justify-center md:justify-start gap-1">
+                              <Truck size={12} className="text-blue-400" /> Jangkauan: {item.product?.shipping_type || "Tidak ditentukan"}
+                            </p>
+                          </div>
+                        </div>
+                      ))}
                     </div>
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-4 pt-6 border-t border-zinc-800">
-                    <div>
-                      <p className="text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-1">Harga Satuan</p>
-                      <p className="text-lg font-black text-emerald-500">{formatPrice(order.price)}</p>
-                    </div>
-                    <div>
-                      <p className="text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-1">Jumlah</p>
-                      <p className="text-lg font-black text-white">{order.quantity} Item</p>
-                    </div>
-                  </div>
-
-                  {/* Shipping Type Info */}
-                  <div className="flex items-center gap-3 p-4 bg-blue-500/5 border border-dashed border-blue-500/20 rounded-2xl">
-                    <div className="w-10 h-10 bg-blue-500 rounded-xl flex items-center justify-center text-zinc-950 font-black border border-blue-500/20 shrink-0">
-                      <Truck size={20} />
-                    </div>
-                    <div>
-                      <p className="text-[9px] font-black text-zinc-500 uppercase tracking-widest leading-none mb-1">Jangkauan Pengiriman</p>
-                      <p className="text-sm font-black text-white">{order.product?.shipping_type || "Tidak ditentukan"}</p>
-                    </div>
-                  </div>
-
-                  <div className="p-6 bg-zinc-950/30 rounded-3xl border border-zinc-800 space-y-4">
-                    <div className="flex items-center gap-4">
-                      <div className="w-12 h-12 bg-zinc-800 rounded-xl flex items-center justify-center text-emerald-500 shrink-0 border border-zinc-700 overflow-hidden">{order.shop?.logo_url ? <img src={getLogoUrl(order.shop.logo_url)} className="w-full h-full object-cover" /> : <Store size={24} />}</div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-xs font-black text-zinc-500 uppercase tracking-widest mb-0.5">Penjual</p>
-                        <p className="text-sm font-black text-white truncate">{order.shop?.name}</p>
-                      </div>
-                    </div>
-                    <button onClick={handleWhatsAppChat} className="w-full py-3 bg-emerald-500/10 hover:bg-emerald-500 text-emerald-500 hover:text-zinc-950 text-xs font-black rounded-xl transition-all border border-emerald-500/20 flex items-center justify-center gap-2">
-                      <MessageCircle size={14} /> Chat Penjual
-                    </button>
                   </div>
                 </div>
-              </div>
+              ) : (
+                // Single-product checkout display
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
+                  {/* Image Carousel */}
+                  <div className="space-y-4">
+                    <h3 className="text-xs font-black text-zinc-500 uppercase tracking-widest flex items-center gap-2">
+                      <Package size={14} className="text-emerald-500" /> Foto Produk
+                    </h3>
+                    <div className="bg-zinc-950 border border-zinc-800 rounded-3xl overflow-hidden relative aspect-square group">
+                      {order.product?.images?.length > 0 ? (
+                        (() => {
+                          const mediaUrl = getImageUrl(order.product.images[activeImageIndex]);
+                          return isVideoUrl(mediaUrl) ? (
+                            <video src={mediaUrl} className="w-full h-full object-cover" controls preload="metadata" muted playsInline />
+                          ) : (
+                            <img src={mediaUrl} className="w-full h-full object-cover transition-all duration-500" alt={order.product.name} />
+                          );
+                        })()
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center text-zinc-800">
+                          <Package size={48} />
+                        </div>
+                      )}
+                      {order.product?.images?.length > 1 && (
+                        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-1.5 px-3 py-1.5 bg-zinc-950/50 backdrop-blur-md rounded-full border border-white/10">
+                          {order.product.images.map((_, i) => (
+                            <div key={i} onClick={() => setActiveImageIndex(i)} className={`w-1.5 h-1.5 rounded-full transition-all cursor-pointer ${activeImageIndex === i ? "bg-emerald-500 w-3" : "bg-white/30"}`}></div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Order Meta */}
+                  <div className="space-y-8">
+                    <div className="space-y-4">
+                      <h3 className="text-xs font-black text-zinc-500 uppercase tracking-widest flex items-center gap-2">
+                        <Info size={14} className="text-emerald-500" /> Informasi Produk
+                      </h3>
+                      <div>
+                        <h4 className="text-2xl font-black text-white mb-3">{order.product?.name}</h4>
+                        <div className="flex flex-wrap gap-2">
+                          <span className="px-3 py-1 bg-zinc-800 text-[10px] text-zinc-300 rounded-lg border border-zinc-700 font-bold uppercase tracking-wider">{order.product?.species}</span>
+                          <span
+                            className={`px-3 py-1 text-[10px] rounded-lg border font-bold uppercase tracking-wider ${order.product?.sex === "Male" ? "bg-blue-500/10 text-blue-400 border-blue-500/20" : order.product?.sex === "Female" ? "bg-pink-500/10 text-pink-400 border-pink-500/20" : "bg-zinc-500/10 text-zinc-400 border-zinc-500/20"}`}
+                          >
+                            {order.product?.sex || "Unsex"}
+                          </span>
+                          <span className="px-3 py-1 bg-emerald-500/10 text-emerald-400 rounded-lg border border-emerald-500/20 text-[10px] font-bold uppercase tracking-wider">{order.product?.type === "sell" ? "Jual Langsung" : "Lelang"}</span>
+                          <span className="px-3 py-1 bg-zinc-800 text-[10px] text-zinc-400 rounded-lg border border-zinc-700 font-bold uppercase tracking-wider">ID Produk: {order.product?.product_id || "-"}</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4 pt-6 border-t border-zinc-800">
+                      <div>
+                        <p className="text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-1">Harga Satuan</p>
+                        <p className="text-lg font-black text-emerald-500">{formatPrice(order.price)}</p>
+                      </div>
+                      <div>
+                        <p className="text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-1">Jumlah</p>
+                        <p className="text-lg font-black text-white">{order.quantity} Item</p>
+                      </div>
+                    </div>
+
+                    {/* Shipping Type Info */}
+                    <div className="flex items-center gap-3 p-4 bg-blue-500/5 border border-dashed border-blue-500/20 rounded-2xl">
+                      <div className="w-10 h-10 bg-blue-500 rounded-xl flex items-center justify-center text-zinc-950 font-black border border-blue-500/20 shrink-0">
+                        <Truck size={20} />
+                      </div>
+                      <div>
+                        <p className="text-[9px] font-black text-zinc-500 uppercase tracking-widest leading-none mb-1">Jangkauan Pengiriman</p>
+                        <p className="text-sm font-black text-white">{order.product?.shipping_type || "Tidak ditentukan"}</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
 
               {/* Detailed Description */}
 
               {/* Shipping Info Card (For Shipped/Completed Status) */}
               <ShippingInfo order={order} />
-
-              <div className="space-y-6">
-                <div className="flex items-center gap-4">
-                  <p className="text-[10px] font-black text-emerald-500 uppercase tracking-[0.2em] flex items-center gap-2">
-                    <ScrollText size={16} /> Deskripsi Produk
-                  </p>
-                  <div className="flex-1 h-px bg-zinc-800/50"></div>
-                </div>
-                <div className="bg-zinc-950/50 p-6 rounded-[2rem] border border-zinc-800/50">
-                  <div
-                    className="text-sm text-zinc-400 leading-relaxed description-content font-medium prose prose-invert max-w-none"
-                    dangerouslySetInnerHTML={{
-                      __html: order.product?.description || "Tidak ada deskripsi.",
-                    }}
-                  ></div>
-                </div>
-              </div>
-
-              <div className="space-y-6">
-                <div className="flex items-center gap-4">
-                  <p className="text-[10px] font-black text-amber-500 uppercase tracking-[0.2em] flex items-center gap-2">
-                    <Truck size={16} /> Info Pengiriman
-                  </p>
-                  <div className="flex-1 h-px bg-zinc-800/50"></div>
-                </div>
-                <div className="bg-zinc-950/50 p-6 rounded-[2rem] border border-zinc-800/50">
-                  <div
-                    className="text-sm text-zinc-400 leading-relaxed description-content font-medium prose prose-invert max-w-none"
-                    dangerouslySetInnerHTML={{
-                      __html: order.product?.shipping_description || "Tidak ada informasi pengiriman.",
-                    }}
-                  ></div>
-                </div>
-              </div>
             </div>
+          </div>
+          {/* Accordion Card for Deskripsi, Pengiriman & Garansi */}
+          <div className="bg-zinc-900 border border-zinc-800 rounded-[2.5rem] overflow-hidden">
+            <button onClick={() => setIsDetailsOpen(!isDetailsOpen)} className="w-full flex items-center justify-between p-8 hover:bg-zinc-800/30 transition-colors focus:outline-none">
+              <div className="flex items-center gap-3">
+                <Info size={18} className="text-emerald-500" />
+                <span className="text-sm font-black text-white uppercase tracking-wider">Detail Produk, Pengiriman & Garansi</span>
+              </div>
+              <ChevronDown size={20} className={`text-zinc-500 transition-transform duration-300 shrink-0 ${isDetailsOpen ? "rotate-180" : ""}`} />
+            </button>
+            {isDetailsOpen && (
+              <div className="p-4 md:p-8 pt-0 border-t border-zinc-800/30 bg-zinc-950/25 space-y-8 animate-in fade-in duration-300">
+                {/* Section: Deskripsi Produk */}
+                <div className="space-y-4 mt-6">
+                  <div className="flex items-center gap-4">
+                    <p className="text-[10px] font-black text-emerald-500 uppercase tracking-[0.2em] flex items-center gap-2">
+                      <ScrollText size={16} /> Deskripsi Produk
+                    </p>
+                    <div className="flex-1 h-px bg-zinc-800/50"></div>
+                  </div>
+                  <div className="sm:bg-zinc-950/50 p-0 sm:p-6 rounded-none sm:rounded-[2rem] border-none sm:border border-zinc-800/50">
+                    <div
+                      className="text-sm text-zinc-400 leading-relaxed description-content font-medium prose prose-invert max-w-none"
+                      dangerouslySetInnerHTML={{
+                        __html: order.items && order.items.length > 1 ? order.items.map((item) => `<h3>${item.product?.name}</h3>${item.product?.description || "Tidak ada deskripsi."}`).join("<hr />") : order.product?.description || "Tidak ada deskripsi.",
+                      }}
+                    ></div>
+                  </div>
+                </div>
+
+                {/* Section: Info Pengiriman */}
+                <div className="space-y-4">
+                  <div className="flex items-center gap-4">
+                    <p className="text-[10px] font-black text-amber-500 uppercase tracking-[0.2em] flex items-center gap-2">
+                      <Truck size={16} /> Info Pengiriman
+                    </p>
+                    <div className="flex-1 h-px bg-zinc-800/50"></div>
+                  </div>
+                  <div className="sm:bg-zinc-950/50 p-0 sm:p-6 rounded-none sm:rounded-[2rem] border-none sm:border border-zinc-800/50">
+                    <div
+                      className="text-sm text-zinc-400 leading-relaxed description-content font-medium prose prose-invert max-w-none"
+                      dangerouslySetInnerHTML={{
+                        __html: order.shop?.shipping_policy || order.product?.shipping_description || "Tidak ada informasi pengiriman.",
+                      }}
+                    ></div>
+                  </div>
+                </div>
+
+                {/* Section: Info Garansi */}
+                <div className="space-y-4">
+                  <div className="flex items-center gap-4">
+                    <p className="text-[10px] font-black text-red-500 uppercase tracking-[0.2em] flex items-center gap-2">
+                      <ShieldAlert size={16} /> Info Garansi
+                    </p>
+                    <div className="flex-1 h-px bg-zinc-800/50"></div>
+                  </div>
+                  <div className="sm:bg-zinc-950/50 p-0 sm:p-6 rounded-none sm:rounded-[2rem] border-none sm:border border-zinc-800/50">
+                    <div
+                      className="text-sm text-zinc-400 leading-relaxed description-content font-medium prose prose-invert max-w-none"
+                      dangerouslySetInnerHTML={{
+                        __html: order.shop?.warranty_policy || "Tidak ada kebijakan garansi.",
+                      }}
+                    ></div>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         </div>
 
         {/* Sidebar Info */}
         <div className="lg:col-span-4 space-y-8">
+          {/* Store Details Card (Data Penjual) */}
+          <div className="bg-zinc-900 border border-zinc-800 rounded-[2.5rem] p-6 lg:p-8 space-y-4">
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 bg-zinc-800 rounded-xl flex items-center justify-center text-emerald-500 shrink-0 border border-zinc-700 overflow-hidden">{order.shop?.logo_url ? <img src={getLogoUrl(order.shop.logo_url)} className="w-full h-full object-cover" /> : <Store size={24} />}</div>
+              <div className="flex-1 min-w-0">
+                <p className="text-xs font-black text-zinc-500 uppercase tracking-widest mb-0.5">Penjual</p>
+                <p className="text-sm font-black text-white truncate">{order.shop?.name}</p>
+              </div>
+            </div>
+            <button onClick={handleWhatsAppChat} className="w-full py-3 bg-emerald-500/10 hover:bg-emerald-500 text-emerald-500 hover:text-zinc-950 text-xs font-black rounded-xl transition-all border border-emerald-500/20 flex items-center justify-center gap-2">
+              <MessageCircle size={14} /> Chat Penjual
+            </button>
+          </div>
+
           {/* Cost Summary */}
           <div className="bg-zinc-900 border border-zinc-800 rounded-[2.5rem] p-8 lg:p-10 space-y-8">
             <h3 className="text-xs font-black text-zinc-500 uppercase tracking-widest flex items-center gap-2">
@@ -464,7 +558,7 @@ export default function OrderDetailPage({ params }) {
             <div className="space-y-4">
               <div className="flex justify-between text-sm">
                 <span className="text-zinc-400 font-medium">Subtotal Produk</span>
-                <span className="text-white font-bold">{formatPrice(order.price * order.quantity)}</span>
+                <span className="text-white font-bold">{formatPrice(order.items && order.items.length > 0 ? order.items.reduce((sum, item) => sum + Number(item.price) * (item.quantity || 1), 0) : order.price * order.quantity)}</span>
               </div>
               <div className="flex justify-between text-sm">
                 <span className="text-zinc-400 font-medium">Biaya Kirim</span>
@@ -473,6 +567,10 @@ export default function OrderDetailPage({ params }) {
               <div className="flex justify-between text-sm">
                 <span className="text-zinc-400 font-medium">Biaya Packing</span>
                 <span className="text-white font-black">{order.packing_cost > 0 ? formatPrice(order.packing_cost) : order.product?.is_free_packing ? <span className="text-emerald-500">Gratis</span> : formatPrice(0)}</span>
+              </div>
+              <div className="flex justify-between text-sm">
+                <span className="text-zinc-400 font-medium">Biaya Admin</span>
+                <span className="text-white font-black">{formatPrice(order.admin_fee || 5000)}</span>
               </div>
               <div className="h-px bg-zinc-800 my-6"></div>
               <div className="flex justify-between items-center">
@@ -491,12 +589,6 @@ export default function OrderDetailPage({ params }) {
                       <ShoppingCart size={18} /> Checkout Sekarang
                     </>
                   )}
-                </button>
-              )}
-              {order.status === "waiting_payment" && <button className="w-full py-4 bg-emerald-500 hover:bg-emerald-400 text-zinc-950 rounded-2xl text-sm font-black transition-all active:scale-[0.98]">Bayar Sekarang</button>}
-              {order.status !== "cart" && !["completed", "disbursement_requested", "disbursed", "cancelled", "cancelled_dismissed", "shipped"].includes(order.status) && order.product?.type === "sell" && (
-                <button onClick={handleCancelOrder} className="w-full py-4 bg-red-500/10 hover:bg-red-500 text-red-500 hover:text-white border border-red-500/20 rounded-2xl text-sm font-black transition-all active:scale-[0.98] flex items-center justify-center gap-2">
-                  <XCircle size={18} /> Batalkan Pesanan
                 </button>
               )}
             </div>
@@ -669,7 +761,7 @@ export default function OrderDetailPage({ params }) {
         </div>
       )}
 
-      <style jsx global>{`
+      <style>{`
         .description-content {
           overflow-wrap: break-word;
           word-wrap: break-word;

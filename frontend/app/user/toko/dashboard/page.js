@@ -1,5 +1,6 @@
 "use client";
 
+// Force Next.js compilation rebuild
 import { useState, useEffect, Fragment } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -270,6 +271,37 @@ export default function SellerDashboardPage() {
     }).format(price || 0);
   };
 
+  const getSelectedOrderSubtotal = () => {
+    if (!selectedOrder) return 0;
+    if (selectedOrder.items && selectedOrder.items.length > 0) {
+      return selectedOrder.items.reduce((sum, item) => sum + Number(item.price) * (item.quantity || 1), 0);
+    }
+    return selectedOrder.price * selectedOrder.quantity;
+  };
+
+  const getSelectedOrderQty = () => {
+    if (!selectedOrder) return 1;
+    if (selectedOrder.items && selectedOrder.items.length > 0) {
+      return selectedOrder.items.reduce((sum, item) => sum + (item.quantity || 1), 0);
+    }
+    return selectedOrder.quantity || 1;
+  };
+
+  const matchesProductSearch = (order) => {
+    const query = orderSearchQuery.toLowerCase();
+    if (!query) return true;
+    if (order.order_id.toLowerCase().includes(query)) return true;
+    if (order.product?.name?.toLowerCase().includes(query)) return true;
+    if (order.product?.product_id?.toLowerCase().includes(query)) return true;
+    if (order.items && order.items.length > 0) {
+      return order.items.some(item => 
+        item.product?.name?.toLowerCase().includes(query) ||
+        item.product?.product_id?.toLowerCase().includes(query)
+      );
+    }
+    return false;
+  };
+
   const [reptileData, setReptileData] = useState({
     name: "",
     species: "",
@@ -454,7 +486,7 @@ export default function SellerDashboardPage() {
               const completedStatuses = ["completed", "disbursement_requested", "disbursed"];
               const matchesStatus = orderStatusFilter === "all" ? o.status !== "cancelled" : orderStatusFilter === "processing" ? inProgressStatuses.includes(o.status) : orderStatusFilter === "completed" ? completedStatuses.includes(o.status) : o.status === orderStatusFilter;
 
-              const matchesSearch = o.order_id.toLowerCase().includes(orderSearchQuery.toLowerCase()) || (o.product?.name && o.product.name.toLowerCase().includes(orderSearchQuery.toLowerCase())) || (o.product?.product_id && o.product.product_id.toLowerCase().includes(orderSearchQuery.toLowerCase()));
+              const matchesSearch = matchesProductSearch(o);
               return matchesStatus && matchesSearch;
             });
 
@@ -556,30 +588,63 @@ export default function SellerDashboardPage() {
                                     </div>
                                   </td>
                                   <td className="px-6 py-5">
-                                    <div className="flex items-center gap-3">
-                                      {order.product?.images?.[0] && (
-                                        <div className="w-10 h-10 rounded-xl overflow-hidden bg-zinc-800 shrink-0 border border-zinc-700">
-                                          {isVideoUrl(order.product.images[0]) ? (
-                                            <video src={getImageUrl(order.product.images[0])} className="w-full h-full object-cover" preload="metadata" muted playsInline />
-                                          ) : (
-                                            <img src={getImageUrl(order.product.images[0])} className="w-full h-full object-cover" />
+                                    <div className="flex flex-col gap-3">
+                                      {order.items && order.items.length > 0 ? (
+                                        order.items.map((item, idx) => (
+                                          <div key={item.id || idx} className="flex items-center gap-3">
+                                            {item.product?.images?.[0] && (
+                                              <div className="w-10 h-10 rounded-xl overflow-hidden bg-zinc-800 shrink-0 border border-zinc-700">
+                                                {isVideoUrl(item.product.images[0]) ? (
+                                                  <video src={getImageUrl(item.product.images[0])} className="w-full h-full object-cover" preload="metadata" muted playsInline />
+                                                ) : (
+                                                  <img src={getImageUrl(item.product.images[0])} className="w-full h-full object-cover" />
+                                                )}
+                                              </div>
+                                            )}
+                                            <div>
+                                              <p className="text-sm font-bold text-zinc-300 truncate max-w-[140px]">{item.product?.name}</p>
+                                              <div className="flex items-center flex-wrap gap-1.5 mt-1">
+                                                <span className="inline-block px-1.5 py-0.5 bg-zinc-950 text-[8px] text-zinc-400 rounded font-black uppercase tracking-widest border border-zinc-800">ID: {item.product?.product_id || "-"}</span>
+                                                <span className={`inline-block px-1.5 py-0.5 rounded text-[8px] font-black uppercase tracking-widest border ${item.product?.type === "auction" ? "bg-amber-500/10 text-amber-500 border-amber-500/20" : "bg-blue-500/10 text-blue-400 border-blue-500/20"}`}>
+                                                  {item.product?.type === "auction" ? "Lelang" : "Reguler"}
+                                                </span>
+                                                <span className="inline-block px-1.5 py-0.5 bg-zinc-950 text-[8px] text-zinc-500 rounded font-black uppercase tracking-widest border border-zinc-800">Qty: {item.quantity || 1}</span>
+                                              </div>
+                                            </div>
+                                          </div>
+                                        ))
+                                      ) : (
+                                        <div className="flex items-center gap-3">
+                                          {order.product?.images?.[0] && (
+                                            <div className="w-10 h-10 rounded-xl overflow-hidden bg-zinc-800 shrink-0 border border-zinc-700">
+                                              {isVideoUrl(order.product.images[0]) ? (
+                                                <video src={getImageUrl(order.product.images[0])} className="w-full h-full object-cover" preload="metadata" muted playsInline />
+                                              ) : (
+                                                <img src={getImageUrl(order.product.images[0])} className="w-full h-full object-cover" />
+                                              )}
+                                            </div>
                                           )}
+                                          <div>
+                                            <p className="text-sm font-bold text-zinc-300 truncate max-w-[140px]">{order.product?.name}</p>
+                                            <div className="flex items-center flex-wrap gap-1.5 mt-1">
+                                              <span className="inline-block px-1.5 py-0.5 bg-zinc-950 text-[8px] text-zinc-400 rounded font-black uppercase tracking-widest border border-zinc-800">ID: {order.product?.product_id || "-"}</span>
+                                              <span className={`inline-block px-1.5 py-0.5 rounded text-[8px] font-black uppercase tracking-widest border ${order.product?.type === "auction" ? "bg-amber-500/10 text-amber-500 border-amber-500/20" : "bg-blue-500/10 text-blue-400 border-blue-500/20"}`}>
+                                                {order.product?.type === "auction" ? "Lelang" : "Reguler"}
+                                              </span>
+                                            </div>
+                                          </div>
                                         </div>
                                       )}
-                                      <div>
-                                        <p className="text-sm font-bold text-zinc-300 truncate max-w-[140px]">{order.product?.name}</p>
-                                        <div className="flex items-center gap-1.5 mt-1">
-                                          <span className="inline-block px-1.5 py-0.5 bg-zinc-950 text-[8px] text-zinc-400 rounded font-black uppercase tracking-widest border border-zinc-800">ID: {order.product?.product_id || "-"}</span>
-                                          <span className={`inline-block px-1.5 py-0.5 rounded text-[8px] font-black uppercase tracking-widest border ${order.product?.type === "auction" ? "bg-amber-500/10 text-amber-500 border-amber-500/20" : "bg-blue-500/10 text-blue-400 border-blue-500/20"}`}>
-                                            {order.product?.type === "auction" ? "Lelang" : "Reguler"}
-                                          </span>
-                                        </div>
-                                        {order.status === "waiting_payment" && order.payment_rejection_reason && <p className="text-[10px] text-red-400 mt-1 font-semibold leading-tight max-w-[180px]">Ditolak Admin: {order.payment_rejection_reason}</p>}
-                                        {order.status === "cancelled" && order.rejection_reason && <p className="text-[10px] text-zinc-500 mt-1 font-semibold italic leading-tight max-w-[180px]">Alasan Batal: {order.rejection_reason}</p>}
-                                      </div>
+                                      {order.status === "waiting_payment" && order.payment_rejection_reason && <p className="text-[10px] text-red-400 mt-1 font-semibold leading-tight max-w-[180px]">Ditolak Admin: {order.payment_rejection_reason}</p>}
+                                      {order.status === "cancelled" && order.rejection_reason && <p className="text-[10px] text-zinc-500 mt-1 font-semibold italic leading-tight max-w-[180px]">Alasan Batal: {order.rejection_reason}</p>}
                                     </div>
                                   </td>
-                                  <td className="px-6 py-5 text-center text-sm font-black text-white">{order.quantity || 1} Ekor</td>
+                                  <td className="px-6 py-5 text-center text-sm font-black text-white">
+                                    {order.items && order.items.length > 0
+                                      ? order.items.reduce((sum, item) => sum + (item.quantity || 1), 0)
+                                      : (order.quantity || 1)}{" "}
+                                    Ekor
+                                  </td>
                                   <td className="px-6 py-5 text-right">
                                     <div className="flex flex-col items-end">
                                       <span className="text-sm font-black text-emerald-400">{formatPrice(Number(order.total_price) - (Number(order.admin_fee) || 0))}</span>
@@ -640,21 +705,51 @@ export default function SellerDashboardPage() {
                                 {/* <span className="text-[10px] text-zinc-500 font-bold">@{order.user?.username || '-'}</span> */}
                               </div>
                             </div>
-                            <div className="flex items-center justify-between">
+                            <div className="flex flex-col gap-2">
                               <span className="text-[9px] font-black text-zinc-600 uppercase tracking-widest">Produk</span>
-                              <div className="text-right">
-                                <span className="text-xs font-bold text-zinc-300 truncate max-w-[160px] block">{order.product?.name}</span>
-                                <div className="flex items-center justify-end gap-1.5 mt-1">
-                                  <span className="inline-block px-1.5 py-0.5 bg-zinc-950 text-[8px] text-zinc-400 rounded font-black uppercase tracking-widest border border-zinc-800">ID: {order.product?.product_id || "-"}</span>
-                                  <span className={`inline-block px-1.5 py-0.5 rounded text-[8px] font-black uppercase tracking-widest border ${order.product?.type === "auction" ? "bg-amber-500/10 text-amber-500 border-amber-500/20" : "bg-blue-500/10 text-blue-400 border-blue-500/20"}`}>
-                                    {order.product?.type === "auction" ? "Lelang" : "Reguler"}
-                                  </span>
+                              {order.items && order.items.length > 0 ? (
+                                <div className="space-y-2">
+                                  {order.items.map((item, idx) => (
+                                    <div key={item.id || idx} className="flex items-center justify-between bg-zinc-950/20 p-2.5 rounded-xl border border-zinc-800/40">
+                                      <div className="flex items-center gap-2.5">
+                                        {item.product?.images?.[0] && (
+                                          <div className="w-8 h-8 rounded-lg overflow-hidden bg-zinc-800 shrink-0 border border-zinc-700">
+                                            {isVideoUrl(item.product.images[0]) ? (
+                                              <video src={getImageUrl(item.product.images[0])} className="w-full h-full object-cover" preload="metadata" muted playsInline />
+                                            ) : (
+                                              <img src={getImageUrl(item.product.images[0])} className="w-full h-full object-cover" />
+                                            )}
+                                          </div>
+                                        )}
+                                        <div className="text-left">
+                                          <span className="text-xs font-bold text-zinc-300 truncate max-w-[120px] block">{item.product?.name}</span>
+                                          <span className="inline-block bg-zinc-950 text-[7px] text-zinc-500 font-bold uppercase tracking-wider mt-0.5">ID: {item.product?.product_id || "-"}</span>
+                                        </div>
+                                      </div>
+                                      <span className="text-xs font-black text-white">x{item.quantity || 1}</span>
+                                    </div>
+                                  ))}
                                 </div>
-                              </div>
+                              ) : (
+                                <div className="text-right">
+                                  <span className="text-xs font-bold text-zinc-300 truncate max-w-[160px] block">{order.product?.name}</span>
+                                  <div className="flex items-center justify-end gap-1.5 mt-1">
+                                    <span className="inline-block px-1.5 py-0.5 bg-zinc-950 text-[8px] text-zinc-400 rounded font-black uppercase tracking-widest border border-zinc-800">ID: {order.product?.product_id || "-"}</span>
+                                    <span className={`inline-block px-1.5 py-0.5 rounded text-[8px] font-black uppercase tracking-widest border ${order.product?.type === "auction" ? "bg-amber-500/10 text-amber-500 border-amber-500/20" : "bg-blue-500/10 text-blue-400 border-blue-500/20"}`}>
+                                      {order.product?.type === "auction" ? "Lelang" : "Reguler"}
+                                    </span>
+                                  </div>
+                                </div>
+                              )}
                             </div>
                             <div className="flex items-center justify-between">
                               <span className="text-[9px] font-black text-zinc-600 uppercase tracking-widest">Jumlah</span>
-                              <span className="text-xs font-bold text-zinc-300">{order.quantity || 1} Ekor</span>
+                              <span className="text-xs font-bold text-zinc-300">
+                                {order.items && order.items.length > 0
+                                  ? order.items.reduce((sum, item) => sum + (item.quantity || 1), 0)
+                                  : (order.quantity || 1)}{" "}
+                                Ekor
+                              </span>
                             </div>
                             <div className="flex items-center justify-between">
                               <span className="text-[9px] font-black text-zinc-600 uppercase tracking-widest">Tgl Selesai</span>
@@ -755,7 +850,7 @@ export default function SellerDashboardPage() {
         {activeTab === "dibatalkan" &&
           (() => {
             const cancelledOrders = orders.filter((o) => {
-              const matchesSearch = o.order_id.toLowerCase().includes(orderSearchQuery.toLowerCase()) || (o.product?.name && o.product.name.toLowerCase().includes(orderSearchQuery.toLowerCase())) || (o.product?.product_id && o.product.product_id.toLowerCase().includes(orderSearchQuery.toLowerCase()));
+              const matchesSearch = matchesProductSearch(o);
               return o.status === "cancelled" && matchesSearch;
             });
 
@@ -841,28 +936,61 @@ export default function SellerDashboardPage() {
                                   </div>
                                 </td>
                                 <td className="px-6 py-5">
-                                  <div className="flex items-center gap-3">
-                                    {order.product?.images?.[0] && (
-                                      <div className="w-10 h-10 rounded-xl overflow-hidden bg-zinc-800 shrink-0 border border-zinc-700">
-                                        {isVideoUrl(order.product.images[0]) ? (
-                                          <video src={getImageUrl(order.product.images[0])} className="w-full h-full object-cover" preload="metadata" muted playsInline />
-                                        ) : (
-                                          <img src={getImageUrl(order.product.images[0])} className="w-full h-full object-cover" />
+                                  <div className="flex flex-col gap-3">
+                                    {order.items && order.items.length > 0 ? (
+                                      order.items.map((item, idx) => (
+                                        <div key={item.id || idx} className="flex items-center gap-3">
+                                          {item.product?.images?.[0] && (
+                                            <div className="w-10 h-10 rounded-xl overflow-hidden bg-zinc-800 shrink-0 border border-zinc-700">
+                                              {isVideoUrl(item.product.images[0]) ? (
+                                                <video src={getImageUrl(item.product.images[0])} className="w-full h-full object-cover" preload="metadata" muted playsInline />
+                                              ) : (
+                                                <img src={getImageUrl(item.product.images[0])} className="w-full h-full object-cover" />
+                                              )}
+                                            </div>
+                                          )}
+                                          <div>
+                                            <p className="text-sm font-bold text-zinc-300 truncate max-w-[140px]">{item.product?.name}</p>
+                                            <div className="flex items-center flex-wrap gap-1.5 mt-1">
+                                              <span className="inline-block px-1.5 py-0.5 bg-zinc-950 text-[8px] text-zinc-400 rounded font-black uppercase tracking-widest border border-zinc-800">ID: {item.product?.product_id || "-"}</span>
+                                              <span className={`inline-block px-1.5 py-0.5 rounded text-[8px] font-black uppercase tracking-widest border ${item.product?.type === "auction" ? "bg-amber-500/10 text-amber-500 border-amber-500/20" : "bg-blue-500/10 text-blue-400 border-blue-500/20"}`}>
+                                                {item.product?.type === "auction" ? "Lelang" : "Reguler"}
+                                              </span>
+                                              <span className="inline-block px-1.5 py-0.5 bg-zinc-950 text-[8px] text-zinc-500 rounded font-black uppercase tracking-widest border border-zinc-800">Qty: {item.quantity || 1}</span>
+                                            </div>
+                                          </div>
+                                        </div>
+                                      ))
+                                    ) : (
+                                      <div className="flex items-center gap-3">
+                                        {order.product?.images?.[0] && (
+                                          <div className="w-10 h-10 rounded-xl overflow-hidden bg-zinc-800 shrink-0 border border-zinc-700">
+                                            {isVideoUrl(order.product.images[0]) ? (
+                                              <video src={getImageUrl(order.product.images[0])} className="w-full h-full object-cover" preload="metadata" muted playsInline />
+                                            ) : (
+                                              <img src={getImageUrl(order.product.images[0])} className="w-full h-full object-cover" />
+                                            )}
+                                          </div>
                                         )}
+                                        <div>
+                                          <p className="text-sm font-bold text-zinc-300 truncate max-w-[140px]">{order.product?.name}</p>
+                                          <div className="flex items-center flex-wrap gap-1.5 mt-1">
+                                            <span className="inline-block px-1.5 py-0.5 bg-zinc-950 text-[8px] text-zinc-400 rounded font-black uppercase tracking-widest border border-zinc-800">ID: {order.product?.product_id || "-"}</span>
+                                            <span className={`inline-block px-1.5 py-0.5 rounded text-[8px] font-black uppercase tracking-widest border ${order.product?.type === "auction" ? "bg-amber-500/10 text-amber-500 border-amber-500/20" : "bg-blue-500/10 text-blue-400 border-blue-500/20"}`}>
+                                              {order.product?.type === "auction" ? "Lelang" : "Reguler"}
+                                            </span>
+                                          </div>
+                                        </div>
                                       </div>
                                     )}
-                                    <div>
-                                      <p className="text-sm font-bold text-zinc-300 truncate max-w-[140px]">{order.product?.name}</p>
-                                      <div className="flex items-center gap-1.5 mt-1">
-                                        <span className="inline-block px-1.5 py-0.5 bg-zinc-950 text-[8px] text-zinc-400 rounded font-black uppercase tracking-widest border border-zinc-800">ID: {order.product?.product_id || "-"}</span>
-                                        <span className={`inline-block px-1.5 py-0.5 rounded text-[8px] font-black uppercase tracking-widest border ${order.product?.type === "auction" ? "bg-amber-500/10 text-amber-500 border-amber-500/20" : "bg-blue-500/10 text-blue-400 border-blue-500/20"}`}>
-                                          {order.product?.type === "auction" ? "Lelang" : "Reguler"}
-                                        </span>
-                                      </div>
-                                    </div>
                                   </div>
                                 </td>
-                                <td className="px-6 py-5 text-center text-sm font-black text-white">{order.quantity || 1} Ekor</td>
+                                <td className="px-6 py-5 text-center text-sm font-black text-white">
+                                  {order.items && order.items.length > 0
+                                    ? order.items.reduce((sum, item) => sum + (item.quantity || 1), 0)
+                                    : (order.quantity || 1)}{" "}
+                                  Ekor
+                                </td>
                                 <td className="px-6 py-5 text-right font-black text-red-400 text-sm">{formatPrice(Number(order.total_price))}</td>
                                 <td className="px-6 py-5 text-xs text-zinc-400 max-w-[200px] truncate" title={order.rejection_reason || order.cancellation_reason || "-"}>
                                   {order.rejection_reason || order.cancellation_reason || "-"}
@@ -895,21 +1023,51 @@ export default function SellerDashboardPage() {
                               <span className="text-[9px] font-black text-zinc-600 uppercase tracking-widest">Pembeli</span>
                               <span className="text-xs font-black text-white">{order.receiver_name || "-"}</span>
                             </div>
-                            <div className="flex items-center justify-between">
+                            <div className="flex flex-col gap-2">
                               <span className="text-[9px] font-black text-zinc-600 uppercase tracking-widest">Produk</span>
-                              <div className="text-right">
-                                <span className="text-xs font-bold text-zinc-300 truncate max-w-[160px] block">{order.product?.name}</span>
-                                <div className="flex items-center justify-end gap-1.5 mt-1">
-                                  <span className="inline-block px-1.5 py-0.5 bg-zinc-950 text-[8px] text-zinc-400 rounded font-black uppercase tracking-widest border border-zinc-800">ID: {order.product?.product_id || "-"}</span>
-                                  <span className={`inline-block px-1.5 py-0.5 rounded text-[8px] font-black uppercase tracking-widest border ${order.product?.type === "auction" ? "bg-amber-500/10 text-amber-500 border-amber-500/20" : "bg-blue-500/10 text-blue-400 border-blue-500/20"}`}>
-                                    {order.product?.type === "auction" ? "Lelang" : "Reguler"}
-                                  </span>
+                              {order.items && order.items.length > 0 ? (
+                                <div className="space-y-2">
+                                  {order.items.map((item, idx) => (
+                                    <div key={item.id || idx} className="flex items-center justify-between bg-zinc-950/20 p-2.5 rounded-xl border border-zinc-800/40">
+                                      <div className="flex items-center gap-2.5">
+                                        {item.product?.images?.[0] && (
+                                          <div className="w-8 h-8 rounded-lg overflow-hidden bg-zinc-800 shrink-0 border border-zinc-700">
+                                            {isVideoUrl(item.product.images[0]) ? (
+                                              <video src={getImageUrl(item.product.images[0])} className="w-full h-full object-cover" preload="metadata" muted playsInline />
+                                            ) : (
+                                              <img src={getImageUrl(item.product.images[0])} className="w-full h-full object-cover" />
+                                            )}
+                                          </div>
+                                        )}
+                                        <div className="text-left">
+                                          <span className="text-xs font-bold text-zinc-300 truncate max-w-[120px] block">{item.product?.name}</span>
+                                          <span className="inline-block bg-zinc-950 text-[7px] text-zinc-500 font-bold uppercase tracking-wider mt-0.5">ID: {item.product?.product_id || "-"}</span>
+                                        </div>
+                                      </div>
+                                      <span className="text-xs font-black text-white">x{item.quantity || 1}</span>
+                                    </div>
+                                  ))}
                                 </div>
-                              </div>
+                              ) : (
+                                <div className="text-right">
+                                  <span className="text-xs font-bold text-zinc-300 truncate max-w-[160px] block">{order.product?.name}</span>
+                                  <div className="flex items-center justify-end gap-1.5 mt-1">
+                                    <span className="inline-block px-1.5 py-0.5 bg-zinc-950 text-[8px] text-zinc-400 rounded font-black uppercase tracking-widest border border-zinc-800">ID: {order.product?.product_id || "-"}</span>
+                                    <span className={`inline-block px-1.5 py-0.5 rounded text-[8px] font-black uppercase tracking-widest border ${order.product?.type === "auction" ? "bg-amber-500/10 text-amber-500 border-amber-500/20" : "bg-blue-500/10 text-blue-400 border-blue-500/20"}`}>
+                                      {order.product?.type === "auction" ? "Lelang" : "Reguler"}
+                                    </span>
+                                  </div>
+                                </div>
+                              )}
                             </div>
                             <div className="flex items-center justify-between">
                               <span className="text-[9px] font-black text-zinc-600 uppercase tracking-widest">Jumlah</span>
-                              <span className="text-xs font-bold text-zinc-300">{order.quantity || 1} Ekor</span>
+                              <span className="text-xs font-bold text-zinc-300">
+                                {order.items && order.items.length > 0
+                                  ? order.items.reduce((sum, item) => sum + (item.quantity || 1), 0)
+                                  : (order.quantity || 1)}{" "}
+                                Ekor
+                              </span>
                             </div>
                             <div className="flex items-center justify-between">
                               <span className="text-[9px] font-black text-zinc-600 uppercase tracking-widest">Tgl Batal</span>
@@ -1108,8 +1266,8 @@ export default function SellerDashboardPage() {
                 <div className="bg-zinc-800/30 rounded-3xl p-6 space-y-4 border border-zinc-800">
                   <div className="space-y-2">
                     <div className="flex justify-between text-xs font-bold">
-                      <span className="text-zinc-500">Harga Produk ({selectedOrder.quantity}x)</span>
-                      <span className="text-white">{formatPrice(selectedOrder.price * selectedOrder.quantity)}</span>
+                      <span className="text-zinc-500">Harga Produk ({getSelectedOrderQty()}x)</span>
+                      <span className="text-white">{formatPrice(getSelectedOrderSubtotal())}</span>
                     </div>
                     <div className="flex justify-between text-xs font-bold">
                       <span className="text-zinc-500">Ongkos Kirim</span>
@@ -1123,7 +1281,7 @@ export default function SellerDashboardPage() {
                   <div className="h-px bg-zinc-800"></div>
                   <div className="flex justify-between items-center">
                     <span className="text-sm font-black text-white uppercase tracking-widest">Total Invoice</span>
-                    <span className="text-2xl font-black text-emerald-400">{formatPrice(selectedOrder.price * selectedOrder.quantity + (parseInt(costForm.shipping_cost) || 0) + (parseInt(costForm.packing_cost) || 0))}</span>
+                    <span className="text-2xl font-black text-emerald-400">{formatPrice(getSelectedOrderSubtotal() + (parseInt(costForm.shipping_cost) || 0) + (parseInt(costForm.packing_cost) || 0))}</span>
                   </div>
                 </div>
 

@@ -19,6 +19,29 @@ import { useRouter } from "next/navigation";
 import ActionModal from "@/components/ActionModal";
 import { getApiUrl, getImageUrl } from "@/app/utils/api";
 
+const isVideoUrl = (url) => {
+  if (!url) return false;
+  let finalPath = url;
+  try {
+    if (typeof url === "string" && (url.startsWith("[") || url.startsWith("{"))) {
+      const parsed = JSON.parse(url);
+      finalPath = Array.isArray(parsed) ? parsed[0] : parsed;
+    } else if (Array.isArray(url)) {
+      finalPath = url[0];
+    }
+  } catch (e) {}
+  if (!finalPath || typeof finalPath !== "string") return false;
+  const lower = finalPath.toLowerCase();
+  return (
+    lower.endsWith(".mp4") ||
+    lower.endsWith(".mov") ||
+    lower.endsWith(".avi") ||
+    lower.endsWith(".webm") ||
+    lower.endsWith(".mkv") ||
+    lower.endsWith(".3gp")
+  );
+};
+
 export default function PengajuanPencairanPage({ params }) {
     const { id } = use(params);
     const router = useRouter();
@@ -188,7 +211,11 @@ export default function PengajuanPencairanPage({ params }) {
                                     </div>
                                     <div className="flex items-center gap-4">
                                         <div className="w-16 h-16 bg-zinc-900 rounded-2xl overflow-hidden border border-zinc-800 shrink-0">
-                                            <img src={getImageUrl(order.product?.images) || "https://placehold.co/100x100?text=No+Image"} className="w-full h-full object-cover" />
+                                            {order.product?.images && isVideoUrl(order.product.images) ? (
+                                                <video src={getImageUrl(order.product.images)} className="w-full h-full object-cover" preload="metadata" muted playsInline />
+                                            ) : (
+                                                <img src={getImageUrl(order.product?.images) || "https://placehold.co/100x100?text=No+Image"} className="w-full h-full object-cover" />
+                                            )}
                                         </div>
                                         <div className="min-w-0">
                                             <h3 className="text-white font-black text-sm line-clamp-1">{order.product?.name}</h3>

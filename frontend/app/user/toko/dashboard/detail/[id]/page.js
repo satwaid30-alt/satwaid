@@ -12,14 +12,7 @@ import OrderTimeline from "@/components/OrderTimeline";
 const isVideoUrl = (url) => {
   if (!url) return false;
   const lower = url.toLowerCase();
-  return (
-    lower.endsWith(".mp4") ||
-    lower.endsWith(".mov") ||
-    lower.endsWith(".avi") ||
-    lower.endsWith(".webm") ||
-    lower.endsWith(".mkv") ||
-    lower.endsWith(".3gp")
-  );
+  return lower.endsWith(".mp4") || lower.endsWith(".mov") || lower.endsWith(".avi") || lower.endsWith(".webm") || lower.endsWith(".mkv") || lower.endsWith(".3gp");
 };
 
 function ShippedNotification() {
@@ -255,116 +248,111 @@ export default function OrderDetailPage({ params }) {
 
             {isProductCardOpen && (
               <div className="p-4 md:p-8 space-y-8 animate-in slide-in-from-top-4 duration-500">
-                <div className="flex flex-col md:flex-row gap-8">
-                  {/* Product Image */}
-                  <div className="w-full md:w-64 aspect-square rounded-[2rem] overflow-hidden bg-zinc-950 border border-zinc-800 relative group">
-                    {order.product?.images?.[activeImageIndex] ? (
-                      (() => {
-                        const mediaUrl = getImageUrl(order.product.images[activeImageIndex]);
-                        return isVideoUrl(mediaUrl) ? (
-                          <video src={mediaUrl} className="w-full h-full object-cover" controls preload="metadata" />
-                        ) : (
-                          <img src={mediaUrl} alt={order.product.name} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
-                        );
-                      })()
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center text-zinc-800">
-                        <Package size={64} />
+                {order.items && order.items.length > 1 ? (
+                  <div className="space-y-4">
+                    {order.items.map((item, idx) => (
+                      <div key={item.id || idx} className="bg-zinc-950/40 border border-zinc-800/80 rounded-3xl p-6 flex flex-col md:flex-row items-center gap-6 group hover:border-emerald-500/20 transition-all">
+                        <div className="w-20 h-20 rounded-xl overflow-hidden bg-zinc-900 border border-zinc-800 shrink-0 relative aspect-square">
+                          {(() => {
+                            const mediaUrl = getImageUrl(item.product?.images);
+                            return isVideoUrl(mediaUrl) ? <video src={mediaUrl} className="w-full h-full object-cover" preload="metadata" muted playsInline /> : <img src={mediaUrl || "https://placehold.co/400x400/f4f4f5/71717a?text=No+Image"} className="w-full h-full object-cover" alt={item.product?.name} />;
+                          })()}
+                        </div>
+                        <div className="flex-1 min-w-0 text-center md:text-left space-y-1.5">
+                          <h4 className="text-base font-black text-white">{item.product?.name}</h4>
+                          <div className="flex flex-wrap gap-2 justify-center md:justify-start">
+                            <span className="px-2 py-0.5 bg-zinc-900 text-[9px] text-zinc-400 rounded border border-zinc-800 font-bold uppercase tracking-wider">{item.product?.species}</span>
+                            <span className="px-2 py-0.5 bg-zinc-900 text-[9px] text-zinc-400 rounded border border-zinc-800 font-bold uppercase tracking-wider">{item.product?.sex || "Unsex"}</span>
+                            <span className="px-2 py-0.5 bg-zinc-900 text-[9px] text-zinc-400 rounded border border-zinc-800 font-bold uppercase tracking-wider">ID: {item.product?.product_id || "-"}</span>
+                          </div>
+                          <div className="flex flex-wrap items-center justify-center md:justify-start gap-x-4 gap-y-1 text-[11px] text-zinc-500 font-medium">
+                            <p>
+                              Harga Satuan: <strong className="text-emerald-400 font-bold">{formatPrice(item.price)}</strong>
+                            </p>
+                            <p>
+                              Jumlah: <strong className="text-white font-bold">{item.quantity} Ekor</strong>
+                            </p>
+                            <p>
+                              Total: <strong className="text-white font-bold">{formatPrice(item.price * item.quantity)}</strong>
+                            </p>
+                          </div>
+                        </div>
                       </div>
-                    )}
-                    {order.product?.images?.length > 1 && (
-                      <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-1 px-2 py-1 bg-black/50 backdrop-blur-md rounded-full border border-white/10">
-                        {order.product.images.map((_, i) => (
-                          <div
-                            key={i}
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setActiveImageIndex(i);
-                            }}
-                            className={`w-1.5 h-1.5 rounded-full transition-all cursor-pointer ${activeImageIndex === i ? "bg-emerald-500 w-3" : "bg-white/30"}`}
-                          ></div>
-                        ))}
-                      </div>
-                    )}
+                    ))}
                   </div>
-
-                  {/* Product Info */}
-                  <div className="flex-1 space-y-4">
-                    <div>
-                      <div className="flex flex-wrap items-center gap-2 mb-2">
-                        {order.product?.type === "auction" ? (
-                          <span className="px-2.5 py-1 bg-purple-500/10 text-[9px] text-purple-400 rounded-lg font-black uppercase tracking-widest border border-purple-500/20 flex items-center gap-1.5">
-                            <Gavel size={10} /> Produk Lelang
-                          </span>
-                        ) : (
-                          <span className="px-2.5 py-1 bg-sky-500/10 text-[9px] text-sky-400 rounded-lg font-black uppercase tracking-widest border border-sky-500/20 flex items-center gap-1.5">
-                            <Tag size={10} /> Produk Jual
-                          </span>
-                        )}
-                        <span className="px-2 py-0.5 bg-emerald-500/10 text-[9px] text-emerald-500 rounded font-black uppercase tracking-widest border border-emerald-500/20">{order.product?.species}</span>
-                        <span className="px-2 py-0.5 bg-zinc-800 text-[9px] text-zinc-400 rounded font-black uppercase tracking-widest border border-zinc-700">ID Produk: {order.product?.product_id || "-"}</span>
-                      </div>
-                      <h1 className="text-xl sm:text-2xl md:text-3xl font-black text-white leading-tight">{order.product?.name}</h1>
+                ) : (
+                  <div className="flex flex-col md:flex-row gap-8">
+                    {/* Product Image */}
+                    <div className="w-full md:w-64 aspect-square rounded-[2rem] overflow-hidden bg-zinc-950 border border-zinc-800 relative group">
+                      {order.product?.images?.[activeImageIndex] ? (
+                        (() => {
+                          const mediaUrl = getImageUrl(order.product.images[activeImageIndex]);
+                          return isVideoUrl(mediaUrl) ? <video src={mediaUrl} className="w-full h-full object-cover" controls preload="metadata" /> : <img src={mediaUrl} alt={order.product.name} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />;
+                        })()
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center text-zinc-800">
+                          <Package size={64} />
+                        </div>
+                      )}
+                      {order.product?.images?.length > 1 && (
+                        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-1 px-2 py-1 bg-black/50 backdrop-blur-md rounded-full border border-white/10">
+                          {order.product.images.map((_, i) => (
+                            <div
+                              key={i}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setActiveImageIndex(i);
+                              }}
+                              className={`w-1.5 h-1.5 rounded-full transition-all cursor-pointer ${activeImageIndex === i ? "bg-emerald-500 w-3" : "bg-white/30"}`}
+                            ></div>
+                          ))}
+                        </div>
+                      )}
                     </div>
 
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="bg-zinc-950/50 p-4 rounded-2xl border border-zinc-800">
-                        <p className="text-[9px] font-black text-zinc-500 uppercase tracking-widest mb-1">Harga</p>
-                        <p className="text-lg font-black text-white">{formatPrice(order.price)}</p>
-                      </div>
-                      <div className="bg-zinc-950/50 p-4 rounded-2xl border border-zinc-800">
-                        <p className="text-[9px] font-black text-zinc-500 uppercase tracking-widest mb-1">Jumlah</p>
-                        <p className="text-lg font-black text-white">{order.quantity} Ekor</p>
-                      </div>
-                    </div>
-
-                    {/* Shipping Type Info */}
-                    <div className="flex items-center gap-3 p-4 bg-blue-500/5 border border-dashed border-blue-500/20 rounded-2xl">
-                      <div className="w-10 h-10 bg-blue-500 rounded-xl flex items-center justify-center text-zinc-950 font-black border border-blue-500/20">
-                        <Truck size={20} />
-                      </div>
+                    {/* Product Info */}
+                    <div className="flex-1 space-y-4">
                       <div>
-                        <p className="text-[9px] font-black text-zinc-500 uppercase tracking-widest leading-none mb-1">Jangkauan</p>
-                        <p className="text-sm font-black text-white">{order.product?.shipping_type || "Tidak ditentukan"}</p>
+                        <div className="flex flex-wrap items-center gap-2 mb-2">
+                          {order.product?.type === "auction" ? (
+                            <span className="px-2.5 py-1 bg-purple-500/10 text-[9px] text-purple-400 rounded-lg font-black uppercase tracking-widest border border-purple-500/20 flex items-center gap-1.5">
+                              <Gavel size={10} /> Produk Lelang
+                            </span>
+                          ) : (
+                            <span className="px-2.5 py-1 bg-sky-500/10 text-[9px] text-sky-400 rounded-lg font-black uppercase tracking-widest border border-sky-500/20 flex items-center gap-1.5">
+                              <Tag size={10} /> Produk Jual
+                            </span>
+                          )}
+                          <span className="px-2 py-0.5 bg-emerald-500/10 text-[9px] text-emerald-500 rounded font-black uppercase tracking-widest border border-emerald-500/20">{order.product?.species}</span>
+                          <span className="px-2 py-0.5 bg-zinc-800 text-[9px] text-zinc-400 rounded font-black uppercase tracking-widest border border-zinc-700">ID Produk: {order.product?.product_id || "-"}</span>
+                        </div>
+                        <h1 className="text-xl sm:text-2xl md:text-3xl font-black text-white leading-tight">{order.product?.name}</h1>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="bg-zinc-950/50 p-4 rounded-2xl border border-zinc-800">
+                          <p className="text-[9px] font-black text-zinc-500 uppercase tracking-widest mb-1">Harga</p>
+                          <p className="text-lg font-black text-white">{formatPrice(order.price)}</p>
+                        </div>
+                        <div className="bg-zinc-950/50 p-4 rounded-2xl border border-zinc-800">
+                          <p className="text-[9px] font-black text-zinc-500 uppercase tracking-widest mb-1">Jumlah</p>
+                          <p className="text-lg font-black text-white">{order.quantity} Ekor</p>
+                        </div>
+                      </div>
+
+                      {/* Shipping Type Info */}
+                      <div className="flex items-center gap-3 p-4 bg-blue-500/5 border border-dashed border-blue-500/20 rounded-2xl">
+                        <div className="w-10 h-10 bg-blue-500 rounded-xl flex items-center justify-center text-zinc-950 font-black border border-blue-500/20">
+                          <Truck size={20} />
+                        </div>
+                        <div>
+                          <p className="text-[9px] font-black text-zinc-500 uppercase tracking-widest leading-none mb-1">Jangkauan</p>
+                          <p className="text-sm font-black text-white">{order.product?.shipping_type || "Tidak ditentukan"}</p>
+                        </div>
                       </div>
                     </div>
                   </div>
-                </div>
-
-                <div className="h-px bg-zinc-800/50"></div>
-
-                {/* Descriptions Section (Transparent Layout) */}
-                <div className="px-2 py-4 md:px-8 md:py-10 space-y-12">
-                  <div className="space-y-6">
-                    <div className="flex items-center gap-4">
-                      <p className="text-[10px] font-black text-emerald-500 uppercase tracking-[0.2em] flex items-center gap-2">
-                        <ScrollText size={16} /> Deskripsi Produk
-                      </p>
-                      <div className="flex-1 h-px bg-zinc-800/50"></div>
-                    </div>
-                    <div
-                      className="text-sm text-zinc-400 leading-relaxed description-content font-medium prose prose-invert max-w-none"
-                      dangerouslySetInnerHTML={{
-                        __html: order.product?.description || "Tidak ada deskripsi.",
-                      }}
-                    ></div>
-                  </div>
-
-                  <div className="space-y-6">
-                    <div className="flex items-center gap-4">
-                      <p className="text-[10px] font-black text-amber-500 uppercase tracking-[0.2em] flex items-center gap-2">
-                        <Truck size={16} /> Info Pengiriman
-                      </p>
-                      <div className="flex-1 h-px bg-zinc-800/50"></div>
-                    </div>
-                    <div
-                      className="text-sm text-zinc-400 leading-relaxed description-content font-medium prose prose-invert max-w-none"
-                      dangerouslySetInnerHTML={{
-                        __html: order.product?.shipping_description || "Tidak ada informasi pengiriman.",
-                      }}
-                    ></div>
-                  </div>
-                </div>
+                )}
               </div>
             )}
           </div>{" "}
@@ -382,7 +370,7 @@ export default function OrderDetailPage({ params }) {
             <div className="space-y-4">
               <div className="flex justify-between items-center text-sm">
                 <span className="text-zinc-500 font-bold">Subtotal Produk</span>
-                <span className="text-white font-black">{formatPrice(order.price * order.quantity)}</span>
+                <span className="text-white font-black">{formatPrice(order.items && order.items.length > 0 ? order.items.reduce((sum, item) => sum + Number(item.price) * (item.quantity || 1), 0) : order.price * order.quantity)}</span>
               </div>
               <div className="flex justify-between items-center text-sm">
                 <span className="text-zinc-500 font-bold">Ongkos Kirim</span>
@@ -423,7 +411,7 @@ export default function OrderDetailPage({ params }) {
 
                   const receiverName = order.receiver_name || order.user?.name || "Kak";
                   const orderId = order.order_id || "";
-                  const productName = order.product?.name || "";
+                  const productName = order.items && order.items.length > 0 ? order.items.map((item) => `${item.product?.name || "Produk"} (x${item.quantity})`).join(", ") : order.product?.name || "";
 
                   const message = `Halo ${receiverName}, terima kasih telah berbelanja! Pesanan Anda dengan ID *${orderId}* (${productName}) sudah dikirim dan dalam perjalanan. Jika paket telah sampai dan diterima dengan baik, mohon kesediaannya untuk mengklik tombol *Pesanan Diterima* di dashboard akun Anda untuk menyelesaikan transaksi. Terima kasih!`;
                   const encodedText = encodeURIComponent(message);
