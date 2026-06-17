@@ -455,13 +455,13 @@ export default function OrderDetailPage({ params }) {
 
             <div className="space-y-3 pt-4">
               {order.status === "waiting_shipping_cost" && (
-                <Link href={`/user/toko/pesanan-masuk/biaya-kirim/${order.id}`} className="w-full py-4 bg-emerald-500 hover:bg-emerald-400 text-zinc-950 font-black rounded-2xl transition-all flex items-center justify-center gap-3 active:scale-95">
+                <Link href={`/user/toko/pesanan-masuk/biaya-kirim/${order.id}`} className="w-full py-4 bg-[#2563EB] hover:bg-[#1D4ED8] text-[#FFFFFF] font-black rounded-2xl transition-all flex items-center justify-center gap-3 active:scale-95">
                   Input Ongkir & Packing
                 </Link>
               )}
 
               {["waiting_shipment", "payment_verified"].includes(order.status) && (
-                <Link href={`/user/toko/pesanan-masuk/pengiriman/${order.id}`} className="w-full py-5 bg-blue-500 hover:bg-blue-400 text-zinc-950 rounded-2xl transition-all font-black text-sm flex items-center justify-center gap-3 active:scale-95">
+                <Link href={`/user/toko/pesanan-masuk/pengiriman/${order.id}`} className="w-full py-5 bg-[#2563EB] hover:bg-[#1D4ED8] text-[#FFFFFF] rounded-2xl transition-all font-black text-sm flex items-center justify-center gap-3 active:scale-95">
                   <Truck size={22} /> Masukkan Resi Pengiriman
                 </Link>
               )}
@@ -480,7 +480,7 @@ export default function OrderDetailPage({ params }) {
 
                   window.open(`https://wa.me/${formatted}?text=${encodedText}`, "_blank");
                 }}
-                className="w-full py-4 bg-gradient-to-r from-emerald-600 to-green-500 hover:from-emerald-500 hover:to-green-400 text-zinc-950 rounded-2xl transition-all font-black text-xs flex items-center justify-center gap-2.5 active:scale-95 border border-emerald-400/20"
+                className="w-full py-4 bg-[#25D366] hover:bg-[#1DA851] text-[#FFFFFF] rounded-2xl transition-all font-black text-xs flex items-center justify-center gap-2.5 active:scale-95"
               >
                 <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24">
                   <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946C.06 5.348 5.397.01 12.008.01c3.202.001 6.212 1.246 8.477 3.514 2.266 2.268 3.507 5.28 3.505 8.484-.004 6.657-5.34 11.997-11.953 11.997-2.005-.001-3.973-.502-5.73-1.458L0 24zm6.59-4.846c1.6.95 3.188 1.449 4.825 1.451 5.436 0 9.86-4.37 9.864-9.799.002-2.63-1.023-5.101-2.885-6.967C16.68 1.973 14.198 1.94 11.99 1.94c-5.439 0-9.865 4.372-9.87 9.802 0 1.76.476 3.479 1.382 5.02L2.451 21.6l4.196-1.446zm11.393-5.263c-.293-.146-1.73-.853-1.998-.951-.267-.099-.462-.146-.657.146-.195.293-.756.951-.926 1.146-.17.195-.341.219-.634.073-.293-.146-1.238-.456-2.359-1.454-.872-.777-1.46-1.738-1.631-2.03-.17-.293-.018-.452.129-.597.132-.13.293-.341.439-.512.146-.17.195-.293.293-.488.097-.195.048-.366-.024-.512-.072-.146-.657-1.583-.9-2.17-.236-.57-.478-.492-.657-.502-.17-.008-.366-.01-.561-.01-.195 0-.512.073-.78.366-.268.293-1.024 1.001-1.024 2.441 0 1.439 1.048 2.83 1.195 3.025.147.195 2.062 3.149 4.996 4.417.697.302 1.24.482 1.66.617.7.223 1.338.192 1.843.117.563-.083 1.73-.707 1.976-1.39.244-.683.244-1.268.17-1.39-.074-.121-.268-.194-.561-.34z" />

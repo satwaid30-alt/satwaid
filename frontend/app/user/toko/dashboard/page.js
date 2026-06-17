@@ -336,7 +336,15 @@ export default function SellerDashboardPage() {
         {[
           {
             label: "Produk Terjual",
-            value: orders.filter((o) => ["completed", "disbursement_requested", "disbursed"].includes(o.status)).length.toString(),
+            value: orders
+              .filter((o) => ["completed", "disbursement_requested", "disbursed"].includes(o.status))
+              .reduce((sum, o) => {
+                const qty = o.items && o.items.length > 0
+                  ? o.items.reduce((itemSum, item) => itemSum + (item.quantity || 1), 0)
+                  : (o.quantity || 1);
+                return sum + qty;
+              }, 0)
+              .toString(),
             icon: Package,
             color: "bg-blue-500",
           },

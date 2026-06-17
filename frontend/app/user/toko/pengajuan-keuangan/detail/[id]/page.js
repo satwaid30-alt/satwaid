@@ -89,7 +89,12 @@ export default function DetailPencairanPage({ params }) {
         }).format(price || 0);
     };
 
-
+    const getOrderSubtotal = (order) => {
+        if (order.items && order.items.length > 0) {
+            return order.items.reduce((sum, item) => sum + Number(item.price) * (item.quantity || 1), 0);
+        }
+        return Number(order.price || 0) * Number(order.quantity || 1);
+    };
 
     if (isLoading) {
         return (
@@ -102,7 +107,7 @@ export default function DetailPencairanPage({ params }) {
 
     if (!order) return null;
 
-    const cleanTotal = (Number(order.price) * Number(order.quantity)) +
+    const cleanTotal = getOrderSubtotal(order) +
         Number(order.shipping_cost) +
         Number(order.packing_cost) -
         (Number(order.additional_fee) || 0);
@@ -225,7 +230,7 @@ export default function DetailPencairanPage({ params }) {
                                 <div className="p-6 bg-zinc-950/50 rounded-3xl border border-zinc-800/50 space-y-4">
                                     <div className="flex justify-between items-center text-xs">
                                         <span className="text-zinc-500 font-bold uppercase tracking-widest">Subtotal Produk</span>
-                                        <span className="text-white font-black">{formatPrice(order.price * order.quantity)}</span>
+                                        <span className="text-white font-black">{formatPrice(getOrderSubtotal(order))}</span>
                                     </div>
                                     <div className="flex justify-between items-center text-xs">
                                         <span className="text-zinc-500 font-bold uppercase tracking-widest">Biaya Pengiriman</span>
@@ -292,23 +297,52 @@ export default function DetailPencairanPage({ params }) {
                     </div>
 
                     {/* Order Origin */}
-                    <div className="bg-zinc-900 border border-zinc-800 rounded-[2.5rem] p-8 flex items-center gap-6 group hover:bg-zinc-800/50 transition-all">
-                        <div className="w-16 h-16 rounded-2xl overflow-hidden bg-zinc-950 border border-zinc-800 shrink-0">
-                            <img
-                                src={getImageUrl(order.product?.images || order.product_image)}
-                                className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-                                alt={order.product?.name || "Produk"}
-                            />
-                        </div>
-                        <div className="min-w-0">
-                            <h4 className="text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-1">Terikat Pesanan:</h4>
-                            <p className="text-sm font-black text-white line-clamp-1 group-hover:text-emerald-500 transition-colors uppercase italic">{order.product?.name || order.product_name || "Produk dihapus"}</p>
-                            <div className="flex items-center gap-2 mt-1">
-                                <span className="text-[10px] font-bold text-zinc-500 font-mono">{order.order_id}</span>
-                                <span className="px-1.5 py-0.5 bg-zinc-950 text-[8px] text-zinc-400 rounded font-black uppercase tracking-widest border border-zinc-800">
-                                    ID: {order.product?.product_id || "-"}
-                                </span>
-                            </div>
+                    <div className="bg-zinc-900 border border-zinc-800 rounded-[2.5rem] p-8 space-y-4">
+                        <h4 className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Terikat Pesanan ({order.items && order.items.length > 0 ? order.items.length : 1} Produk):</h4>
+                        <div className="flex flex-col gap-4">
+                            {order.items && order.items.length > 0 ? (
+                                order.items.map((item, idx) => (
+                                    <div key={item.id || idx} className="flex items-center gap-6 group hover:bg-zinc-800/50 p-2 rounded-2xl transition-all border-b border-zinc-800/40 last:border-0 pb-3 last:pb-0">
+                                        <div className="w-16 h-16 rounded-2xl overflow-hidden bg-zinc-950 border border-zinc-800 shrink-0">
+                                            <img
+                                                src={getImageUrl(item.product?.images || item.product_image)}
+                                                className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                                                alt={item.product?.name || "Produk"}
+                                            />
+                                        </div>
+                                        <div className="min-w-0">
+                                            <p className="text-sm font-black text-white line-clamp-1 group-hover:text-emerald-500 transition-colors uppercase italic">{item.product?.name || item.product_name || "Produk"}</p>
+                                            <div className="flex items-center gap-2 mt-1">
+                                                <span className="text-[10px] font-bold text-zinc-500 font-mono">{order.order_id}</span>
+                                                <span className="px-1.5 py-0.5 bg-zinc-950 text-[8px] text-zinc-400 rounded font-black uppercase tracking-widest border border-zinc-800">
+                                                    ID: {item.product?.product_id || "-"}
+                                                </span>
+                                                <span className="inline-block px-1.5 py-0.5 bg-zinc-950 text-[8px] text-zinc-500 rounded font-black uppercase tracking-widest border border-zinc-800">Qty: {item.quantity || 1}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                ))
+                            ) : (
+                                <div className="flex items-center gap-6 group hover:bg-zinc-800/50 p-2 rounded-2xl transition-all">
+                                    <div className="w-16 h-16 rounded-2xl overflow-hidden bg-zinc-950 border border-zinc-800 shrink-0">
+                                        <img
+                                            src={getImageUrl(order.product?.images || order.product_image)}
+                                            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                                            alt={order.product?.name || "Produk"}
+                                        />
+                                    </div>
+                                    <div className="min-w-0">
+                                        <p className="text-sm font-black text-white line-clamp-1 group-hover:text-emerald-500 transition-colors uppercase italic">{order.product?.name || order.product_name || "Produk dihapus"}</p>
+                                        <div className="flex items-center gap-2 mt-1">
+                                            <span className="text-[10px] font-bold text-zinc-500 font-mono">{order.order_id}</span>
+                                            <span className="px-1.5 py-0.5 bg-zinc-950 text-[8px] text-zinc-400 rounded font-black uppercase tracking-widest border border-zinc-800">
+                                                ID: {order.product?.product_id || "-"}
+                                            </span>
+                                            <span className="inline-block px-1.5 py-0.5 bg-zinc-950 text-[8px] text-zinc-500 rounded font-black uppercase tracking-widest border border-zinc-800">Qty: {order.quantity || 1}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
                         </div>
                     </div>
                 </div>

@@ -61,6 +61,7 @@ export default function JualProdukPage() {
 
   const [reptileData, setReptileData] = useState({ ...initialReptileData });
   const [isAgreed, setIsAgreed] = useState(false);
+  const [errorModalTitle, setErrorModalTitle] = useState("File Tidak Valid!");
   const [errorModalMessage, setErrorModalMessage] = useState("Ukuran foto tidak boleh melebihi 1MB. Silakan kompres foto Anda.");
   const [mediaType, setMediaType] = useState("image");
 
@@ -246,6 +247,21 @@ export default function JualProdukPage() {
     const userData = JSON.parse(userRaw);
 
     try {
+      // Check if product name is a protected species
+      if (reptileData.name) {
+        const checkRes = await fetch(`${getApiUrl()}/satwa-dilindungi/check?name=${encodeURIComponent(reptileData.name)}`);
+        if (checkRes.ok) {
+          const checkResult = await checkRes.json();
+          if (checkResult.isProtected) {
+            setErrorModalTitle("Produk Dilarang!");
+            setErrorModalMessage("Produk tidak dapat dipublikasikan karena terdeteksi sebagai satwa dilindungi berdasarkan Permen LHK No. P.106/MENLHK/SETJEN/KUM.1/12/2018. Satwa dilindungi tidak boleh diperjualbelikan melalui SatwaiD.");
+            setShowErrorModal(true);
+            setIsSubmitting(false);
+            return;
+          }
+        }
+      }
+
       // Manual Validation for Rich Text and Images
       const cleanDescription = reptileData.description.replace(/<(.|\n)*?>/g, "").trim();
       const cleanShipping = reptileData.shipping_description.replace(/<(.|\n)*?>/g, "").trim();
@@ -547,6 +563,25 @@ export default function JualProdukPage() {
                         className="w-full bg-zinc-950 border border-zinc-800 text-white rounded-2xl px-5 py-4 focus:outline-none focus:border-emerald-500 transition-all font-bold placeholder:text-zinc-700"
                         value={reptileData.name}
                         onChange={(e) => setReptileData({ ...reptileData, name: e.target.value })}
+                        onBlur={async (e) => {
+                          const nameVal = e.target.value.trim();
+                          if (nameVal) {
+                            try {
+                              const checkRes = await fetch(`${getApiUrl()}/satwa-dilindungi/check?name=${encodeURIComponent(nameVal)}`);
+                              if (checkRes.ok) {
+                                const checkResult = await checkRes.json();
+                                if (checkResult.isProtected) {
+                                  setErrorModalTitle("Produk Dilarang!");
+                                  setErrorModalMessage("Produk tidak dapat dipublikasikan karena terdeteksi sebagai satwa dilindungi berdasarkan Permen LHK No. P.106/MENLHK/SETJEN/KUM.1/12/2018. Satwa dilindungi tidak boleh diperjualbelikan melalui SatwaiD.");
+                                  setShowErrorModal(true);
+                                  setReptileData(prev => ({ ...prev, name: "" }));
+                                }
+                              }
+                            } catch (err) {
+                              console.error(err);
+                            }
+                          }
+                        }}
                       />
                     </div>
                     <div className="space-y-2">
@@ -558,9 +593,9 @@ export default function JualProdukPage() {
                         setReptileData(prev => ({
                           ...prev,
                           species: val,
-                          images: val !== "Ikan" && mediaType === "video" ? [] : prev.images
+                          images: val !== "Ikan" && val !== "Burung" && mediaType === "video" ? [] : prev.images
                         }));
-                        if (val !== "Ikan") {
+                        if (val !== "Ikan" && val !== "Burung") {
                           setMediaType("image");
                         }
                       }}>
@@ -719,8 +754,8 @@ export default function JualProdukPage() {
                   </div>
                 </div>
 
-                {/* Tipe Media Selection (Only for Ikan Category) */}
-                {reptileData.species === "Ikan" && (
+                {/* Tipe Media Selection (Only for Ikan and Burung Categories) */}
+                {(reptileData.species === "Ikan" || reptileData.species === "Burung") && (
                   <div className="space-y-3 bg-zinc-900/40 p-5 border border-zinc-800 rounded-2xl">
                     <label className="text-xs font-black text-zinc-300 uppercase tracking-widest ml-1">
                       Tipe Media Produk <span className="text-red-500">*</span>
@@ -954,14 +989,14 @@ export default function JualProdukPage() {
             {/* Error Modal */}
             {showErrorModal && (
               <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-                <div className="absolute inset-0 bg-zinc-950/90 backdrop-blur-md animate-in fade-in duration-300" onClick={() => setShowErrorModal(false)}></div>
+                <div className="absolute inset-0 bg-zinc-950/90 backdrop-blur-md animate-in fade-in duration-300" onClick={() => { setShowErrorModal(false); setErrorModalTitle("File Tidak Valid!"); }}></div>
                 <div className="bg-zinc-900 border border-zinc-800 rounded-[2.5rem] w-full max-w-md p-12 text-center relative z-10 animate-in zoom-in-95 duration-300">
                   <div className="w-24 h-24 bg-red-500 text-zinc-950 rounded-full flex items-center justify-center mx-auto mb-8">
                     <AlertCircle size={48} />
                   </div>
-                  <h3 className="text-3xl font-black text-white mb-4">File Tidak Valid!</h3>
+                  <h3 className="text-3xl font-black text-white mb-4">{errorModalTitle}</h3>
                   <p className="text-zinc-400 mb-10 leading-relaxed font-medium">{errorModalMessage}</p>
-                  <button onClick={() => setShowErrorModal(false)} className="w-full bg-red-500 hover:bg-red-400 text-zinc-950 font-black py-4 rounded-2xl transition-all">
+                  <button onClick={() => { setShowErrorModal(false); setErrorModalTitle("File Tidak Valid!"); }} className="w-full bg-red-500 hover:bg-red-400 text-zinc-950 font-black py-4 rounded-2xl transition-all">
                     Saya Mengerti
                   </button>
                 </div>

@@ -220,8 +220,30 @@ const OrdersController = {
         try {
             const { listing_id } = req.params;
 
+            const { Op } = require('sequelize');
             const data = await models.orders.findAll({
-                where: { listing_id },
+                where: {
+                    [Op.or]: [
+                        { listing_id },
+                        Sequelize.literal(`EXISTS (
+                            SELECT 1 FROM order_items 
+                            WHERE order_items.order_id = "orders"."id" 
+                              AND order_items.listing_id = ${sequelize.escape(listing_id)}
+                        )`)
+                    ]
+                },
+                attributes: {
+                    include: [
+                        [
+                            Sequelize.literal(`COALESCE(
+                                (SELECT quantity FROM order_items WHERE order_items.order_id = "orders"."id" AND order_items.listing_id = ${sequelize.escape(listing_id)} LIMIT 1),
+                                "orders"."quantity",
+                                1
+                            )`),
+                            'item_quantity'
+                        ]
+                    ]
+                },
                 include: [
                     {
                         model: models.users,
@@ -887,22 +909,44 @@ const OrdersController = {
             if (!order) return res.status(404).json({ message: 'Pesanan tidak ditemukan' });
 
             // Update listing status to 'sold' jika benar-benar sudah habis
+            // Ambil semua listing_id dari pesanan ini (dari order.listing_id dan order_items)
+            const listingIds = new Set();
             if (order.listing_id) {
-                const { Op } = require('sequelize');
-                const listing = await models.listings.findByPk(order.listing_id);
+                listingIds.add(order.listing_id);
+            }
+            const orderItems = await models.order_items.findAll({
+                where: { order_id: order.id }
+            });
+            if (orderItems && orderItems.length > 0) {
+                orderItems.forEach(item => {
+                    if (item.listing_id) {
+                        listingIds.add(item.listing_id);
+                    }
+                });
+            }
 
+            const { Op } = require('sequelize');
+            for (const lid of listingIds) {
+                const listing = await models.listings.findByPk(lid);
                 if (listing) {
                     // Hitung pesanan lain yang masih aktif untuk produk ini
-                    const otherActiveOrders = await models.orders.count({
+                    const otherActiveOrdersCount = await models.orders.count({
                         where: {
-                            listing_id: order.listing_id,
                             id: { [Op.ne]: order.id },
-                            status: { [Op.notIn]: ['completed', 'cancelled', 'complained'] }
+                            status: { [Op.notIn]: ['completed', 'cancelled', 'complained', 'disbursement_requested', 'disbursed', 'cancelled_dismissed'] },
+                            [Op.or]: [
+                                { listing_id: lid },
+                                Sequelize.literal(`EXISTS (
+                                    SELECT 1 FROM order_items 
+                                    WHERE order_items.order_id = "orders"."id" 
+                                      AND order_items.listing_id = ${sequelize.escape(lid)}
+                                )`)
+                            ]
                         }
                     });
 
                     // Hanya tandai 'sold' jika stok 0 DAN tidak ada pesanan lain yang sedang diproses
-                    if (listing.stock <= 0 && otherActiveOrders === 0) {
+                    if (listing.stock <= 0 && otherActiveOrdersCount === 0) {
                         await listing.update({
                             status: 'sold',
                             sold_at: new Date(),
@@ -911,7 +955,7 @@ const OrdersController = {
 
                         // Hapus dari keranjang SEMUA pembeli (jika masih ada)
                         await models.carts.destroy({
-                            where: { listing_id: order.listing_id }
+                            where: { listing_id: lid }
                         });
                     }
                 }
@@ -1221,18 +1265,39 @@ const OrdersController = {
                 return res.status(400).json({ message: 'Pesanan tidak dapat dibatalkan pada tahap ini' });
             }
 
-            // Kembalikan stok jika pesanan dibatalkan
-            let newStock = null;
-            if (order.listing_id) {
-                const listing = await models.listings.findByPk(order.listing_id);
+            // Kembalikan stok jika pesanan dibatalkan (untuk all items di order_items dan order.listing_id)
+            const orderItemsToRestore = [];
+            const orderItems = await models.order_items.findAll({
+                where: { order_id: order.id }
+            });
+            if (orderItems && orderItems.length > 0) {
+                for (const item of orderItems) {
+                    orderItemsToRestore.push({
+                        listing_id: item.listing_id,
+                        quantity: item.quantity || 1
+                    });
+                }
+            } else if (order.listing_id) {
+                orderItemsToRestore.push({
+                    listing_id: order.listing_id,
+                    quantity: order.quantity || 1
+                });
+            }
+
+            const restoredListings = [];
+            for (const item of orderItemsToRestore) {
+                const listing = await models.listings.findByPk(item.listing_id);
                 if (listing) {
-                    // Jika sebelumnya listing ditandai 'sold' karena stok 0, kembalikan ke 'active'
                     const newStatus = listing.status === 'sold' ? 'active' : listing.status;
-                    newStock = listing.stock + order.quantity;
+                    const newStock = listing.stock + item.quantity;
                     await listing.update({
                         stock: newStock,
                         status: newStatus,
                         updated_at: new Date()
+                    });
+                    restoredListings.push({
+                        listing_id: listing.id,
+                        stock: newStock
                     });
                 }
             }
@@ -1254,11 +1319,11 @@ const OrdersController = {
             // Emit Notification to Buyer
             const io = req.app.get('socketio');
             if (io) {
-                if (newStock !== null) {
-                    console.log(`[Socket] Broadcasting listing_stock_updated (on cancel) for listing ${order.listing_id}: stock=${newStock}`);
+                for (const item of restoredListings) {
+                    console.log(`[Socket] Broadcasting listing_stock_updated (on cancel) for listing ${item.listing_id}: stock=${item.stock}`);
                     io.emit('listing_stock_updated', {
-                        listing_id: order.listing_id,
-                        stock: newStock
+                        listing_id: item.listing_id,
+                        stock: item.stock
                     });
                 }
                 io.to('admin_room').emit('order_updated_admin', { order_id: order.order_id, status: order.status });
@@ -1306,17 +1371,39 @@ const OrdersController = {
                 return res.status(400).json({ message: 'Pesanan tidak dapat dibatalkan pada tahap ini' });
             }
 
-            // Kembalikan stok jika pesanan dibatalkan
-            let newStock = null;
-            if (order.listing_id) {
-                const listing = await models.listings.findByPk(order.listing_id);
+            // Kembalikan stok jika pesanan dibatalkan (untuk all items di order_items dan order.listing_id)
+            const orderItemsToRestore = [];
+            const orderItems = await models.order_items.findAll({
+                where: { order_id: order.id }
+            });
+            if (orderItems && orderItems.length > 0) {
+                for (const item of orderItems) {
+                    orderItemsToRestore.push({
+                        listing_id: item.listing_id,
+                        quantity: item.quantity || 1
+                    });
+                }
+            } else if (order.listing_id) {
+                orderItemsToRestore.push({
+                    listing_id: order.listing_id,
+                    quantity: order.quantity || 1
+                });
+            }
+
+            const restoredListings = [];
+            for (const item of orderItemsToRestore) {
+                const listing = await models.listings.findByPk(item.listing_id);
                 if (listing) {
                     const newStatus = listing.status === 'sold' ? 'active' : listing.status;
-                    newStock = listing.stock + order.quantity;
+                    const newStock = listing.stock + item.quantity;
                     await listing.update({
                         stock: newStock,
                         status: newStatus,
                         updated_at: new Date()
+                    });
+                    restoredListings.push({
+                        listing_id: listing.id,
+                        stock: newStock
                     });
                 }
             }
@@ -1335,11 +1422,11 @@ const OrdersController = {
             // Emit Notification to Buyer & Seller
             const io = req.app.get('socketio');
             if (io) {
-                if (newStock !== null) {
-                    console.log(`[Socket] Broadcasting listing_stock_updated (on admin cancel) for listing ${order.listing_id}: stock=${newStock}`);
+                for (const item of restoredListings) {
+                    console.log(`[Socket] Broadcasting listing_stock_updated (on admin cancel) for listing ${item.listing_id}: stock=${item.stock}`);
                     io.emit('listing_stock_updated', {
-                        listing_id: order.listing_id,
-                        stock: newStock
+                        listing_id: item.listing_id,
+                        stock: item.stock
                     });
                 }
                 io.to('admin_room').emit('order_updated_admin', { order_id: order.order_id, status: order.status });

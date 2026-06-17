@@ -5,9 +5,15 @@ import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { Store, ChevronRight, CheckCircle2, X, ScrollText, ShieldCheck, PencilLine, XCircle, Lock, LogOut, ArrowLeft, MapPin, Tag, ChevronDown, ChevronUp, AlertCircle, Star, Image as ImageIcon, Upload, Info, LayoutGrid, Clock } from "lucide-react";
 import ActionModal from "@/components/ActionModal";
-import { getApiUrl, getLogoUrl, getSocketUrl } from "@/app/utils/api";
+import { getApiUrl, getLogoUrl, getSocketUrl, getImageUrl } from "@/app/utils/api";
 import { useShopQuota } from "@/hooks/useShopQuota";
 import { io } from "socket.io-client";
+
+const isVideoUrl = (url) => {
+  if (!url) return false;
+  const lower = url.toLowerCase();
+  return lower.endsWith(".mp4") || lower.endsWith(".mov") || lower.endsWith(".avi") || lower.endsWith(".webm") || lower.endsWith(".mkv") || lower.endsWith(".3gp");
+};
 
 export default function UserTokoDetailPage() {
   const params = useParams();
@@ -625,89 +631,7 @@ export default function UserTokoDetailPage() {
           )}
         </div>
 
-        {/* Product Management Navigation */}
-        <div className="bg-zinc-900 border border-zinc-800 rounded-[2.5rem] overflow-hidden relative">
-          {shopData.status?.toLowerCase() !== "active" && (
-            <div className="absolute inset-0 z-20 bg-zinc-950/60 backdrop-blur-[2px] flex flex-col items-center justify-center p-8 text-center animate-in fade-in duration-500">
-              <div className="w-20 h-20 bg-zinc-900 border border-zinc-800 rounded-3xl flex items-center justify-center text-amber-500 mb-6 ring-4 ring-amber-500/10">
-                <Lock size={40} />
-              </div>
-              <h3 className="text-2xl font-black text-white mb-2 uppercase tracking-tight">Fitur Terkunci</h3>
-              <p className="text-zinc-400 max-w-md text-sm leading-relaxed">
-                Mohon maaf, fitur pengelolaan produk dan lelang hanya tersedia untuk toko yang sudah <span className="text-emerald-500 font-bold uppercase">Terverifikasi</span> oleh Admin.
-              </p>
-              <div className="mt-8 flex items-center gap-2 bg-amber-500/10 border border-amber-500/20 px-4 py-2 rounded-full">
-                <AlertCircle size={14} className="text-amber-500" />
-                <span className="text-[10px] font-black text-amber-500 uppercase tracking-widest">Status: {shopData.status?.toUpperCase() || "PENDING"}</span>
-              </div>
-            </div>
-          )}
 
-          <div className={`p-8 md:p-12 text-center space-y-8 ${shopData.status?.toLowerCase() !== "active" ? "grayscale opacity-50" : ""}`}>
-            <div className="max-w-2xl mx-auto space-y-4">
-              <h2 className="text-3xl font-black text-white">Kelola Produk & Lelang</h2>
-              <p className="text-zinc-500">Pilih jenis penawaran yang ingin Anda buat. Kini tersedia halaman khusus untuk memudahkan Anda mengelola stok dan detail produk secara lebih profesional.</p>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 max-w-3xl mx-auto">
-              {shopData.status?.toLowerCase() === "active" ? (
-                <>
-                  <Link href="/user/toko/jual-produk" className="group relative bg-zinc-950 border border-zinc-800 p-8 rounded-3xl hover:border-emerald-500/50 transition-all text-left overflow-hidden">
-                    <div className="absolute top-0 right-0 w-24 h-24 bg-emerald-500/5 blur-2xl rounded-full -mr-8 -mt-8 group-hover:bg-emerald-500/10 transition-colors"></div>
-                    <div className="w-14 h-14 bg-emerald-500/10 text-emerald-500 rounded-2xl flex items-center justify-center mb-6 border border-emerald-500/20 group-hover:scale-110 transition-transform">
-                      <Store size={28} />
-                    </div>
-                    <h3 className="text-xl font-black text-white mb-2">Jual Langsung</h3>
-                    <p className="text-sm text-zinc-500 leading-relaxed">Pasang iklan jualan produk atau reptil Anda dengan harga tetap ke marketplace.</p>
-                    <div className="mt-6 flex items-center gap-2 text-emerald-500 font-bold text-xs uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-all translate-y-2 group-hover:translate-y-0">
-                      Buka Halaman <ChevronRight size={14} />
-                    </div>
-                  </Link>
-
-                  <Link href="/user/toko/lelang-produk" className="group relative bg-zinc-950 border border-zinc-800 p-8 rounded-3xl hover:border-amber-500/50 transition-all text-left overflow-hidden">
-                    <div className="absolute top-0 right-0 w-24 h-24 bg-amber-500/5 blur-2xl rounded-full -mr-8 -mt-8 group-hover:bg-amber-500/10 transition-colors"></div>
-                    <div className="w-14 h-14 bg-amber-500/10 text-amber-500 rounded-2xl flex items-center justify-center mb-6 border border-amber-500/20 group-hover:scale-110 transition-transform">
-                      <Store size={28} />
-                    </div>
-                    <h3 className="text-xl font-black text-white mb-2">Lelang Produk</h3>
-                    <p className="text-sm text-zinc-500 leading-relaxed">Buka lelang untuk produk koleksi terbaik Anda dan dapatkan penawaran tertinggi.</p>
-                    <div className="mt-6 flex items-center gap-2 text-amber-500 font-bold text-xs uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-all translate-y-2 group-hover:translate-y-0">
-                      Buka Halaman <ChevronRight size={14} />
-                    </div>
-                  </Link>
-                </>
-              ) : (
-                <>
-                  <div className="relative bg-zinc-950 border border-zinc-800 p-8 rounded-3xl text-left overflow-hidden cursor-not-allowed">
-                    <div className="w-14 h-14 bg-zinc-900 text-zinc-700 rounded-2xl flex items-center justify-center mb-6 border border-zinc-800">
-                      <Store size={28} />
-                    </div>
-                    <h3 className="text-xl font-black text-zinc-400 mb-2">Jual Langsung</h3>
-                    <p className="text-sm text-zinc-700 leading-relaxed">Pasang iklan jualan produk atau reptil Anda dengan harga tetap ke marketplace.</p>
-                  </div>
-
-                  <div className="relative bg-zinc-950 border border-zinc-800 p-8 rounded-3xl text-left overflow-hidden cursor-not-allowed">
-                    <div className="w-14 h-14 bg-zinc-900 text-zinc-700 rounded-2xl flex items-center justify-center mb-6 border border-zinc-800">
-                      <Store size={28} />
-                    </div>
-                    <h3 className="text-xl font-black text-zinc-400 mb-2">Lelang Produk</h3>
-                    <p className="text-sm text-zinc-700 leading-relaxed">Buka lelang untuk produk koleksi terbaik Anda dan dapatkan penawaran tertinggi.</p>
-                  </div>
-                </>
-              )}
-            </div>
-
-            <div className="pt-8 border-t border-zinc-800 flex flex-col sm:flex-row items-center justify-center gap-6">
-              <Link href="/user/toko/daftar-produk" className="text-sm font-bold text-zinc-500 hover:text-white flex items-center gap-2 transition-colors">
-                <ScrollText size={18} /> Lihat Daftar Iklan Saya
-              </Link>
-              <span className="hidden sm:block w-1 h-1 bg-zinc-800 rounded-full"></span>
-              <Link href="/user/toko/dashboard" className="text-sm font-bold text-zinc-500 hover:text-white flex items-center gap-2 transition-colors">
-                <ShieldCheck size={18} /> Dashboard Penjual
-              </Link>
-            </div>
-          </div>
-        </div>
 
         {/* Ulasan & Komentar Penjualan */}
         <div className="bg-zinc-900 border border-zinc-800 rounded-3xl p-6 sm:p-10 space-y-6 sm:space-y-8">
@@ -757,8 +681,15 @@ export default function UserTokoDetailPage() {
 
                     {rev.product && (
                       <div className="pt-3 border-t border-zinc-900 flex items-center gap-3 bg-zinc-900/10 p-2.5 rounded-xl border border-zinc-850 mt-2 shrink-0">
-                        <div className="w-10 h-10 rounded-lg overflow-hidden bg-zinc-950 border border-zinc-800 shrink-0">
-                          <img src={rev.product.images?.[0]} alt={rev.product.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                        <div className="w-10 h-10 rounded-lg overflow-hidden bg-zinc-950 border border-zinc-800 shrink-0 relative">
+                          {(() => {
+                            const mediaUrl = getImageUrl(rev.product.images?.[0]);
+                            return isVideoUrl(mediaUrl) ? (
+                              <video src={mediaUrl} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" preload="metadata" muted playsInline />
+                            ) : (
+                              <img src={mediaUrl || "https://placehold.co/400x400/f4f4f5/71717a?text=No+Image"} alt={rev.product.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                            );
+                          })()}
                         </div>
                         <div className="min-w-0 flex-1">
                           <p className="text-[8px] font-black text-zinc-500 uppercase tracking-widest leading-none mb-1">Membeli Produk</p>

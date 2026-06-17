@@ -89,27 +89,50 @@ async function autoCheckShippedOrders() {
             console.log(`[Auto-Complete] Found ${ordersToComplete.length} shipped orders older than 48 hours.`);
 
             for (const order of ordersToComplete) {
-                // 1. Update listing status to 'sold' if stock <= 0
+                // 1. Update listing status to 'sold' (or 'ended' if auction) if stock <= 0
+                const listingIds = new Set();
                 if (order.listing_id) {
-                    const listing = await models.listings.findByPk(order.listing_id);
+                    listingIds.add(order.listing_id);
+                }
+                const orderItems = await models.order_items.findAll({
+                    where: { order_id: order.id }
+                });
+                if (orderItems && orderItems.length > 0) {
+                    orderItems.forEach(item => {
+                        if (item.listing_id) {
+                            listingIds.add(item.listing_id);
+                        }
+                    });
+                }
+
+                for (const lid of listingIds) {
+                    const listing = await models.listings.findByPk(lid);
                     if (listing) {
                         const otherActiveOrders = await models.orders.count({
                             where: {
-                                listing_id: order.listing_id,
                                 id: { [Op.ne]: order.id },
-                                status: { [Op.notIn]: ['completed', 'cancelled', 'complained'] }
+                                status: { [Op.notIn]: ['completed', 'cancelled', 'complained', 'disbursement_requested', 'disbursed', 'cancelled_dismissed'] },
+                                [Op.or]: [
+                                    { listing_id: lid },
+                                    Sequelize.literal(`EXISTS (
+                                        SELECT 1 FROM order_items 
+                                        WHERE order_items.order_id = "orders"."id" 
+                                          AND order_items.listing_id = ${sequelize.escape(lid)}
+                                    )`)
+                                ]
                             }
                         });
 
+                        const targetStatus = listing.type === 'auction' ? 'ended' : 'sold';
                         if (listing.stock <= 0 && otherActiveOrders === 0) {
                             await listing.update({
-                                status: 'sold',
+                                status: targetStatus,
                                 sold_at: new Date(),
                                 updated_at: new Date()
                             });
 
                             await models.carts.destroy({
-                                where: { listing_id: order.listing_id }
+                                where: { listing_id: lid }
                             });
                         }
                     }
@@ -173,6 +196,87 @@ async function autoCheckShippedOrders() {
         }
     } catch (error) {
         console.error('[Auto-Complete Error]:', error);
+    }
+}
+
+// Function to correct historical listings in completed multi-product orders
+async function correctHistoricalListingStatuses() {
+    try {
+        console.log('[DB Fix] Running one-off database correction for historical multi-product listings...');
+        const { Op } = require('sequelize');
+        
+        // Find all completed/disbursed orders
+        const completedOrders = await models.orders.findAll({
+            where: {
+                status: ['completed', 'disbursement_requested', 'disbursed']
+            }
+        });
+
+        let correctedCount = 0;
+
+        for (const order of completedOrders) {
+            // Find all listing IDs in this order
+            const listingIds = new Set();
+            if (order.listing_id) {
+                listingIds.add(order.listing_id);
+            }
+            
+            const orderItems = await models.order_items.findAll({
+                where: { order_id: order.id }
+            });
+            
+            for (const item of orderItems) {
+                if (item.listing_id) {
+                    listingIds.add(item.listing_id);
+                }
+            }
+
+            for (const lid of listingIds) {
+                const listing = await models.listings.findByPk(lid);
+                if (listing) {
+                    const isAuction = listing.type === 'auction';
+                    const targetStatus = isAuction ? 'ended' : 'sold';
+                    
+                    if (listing.status !== targetStatus && listing.stock <= 0) {
+                        // Check if there are other active orders for this listing
+                        const otherActiveOrdersCount = await models.orders.count({
+                            where: {
+                                id: { [Op.ne]: order.id },
+                                status: { [Op.notIn]: ['completed', 'cancelled', 'complained', 'disbursement_requested', 'disbursed', 'cancelled_dismissed'] },
+                                [Op.or]: [
+                                    { listing_id: lid },
+                                    Sequelize.literal(`EXISTS (
+                                        SELECT 1 FROM order_items 
+                                        WHERE order_items.order_id = "orders"."id" 
+                                          AND order_items.listing_id = ${sequelize.escape(lid)}
+                                    )`)
+                                ]
+                            }
+                        });
+
+                        if (otherActiveOrdersCount === 0) {
+                            const soldDate = order.completed_at || order.disbursed_at || order.updated_at || new Date();
+                            await listing.update({
+                                status: targetStatus,
+                                sold_at: soldDate,
+                                updated_at: new Date()
+                            });
+                            
+                            // Clean from carts
+                            await models.carts.destroy({
+                                where: { listing_id: lid }
+                            });
+                            
+                            console.log(`[DB Fix] Updated listing ${listing.product_id} (${listing.name}) to status '${targetStatus}' (sold_at: ${soldDate}) from order ${order.order_id}`);
+                            correctedCount++;
+                        }
+                    }
+                }
+            }
+        }
+        console.log(`[DB Fix] Historical multi-product listings correction complete. Updated ${correctedCount} listings.`);
+    } catch (err) {
+        console.error('[DB Fix] Error correcting historical listing statuses:', err);
     }
 }
 
@@ -399,6 +503,8 @@ sequelize.sync({ alter: true })
             console.error('Error altering/cleaning orders table manually:', err.message);
         }
 
+        // Run historical listings correction
+        await correctHistoricalListingStatuses();
 
         // Run auto check for shipped orders and auctions on startup
         autoCheckShippedOrders();

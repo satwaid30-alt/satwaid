@@ -28,6 +28,25 @@ const ListingsController = {
                 stock
             } = req.body;
 
+            // Check satwa dilindungi
+            if (name) {
+                const [isProtected] = await sequelize.query(`
+                    SELECT nama_hewan 
+                    FROM satwa_dilindungi 
+                    WHERE :productName ILIKE '%' || nama_hewan || '%'
+                    LIMIT 1
+                `, {
+                    replacements: { productName: name.toLowerCase() },
+                    type: Sequelize.QueryTypes.SELECT
+                });
+
+                if (isProtected) {
+                    return res.status(400).json({ 
+                        message: "Produk tidak dapat dipublikasikan karena terdeteksi sebagai satwa dilindungi berdasarkan Permen LHK No. P.106/MENLHK/SETJEN/KUM.1/12/2018. Satwa dilindungi tidak boleh diperjualbelikan melalui SatwaiD." 
+                    });
+                }
+            }
+
             // Validate image sizes (Max 1MB per image)
             if (images && Array.isArray(images)) {
                 const getBase64SizeInBytes = (base64Str) => {
@@ -115,7 +134,14 @@ const ListingsController = {
                 // Fetch the new listing with shop details for admin table
                 const listingWithShop = await models.listings.findOne({
                     where: { id: newListing.id },
-                    include: [{ model: models.shops, as: 'shop' }]
+                    include: [{
+                        model: models.shops,
+                        as: 'shop',
+                        include: [{
+                            model: models.users,
+                            as: 'owner'
+                        }]
+                    }]
                 });
                 io.to('admin_room').emit('new_listing_admin', listingWithShop);
                 io.to(`user_${user_id}`).emit('new_listing_created', { id: newListing.id });
@@ -161,9 +187,14 @@ const ListingsController = {
                         ],
                         [
                             Sequelize.literal(`(
-                                SELECT STRING_AGG(order_id || '::' || status, ', ' ORDER BY created_at DESC)
+                                SELECT STRING_AGG(orders.order_id || '::' || orders.status || '::' || COALESCE(
+                                    (SELECT quantity FROM order_items WHERE order_items.order_id = orders.id AND order_items.listing_id = "listings"."id" LIMIT 1),
+                                    orders.quantity,
+                                    1
+                                ), ', ' ORDER BY orders.created_at DESC)
                                 FROM orders
                                 WHERE orders.listing_id = "listings"."id"
+                                   OR EXISTS (SELECT 1 FROM order_items WHERE order_items.order_id = orders.id AND order_items.listing_id = "listings"."id")
                             )`),
                             'latestOrderId'
                         ],
@@ -172,8 +203,8 @@ const ListingsController = {
                             Sequelize.literal(`(
                                 SELECT order_id
                                 FROM orders
-                                WHERE orders.listing_id = "listings"."id"
-                                AND orders.status = 'cancelled'
+                                WHERE (orders.listing_id = "listings"."id" OR EXISTS (SELECT 1 FROM order_items WHERE order_items.order_id = orders.id AND order_items.listing_id = "listings"."id"))
+                                  AND orders.status = 'cancelled'
                                 ORDER BY updated_at DESC
                                 LIMIT 1
                             )`),
@@ -181,10 +212,13 @@ const ListingsController = {
                         ],
                         [
                             Sequelize.literal(`(
-                                SELECT quantity
+                                SELECT COALESCE(
+                                  (SELECT quantity FROM order_items WHERE order_items.order_id = orders.id AND order_items.listing_id = "listings"."id" LIMIT 1),
+                                  orders.quantity
+                                )
                                 FROM orders
-                                WHERE orders.listing_id = "listings"."id"
-                                AND orders.status = 'cancelled'
+                                WHERE (orders.listing_id = "listings"."id" OR EXISTS (SELECT 1 FROM order_items WHERE order_items.order_id = orders.id AND order_items.listing_id = "listings"."id"))
+                                  AND orders.status = 'cancelled'
                                 ORDER BY updated_at DESC
                                 LIMIT 1
                             )`),
@@ -195,8 +229,8 @@ const ListingsController = {
                                 SELECT users.name
                                 FROM orders
                                 JOIN users ON users.id = orders.user_id
-                                WHERE orders.listing_id = "listings"."id"
-                                AND orders.status = 'cancelled'
+                                WHERE (orders.listing_id = "listings"."id" OR EXISTS (SELECT 1 FROM order_items WHERE order_items.order_id = orders.id AND order_items.listing_id = "listings"."id"))
+                                  AND orders.status = 'cancelled'
                                 ORDER BY orders.updated_at DESC
                                 LIMIT 1
                             )`),
@@ -206,8 +240,8 @@ const ListingsController = {
                             Sequelize.literal(`(
                                 SELECT id
                                 FROM orders
-                                WHERE orders.listing_id = "listings"."id"
-                                AND orders.status = 'cancelled'
+                                WHERE (orders.listing_id = "listings"."id" OR EXISTS (SELECT 1 FROM order_items WHERE order_items.order_id = orders.id AND order_items.listing_id = "listings"."id"))
+                                  AND orders.status = 'cancelled'
                                 ORDER BY updated_at DESC
                                 LIMIT 1
                             )`),
@@ -217,7 +251,7 @@ const ListingsController = {
                             Sequelize.literal(`(
                                 SELECT id
                                 FROM orders
-                                WHERE orders.listing_id = "listings"."id"
+                                WHERE (orders.listing_id = "listings"."id" OR EXISTS (SELECT 1 FROM order_items WHERE order_items.order_id = orders.id AND order_items.listing_id = "listings"."id"))
                                 ORDER BY created_at DESC
                                 LIMIT 1
                             )`),
@@ -235,7 +269,7 @@ const ListingsController = {
                             Sequelize.literal(`(
                                 SELECT status
                                 FROM orders
-                                WHERE orders.listing_id = "listings"."id"
+                                WHERE (orders.listing_id = "listings"."id" OR EXISTS (SELECT 1 FROM order_items WHERE order_items.order_id = orders.id AND order_items.listing_id = "listings"."id"))
                                 ORDER BY created_at DESC
                                 LIMIT 1
                             )`),
@@ -260,7 +294,11 @@ const ListingsController = {
                                 'avgRating'
                             ]
                         ]
-                    }
+                    },
+                    include: [{
+                        model: models.users,
+                        as: 'owner'
+                    }]
                 }],
                 order: [['created_at', 'DESC']]
             });
@@ -304,9 +342,14 @@ const ListingsController = {
                         ],
                         [
                             Sequelize.literal(`(
-                                SELECT STRING_AGG(order_id || '::' || status, ', ' ORDER BY created_at DESC)
+                                SELECT STRING_AGG(orders.order_id || '::' || orders.status || '::' || COALESCE(
+                                    (SELECT quantity FROM order_items WHERE order_items.order_id = orders.id AND order_items.listing_id = "listings"."id" LIMIT 1),
+                                    orders.quantity,
+                                    1
+                                ), ', ' ORDER BY orders.created_at DESC)
                                 FROM orders
                                 WHERE orders.listing_id = "listings"."id"
+                                   OR EXISTS (SELECT 1 FROM order_items WHERE order_items.order_id = orders.id AND order_items.listing_id = "listings"."id")
                             )`),
                             'latestOrderId'
                         ],
@@ -315,8 +358,8 @@ const ListingsController = {
                             Sequelize.literal(`(
                                 SELECT order_id
                                 FROM orders
-                                WHERE orders.listing_id = "listings"."id"
-                                AND orders.status = 'cancelled'
+                                WHERE (orders.listing_id = "listings"."id" OR EXISTS (SELECT 1 FROM order_items WHERE order_items.order_id = orders.id AND order_items.listing_id = "listings"."id"))
+                                  AND orders.status = 'cancelled'
                                 ORDER BY updated_at DESC
                                 LIMIT 1
                             )`),
@@ -324,10 +367,13 @@ const ListingsController = {
                         ],
                         [
                             Sequelize.literal(`(
-                                SELECT quantity
+                                SELECT COALESCE(
+                                  (SELECT quantity FROM order_items WHERE order_items.order_id = orders.id AND order_items.listing_id = "listings"."id" LIMIT 1),
+                                  orders.quantity
+                                )
                                 FROM orders
-                                WHERE orders.listing_id = "listings"."id"
-                                AND orders.status = 'cancelled'
+                                WHERE (orders.listing_id = "listings"."id" OR EXISTS (SELECT 1 FROM order_items WHERE order_items.order_id = orders.id AND order_items.listing_id = "listings"."id"))
+                                  AND orders.status = 'cancelled'
                                 ORDER BY updated_at DESC
                                 LIMIT 1
                             )`),
@@ -338,8 +384,8 @@ const ListingsController = {
                                 SELECT users.name
                                 FROM orders
                                 JOIN users ON users.id = orders.user_id
-                                WHERE orders.listing_id = "listings"."id"
-                                AND orders.status = 'cancelled'
+                                WHERE (orders.listing_id = "listings"."id" OR EXISTS (SELECT 1 FROM order_items WHERE order_items.order_id = orders.id AND order_items.listing_id = "listings"."id"))
+                                  AND orders.status = 'cancelled'
                                 ORDER BY orders.updated_at DESC
                                 LIMIT 1
                             )`),
@@ -349,8 +395,8 @@ const ListingsController = {
                             Sequelize.literal(`(
                                 SELECT id
                                 FROM orders
-                                WHERE orders.listing_id = "listings"."id"
-                                AND orders.status = 'cancelled'
+                                WHERE (orders.listing_id = "listings"."id" OR EXISTS (SELECT 1 FROM order_items WHERE order_items.order_id = orders.id AND order_items.listing_id = "listings"."id"))
+                                  AND orders.status = 'cancelled'
                                 ORDER BY updated_at DESC
                                 LIMIT 1
                             )`),
@@ -360,7 +406,7 @@ const ListingsController = {
                             Sequelize.literal(`(
                                 SELECT id
                                 FROM orders
-                                WHERE orders.listing_id = "listings"."id"
+                                WHERE (orders.listing_id = "listings"."id" OR EXISTS (SELECT 1 FROM order_items WHERE order_items.order_id = orders.id AND order_items.listing_id = "listings"."id"))
                                 ORDER BY created_at DESC
                                 LIMIT 1
                             )`),
@@ -378,7 +424,7 @@ const ListingsController = {
                             Sequelize.literal(`(
                                 SELECT status
                                 FROM orders
-                                WHERE orders.listing_id = "listings"."id"
+                                WHERE (orders.listing_id = "listings"."id" OR EXISTS (SELECT 1 FROM order_items WHERE order_items.order_id = orders.id AND order_items.listing_id = "listings"."id"))
                                 ORDER BY created_at DESC
                                 LIMIT 1
                             )`),
@@ -402,7 +448,11 @@ const ListingsController = {
                                 'avgRating'
                             ]
                         ]
-                    }
+                    },
+                    include: [{
+                        model: models.users,
+                        as: 'owner'
+                    }]
                 }],
                 order: [['created_at', 'DESC']]
             });
@@ -615,9 +665,14 @@ const ListingsController = {
                         ],
                         [
                             Sequelize.literal(`(
-                                SELECT STRING_AGG(order_id || '::' || status, ', ' ORDER BY created_at DESC)
+                                SELECT STRING_AGG(orders.order_id || '::' || orders.status || '::' || COALESCE(
+                                    (SELECT quantity FROM order_items WHERE order_items.order_id = orders.id AND order_items.listing_id = "listings"."id" LIMIT 1),
+                                    orders.quantity,
+                                    1
+                                ), ', ' ORDER BY orders.created_at DESC)
                                 FROM orders
                                 WHERE orders.listing_id = "listings"."id"
+                                   OR EXISTS (SELECT 1 FROM order_items WHERE order_items.order_id = orders.id AND order_items.listing_id = "listings"."id")
                             )`),
                             'latestOrderId'
                         ],
@@ -625,7 +680,7 @@ const ListingsController = {
                             Sequelize.literal(`(
                                 SELECT id
                                 FROM orders
-                                WHERE orders.listing_id = "listings"."id"
+                                WHERE (orders.listing_id = "listings"."id" OR EXISTS (SELECT 1 FROM order_items WHERE order_items.order_id = orders.id AND order_items.listing_id = "listings"."id"))
                                 ORDER BY created_at DESC
                                 LIMIT 1
                             )`),
@@ -635,7 +690,7 @@ const ListingsController = {
                             Sequelize.literal(`(
                                 SELECT user_id
                                 FROM orders
-                                WHERE orders.listing_id = "listings"."id"
+                                WHERE (orders.listing_id = "listings"."id" OR EXISTS (SELECT 1 FROM order_items WHERE order_items.order_id = orders.id AND order_items.listing_id = "listings"."id"))
                                 ORDER BY created_at DESC
                                 LIMIT 1
                             )`),
@@ -646,7 +701,7 @@ const ListingsController = {
                                 SELECT u.name
                                 FROM orders o
                                 JOIN users u ON o.user_id = u.id
-                                WHERE o.listing_id = "listings"."id"
+                                WHERE (o.listing_id = "listings"."id" OR EXISTS (SELECT 1 FROM order_items WHERE order_items.order_id = o.id AND order_items.listing_id = "listings"."id"))
                                 ORDER BY o.created_at DESC
                                 LIMIT 1
                             )`),
@@ -654,9 +709,12 @@ const ListingsController = {
                         ],
                         [
                             Sequelize.literal(`(
-                                SELECT price
+                                SELECT COALESCE(
+                                  (SELECT price FROM order_items WHERE order_items.order_id = orders.id AND order_items.listing_id = "listings"."id" LIMIT 1),
+                                  orders.price
+                                )
                                 FROM orders
-                                WHERE orders.listing_id = "listings"."id"
+                                WHERE (orders.listing_id = "listings"."id" OR EXISTS (SELECT 1 FROM order_items WHERE order_items.order_id = orders.id AND order_items.listing_id = "listings"."id"))
                                 ORDER BY created_at DESC
                                 LIMIT 1
                             )`),
@@ -681,7 +739,11 @@ const ListingsController = {
                                 'avgRating'
                             ]
                         ]
-                    }
+                    },
+                    include: [{
+                        model: models.users,
+                        as: 'owner'
+                    }]
                 }]
             });
             if (!data) return res.status(404).json({ message: "Iklan tidak ditemukan" });
@@ -717,6 +779,25 @@ const ListingsController = {
                 shipping_type,
                 stock
             } = req.body;
+
+            // Check satwa dilindungi
+            if (name) {
+                const [isProtected] = await sequelize.query(`
+                    SELECT nama_hewan 
+                    FROM satwa_dilindungi 
+                    WHERE :productName ILIKE '%' || nama_hewan || '%'
+                    LIMIT 1
+                `, {
+                    replacements: { productName: name.toLowerCase() },
+                    type: Sequelize.QueryTypes.SELECT
+                });
+
+                if (isProtected) {
+                    return res.status(400).json({ 
+                        message: "Produk tidak dapat dipublikasikan karena terdeteksi sebagai satwa dilindungi berdasarkan Permen LHK No. P.106/MENLHK/SETJEN/KUM.1/12/2018. Satwa dilindungi tidak boleh diperjualbelikan melalui SatwaiD." 
+                    });
+                }
+            }
 
             // Validate image sizes (Max 1MB per image)
             if (images && Array.isArray(images)) {
@@ -862,9 +943,15 @@ const ListingsController = {
     // 5b. Bulk Verify Pending Listings (PUT)
     bulkVerifyListings: async (req, res) => {
         try {
-            // Find all pending listings
+            const { ids } = req.body;
+            let whereClause = { status: 'pending' };
+            if (ids && Array.isArray(ids) && ids.length > 0) {
+                whereClause.id = ids;
+            }
+
+            // Find all matching pending listings
             const pendingListings = await models.listings.findAll({
-                where: { status: 'pending' },
+                where: whereClause,
                 include: [{ model: models.shops, as: 'shop' }]
             });
 
@@ -874,7 +961,7 @@ const ListingsController = {
 
             const listingIds = pendingListings.map(l => l.id);
 
-            // Update all to active
+            // Update to active
             await models.listings.update(
                 { status: 'active', updated_at: new Date() },
                 { where: { id: listingIds } }
@@ -1035,6 +1122,38 @@ const ListingsController = {
             });
         } catch (err) {
             console.error("Error getting shop quota:", err);
+            return res.status(500).json({ message: err.message });
+        }
+    },
+
+    // === CHECK PROTECTED SPECIES ===
+    checkProtectedSpecies: async (req, res) => {
+        try {
+            const { name } = req.query;
+            if (!name) {
+                return res.status(200).json({ isProtected: false });
+            }
+
+            const [result] = await sequelize.query(`
+                SELECT nama_hewan 
+                FROM satwa_dilindungi 
+                WHERE :productName ILIKE '%' || nama_hewan || '%'
+                LIMIT 1
+            `, {
+                replacements: { productName: name.toLowerCase() },
+                type: Sequelize.QueryTypes.SELECT
+            });
+
+            if (result) {
+                return res.status(200).json({
+                    isProtected: true,
+                    animal: result.nama_hewan
+                });
+            }
+
+            return res.status(200).json({ isProtected: false });
+        } catch (err) {
+            console.error("Error checking satwa dilindungi:", err);
             return res.status(500).json({ message: err.message });
         }
     }

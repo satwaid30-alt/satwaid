@@ -71,6 +71,7 @@ export default function EditLelangListingPage({ params }) {
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [showErrorModal, setShowErrorModal] = useState(false);
   const [showRules, setShowRules] = useState(false);
+  const [errorModalTitle, setErrorModalTitle] = useState("File Tidak Valid!");
   const [errorModalMessage, setErrorModalMessage] = useState("Ukuran foto tidak boleh melebihi 1MB. Silakan kompres foto Anda.");
 
   const [reptileData, setReptileData] = useState({
@@ -335,7 +336,27 @@ export default function EditLelangListingPage({ params }) {
       return;
     }
 
-    setShowConfirmModal(true);
+    setIsSubmitting(true);
+    try {
+      if (reptileData.name) {
+        const checkRes = await fetch(`${getApiUrl()}/satwa-dilindungi/check?name=${encodeURIComponent(reptileData.name)}`);
+        if (checkRes.ok) {
+          const checkResult = await checkRes.json();
+          if (checkResult.isProtected) {
+            setErrorModalTitle("Produk Dilarang!");
+            setErrorModalMessage("Produk tidak dapat dipublikasikan karena terdeteksi sebagai satwa dilindungi berdasarkan Permen LHK No. P.106/MENLHK/SETJEN/KUM.1/12/2018. Satwa dilindungi tidak boleh diperjualbelikan melalui SatwaiD.");
+            setShowErrorModal(true);
+            setIsSubmitting(false);
+            return;
+          }
+        }
+      }
+      setShowConfirmModal(true);
+    } catch (err) {
+      console.error("Error checking protected species:", err);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   // 4. Send PUT request to backend
@@ -731,6 +752,25 @@ export default function EditLelangListingPage({ params }) {
                   onChange={(e) =>
                     setReptileData({ ...reptileData, name: e.target.value })
                   }
+                  onBlur={async (e) => {
+                    const nameVal = e.target.value.trim();
+                    if (nameVal) {
+                      try {
+                        const checkRes = await fetch(`${getApiUrl()}/satwa-dilindungi/check?name=${encodeURIComponent(nameVal)}`);
+                        if (checkRes.ok) {
+                          const checkResult = await checkRes.json();
+                          if (checkResult.isProtected) {
+                            setErrorModalTitle("Produk Dilarang!");
+                            setErrorModalMessage("Produk tidak dapat dipublikasikan karena terdeteksi sebagai satwa dilindungi berdasarkan Permen LHK No. P.106/MENLHK/SETJEN/KUM.1/12/2018. Satwa dilindungi tidak boleh diperjualbelikan melalui SatwaiD.");
+                            setShowErrorModal(true);
+                            setReptileData(prev => ({ ...prev, name: "" }));
+                          }
+                        }
+                      } catch (err) {
+                        console.error(err);
+                      }
+                    }
+                  }}
                 />
               </div>
               <div className="space-y-2">
@@ -1357,20 +1397,20 @@ export default function EditLelangListingPage({ params }) {
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
           <div
             className="absolute inset-0 bg-zinc-950/90 backdrop-blur-md animate-in fade-in duration-300"
-            onClick={() => setShowErrorModal(false)}
+            onClick={() => { setShowErrorModal(false); setErrorModalTitle("File Tidak Valid!"); }}
           ></div>
           <div className="bg-zinc-900 border border-zinc-800 rounded-[2.5rem] w-full max-w-md p-12 text-center relative z-10 shadow-2xl animate-in zoom-in-95 duration-300">
             <div className="w-24 h-24 bg-red-500 text-zinc-950 rounded-full flex items-center justify-center mx-auto mb-8 shadow-2xl shadow-red-500/30">
               <AlertCircle size={48} />
             </div>
             <h3 className="text-3xl font-black text-white mb-4">
-              File Tidak Valid!
+              {errorModalTitle}
             </h3>
             <p className="text-zinc-400 mb-10 leading-relaxed font-medium">
               {errorModalMessage}
             </p>
             <button
-              onClick={() => setShowErrorModal(false)}
+              onClick={() => { setShowErrorModal(false); setErrorModalTitle("File Tidak Valid!"); }}
               className="w-full bg-red-500 hover:bg-red-400 text-zinc-950 font-black py-4 rounded-2xl transition-all active:scale-95"
             >
               Saya Mengerti

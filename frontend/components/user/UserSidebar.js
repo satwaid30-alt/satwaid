@@ -5,7 +5,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import { User, Settings, ShoppingBag, Store, Heart, LogOut, MapPin, Home, Menu, X, ChevronLeft, ChevronRight, MessageSquare, Users, Lock, Bell, Trash2, Package, CreditCard, Gavel, Wrench, Code, AlertTriangle } from "lucide-react";
 import { io } from "socket.io-client";
-import { getApiUrl, getSocketUrl } from "@/app/utils/api";
+import { getApiUrl, getSocketUrl, getImageUrl, getLogoUrl } from "@/app/utils/api";
 
 const MENU_ITEMS = [
   { key: "beranda", name: "Beranda Website", href: "/", icon: Home },
@@ -119,6 +119,7 @@ export default function UserSidebar() {
   });
   const [shopStatus, setShopStatus] = useState("active"); // default to active to prevent flash
   const [shopId, setShopId] = useState(null);
+  const [shopLogo, setShopLogo] = useState(null);
   const [isLoadingShop, setIsLoadingShop] = useState(true);
 
   // Socket & detailed notifications state for mobile bell
@@ -157,9 +158,21 @@ export default function UserSidebar() {
         fetchShopStatus(user.id);
       }
     };
+    const handleSyncUser = () => {
+      const userData = localStorage.getItem("user");
+      if (userData) {
+        try {
+          setUser(JSON.parse(userData));
+        } catch (e) {
+          console.error(e);
+        }
+      }
+    };
     window.addEventListener("shop_status_changed", handleSyncShop);
+    window.addEventListener("user_profile_updated", handleSyncUser);
     return () => {
       window.removeEventListener("shop_status_changed", handleSyncShop);
+      window.removeEventListener("user_profile_updated", handleSyncUser);
     };
   }, [user?.id]);
 
@@ -229,14 +242,17 @@ export default function UserSidebar() {
       if (res.ok && result.data) {
         setShopStatus(result.data.status?.toLowerCase() || "active");
         setShopId(result.data.id);
+        setShopLogo(result.data.logo_url);
       } else {
         setShopStatus("none");
         setShopId(null);
+        setShopLogo(null);
       }
     } catch (err) {
       console.error("Error fetching shop status from", getApiUrl(), err);
       setShopStatus("active");
       setShopId(null);
+      setShopLogo(null);
     } finally {
       setIsLoadingShop(false);
     }
@@ -464,6 +480,9 @@ export default function UserSidebar() {
     );
   }
 
+  const isSellerPage = pathname.startsWith("/toko-saya") || pathname.startsWith("/user/toko");
+  const displayLogo = isSellerPage && shopLogo ? getLogoUrl(shopLogo) : (user?.avatar_url ? getImageUrl(user.avatar_url) : null);
+
   return (
     <>
       {/* --- DESKTOP SIDEBAR --- */}
@@ -489,7 +508,11 @@ export default function UserSidebar() {
             ) : (
               <>
                 <div className="w-14 h-14 bg-emerald-500 rounded-2xl flex items-center justify-center text-white font-bold text-xl shrink-0 overflow-hidden">
-                  {user?.avatar_url ? <img src={user.avatar_url.startsWith("http") ? user.avatar_url : `${getApiUrl()}${user.avatar_url}`} alt={user.username || "User"} className="w-full h-full object-cover" /> : user?.username ? user.username.charAt(0).toUpperCase() : "U"}
+                  {displayLogo ? (
+                    <img src={displayLogo} alt={user?.username || "User"} className="w-full h-full object-cover" />
+                  ) : (
+                    user?.username ? user.username.charAt(0).toUpperCase() : "U"
+                  )}
                 </div>
                 {!isCollapsed && (
                   <div className="flex-1 min-w-0">
@@ -628,7 +651,11 @@ export default function UserSidebar() {
             ) : (
               <>
                 <div className="w-10 h-10 bg-emerald-500 rounded-xl flex items-center justify-center text-white font-bold text-lg overflow-hidden shrink-0">
-                  {user?.avatar_url ? <img src={user.avatar_url.startsWith("http") ? user.avatar_url : `${getApiUrl()}${user.avatar_url}`} alt={user.username || "User"} className="w-full h-full object-cover" /> : user?.username ? user.username.charAt(0).toUpperCase() : "U"}
+                  {displayLogo ? (
+                    <img src={displayLogo} alt={user?.username || "User"} className="w-full h-full object-cover" />
+                  ) : (
+                    user?.username ? user.username.charAt(0).toUpperCase() : "U"
+                  )}
                 </div>
                 <div>
                   <p className="text-sm font-bold text-white leading-tight">{user?.name || user?.username || "Pengguna"}</p>

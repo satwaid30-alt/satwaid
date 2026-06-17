@@ -12,14 +12,7 @@ import { useShopQuota } from "@/hooks/useShopQuota";
 const isVideoUrl = (url) => {
   if (!url) return false;
   const lower = url.toLowerCase();
-  return (
-    lower.endsWith(".mp4") ||
-    lower.endsWith(".mov") ||
-    lower.endsWith(".avi") ||
-    lower.endsWith(".webm") ||
-    lower.endsWith(".mkv") ||
-    lower.endsWith(".3gp")
-  );
+  return lower.endsWith(".mp4") || lower.endsWith(".mov") || lower.endsWith(".avi") || lower.endsWith(".webm") || lower.endsWith(".mkv") || lower.endsWith(".3gp");
 };
 
 const getPaginationRange = (currentPage, totalPages) => {
@@ -36,6 +29,28 @@ const getPaginationRange = (currentPage, totalPages) => {
   }
 
   return [1, "...", currentPage - 1, currentPage, currentPage + 1, "...", totalPages];
+};
+
+const calculateStockInfo = (item) => {
+  const sisaStok = item.stock || 0;
+  let soldQty = 0;
+
+  if (item.latestOrderId) {
+    const orderParts = item.latestOrderId.split(", ");
+    orderParts.forEach((part) => {
+      const tokens = part.split("::");
+      if (tokens.length >= 3) {
+        const status = tokens[1]?.toLowerCase();
+        const qty = parseInt(tokens[2]) || 0;
+        if (status && !status.includes("cancelled")) {
+          soldQty += qty;
+        }
+      }
+    });
+  }
+
+  const stokAwal = sisaStok + soldQty;
+  return { sisaStok, stokAwal };
 };
 
 export default function DaftarJualanPage() {
@@ -405,7 +420,6 @@ export default function DaftarJualanPage() {
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div>
           <h1 className="text-3xl font-black text-white flex items-center gap-3">Daftar Produk Toko</h1>
-          <p className="text-zinc-500 text-sm mt-1">Kelola semua iklan jualan dan lelang reptil Anda.</p>
         </div>
       </div>
 
@@ -550,8 +564,8 @@ export default function DaftarJualanPage() {
                 <th className="p-6 text-[10px] font-black text-zinc-300 uppercase tracking-[0.2em]">Produk</th>
                 <th className="p-6 text-[10px] font-black text-zinc-300 uppercase tracking-[0.2em]">Tanggal</th>
                 <th className="p-6 text-[10px] font-black text-zinc-300 uppercase tracking-[0.2em]">Harga / Bid</th>
-                {/* <th className="p-6 text-[10px] font-black text-zinc-300 uppercase tracking-[0.2em]">Nomor Invoice</th> */}
-                <th className="p-6 text-[10px] font-black text-zinc-300 uppercase tracking-[0.2em]">Stok</th>
+                <th className="p-6 text-[10px] font-black text-zinc-300 uppercase tracking-[0.2em] text-center">Stok Awal</th>
+                <th className="p-6 text-[10px] font-black text-zinc-300 uppercase tracking-[0.2em] text-center">Sisa Stok</th>
                 <th className="p-6 text-[10px] font-black text-zinc-300 uppercase tracking-[0.2em]">Status</th>
                 <th className="p-6 text-[10px] font-black text-zinc-300 uppercase tracking-[0.2em] text-center">Aksi</th>
               </tr>
@@ -604,7 +618,12 @@ export default function DaftarJualanPage() {
                       </td>
                       <td className="p-6 text-center">
                         <div className="flex flex-col items-center">
-                          <span className="text-sm font-black text-white">{item.stock || 0}</span>
+                          <span className="text-sm font-black text-white">{calculateStockInfo(item).stokAwal}</span>
+                        </div>
+                      </td>
+                      <td className="p-6 text-center">
+                        <div className="flex flex-col items-center">
+                          <span className="text-sm font-black text-white">{calculateStockInfo(item).sisaStok}</span>
                         </div>
                       </td>
                       <td className="p-6">
@@ -658,7 +677,7 @@ export default function DaftarJualanPage() {
                 })
               ) : (
                 <tr>
-                  <td colSpan="8" className="p-20 text-center">
+                  <td colSpan="9" className="p-20 text-center">
                     <div className="flex flex-col items-center gap-4">
                       <div className="w-16 h-16 bg-zinc-800/50 rounded-full flex items-center justify-center text-zinc-600">{listings.length > 0 ? <Search size={32} /> : <Tag size={32} />}</div>
                       <div>
@@ -704,9 +723,12 @@ export default function DaftarJualanPage() {
                       <p className="text-[10px] font-bold text-emerald-500 uppercase tracking-widest">{item.species}</p>
                       {item.product_id && <p className="text-[9px] font-mono font-black text-zinc-500 bg-zinc-950 px-1.5 py-0.5 rounded border border-zinc-800">{item.product_id}</p>}
                     </div>
-                    <div className="flex items-center justify-between">
+                    <div className="flex items-center justify-between gap-4">
                       <span className="text-xs font-black text-white">{formatPrice(item.type === "sell" ? item.price : item.current_bid || item.start_bid)}</span>
-                      <span className="text-[10px] font-bold italic text-zinc-500">{`Stok: ${item.stock || 0}`}</span>
+                      <div className="flex flex-col items-end shrink-0">
+                        <span className="text-[9px] font-bold text-zinc-500">{`Stok Awal: ${calculateStockInfo(item).stokAwal}`}</span>
+                        <span className="text-[9px] font-bold text-zinc-400 mt-0.5">{`Sisa Stok: ${calculateStockInfo(item).sisaStok}`}</span>
+                      </div>
                     </div>
                   </div>
                 </div>

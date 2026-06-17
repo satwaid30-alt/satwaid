@@ -1,0 +1,4734 @@
+'use strict';
+
+module.exports = {
+  async up (queryInterface, Sequelize) {
+    return queryInterface.bulkInsert('satwa_dilindungi', [
+  {
+    "id": "1",
+    "nama_hewan": "paus tombak",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "2",
+    "nama_hewan": "paus minke antartika",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "3",
+    "nama_hewan": "paus sei",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "4",
+    "nama_hewan": "paus edeni",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "5",
+    "nama_hewan": "paus biru",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "6",
+    "nama_hewan": "paus omura",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "7",
+    "nama_hewan": "paus bongkok",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "8",
+    "nama_hewan": "banteng",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "9",
+    "nama_hewan": "anoa dataran rendah",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "10",
+    "nama_hewan": "anoa gunung",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "11",
+    "nama_hewan": "kambing hutan sumatera",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "12",
+    "nama_hewan": "anjing ajag",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "13",
+    "nama_hewan": "monyet darre",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "14",
+    "nama_hewan": "monyet yaki",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "15",
+    "nama_hewan": "monyet digo",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "16",
+    "nama_hewan": "beruk mentawai",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "17",
+    "nama_hewan": "monyet boti",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "18",
+    "nama_hewan": "bekantan",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "19",
+    "nama_hewan": "lutung surili",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "20",
+    "nama_hewan": "lutung jirangan",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "21",
+    "nama_hewan": "lutung simpai",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "22",
+    "nama_hewan": "kekah",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "23",
+    "nama_hewan": "lutung joja",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "24",
+    "nama_hewan": "lutung merah",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "25",
+    "nama_hewan": "lutung kedih",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "26",
+    "nama_hewan": "lutung simakobu",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "27",
+    "nama_hewan": "lutung budeng",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "28",
+    "nama_hewan": "lutung kelabu",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "29",
+    "nama_hewan": "rusa bawean",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "30",
+    "nama_hewan": "kijang muncak",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "31",
+    "nama_hewan": "kijang kuning",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "32",
+    "nama_hewan": "rusa timor",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "33",
+    "nama_hewan": "rusa sambar",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "34",
+    "nama_hewan": "lumba lumba moncong panjang",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "35",
+    "nama_hewan": "paus pemangsa kerdil",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "36",
+    "nama_hewan": "paus pilot bersirip pendek",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "37",
+    "nama_hewan": "lumba-lumba risso",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "38",
+    "nama_hewan": "lumba-lumba fraser",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "39",
+    "nama_hewan": "pesut mahakam",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "40",
+    "nama_hewan": "paus pembunuh, paus seguni",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "41",
+    "nama_hewan": "paus kepala melon",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "42",
+    "nama_hewan": "paus pemangsa palsu",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "43",
+    "nama_hewan": "lumba-lumba bongkok",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "44",
+    "nama_hewan": "lumba-lumba totol",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "45",
+    "nama_hewan": "lumba-lumba garis",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "46",
+    "nama_hewan": "lumba-lumba moncong panjang",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "47",
+    "nama_hewan": "lumba-lumba gigi kasar",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "48",
+    "nama_hewan": "lumba-lumba hidung botol\nindopasifik",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "49",
+    "nama_hewan": "lumba-lumba hidung botol",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "50",
+    "nama_hewan": "duyung",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "51",
+    "nama_hewan": "gajah asia",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "52",
+    "nama_hewan": "kucing merah",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "53",
+    "nama_hewan": "kucing emas",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "54",
+    "nama_hewan": "macan dahan",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "55",
+    "nama_hewan": "harimau tutul/ macan tutul",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "56",
+    "nama_hewan": "harimau sumatera",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "57",
+    "nama_hewan": "kucing batu",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "58",
+    "nama_hewan": "kucing kuwuk",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "59",
+    "nama_hewan": "kucing tandang",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "60",
+    "nama_hewan": "kucing bakau",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "61",
+    "nama_hewan": "mawas sumatera/ orangutan\nsumatera",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "62",
+    "nama_hewan": "mawas kalimantan/ orangutan\nkalimantan",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "63",
+    "nama_hewan": "mawas tapanuli/ orangutan\ntapanuli",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "64",
+    "nama_hewan": "owa ungko",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "65",
+    "nama_hewan": "owa jenggot putih",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "66",
+    "nama_hewan": "owa bilau",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "67",
+    "nama_hewan": "owa serudung",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "68",
+    "nama_hewan": "owa jawa",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "69",
+    "nama_hewan": "owa kalawat",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "70",
+    "nama_hewan": "owa siamang",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "71",
+    "nama_hewan": "landak jawa",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "72",
+    "nama_hewan": "kelinci sumatera",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "73",
+    "nama_hewan": "kukang",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "74",
+    "nama_hewan": "kukang jawa",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "75",
+    "nama_hewan": "kukang kalimantan",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "76",
+    "nama_hewan": "kangguru pohon ndomea",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "77",
+    "nama_hewan": "kangguru pohon hias",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "78",
+    "nama_hewan": "kangguru pohon wakera",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "79",
+    "nama_hewan": "kangguru pohon mbaiso",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "80",
+    "nama_hewan": "kangguru pohon nemena",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "81",
+    "nama_hewan": "pelandu nugini",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "82",
+    "nama_hewan": "pelandu aru",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "83",
+    "nama_hewan": "pelandu merah",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "84",
+    "nama_hewan": "trenggiling",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "85",
+    "nama_hewan": "sigung sumatera",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "86",
+    "nama_hewan": "berang-berang pantai",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "87",
+    "nama_hewan": "berang-berang gunung",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "88",
+    "nama_hewan": "berang-berang wregul",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "89",
+    "nama_hewan": "kuskus talaud",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "90",
+    "nama_hewan": "kuskus gebe",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "91",
+    "nama_hewan": "kuskus gunung",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "92",
+    "nama_hewan": "kuskus guannal",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "93",
+    "nama_hewan": "kuskus selatan",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "94",
+    "nama_hewan": "kuskus matabiru",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "95",
+    "nama_hewan": "kuskus obi",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "96",
+    "nama_hewan": "kuskus yaben",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "97",
+    "nama_hewan": "kuskus siku putih",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "98",
+    "nama_hewan": "kuskus pontai",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "99",
+    "nama_hewan": "kuskus scham-scham",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "100",
+    "nama_hewan": "kuskus bohai",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "101",
+    "nama_hewan": "kuskus tembung",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "102",
+    "nama_hewan": "kuskus peleng",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "103",
+    "nama_hewan": "lumba-lumba hitam tak bersirip",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "104",
+    "nama_hewan": "paus lodan kecil jauba",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "105",
+    "nama_hewan": "paus lodan kecil",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "106",
+    "nama_hewan": "paus sperma",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "107",
+    "nama_hewan": "musang lingsang",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "108",
+    "nama_hewan": "codot talaud",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "109",
+    "nama_hewan": "codot gigi kecil",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "110",
+    "nama_hewan": "kalong talaud",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "111",
+    "nama_hewan": "badak sumatera",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "112",
+    "nama_hewan": "badak jawa",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "113",
+    "nama_hewan": "cukbo ekor merah",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "114",
+    "nama_hewan": "bokol borneo",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "115",
+    "nama_hewan": "babirusa tualangio",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "116",
+    "nama_hewan": "nokdiak moncong pendek",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "117",
+    "nama_hewan": "nokdiak moncong panjang",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "118",
+    "nama_hewan": "tapir tenuk",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "119",
+    "nama_hewan": "krabuku ingkat",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "120",
+    "nama_hewan": "krabuku diana",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "121",
+    "nama_hewan": "tarsius lariang",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "122",
+    "nama_hewan": "krabuku peleng",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "123",
+    "nama_hewan": "krabuku kecil",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "124",
+    "nama_hewan": "krabuku sangihe",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "125",
+    "nama_hewan": "krabuku tangkasi",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "126",
+    "nama_hewan": "tarsius siau",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "127",
+    "nama_hewan": "pelanduk kancil",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "128",
+    "nama_hewan": "kancil kecil",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "129",
+    "nama_hewan": "pelanduk napu",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "130",
+    "nama_hewan": "beruang madu",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "131",
+    "nama_hewan": "binturong",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "132",
+    "nama_hewan": "musang air",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "133",
+    "nama_hewan": "musang sulawesi",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "134",
+    "nama_hewan": "paus hidung botol",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "135",
+    "nama_hewan": "paus paruh blainville",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "136",
+    "nama_hewan": "paus paruh bergigi ginkgo",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "137",
+    "nama_hewan": "paus paruh angsa",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "138",
+    "nama_hewan": "elang alap shikra",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "139",
+    "nama_hewan": "elang alap kalung",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "140",
+    "nama_hewan": "elang alap maluku",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "141",
+    "nama_hewan": "elang alap coklat",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "142",
+    "nama_hewan": "elang alap kepala-kelabu",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "143",
+    "nama_hewan": "elang alap nipon",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "144",
+    "nama_hewan": "elang alap halmahera",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "145",
+    "nama_hewan": "elang alap kelabu",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "146",
+    "nama_hewan": "elang alap mantel-hitam",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "147",
+    "nama_hewan": "elang alap meyer",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "148",
+    "nama_hewan": "elang alap kecil",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "149",
+    "nama_hewan": "elang alap eurasia",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "150",
+    "nama_hewan": "elang alap pucat-sosonokan",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "151",
+    "nama_hewan": "elang alap dada-merah",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "152",
+    "nama_hewan": "elang alap cina",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "153",
+    "nama_hewan": "elang alap tenggara",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "154",
+    "nama_hewan": "elang alap ekor totol",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "155",
+    "nama_hewan": "elang alap jambul",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "156",
+    "nama_hewan": "elang alap besra",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "157",
+    "nama_hewan": "rajawali ekor-baji",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "158",
+    "nama_hewan": "elang bonelli",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "159",
+    "nama_hewan": "rajawali kuskus",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "160",
+    "nama_hewan": "baza jerdon",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "161",
+    "nama_hewan": "baza hitam",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "162",
+    "nama_hewan": "baza pasifik",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "163",
+    "nama_hewan": "elang kelabu",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "164",
+    "nama_hewan": "elang sayap-coklat",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "165",
+    "nama_hewan": "elang mata putih",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "166",
+    "nama_hewan": "elang buteo",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "167",
+    "nama_hewan": "elang ular jari-pendek",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "168",
+    "nama_hewan": "elang rawa katak",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "169",
+    "nama_hewan": "elang rawa coklat",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "170",
+    "nama_hewan": "elang rawa tutul",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "171",
+    "nama_hewan": "elang rawa tangling",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "172",
+    "nama_hewan": "elang rawa timur",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "173",
+    "nama_hewan": "elang rawa papua",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "174",
+    "nama_hewan": "rajawali totol",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "175",
+    "nama_hewan": "elang tikus",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "176",
+    "nama_hewan": "elang alap bahu coklat",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "177",
+    "nama_hewan": "nasar himalaya",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "178",
+    "nama_hewan": "elang laut perut-putih",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "179",
+    "nama_hewan": "elang bondol",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "180",
+    "nama_hewan": "elang siul",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "181",
+    "nama_hewan": "rajawali papua",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "182",
+    "nama_hewan": "elang ekor-panjang",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "183",
+    "nama_hewan": "elang setiwel",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "184",
+    "nama_hewan": "elang kecil",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "185",
+    "nama_hewan": "elang ikan kecil",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "186",
+    "nama_hewan": "elang ikan kepala-kelabu",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "187",
+    "nama_hewan": "elang hitam",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "188",
+    "nama_hewan": "elang perut-karat",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "189",
+    "nama_hewan": "elang kelelawar",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "190",
+    "nama_hewan": "elang alap doria",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "191",
+    "nama_hewan": "elang paria",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "192",
+    "nama_hewan": "elang gunung",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "193",
+    "nama_hewan": "elang jawa",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "194",
+    "nama_hewan": "elang brontok",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "195",
+    "nama_hewan": "elang flores",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "196",
+    "nama_hewan": "elang sulawesi",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "197",
+    "nama_hewan": "elang wallace",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "198",
+    "nama_hewan": "elang tiram",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "199",
+    "nama_hewan": "sikepmadu sulawesi",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "200",
+    "nama_hewan": "sikepmadu asia",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "201",
+    "nama_hewan": "elang ular bido",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "202",
+    "nama_hewan": "elang ular kinabalu",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "203",
+    "nama_hewan": "elang ular sulawesi",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "204",
+    "nama_hewan": "cerecet jawa",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "205",
+    "nama_hewan": "cekakak hutan kepala-hitam",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "206",
+    "nama_hewan": "cekakak hutan melayu",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "207",
+    "nama_hewan": "cekakak hutan tunggir-hijau",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "208",
+    "nama_hewan": "cekakak hutan dada-sisik",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "209",
+    "nama_hewan": "raja udang kalung-biru jawa",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "210",
+    "nama_hewan": "raja udang kalung-biru sumatera",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "211",
+    "nama_hewan": "cekakak tunggir-putih",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "212",
+    "nama_hewan": "raja udang sangihe",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "213",
+    "nama_hewan": "kukabura aru",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "214",
+    "nama_hewan": "cekakak pita numfor",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "215",
+    "nama_hewan": "cekakak pita kofiau",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "216",
+    "nama_hewan": "cekakak pita biak",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "217",
+    "nama_hewan": "cekakak kalung-coklat",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "218",
+    "nama_hewan": "cekakak talaud",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "219",
+    "nama_hewan": "cekakak murung",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "220",
+    "nama_hewan": "cekakak lazuli",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "221",
+    "nama_hewan": "cekakak pantai",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "222",
+    "nama_hewan": "boha wasur",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "223",
+    "nama_hewan": "mentok rimba",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "224",
+    "nama_hewan": "trutu hijau",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "225",
+    "nama_hewan": "itik gunung",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "226",
+    "nama_hewan": "walet gunung",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "227",
+    "nama_hewan": "walet raksasa",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "228",
+    "nama_hewan": "cangak besar",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "229",
+    "nama_hewan": "cangak laut",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "230",
+    "nama_hewan": "blekok cina",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "231",
+    "nama_hewan": "kuntul cina",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "232",
+    "nama_hewan": "kuntul australia",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "233",
+    "nama_hewan": "kuntul belang",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "234",
+    "nama_hewan": "kowak jepang",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "235",
+    "nama_hewan": "kowak melayu",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "236",
+    "nama_hewan": "bambangan coklat",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "237",
+    "nama_hewan": "bambangan hitam",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "238",
+    "nama_hewan": "kowakmalam merah",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "239",
+    "nama_hewan": "bambangan rimba",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "240",
+    "nama_hewan": "enggang klihingan",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "241",
+    "nama_hewan": "kangkareng perut-putih",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "242",
+    "nama_hewan": "kangkareng hitam",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "243",
+    "nama_hewan": "enggang jambul",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "244",
+    "nama_hewan": "enggang papan",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "245",
+    "nama_hewan": "enggang cula",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "246",
+    "nama_hewan": "julang jambul-hitam",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "247",
+    "nama_hewan": "kangkareng sulawesi",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "248",
+    "nama_hewan": "rangkong gading",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "249",
+    "nama_hewan": "julang sulawesi",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "250",
+    "nama_hewan": "julang sumba",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "251",
+    "nama_hewan": "julang irian",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "252",
+    "nama_hewan": "julang emas",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "253",
+    "nama_hewan": "wili-wili semak",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "254",
+    "nama_hewan": "wili-wili besar",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "255",
+    "nama_hewan": "kakatua putih",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "256",
+    "nama_hewan": "kakatua koki",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "257",
+    "nama_hewan": "kakatua tanimbar",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "258",
+    "nama_hewan": "kakatua maluku",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "259",
+    "nama_hewan": "kakatua rawa",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "260",
+    "nama_hewan": "kakatua jambul-kuning",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "261",
+    "nama_hewan": "kakatua raja",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "262",
+    "nama_hewan": "takur ampis-kalimantan",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "263",
+    "nama_hewan": "takur ampis-sumatera",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "264",
+    "nama_hewan": "takur tohtor",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "265",
+    "nama_hewan": "takur gedang",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "266",
+    "nama_hewan": "takur bututut",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "267",
+    "nama_hewan": "takur leher-hitam",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "268",
+    "nama_hewan": "takur topi-merah",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "269",
+    "nama_hewan": "takur tulung-tumpuk",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "270",
+    "nama_hewan": "takur bultok",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "271",
+    "nama_hewan": "takur gunung",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "272",
+    "nama_hewan": "takur warna-warni",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "273",
+    "nama_hewan": "takur bukit",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "274",
+    "nama_hewan": "takur tengkuk-emas",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "275",
+    "nama_hewan": "takur api",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "276",
+    "nama_hewan": "takur tutut",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "277",
+    "nama_hewan": "cabak kolong",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "278",
+    "nama_hewan": "taktarau iblis",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "279",
+    "nama_hewan": "kasuari kerdil",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "280",
+    "nama_hewan": "kasuari gelambir-ganda",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "281",
+    "nama_hewan": "kasuari gelambir-tunggal",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "282",
+    "nama_hewan": "cerek tilil",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "283",
+    "nama_hewan": "cerek jawa",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "284",
+    "nama_hewan": "cerek paruh-panjang",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "285",
+    "nama_hewan": "cerek topi-merah",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "286",
+    "nama_hewan": "cerek asia",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "287",
+    "nama_hewan": "cerek lutut-merah",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "288",
+    "nama_hewan": "trulek gelambir-merah",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "289",
+    "nama_hewan": "trulek kelabu",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "290",
+    "nama_hewan": "trulek jawa",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "291",
+    "nama_hewan": "trulek topeng",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "292",
+    "nama_hewan": "cica daun dahi-emas",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "293",
+    "nama_hewan": "cica daun sayap-biru",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "294",
+    "nama_hewan": "cica daun sayap-biru kalimantan",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "295",
+    "nama_hewan": "cica daun sayap-biru sumatera",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "296",
+    "nama_hewan": "cica daun Kecil",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "297",
+    "nama_hewan": "cica daun besar",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "298",
+    "nama_hewan": "cica daun sumatera",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "299",
+    "nama_hewan": "bangau sandang-lawe",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "300",
+    "nama_hewan": "bangau storm",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "301",
+    "nama_hewan": "bangau leher-hitam",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "302",
+    "nama_hewan": "bangau tongtong",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "303",
+    "nama_hewan": "bangau bluwok",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "304",
+    "nama_hewan": "cenderawasih loria",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "305",
+    "nama_hewan": "cenderawasih jambul",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "306",
+    "nama_hewan": "cenderawasih sutera",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "307",
+    "nama_hewan": "junai emas",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "308",
+    "nama_hewan": "merpatihutan perak",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "309",
+    "nama_hewan": "delimukan wetar",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "310",
+    "nama_hewan": "mambruk ubiaat",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "311",
+    "nama_hewan": "mambruk selatan",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "312",
+    "nama_hewan": "mambruk victoria",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "313",
+    "nama_hewan": "walik rawa-manu",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "314",
+    "nama_hewan": "walik benjol",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "315",
+    "nama_hewan": "punai timor",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "316",
+    "nama_hewan": "punai sumba",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "317",
+    "nama_hewan": "ekek layongan",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "318",
+    "nama_hewan": "ekek geling",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "319",
+    "nama_hewan": "gagak flores",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "320",
+    "nama_hewan": "gagak kepala-coklat",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "321",
+    "nama_hewan": "gagak orru",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "322",
+    "nama_hewan": "gagak rumah",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "323",
+    "nama_hewan": "gagak kelabu",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "324",
+    "nama_hewan": "gagak sulawesi",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "325",
+    "nama_hewan": "gagak banggai",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "326",
+    "nama_hewan": "gagak halmahera",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "327",
+    "nama_hewan": "tangkar centrong",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "328",
+    "nama_hewan": "tangkaruli kalimantan",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "329",
+    "nama_hewan": "tangkaruli sumatera",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "330",
+    "nama_hewan": "tangkar ongklet",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "331",
+    "nama_hewan": "tangkar kambing",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "332",
+    "nama_hewan": "tokhtor sumatra",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "333",
+    "nama_hewan": "bubut jawa",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "334",
+    "nama_hewan": "bubut teragop",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "335",
+    "nama_hewan": "bubutpacar jambul",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "336",
+    "nama_hewan": "kangkok sulawesi",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "337",
+    "nama_hewan": "bondol arfak",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "338",
+    "nama_hewan": "gelatik jawa",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "339",
+    "nama_hewan": "alap-alap coklat",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "340",
+    "nama_hewan": "alap-alap layang",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "341",
+    "nama_hewan": "alap-alap australia",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "342",
+    "nama_hewan": "alap-alap sapi",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "343",
+    "nama_hewan": "alap-alap kawah",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "344",
+    "nama_hewan": "alap-alap macan",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "345",
+    "nama_hewan": "alap-alap walet",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "346",
+    "nama_hewan": "alap-alap erasia",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "347",
+    "nama_hewan": "alap-alap capung",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "348",
+    "nama_hewan": "alap-alap dahi putih",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "349",
+    "nama_hewan": "cikalang christmas",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "350",
+    "nama_hewan": "cikalang besar",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "351",
+    "nama_hewan": "kenari melayu",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "352",
+    "nama_hewan": "terik asia",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "353",
+    "nama_hewan": "terik australia",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "354",
+    "nama_hewan": "jenjang brolga",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "355",
+    "nama_hewan": "kedidir kelam",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "356",
+    "nama_hewan": "kedidir belang",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "357",
+    "nama_hewan": "pedendang topeng",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "358",
+    "nama_hewan": "petrelbadai matsudairae",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "359",
+    "nama_hewan": "petrelbadai swinhoe",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "360",
+    "nama_hewan": "pemandulebah asia",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "361",
+    "nama_hewan": "camarangguk hitam",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "362",
+    "nama_hewan": "camarangguk coklat",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "363",
+    "nama_hewan": "daralaut kumis",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "364",
+    "nama_hewan": "daralaut sayap-putih",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "365",
+    "nama_hewan": "daralaut tiram",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "366",
+    "nama_hewan": "daralaut putih",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "367",
+    "nama_hewan": "daralaut caspia",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "368",
+    "nama_hewan": "camar kepala-coklat",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "369",
+    "nama_hewan": "camar baltik",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "370",
+    "nama_hewan": "camar perak",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "371",
+    "nama_hewan": "camar kepala-hitam",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "372",
+    "nama_hewan": "camar punggung-abu",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "373",
+    "nama_hewan": "dara laut aleutian",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "374",
+    "nama_hewan": "dara laut batu",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "375",
+    "nama_hewan": "dara laut sayap-hitam",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "376",
+    "nama_hewan": "dara laut fiji",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "377",
+    "nama_hewan": "dara laut jambon",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "378",
+    "nama_hewan": "dara laut biasa",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "379",
+    "nama_hewan": "dara laut arktik",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "380",
+    "nama_hewan": "dara laut tengkuk-hitam",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "381",
+    "nama_hewan": "dara laut kecil",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "382",
+    "nama_hewan": "dara laut benggala",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "383",
+    "nama_hewan": "dara laut jambul",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "384",
+    "nama_hewan": "dara laut cina",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "385",
+    "nama_hewan": "camar sabine",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "386",
+    "nama_hewan": "poksai sumatra",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "387",
+    "nama_hewan": "poksai jambul",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "388",
+    "nama_hewan": "poksai kuda",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "389",
+    "nama_hewan": "cica matahari",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "390",
+    "nama_hewan": "mesia telinga-perak",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "391",
+    "nama_hewan": "maleo gunung",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "392",
+    "nama_hewan": "maleo waigeo",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "393",
+    "nama_hewan": "gosong maluku",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "394",
+    "nama_hewan": "maleo senkawor",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "395",
+    "nama_hewan": "gosong sula",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "396",
+    "nama_hewan": "gosong pilipina",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "397",
+    "nama_hewan": "gosong papua",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "398",
+    "nama_hewan": "gosong forsten",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "399",
+    "nama_hewan": "gosong kelam",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "400",
+    "nama_hewan": "gosong biak",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "401",
+    "nama_hewan": "gosong kaki-merah",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "402",
+    "nama_hewan": "gosong tanimbar",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "403",
+    "nama_hewan": "maleo kamur",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "404",
+    "nama_hewan": "maleo paruh-hitam",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "405",
+    "nama_hewan": "maleo kerah-coklat",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "406",
+    "nama_hewan": "cendrawasih elok",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "407",
+    "nama_hewan": "melipotes foja",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "408",
+    "nama_hewan": "melipotes pipi-kuning",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "409",
+    "nama_hewan": "melipotes arfak",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "410",
+    "nama_hewan": "cirik-cirik sulawesi",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "411",
+    "nama_hewan": "seriwang sangihe",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "412",
+    "nama_hewan": "kehicap boano",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "413",
+    "nama_hewan": "kehicap biak",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "414",
+    "nama_hewan": "kehicap tanah-jampea",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "415",
+    "nama_hewan": "kehicap kofiau",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "416",
+    "nama_hewan": "kehicap flores",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "417",
+    "nama_hewan": "sikatan besar",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "418",
+    "nama_hewan": "sikatan aceh",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "419",
+    "nama_hewan": "sikatan matinan",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "420",
+    "nama_hewan": "sikatanrimba coklat",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "421",
+    "nama_hewan": "sikatanrimba sulawesi",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "422",
+    "nama_hewan": "burung madu sangihe",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "423",
+    "nama_hewan": "burung madu jawa",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "424",
+    "nama_hewan": "burung madu sepah-raja",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "425",
+    "nama_hewan": "burung madu leher-merah",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "426",
+    "nama_hewan": "burung madu sumba",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "427",
+    "nama_hewan": "petrelbadai coklat",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "428",
+    "nama_hewan": "petrelbadai muka-putih",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "429",
+    "nama_hewan": "kalkunpadang australia",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "430",
+    "nama_hewan": "astrapia arfak",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "431",
+    "nama_hewan": "astrapia cemerlang",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "432",
+    "nama_hewan": "cendrawasih belah-rotan",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "433",
+    "nama_hewan": "cendrawasih raja",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "434",
+    "nama_hewan": "cendrawasih botak",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "435",
+    "nama_hewan": "paruh sabit ekor-kuning",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "436",
+    "nama_hewan": "paruh sabit paruh-putih",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "437",
+    "nama_hewan": "paruh sabit kuri-kuri",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "438",
+    "nama_hewan": "paruh sabit coklat",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "439",
+    "nama_hewan": "toowa cemerlang",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "440",
+    "nama_hewan": "cendrawasih kerah",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "441",
+    "nama_hewan": "cenderawasih gagak-obi",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "442",
+    "nama_hewan": "cendrawasih gagak",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "443",
+    "nama_hewan": "manukodia kilap",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "444",
+    "nama_hewan": "manukodia leher-keriting",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "445",
+    "nama_hewan": "manukodia jobi",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "446",
+    "nama_hewan": "paradigalla ibinimi",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "447",
+    "nama_hewan": "paradigalla ekor-panjang",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "448",
+    "nama_hewan": "cendrawasih besar",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "449",
+    "nama_hewan": "cendrawasih kecil",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "450",
+    "nama_hewan": "cendrawasih merah",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "451",
+    "nama_hewan": "parotia foja",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "452",
+    "nama_hewan": "parotia carola",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "453",
+    "nama_hewan": "parotia arfak",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "454",
+    "nama_hewan": "manukodia terompet",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "455",
+    "nama_hewan": "cendrawasih panji",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "456",
+    "nama_hewan": "cendrawasih mati-kawat",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "457",
+    "nama_hewan": "bidadari halmahera",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "458",
+    "nama_hewan": "undan kacamata",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "459",
+    "nama_hewan": "undan putih",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "460",
+    "nama_hewan": "undan paruh-totol",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "461",
+    "nama_hewan": "berencet kalimantan",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "462",
+    "nama_hewan": "berencet besar",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "463",
+    "nama_hewan": "robin salju",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "464",
+    "nama_hewan": "robin gunung",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "465",
+    "nama_hewan": "buntutsate putih",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "466",
+    "nama_hewan": "buntutsate merah",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "467",
+    "nama_hewan": "pecukular asia",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "468",
+    "nama_hewan": "lakirumbai kecil",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "469",
+    "nama_hewan": "kuau raja",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "470",
+    "nama_hewan": "sempidan kalimantan",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "471",
+    "nama_hewan": "merak hijau",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "472",
+    "nama_hewan": "kuaukerdil sumatera",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "473",
+    "nama_hewan": "kuaukerdil kalimantan",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "474",
+    "nama_hewan": "pelatuk kelabu-sulawesi",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "475",
+    "nama_hewan": "pelatuk kelabu-besar",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "476",
+    "nama_hewan": "paok kalung-biru",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "477",
+    "nama_hewan": "paok dohertyi",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "478",
+    "nama_hewan": "paok delima",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "479",
+    "nama_hewan": "paok topi-hitam",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "480",
+    "nama_hewan": "paok mopo-sangihe",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "481",
+    "nama_hewan": "paok mopo-sulawesi",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "482",
+    "nama_hewan": "paok mopo-talaud",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "483",
+    "nama_hewan": "paok mopo-papua",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "484",
+    "nama_hewan": "paok mopo-siau",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "485",
+    "nama_hewan": "paok mopo-amboyna",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "486",
+    "nama_hewan": "paok mopo-sultan",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "487",
+    "nama_hewan": "paok kepala-biru",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "488",
+    "nama_hewan": "paok sintau",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "489",
+    "nama_hewan": "paok schneider",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "490",
+    "nama_hewan": "paok pancawarna-jawa",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "491",
+    "nama_hewan": "paok pancawarna-sumatera",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "492",
+    "nama_hewan": "paok pancawarna-kalimantan",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "493",
+    "nama_hewan": "paok laus",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "494",
+    "nama_hewan": "paok halmahera",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "495",
+    "nama_hewan": "paok bakau",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "496",
+    "nama_hewan": "paok hujan",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "497",
+    "nama_hewan": "paok morotai",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "498",
+    "nama_hewan": "paok bidadari",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "499",
+    "nama_hewan": "paok hijau-biak",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "500",
+    "nama_hewan": "paok hijau",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "501",
+    "nama_hewan": "paok lantang",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "502",
+    "nama_hewan": "paruhkodok dulit",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "503",
+    "nama_hewan": "titihan jambul",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "504",
+    "nama_hewan": "titihan australia",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "505",
+    "nama_hewan": "titihan jelaga",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "506",
+    "nama_hewan": "penggunting-laut kaki-merah",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "507",
+    "nama_hewan": "penggunting-laut pasifik",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "508",
+    "nama_hewan": "petrel bulwer",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "509",
+    "nama_hewan": "petrel hindia",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "510",
+    "nama_hewan": "penggunting-laut belang",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "511",
+    "nama_hewan": "petrel tanjung",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "512",
+    "nama_hewan": "petrel antartika",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "513",
+    "nama_hewan": "petrel tahiti",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "514",
+    "nama_hewan": "petrel barau",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "515",
+    "nama_hewan": "petrel galapagos",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "516",
+    "nama_hewan": "penggunting-laut heinroth",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "517",
+    "nama_hewan": "nuri-raja ambon",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "518",
+    "nama_hewan": "nuri-raja sayap-kuning",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "519",
+    "nama_hewan": "nuri-raja papua",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "520",
+    "nama_hewan": "nuri-raja kembang",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "521",
+    "nama_hewan": "nuri hitam",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "522",
+    "nama_hewan": "nuri coklat",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "523",
+    "nama_hewan": "nuri aru",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "524",
+    "nama_hewan": "perkici josephina",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "525",
+    "nama_hewan": "perkici garis",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "526",
+    "nama_hewan": "perkici papua",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "527",
+    "nama_hewan": "perkici dagu-merah",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "528",
+    "nama_hewan": "perkici punggung-hitam",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "529",
+    "nama_hewan": "perkici kepala-merah",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "530",
+    "nama_hewan": "perkici stella",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "531",
+    "nama_hewan": "perkici buru",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "532",
+    "nama_hewan": "perkici kerdil",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "533",
+    "nama_hewan": "nuri-ara mata-ganda",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "534",
+    "nama_hewan": "nuri-ara dada-jingga",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "535",
+    "nama_hewan": "nuri-ara pipi-hitam",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "536",
+    "nama_hewan": "nuri-ara dahi-hitam",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "537",
+    "nama_hewan": "nuri bayan",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "538",
+    "nama_hewan": "nuri baluku",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "539",
+    "nama_hewan": "nuri sayap-hitam",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "540",
+    "nama_hewan": "nuri talaud",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "541",
+    "nama_hewan": "nuri tanimbar",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "542",
+    "nama_hewan": "nuri telinga-biru",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "543",
+    "nama_hewan": "nuri kalung-ungu",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "544",
+    "nama_hewan": "nuri pipi-merah",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "545",
+    "nama_hewan": "nuri kalung-biru",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "546",
+    "nama_hewan": "serindit maluku",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "547",
+    "nama_hewan": "serindit papua",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "548",
+    "nama_hewan": "serindit sangihe",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "549",
+    "nama_hewan": "serindit paruh-merah",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "550",
+    "nama_hewan": "serindit flores",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "551",
+    "nama_hewan": "serindit melayu",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "552",
+    "nama_hewan": "serindit jawa",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "553",
+    "nama_hewan": "serindit sula",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "554",
+    "nama_hewan": "serindit sulawesi",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "555",
+    "nama_hewan": "kasturi tengkuk-ungu",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "556",
+    "nama_hewan": "kasturi ternate",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "557",
+    "nama_hewan": "kasturi kepala-hitam",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "558",
+    "nama_hewan": "nuri-kate dada-merah",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "559",
+    "nama_hewan": "nuri-kategeelvink",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "560",
+    "nama_hewan": "nuri-kate topi-kuning",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "561",
+    "nama_hewan": "nuri-kate pusio",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "562",
+    "nama_hewan": "perkici paruh-kuning",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "563",
+    "nama_hewan": "perkici paruh-jingga",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "564",
+    "nama_hewan": "perkici arfak",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "565",
+    "nama_hewan": "kringkring dada-kuning",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "566",
+    "nama_hewan": "kringkring buru",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "567",
+    "nama_hewan": "kringkring bukit",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "568",
+    "nama_hewan": "nuri kelam",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "569",
+    "nama_hewan": "nuri-macan brehm",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "570",
+    "nama_hewan": "nuri-macan lorentz",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "571",
+    "nama_hewan": "nuri-macan madarasz",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "572",
+    "nama_hewan": "nuri-macan sederhana",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "573",
+    "nama_hewan": "nuri-macan berbiru",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "574",
+    "nama_hewan": "betet biasa",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "575",
+    "nama_hewan": "betet ekor-panjang",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "576",
+    "nama_hewan": "nuri-ara muka-merah",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "577",
+    "nama_hewan": "nuri-ara besar",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "578",
+    "nama_hewan": "nuri-araedward",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "579",
+    "nama_hewan": "nuri-ara kuduk-kuning",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "580",
+    "nama_hewan": "nuri-ara pipi-kuning",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "581",
+    "nama_hewan": "perkici lembayung",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "582",
+    "nama_hewan": "perkici iris",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "583",
+    "nama_hewan": "nuri tanau",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "584",
+    "nama_hewan": "nuri kabare",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "585",
+    "nama_hewan": "betet-kelapa buru",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "586",
+    "nama_hewan": "betet-kelapa filipina",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "587",
+    "nama_hewan": "betet-kelapa paruh-besar",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "588",
+    "nama_hewan": "betet-kelapa punggung-biru",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "589",
+    "nama_hewan": "perkici oranye",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "590",
+    "nama_hewan": "perkici timor",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "591",
+    "nama_hewan": "perkici kuning-hijau",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "592",
+    "nama_hewan": "perkici dada-merah",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "593",
+    "nama_hewan": "perkici pelangi",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "594",
+    "nama_hewan": "perkici kuning-gelap",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "595",
+    "nama_hewan": "perkici dora",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "596",
+    "nama_hewan": "perkici biak",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "597",
+    "nama_hewan": "perkici flores",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "598",
+    "nama_hewan": "burungkucing kuping-putih",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "599",
+    "nama_hewan": "burungkucing tutul",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "600",
+    "nama_hewan": "namdur dahi-emas",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "601",
+    "nama_hewan": "namdur polos",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "602",
+    "nama_hewan": "namdur jambul-emas",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "603",
+    "nama_hewan": "namdur archbold",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "604",
+    "nama_hewan": "namdur coklat",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "605",
+    "nama_hewan": "namdur dada-kuning",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "606",
+    "nama_hewan": "namdur api",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "607",
+    "nama_hewan": "namdur topeng",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "608",
+    "nama_hewan": "empuloh paruh-kait",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "609",
+    "nama_hewan": "kareo talaud",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "610",
+    "nama_hewan": "mandar dengkur",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "611",
+    "nama_hewan": "mandar bakau",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "612",
+    "nama_hewan": "mandar mukabiru",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "613",
+    "nama_hewan": "mandar talaud",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "614",
+    "nama_hewan": "mandar gendang",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "615",
+    "nama_hewan": "mandar kasuari",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "616",
+    "nama_hewan": "mandargunung koma",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "617",
+    "nama_hewan": "mandargunung garis-putih",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "618",
+    "nama_hewan": "mandargunung mayr",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "619",
+    "nama_hewan": "tikusan siberia",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "620",
+    "nama_hewan": "tikusan polos",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "621",
+    "nama_hewan": "gagangbayang belang",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "622",
+    "nama_hewan": "kipasan bukit",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "623",
+    "nama_hewan": "kipasan belang",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "624",
+    "nama_hewan": "kipasan ekor-merah",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "625",
+    "nama_hewan": "berkik-kembang besar",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "626",
+    "nama_hewan": "trinil-lumpur paruh-panjang",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "627",
+    "nama_hewan": "trinil-lumpur asia",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "628",
+    "nama_hewan": "gajahan erasia",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "629",
+    "nama_hewan": "gajahan timur",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "630",
+    "nama_hewan": "gajahan kecil",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "631",
+    "nama_hewan": "gajahan penggala",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "632",
+    "nama_hewan": "berkik-gunung sulawesi",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "633",
+    "nama_hewan": "berkik-gunung maluku",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "634",
+    "nama_hewan": "berkik-gunung papua",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "635",
+    "nama_hewan": "berkik-gunung merah",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "636",
+    "nama_hewan": "trinil tutul",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "637",
+    "nama_hewan": "trinil kaki-kuning",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "638",
+    "nama_hewan": "trinil nordmann",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "639",
+    "nama_hewan": "trinil penjelajah",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "640",
+    "nama_hewan": "trinil hijau",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "641",
+    "nama_hewan": "skua kutub",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "642",
+    "nama_hewan": "camarkejar kecil",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "643",
+    "nama_hewan": "camarkejar arktika",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "644",
+    "nama_hewan": "camarkejar pomarin",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "645",
+    "nama_hewan": "pungguk togian",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "646",
+    "nama_hewan": "pungguk merah-tua",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "647",
+    "nama_hewan": "celepuk flores",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "648",
+    "nama_hewan": "celepuk jawa",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "649",
+    "nama_hewan": "celepuk biak",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "650",
+    "nama_hewan": "celepuk raja",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "651",
+    "nama_hewan": "celepuk sangihe",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "652",
+    "nama_hewan": "celepuk enggano",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "653",
+    "nama_hewan": "celepuk rinjani",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "654",
+    "nama_hewan": "celepuk sulawesi",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "655",
+    "nama_hewan": "celepuk banggai",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "656",
+    "nama_hewan": "celepuk mentawai",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "657",
+    "nama_hewan": "celepuk siau",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "658",
+    "nama_hewan": "celepuk simalur",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "659",
+    "nama_hewan": "jalak putih-sayap hitam",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "660",
+    "nama_hewan": "jalak putih – punggungabu",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "661",
+    "nama_hewan": "jalak putih – tunggirabu",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "662",
+    "nama_hewan": "tiong emas",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "663",
+    "nama_hewan": "tiong nias",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "664",
+    "nama_hewan": "tiong nusa-tenggara",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "665",
+    "nama_hewan": "curik bali",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "666",
+    "nama_hewan": "angsabatu christmas",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "667",
+    "nama_hewan": "angsabatu topeng",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "668",
+    "nama_hewan": "angsabatu coklat",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "669",
+    "nama_hewan": "angsabatu kakimerah",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "670",
+    "nama_hewan": "ibis sendok raja",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "671",
+    "nama_hewan": "ibis rokoroko",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "672",
+    "nama_hewan": "ibis karau",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "673",
+    "nama_hewan": "ibis cucukbesi",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "674",
+    "nama_hewan": "ibis australia",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "675",
+    "nama_hewan": "ibis papua",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "676",
+    "nama_hewan": "tepus dada-putih",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "677",
+    "nama_hewan": "luntur jawa",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "678",
+    "nama_hewan": "luntur sumatera",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "679",
+    "nama_hewan": "luntur diard",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "680",
+    "nama_hewan": "luntur putri",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "681",
+    "nama_hewan": "luntur kepala-merah",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "682",
+    "nama_hewan": "luntur kasumba",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "683",
+    "nama_hewan": "luntur harimau",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "684",
+    "nama_hewan": "luntur tunggir-coklat",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "685",
+    "nama_hewan": "luntur kalimantan",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "686",
+    "nama_hewan": "ciung-mungkal jawa",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "687",
+    "nama_hewan": "ciung-mungkal sumatera",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "688",
+    "nama_hewan": "gemak sumba",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "689",
+    "nama_hewan": "serak minahasa",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "690",
+    "nama_hewan": "serak taliabu",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "691",
+    "nama_hewan": "opior jawa",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "692",
+    "nama_hewan": "kacamata jawa",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "693",
+    "nama_hewan": "kacamata sangihe",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "694",
+    "nama_hewan": "kacamata wallacea",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "695",
+    "nama_hewan": "kodok merah",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "696",
+    "nama_hewan": "soa payung",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "697",
+    "nama_hewan": "labi-labi moncong babi",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "698",
+    "nama_hewan": "kura-kura rote",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "699",
+    "nama_hewan": "kura-kura papua leher panjang",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "700",
+    "nama_hewan": "penyu bromo",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "701",
+    "nama_hewan": "penyu hijau",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "702",
+    "nama_hewan": "penyu sisik",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "703",
+    "nama_hewan": "penyu lekang",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "704",
+    "nama_hewan": "penyu pipih",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "705",
+    "nama_hewan": "buaya irian",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "706",
+    "nama_hewan": "buaya muara",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "707",
+    "nama_hewan": "buaya siam",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "708",
+    "nama_hewan": "buaya sinyulong",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "709",
+    "nama_hewan": "penyu belimbing",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "710",
+    "nama_hewan": "biuku",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "711",
+    "nama_hewan": "beluku",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "712",
+    "nama_hewan": "bajuku",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "713",
+    "nama_hewan": "biawak kalimantan",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "714",
+    "nama_hewan": "sanca timor",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "715",
+    "nama_hewan": "sanca hijau",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "716",
+    "nama_hewan": "sanca bodo",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "717",
+    "nama_hewan": "sanca bulan",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "718",
+    "nama_hewan": "baning coklat",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "719",
+    "nama_hewan": "labi-labi bintang",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "720",
+    "nama_hewan": "biawak rote",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "721",
+    "nama_hewan": "biawak aru",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "722",
+    "nama_hewan": "biawak waigeo",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "723",
+    "nama_hewan": "biawak maluku",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "724",
+    "nama_hewan": "biawak komodo",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "725",
+    "nama_hewan": "biawak banggai",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "726",
+    "nama_hewan": "biawak abu-abu",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "727",
+    "nama_hewan": "biawak coklat",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "728",
+    "nama_hewan": "biawak hijau",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "729",
+    "nama_hewan": "biawak misool",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "730",
+    "nama_hewan": "biawak kerdil",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "731",
+    "nama_hewan": "biawak timor",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "732",
+    "nama_hewan": "biawak togian",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "733",
+    "nama_hewan": "selusur maninjau",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "734",
+    "nama_hewan": "ikan balashark",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "735",
+    "nama_hewan": "wader goa",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "736",
+    "nama_hewan": "ikan batak",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "737",
+    "nama_hewan": "pasa",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "738",
+    "nama_hewan": "pari sungai tutul",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "739",
+    "nama_hewan": "pari sungai raksasa",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "740",
+    "nama_hewan": "pari sungai pinggir putih",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "741",
+    "nama_hewan": "pari kai",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "742",
+    "nama_hewan": "ikan raja laut",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "743",
+    "nama_hewan": "belida borneo",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "744",
+    "nama_hewan": "belida sumatra",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "745",
+    "nama_hewan": "belida lopis",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "746",
+    "nama_hewan": "belida jawa",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "747",
+    "nama_hewan": "siluk kalimantan",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "748",
+    "nama_hewan": "siluk irian",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "749",
+    "nama_hewan": "pari gergaji lancip",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "750",
+    "nama_hewan": "pari gergaji kerdil",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "751",
+    "nama_hewan": "pari gergaji gigi besar",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "752",
+    "nama_hewan": "pari gergaji hijau",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "753",
+    "nama_hewan": "kupu-kupu bidadari",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "754",
+    "nama_hewan": "kupu-kupu sayap burung obi",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "755",
+    "nama_hewan": "kupu-kupu sayap burung\nchimaera",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "756",
+    "nama_hewan": "kupu-kupu sayap burung\nwallace",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "757",
+    "nama_hewan": "kupu-kupu sayap burung goliath",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "758",
+    "nama_hewan": "kupu-kupu sayap burung\nmeridionalis",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "759",
+    "nama_hewan": "kupu-kupu sayap burung surga",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "760",
+    "nama_hewan": "kupu-kupu sayap burung\npriamus",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "761",
+    "nama_hewan": "kupu-kupu sayap burung\nrothschildi",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "762",
+    "nama_hewan": "kupu-kupu sayap burung\ntithonus",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "763",
+    "nama_hewan": "kupu-kupu raja brooke",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "764",
+    "nama_hewan": "kupu-kupu raja malaya",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "765",
+    "nama_hewan": "kupu-kupu raja borneo",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "766",
+    "nama_hewan": "kupu raja criton",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "767",
+    "nama_hewan": "kupu-kupu raja cuneifera",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "768",
+    "nama_hewan": "kupu-kupu raja talaud",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "769",
+    "nama_hewan": "kupu-kupu raja haliphron",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "770",
+    "nama_hewan": "kupu-kupu raja helena",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "771",
+    "nama_hewan": "kupu-kupu raja hypolitus",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "772",
+    "nama_hewan": "kupu-kupu raja miranda",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "773",
+    "nama_hewan": "kupu-kupu raja\noblongomaculatus",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "774",
+    "nama_hewan": "kupu-kupu raja Timor",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "775",
+    "nama_hewan": "kupu-kupu raja prattorum",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "776",
+    "nama_hewan": "kupu-kupu raja tanimbar",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "777",
+    "nama_hewan": "kupu-kupu raja vandepolli",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "778",
+    "nama_hewan": "ketam kenari",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "779",
+    "nama_hewan": "kepala kambing",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "780",
+    "nama_hewan": "nautilus berongga",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "781",
+    "nama_hewan": "triton terompet",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "782",
+    "nama_hewan": "kima tapak kuda",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "783",
+    "nama_hewan": "kima cina",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "784",
+    "nama_hewan": "belangkas besar",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "785",
+    "nama_hewan": "belangkas tigaduri",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "786",
+    "nama_hewan": "belangkas padi",
+    "created_at": "2026-06-17T08:11:45.385Z",
+    "updated_at": "2026-06-17T08:11:45.385Z"
+  },
+  {
+    "id": "787",
+    "nama_hewan": "elang",
+    "created_at": "2026-06-17T02:16:39.594Z",
+    "updated_at": "2026-06-17T02:16:39.594Z"
+  }
+], {});
+  },
+
+  async down (queryInterface, Sequelize) {
+    return queryInterface.bulkDelete('satwa_dilindungi', null, {});
+  }
+};

@@ -9,6 +9,12 @@ import { Star, MessageSquare, AlertTriangle, Upload, CheckCircle2, XCircle, Chev
 import ActionModal from "@/components/ActionModal";
 import { uploadImageToS3 } from "@/components/HandleUpload";
 
+const isVideoUrl = (url) => {
+  if (!url) return false;
+  const lower = url.toLowerCase();
+  return lower.endsWith(".mp4") || lower.endsWith(".mov") || lower.endsWith(".avi") || lower.endsWith(".webm") || lower.endsWith(".mkv") || lower.endsWith(".3gp");
+};
+
 export default function TransactionCompletePage({ params }) {
   const { id } = use(params);
   const router = useRouter();
@@ -293,19 +299,60 @@ export default function TransactionCompletePage({ params }) {
       {/* Main Card */}
       <div className="bg-zinc-900 border border-zinc-800 rounded-3xl md:rounded-[3rem] overflow-hidden">
         {/* Product Header */}
-        <div className="p-6 md:p-8 bg-zinc-950/50 border-b border-zinc-800 flex flex-col md:flex-row items-center gap-6 md:gap-8 text-center md:text-left">
-          <div className="w-24 h-24 md:w-32 md:h-32 rounded-2xl md:rounded-[2rem] overflow-hidden border-2 border-zinc-800 shrink-0 relative group">
-            <img src={getImageUrl(order.product?.images) || "https://placehold.co/400x400/f4f4f5/71717a?text=No+Image"} alt={order.product?.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
-          </div>
-          <div className="flex-1">
-            <p className="text-[9px] md:text-[10px] font-black text-blue-500 uppercase tracking-[0.2em] md:tracking-[0.3em] mb-1.5 md:mb-2">Konfirmasi Barang Sampai</p>
-            <h1 className="text-xl md:text-2xl font-black text-white uppercase tracking-tight mb-2 leading-tight">{order.product?.name}</h1>
-            <div className="flex flex-wrap justify-center md:justify-start gap-2 md:gap-4">
-              <span className="px-3 py-1 md:px-4 md:py-1.5 bg-zinc-900 text-zinc-400 border border-zinc-800 rounded-full text-[9px] md:text-[10px] font-black uppercase tracking-widest">{order.quantity} Ekor</span>
-              <span className="px-3 py-1 md:px-4 md:py-1.5 bg-zinc-900 text-zinc-400 border border-zinc-800 rounded-full text-[9px] md:text-[10px] font-black uppercase tracking-widest">{order.shop?.name}</span>
+        {order.items && order.items.length > 1 ? (
+          <div className="p-6 md:p-8 bg-zinc-950/50 border-b border-zinc-800 space-y-6">
+            <div className="text-center md:text-left">
+              <p className="text-[9px] md:text-[10px] font-black text-blue-500 uppercase tracking-[0.2em] md:tracking-[0.3em] mb-1.5">Konfirmasi Barang Sampai</p>
+              <h1 className="text-xl md:text-2xl font-black text-white uppercase tracking-tight leading-tight">Daftar Produk ({order.items.length} Item)</h1>
+              <p className="text-zinc-500 text-xs mt-1">Penjual: <span className="text-zinc-300 font-bold">{order.shop?.name}</span></p>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {order.items.map((item, idx) => (
+                <div key={item.id || idx} className="flex gap-4 p-4 bg-zinc-900/60 border border-zinc-800 rounded-2xl">
+                  <div className="w-16 h-16 rounded-xl overflow-hidden bg-zinc-950 border border-zinc-800 shrink-0 relative aspect-square">
+                    {(() => {
+                      const mediaUrl = getImageUrl(item.product?.images);
+                      return isVideoUrl(mediaUrl) ? (
+                        <video src={mediaUrl} className="w-full h-full object-cover" preload="metadata" muted playsInline />
+                      ) : (
+                        <img src={mediaUrl || "https://placehold.co/400x400/f4f4f5/71717a?text=No+Image"} className="w-full h-full object-cover" alt={item.product?.name} />
+                      );
+                    })()}
+                  </div>
+                  <div className="space-y-1 min-w-0 flex-1">
+                    <div className="flex flex-wrap items-center gap-1.5">
+                      <span className="px-1.5 py-0.5 bg-zinc-800 text-[8px] text-zinc-400 rounded font-black uppercase tracking-widest border border-zinc-700">{item.product?.species}</span>
+                      <span className="px-1.5 py-0.5 bg-zinc-800 text-[8px] text-zinc-400 rounded font-black uppercase tracking-widest border border-zinc-700">Qty: {item.quantity || 1} Ekor</span>
+                    </div>
+                    <h4 className="text-xs font-black text-white leading-tight truncate">{item.product?.name}</h4>
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
-        </div>
+        ) : (
+          <div className="p-6 md:p-8 bg-zinc-950/50 border-b border-zinc-800 flex flex-col md:flex-row items-center gap-6 md:gap-8 text-center md:text-left">
+            <div className="w-24 h-24 md:w-32 md:h-32 rounded-2xl md:rounded-[2rem] overflow-hidden border-2 border-zinc-800 shrink-0 relative group">
+              {(() => {
+                const mediaUrl = getImageUrl(order.product?.images);
+                return isVideoUrl(mediaUrl) ? (
+                  <video src={mediaUrl} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" preload="metadata" muted playsInline />
+                ) : (
+                  <img src={mediaUrl || "https://placehold.co/400x400/f4f4f5/71717a?text=No+Image"} alt={order.product?.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
+                );
+              })()}
+            </div>
+            <div className="flex-1">
+              <p className="text-[9px] md:text-[10px] font-black text-blue-500 uppercase tracking-[0.2em] md:tracking-[0.3em] mb-1.5 md:mb-2">Konfirmasi Barang Sampai</p>
+              <h1 className="text-xl md:text-2xl font-black text-white uppercase tracking-tight mb-2 leading-tight">{order.product?.name}</h1>
+              <div className="flex flex-wrap justify-center md:justify-start gap-2 md:gap-4">
+                <span className="px-3 py-1 md:px-4 md:py-1.5 bg-zinc-900 text-zinc-400 border border-zinc-800 rounded-full text-[9px] md:text-[10px] font-black uppercase tracking-widest">{order.quantity} Ekor</span>
+                <span className="px-3 py-1 md:px-4 md:py-1.5 bg-zinc-900 text-zinc-400 border border-zinc-800 rounded-full text-[9px] md:text-[10px] font-black uppercase tracking-widest">{order.shop?.name}</span>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Tabs */}
         <div className="flex border-b border-zinc-800 p-1.5 md:p-2 gap-1.5 md:gap-2">
@@ -352,7 +399,7 @@ export default function TransactionCompletePage({ params }) {
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="w-full py-4 md:py-6 bg-blue-500 hover:bg-blue-400 text-zinc-950 font-black rounded-2xl md:rounded-3xl transition-all uppercase tracking-[0.15em] md:tracking-[0.2em] flex items-center justify-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed text-sm md:text-base"
+                className="w-full py-4 md:py-6 bg-[#2563EB] hover:bg-[#1D4ED8] text-[#FFFFFF] font-black rounded-2xl md:rounded-3xl transition-all uppercase tracking-[0.15em] md:tracking-[0.2em] flex items-center justify-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed text-sm md:text-base"
               >
                 {isSubmitting ? (
                   <div className="w-5 h-5 md:w-6 md:h-6 border-2 border-zinc-950 border-t-transparent rounded-full animate-spin"></div>

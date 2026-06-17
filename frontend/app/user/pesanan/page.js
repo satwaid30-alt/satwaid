@@ -1008,7 +1008,7 @@ export default function PesananPage() {
                               <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto self-stretch sm:self-auto">
                                 {!["completed", "cancelled"].includes(order.status) && (
                                   <>
-                                    <Link href={`/user/pesanan/transaksi/${order.id}`} className="w-full sm:w-auto px-6 py-3 bg-emerald-500 hover:bg-emerald-400 text-zinc-950 rounded-2xl transition-all text-xs font-black flex items-center justify-center gap-2">
+                                    <Link href={`/user/pesanan/transaksi/${order.id}`} className="w-full sm:w-auto px-6 py-3 bg-[#F59E0B] hover:bg-[#D97706] text-[#FFFFFF] rounded-2xl transition-all text-xs font-black flex items-center justify-center gap-2">
                                       <ShoppingBag size={14} /> Proses Transaksi
                                     </Link>
                                     {!["completed", "cancelled", "shipped"].includes(order.status) && (

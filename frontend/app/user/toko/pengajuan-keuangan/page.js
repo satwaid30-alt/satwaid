@@ -175,24 +175,31 @@ export default function RiwayatTransaksiSeller() {
   };
 
 
+  const getOrderSubtotal = (order) => {
+    if (order.items && order.items.length > 0) {
+      return order.items.reduce((sum, item) => sum + Number(item.price) * (item.quantity || 1), 0);
+    }
+    return Number(order.price || 0) * Number(order.quantity || 1);
+  };
+
   const totalEarnings = orders
     .filter((o) => ["completed", "disbursement_requested"].includes(o.status) || !!(o.disbursed_at || o.disbursement_proof))
     .reduce((acc, curr) => {
-      const total = Number(curr.price || 0) * Number(curr.quantity || 1) + Number(curr.shipping_cost || 0) + Number(curr.packing_cost || 0) - Number(curr.additional_fee || 0);
+      const total = getOrderSubtotal(curr) + Number(curr.shipping_cost || 0) + Number(curr.packing_cost || 0) - Number(curr.additional_fee || 0);
       return acc + total;
     }, 0);
 
   const totalDisbursedAmount = orders
     .filter((o) => o.disbursed_at || o.disbursement_proof)
     .reduce((acc, curr) => {
-      const total = Number(curr.price || 0) * Number(curr.quantity || 1) + Number(curr.shipping_cost || 0) + Number(curr.packing_cost || 0) - Number(curr.additional_fee || 0);
+      const total = getOrderSubtotal(curr) + Number(curr.shipping_cost || 0) + Number(curr.packing_cost || 0) - Number(curr.additional_fee || 0);
       return acc + total;
     }, 0);
 
   const totalPendingDisbursement = orders
     .filter((o) => ["completed", "disbursement_requested"].includes(o.status) && !(o.disbursed_at || o.disbursement_proof))
     .reduce((acc, curr) => {
-      const total = Number(curr.price || 0) * Number(curr.quantity || 1) + Number(curr.shipping_cost || 0) + Number(curr.packing_cost || 0) - Number(curr.additional_fee || 0);
+      const total = getOrderSubtotal(curr) + Number(curr.shipping_cost || 0) + Number(curr.packing_cost || 0) - Number(curr.additional_fee || 0);
       return acc + total;
     }, 0);
 
@@ -201,7 +208,11 @@ export default function RiwayatTransaksiSeller() {
     const isRelevant = ["completed", "disbursement_requested"].includes(order.status) || !!(order.disbursed_at || order.disbursement_proof);
     if (!isRelevant) return false;
 
-    const matchesSearch = order.order_id?.toLowerCase().includes(searchQuery.toLowerCase()) || order.product?.name?.toLowerCase().includes(searchQuery.toLowerCase());
+    const query = searchQuery.toLowerCase();
+    const matchesSearch =
+      order.order_id?.toLowerCase().includes(query) ||
+      order.product?.name?.toLowerCase().includes(query) ||
+      (order.items && order.items.length > 0 && order.items.some(item => item.product?.name?.toLowerCase().includes(query)));
 
     const matchesStatus =
       statusFilter === "all" ||
@@ -236,49 +247,49 @@ export default function RiwayatTransaksiSeller() {
       {/* Stats Cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-6">
         {/* Card 1: Total Pendapatan */}
-        <div className="bg-zinc-900 border border-zinc-800 rounded-2xl md:rounded-[2.5rem] p-4 md:p-8 space-y-2 md:space-y-4 relative overflow-hidden group">
-          <div className="w-8 h-8 md:w-12 md:h-12 bg-purple-500/10 rounded-xl md:rounded-2xl flex items-center justify-center text-purple-500 border border-purple-500/20 group-hover:scale-110 transition-transform">
+        <div className="bg-zinc-900 border border-zinc-800 rounded-2xl md:rounded-[2.5rem] p-4 md:p-8 flex items-center gap-3 md:gap-5 relative overflow-hidden group">
+          <div className="w-8 h-8 md:w-12 md:h-12 bg-purple-500/10 rounded-xl md:rounded-2xl flex items-center justify-center text-purple-500 border border-purple-500/20 group-hover:scale-110 transition-transform shrink-0">
             <Wallet size={16} className="md:hidden" />
             <Wallet size={24} className="hidden md:block" />
           </div>
-          <div>
-            <p className="text-[8px] md:text-xs font-black text-zinc-500 uppercase tracking-widest">Total Pendapatan</p>
-            <h3 className="text-xs sm:text-sm md:text-2xl font-black text-white mt-0.5 md:mt-1 leading-none">{formatPrice(totalEarnings)}</h3>
+          <div className="min-w-0">
+            <p className="text-[8px] md:text-xs font-black text-zinc-500 uppercase tracking-widest truncate">Total Pendapatan</p>
+            <h3 className="text-xs sm:text-sm md:text-2xl font-black text-white mt-0.5 md:mt-1 leading-none truncate">{formatPrice(totalEarnings)}</h3>
           </div>
         </div>
 
         {/* Card 2: Sudah Ditransfer */}
-        <div className="bg-zinc-900 border border-zinc-800 rounded-2xl md:rounded-[2.5rem] p-4 md:p-8 space-y-2 md:space-y-4 relative overflow-hidden group">
-          <div className="w-8 h-8 md:w-12 md:h-12 bg-emerald-500/10 rounded-xl md:rounded-2xl flex items-center justify-center text-emerald-500 border border-emerald-500/20 group-hover:scale-110 transition-transform">
+        <div className="bg-zinc-900 border border-zinc-800 rounded-2xl md:rounded-[2.5rem] p-4 md:p-8 flex items-center gap-3 md:gap-5 relative overflow-hidden group">
+          <div className="w-8 h-8 md:w-12 md:h-12 bg-emerald-500/10 rounded-xl md:rounded-2xl flex items-center justify-center text-emerald-500 border border-emerald-500/20 group-hover:scale-110 transition-transform shrink-0">
             <CheckCircle2 size={16} className="md:hidden" />
             <CheckCircle2 size={24} className="hidden md:block" />
           </div>
-          <div>
-            <p className="text-[8px] md:text-xs font-black text-zinc-500 uppercase tracking-widest">Sudah Ditransfer</p>
-            <h3 className="text-xs sm:text-sm md:text-2xl font-black text-emerald-500 mt-0.5 md:mt-1 leading-none">{formatPrice(totalDisbursedAmount)}</h3>
+          <div className="min-w-0">
+            <p className="text-[8px] md:text-xs font-black text-zinc-500 uppercase tracking-widest truncate">Sudah Ditransfer</p>
+            <h3 className="text-xs sm:text-sm md:text-2xl font-black text-emerald-500 mt-0.5 md:mt-1 leading-none truncate">{formatPrice(totalDisbursedAmount)}</h3>
           </div>
         </div>
 
         {/* Card 3: Belum Ditransfer */}
-        <div className="bg-zinc-900 border border-zinc-800 rounded-2xl md:rounded-[2.5rem] p-4 md:p-8 space-y-2 md:space-y-4 relative overflow-hidden group">
-          <div className="w-8 h-8 md:w-12 md:h-12 bg-amber-500/10 rounded-xl md:rounded-2xl flex items-center justify-center text-amber-500 border border-amber-500/20 group-hover:scale-110 transition-transform">
+        <div className="bg-zinc-900 border border-zinc-800 rounded-2xl md:rounded-[2.5rem] p-4 md:p-8 flex items-center gap-3 md:gap-5 relative overflow-hidden group">
+          <div className="w-8 h-8 md:w-12 md:h-12 bg-amber-500/10 rounded-xl md:rounded-2xl flex items-center justify-center text-amber-500 border border-amber-500/20 group-hover:scale-110 transition-transform shrink-0">
             <DollarSign size={16} className="md:hidden" />
             <DollarSign size={24} className="hidden md:block" />
           </div>
-          <div>
-            <p className="text-[8px] md:text-xs font-black text-zinc-500 uppercase tracking-widest">Belum Ditransfer</p>
-            <h3 className="text-xs sm:text-sm md:text-2xl font-black text-amber-500 mt-0.5 md:mt-1 leading-none">{formatPrice(totalPendingDisbursement)}</h3>
+          <div className="min-w-0">
+            <p className="text-[8px] md:text-xs font-black text-zinc-500 uppercase tracking-widest truncate">Belum Ditransfer</p>
+            <h3 className="text-xs sm:text-sm md:text-2xl font-black text-amber-500 mt-0.5 md:mt-1 leading-none truncate">{formatPrice(totalPendingDisbursement)}</h3>
           </div>
         </div>
 
         {/* Card 4: Status Pencairan (Pengajuan Aktif & Belum Diajukan) */}
-        <div className="bg-zinc-900 border border-zinc-800 rounded-2xl md:rounded-[2.5rem] p-4 md:p-8 space-y-2 md:space-y-4 relative overflow-hidden group">
-          <div className="w-8 h-8 md:w-12 md:h-12 bg-blue-500/10 rounded-xl md:rounded-2xl flex items-center justify-center text-blue-500 border border-blue-500/20 group-hover:scale-110 transition-transform">
+        <div className="bg-zinc-900 border border-zinc-800 rounded-2xl md:rounded-[2.5rem] p-4 md:p-8 flex items-center gap-3 md:gap-5 relative overflow-hidden group">
+          <div className="w-8 h-8 md:w-12 md:h-12 bg-blue-500/10 rounded-xl md:rounded-2xl flex items-center justify-center text-blue-500 border border-blue-500/20 group-hover:scale-110 transition-transform shrink-0">
             <Clock size={16} className="md:hidden" />
             <Clock size={24} className="hidden md:block" />
           </div>
-          <div>
-            <p className="text-[8px] md:text-xs font-black text-zinc-500 uppercase tracking-widest">Status Pencairan</p>
+          <div className="min-w-0">
+            <p className="text-[8px] md:text-xs font-black text-zinc-500 uppercase tracking-widest truncate">Status Pencairan</p>
             <div className="flex items-center gap-3 mt-1.5 md:mt-2">
               <div className="flex flex-col">
                 <span className="text-[9px] md:text-[10px] font-bold text-zinc-500 uppercase">Pengajuan</span>
@@ -419,21 +430,44 @@ export default function RiwayatTransaksiSeller() {
                     </td>
                     <td className="px-6 py-6 text-center text-xs font-bold text-zinc-500 font-mono">{indexOfFirstItem + index + 1}</td>
                     <td className="px-8 py-6">
-                      <div className="flex items-center gap-4">
-                        <div className="w-12 h-12 rounded-xl overflow-hidden bg-zinc-950 border border-zinc-800 shrink-0">
-                          {order.product?.images && isVideoUrl(order.product.images) ? (
-                            <video src={getImageUrl(order.product.images)} className="w-full h-full object-cover" preload="metadata" muted playsInline />
-                          ) : (
-                            <img src={getImageUrl(order.product?.images) || "/placeholder.png"} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" alt="" />
-                          )}
-                        </div>
-                        <div>
-                          <p className="text-sm font-black text-white line-clamp-1">{order.product?.name || "Produk dihapus"}</p>
-                          <div className="flex items-center gap-2 mt-1">
-                            <span className="text-[10px] font-black text-emerald-500 font-mono tracking-tighter">{order.order_id}</span>
-                            <span className="px-1.5 py-0.5 bg-zinc-950 text-[8px] text-zinc-400 rounded font-black uppercase tracking-widest border border-zinc-800">ID: {order.product?.product_id || "-"}</span>
+                      <div className="flex flex-col gap-3">
+                        {order.items && order.items.length > 0 ? (
+                          order.items.map((item, idx) => (
+                            <div key={item.id || idx} className="flex items-center gap-4">
+                              <div className="w-12 h-12 rounded-xl overflow-hidden bg-zinc-950 border border-zinc-800 shrink-0">
+                                {item.product?.images && isVideoUrl(item.product.images) ? (
+                                  <video src={getImageUrl(item.product.images)} className="w-full h-full object-cover" preload="metadata" muted playsInline />
+                                ) : (
+                                  <img src={getImageUrl(item.product?.images) || "/placeholder.png"} className="w-full h-full object-cover" alt="" />
+                                )}
+                              </div>
+                              <div>
+                                <p className="text-sm font-black text-white line-clamp-1 max-w-[200px]">{item.product?.name || "Produk"}</p>
+                                <div className="flex items-center flex-wrap gap-1.5 mt-1">
+                                  <span className="px-1.5 py-0.5 bg-zinc-950 text-[8px] text-zinc-400 rounded font-black uppercase tracking-widest border border-zinc-800">ID: {item.product?.product_id || "-"}</span>
+                                  <span className="inline-block px-1.5 py-0.5 bg-zinc-950 text-[8px] text-zinc-500 rounded font-black uppercase tracking-widest border border-zinc-800">Qty: {item.quantity || 1}</span>
+                                </div>
+                              </div>
+                            </div>
+                          ))
+                        ) : (
+                          <div className="flex items-center gap-4">
+                            <div className="w-12 h-12 rounded-xl overflow-hidden bg-zinc-950 border border-zinc-800 shrink-0">
+                              {order.product?.images && isVideoUrl(order.product.images) ? (
+                                <video src={getImageUrl(order.product.images)} className="w-full h-full object-cover" preload="metadata" muted playsInline />
+                              ) : (
+                                <img src={getImageUrl(order.product?.images) || "/placeholder.png"} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" alt="" />
+                              )}
+                            </div>
+                            <div>
+                              <p className="text-sm font-black text-white line-clamp-1 max-w-[200px]">{order.product?.name || "Produk dihapus"}</p>
+                              <div className="flex items-center flex-wrap gap-1.5 mt-1">
+                                <span className="px-1.5 py-0.5 bg-zinc-950 text-[8px] text-zinc-400 rounded font-black uppercase tracking-widest border border-zinc-800">ID: {order.product?.product_id || "-"}</span>
+                                <span className="inline-block px-1.5 py-0.5 bg-zinc-950 text-[8px] text-zinc-500 rounded font-black uppercase tracking-widest border border-zinc-800">Qty: {order.quantity || 1}</span>
+                              </div>
+                            </div>
                           </div>
-                        </div>
+                        )}
                       </div>
                     </td>
                     <td className="px-8 py-6">
@@ -474,13 +508,13 @@ export default function RiwayatTransaksiSeller() {
                     </td>
                     <td className="px-8 py-6">
                       <div className="space-y-1">
-                        <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-tighter">Produk: {formatPrice(Number(order.price) * Number(order.quantity))}</p>
-                        <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-tighter">Ongkir + Pack: {formatPrice(Number(order.shipping_cost) + Number(order.packing_cost))}</p>
+                        <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-tighter">Produk: {formatPrice(getOrderSubtotal(order))}</p>
+                        <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-tighter">Ongkir + Pack: {formatPrice(Number(order.shipping_cost || 0) + Number(order.packing_cost || 0))}</p>
                       </div>
                     </td>
                     <td className="px-8 py-6 text-right">
                       <div className="flex flex-col items-end">
-                        <span className="text-sm font-black text-emerald-500">{formatPrice(Number(order.price) * Number(order.quantity) + Number(order.shipping_cost) + Number(order.packing_cost) - (Number(order.additional_fee) || 0))}</span>
+                        <span className="text-sm font-black text-emerald-500">{formatPrice(getOrderSubtotal(order) + Number(order.shipping_cost || 0) + Number(order.packing_cost || 0) - (Number(order.additional_fee) || 0))}</span>
                         {order.additional_fee > 0 && <span className="text-[9px] font-bold text-red-500/70 italic">Potongan: {formatPrice(order.additional_fee)}</span>}
                       </div>
                     </td>
@@ -617,23 +651,45 @@ export default function RiwayatTransaksiSeller() {
                   )}
                 </div>
               </div>
-
               {/* Card Body: Product Image & Details */}
-              <div className="flex items-start gap-4">
-                <div className="w-16 h-16 rounded-2xl overflow-hidden bg-zinc-950 border border-zinc-800 shrink-0">
-                  {order.product?.images && isVideoUrl(order.product.images) ? (
-                    <video src={getImageUrl(order.product.images)} className="w-full h-full object-cover" preload="metadata" muted playsInline />
-                  ) : (
-                    <img src={getImageUrl(order.product?.images) || "/placeholder.png"} className="w-full h-full object-cover" alt="" />
-                  )}
-                </div>
-                <div className="min-w-0 flex-1 space-y-1">
-                  <p className="text-xs font-black text-white line-clamp-1">{order.product?.name || "Produk dihapus"}</p>
-                  <div className="flex items-center gap-2">
-                    <span className="px-1.5 py-0.5 bg-zinc-950 text-[8px] text-zinc-500 rounded font-black uppercase tracking-widest border border-zinc-800">ID: {order.product?.product_id || "-"}</span>
-                    <span className="text-[9px] font-bold text-zinc-500">Qty: {order.quantity}</span>
+              <div className="flex flex-col gap-3">
+                {order.items && order.items.length > 0 ? (
+                  order.items.map((item, idx) => (
+                    <div key={item.id || idx} className="flex items-center gap-4 bg-zinc-950/20 p-2.5 rounded-2xl border border-zinc-800/40">
+                      <div className="w-14 h-14 rounded-xl overflow-hidden bg-zinc-950 border border-zinc-800 shrink-0">
+                        {item.product?.images && isVideoUrl(item.product.images) ? (
+                          <video src={getImageUrl(item.product.images)} className="w-full h-full object-cover" preload="metadata" muted playsInline />
+                        ) : (
+                          <img src={getImageUrl(item.product?.images) || "/placeholder.png"} className="w-full h-full object-cover" alt="" />
+                        )}
+                      </div>
+                      <div className="min-w-0 flex-1 space-y-1">
+                        <p className="text-xs font-black text-white line-clamp-1">{item.product?.name || "Produk"}</p>
+                        <div className="flex items-center gap-2">
+                          <span className="px-1.5 py-0.5 bg-zinc-950 text-[8px] text-zinc-500 rounded font-black uppercase tracking-widest border border-zinc-800">ID: {item.product?.product_id || "-"}</span>
+                          <span className="text-[9px] font-bold text-zinc-500">Qty: {item.quantity || 1}</span>
+                        </div>
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <div className="flex items-center gap-4 bg-zinc-950/20 p-2.5 rounded-2xl border border-zinc-800/40">
+                    <div className="w-14 h-14 rounded-xl overflow-hidden bg-zinc-950 border border-zinc-800 shrink-0">
+                      {order.product?.images && isVideoUrl(order.product.images) ? (
+                        <video src={getImageUrl(order.product.images)} className="w-full h-full object-cover" preload="metadata" muted playsInline />
+                      ) : (
+                        <img src={getImageUrl(order.product?.images) || "/placeholder.png"} className="w-full h-full object-cover" alt="" />
+                      )}
+                    </div>
+                    <div className="min-w-0 flex-1 space-y-1">
+                      <p className="text-xs font-black text-white line-clamp-1">{order.product?.name || "Produk dihapus"}</p>
+                      <div className="flex items-center gap-2">
+                        <span className="px-1.5 py-0.5 bg-zinc-950 text-[8px] text-zinc-500 rounded font-black uppercase tracking-widest border border-zinc-800">ID: {order.product?.product_id || "-"}</span>
+                        <span className="text-[9px] font-bold text-zinc-500">Qty: {order.quantity || 1}</span>
+                      </div>
+                    </div>
                   </div>
-                </div>
+                )}
               </div>
 
               {/* Details List */}
@@ -675,8 +731,8 @@ export default function RiwayatTransaksiSeller() {
                 <div className="border-t border-zinc-800/40 pt-2.5 flex justify-between items-center text-[10px]">
                   <span className="text-zinc-500 font-bold uppercase tracking-widest">Rincian Dana</span>
                   <div className="text-right text-[9px] text-zinc-400 space-y-0.5 font-bold">
-                    <p>Produk: {formatPrice(Number(order.price) * Number(order.quantity))}</p>
-                    <p>Ongkir + Pack: {formatPrice(Number(order.shipping_cost) + Number(order.packing_cost))}</p>
+                    <p>Produk: {formatPrice(getOrderSubtotal(order))}</p>
+                    <p>Ongkir + Pack: {formatPrice(Number(order.shipping_cost || 0) + Number(order.packing_cost || 0))}</p>
                   </div>
                 </div>
               </div>
@@ -685,7 +741,7 @@ export default function RiwayatTransaksiSeller() {
               <div className="flex items-center justify-between gap-4 pt-1">
                 <div className="space-y-0.5">
                   <p className="text-[8px] font-black text-zinc-500 uppercase tracking-widest">Pencairan Dana</p>
-                  <p className="text-sm font-black text-emerald-500">{formatPrice(Number(order.price) * Number(order.quantity) + Number(order.shipping_cost) + Number(order.packing_cost) - (Number(order.additional_fee) || 0))}</p>
+                  <p className="text-sm font-black text-emerald-500">{formatPrice(getOrderSubtotal(order) + Number(order.shipping_cost || 0) + Number(order.packing_cost || 0) - (Number(order.additional_fee) || 0))}</p>
                   {order.additional_fee > 0 && <p className="text-[9px] font-bold text-red-500/70 italic">Potongan: {formatPrice(order.additional_fee)}</p>}
                 </div>
                 <div className="flex-1 max-w-[180px]">
@@ -799,10 +855,21 @@ export default function RiwayatTransaksiSeller() {
                 .map((order) => (
                   <div key={order.id} className="flex justify-between items-center text-xs border-b border-zinc-850 pb-2.5 last:border-0 last:pb-0">
                     <div className="text-left">
-                      <p className="font-black text-white line-clamp-1 max-w-[190px]">{order.product?.name || "Produk dihapus"}</p>
+                      <p className="font-black text-white line-clamp-1 max-w-[190px]">
+                        {order.items && order.items.length > 0
+                          ? order.items.map((item) => item.product?.name || "Produk").join(" + ")
+                          : order.product?.name || "Produk dihapus"}
+                      </p>
                       <p className="text-[9px] font-bold text-zinc-500 uppercase tracking-tighter">{order.order_id}</p>
                     </div>
-                    <p className="font-black text-emerald-500 text-right shrink-0 ml-4">{formatPrice(Number(order.price) * Number(order.quantity) + Number(order.shipping_cost) + Number(order.packing_cost))}</p>
+                    <p className="font-black text-emerald-500 text-right shrink-0 ml-4">
+                      {formatPrice(
+                        getOrderSubtotal(order) +
+                        Number(order.shipping_cost || 0) +
+                        Number(order.packing_cost || 0) -
+                        Number(order.additional_fee || 0)
+                      )}
+                    </p>
                   </div>
                 ))}
             </div>
@@ -811,11 +878,25 @@ export default function RiwayatTransaksiSeller() {
             <div className="bg-zinc-950/80 border border-zinc-850 p-5 rounded-2xl space-y-2.5 shadow-inner">
               <div className="flex items-center justify-between text-xs">
                 <span className="text-zinc-500 font-bold uppercase tracking-wider">Total Pesanan</span>
-                <span className="font-black text-white">{selectedOrders.length} Produk Terjual</span>
+                <span className="font-black text-white">{selectedOrders.length} Pesanan Terpilih</span>
               </div>
               <div className="flex items-center justify-between border-t border-zinc-800 pt-3">
                 <span className="text-xs text-emerald-400 font-black uppercase tracking-wider">Total Dana Bersih</span>
-                <span className="text-base font-black text-emerald-400">{formatPrice(orders.filter((o) => selectedOrders.includes(o.id)).reduce((acc, curr) => acc + (Number(curr.price) * Number(curr.quantity) + Number(curr.shipping_cost) + Number(curr.packing_cost)), 0))}</span>
+                <span className="text-base font-black text-emerald-400">
+                  {formatPrice(
+                    orders
+                      .filter((o) => selectedOrders.includes(o.id))
+                      .reduce(
+                        (acc, curr) =>
+                          acc +
+                          (getOrderSubtotal(curr) +
+                            Number(curr.shipping_cost || 0) +
+                            Number(curr.packing_cost || 0) -
+                            Number(curr.additional_fee || 0)),
+                        0
+                      )
+                  )}
+                </span>
               </div>
             </div>
 

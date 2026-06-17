@@ -58,6 +58,7 @@ router.get("/listings", listingsController.getListings);
 router.get("/listings/shop/:shopId", listingsController.getListingsByShop);
 router.get("/listings/quota/:shopId", listingsController.getShopQuota);
 router.put("/listings/bulk-verify", checkAuthAdmin, listingsController.bulkVerifyListings);
+router.get("/satwa-dilindungi/check", listingsController.checkProtectedSpecies);
 
 // S3 listings redirect route with UUID validation pass-through
 router.get("/listings/:filename", (req, res, next) => {

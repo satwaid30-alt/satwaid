@@ -8,7 +8,8 @@
     "start": "nodemon server.js",
     "migrate": "node migrate.js",
     "migrate-reject": "node migrate-payment-reject.js",
-    "check-db": "node scratch_check_db.js"
+    "check-db": "node scratch_check_db.js",
+    "dump-satwa": "node scratch/dump-satwa.js"
   },
   "_moduleAliases": {
     "@root": ".",

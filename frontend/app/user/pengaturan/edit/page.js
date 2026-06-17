@@ -121,6 +121,7 @@ export default function EditProfilPage() {
 
       if (response.ok) {
         localStorage.setItem("user", JSON.stringify(result.data));
+        window.dispatchEvent(new CustomEvent("user_profile_updated"));
         setModalConfig({
           isOpen: true,
           type: "success",

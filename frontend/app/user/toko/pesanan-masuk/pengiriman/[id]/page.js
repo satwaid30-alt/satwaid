@@ -113,20 +113,17 @@ export default function ShippingConfirmationPage({ params }) {
     const file = e.target.files[0];
     if (!file) return;
 
-    const allowedExtensions = ['.jpg', '.jpeg', '.png', '.webp'];
-    const allowedMimeTypes = ['image/jpeg', 'image/png', 'image/webp'];
+    const allowedExtensions = [".jpg", ".jpeg", ".png", ".webp"];
+    const allowedMimeTypes = ["image/jpeg", "image/png", "image/webp"];
 
-    const ext = file.name.substring(file.name.lastIndexOf('.')).toLowerCase();
-    const mime = file.type ? file.type.toLowerCase() : '';
+    const ext = file.name.substring(file.name.lastIndexOf(".")).toLowerCase();
+    const mime = file.type ? file.type.toLowerCase() : "";
 
     // Blokir file berbahaya (.php, .exe, .svg) dan dokumen (.pdf, office)
-    const blockedExtensions = ['.php', '.exe', '.svg', '.pdf', '.doc', '.docx', '.xls', '.xlsx', '.ppt', '.pptx'];
+    const blockedExtensions = [".php", ".exe", ".svg", ".pdf", ".doc", ".docx", ".xls", ".xlsx", ".ppt", ".pptx"];
     const isBlockedExt = blockedExtensions.includes(ext);
 
-    const isOfficeOrPdfMime = mime === 'application/pdf' || 
-        mime.startsWith('application/msword') || 
-        mime.startsWith('application/vnd.ms-') || 
-        mime.startsWith('application/vnd.openxmlformats-officedocument');
+    const isOfficeOrPdfMime = mime === "application/pdf" || mime.startsWith("application/msword") || mime.startsWith("application/vnd.ms-") || mime.startsWith("application/vnd.openxmlformats-officedocument");
 
     const isAllowedMime = allowedMimeTypes.includes(mime);
     const isAllowedExt = allowedExtensions.includes(ext);
@@ -406,7 +403,7 @@ export default function ShippingConfirmationPage({ params }) {
                   <Link href={`/user/toko/pesanan-masuk/detail/${id}`} className="flex-1 py-5 bg-zinc-800 hover:bg-zinc-700 text-white font-black rounded-2xl transition-all text-center text-sm uppercase tracking-widest">
                     Batal
                   </Link>
-                  <button type="submit" disabled={isSubmitting || uploading} className="flex-[2] py-5 bg-blue-500 hover:bg-blue-400 text-zinc-950 font-black rounded-2xl transition-all disabled:opacity-50 flex items-center justify-center gap-3 active:scale-95 text-sm uppercase tracking-widest">
+                  <button type="submit" disabled={isSubmitting || uploading} className="flex-[2] py-5 bg-[#2563EB] hover:bg-[#1D4ED8] text-[#FFFFFF] font-black rounded-2xl transition-all disabled:opacity-50 flex items-center justify-center gap-3 active:scale-95 text-sm uppercase tracking-widest">
                     {isSubmitting ? (
                       <>
                         <div className="w-5 h-5 border-2 border-zinc-950 border-t-transparent rounded-full animate-spin"></div>
@@ -441,28 +438,18 @@ export default function ShippingConfirmationPage({ params }) {
                     <div className="w-16 h-16 rounded-xl overflow-hidden bg-zinc-950 border border-zinc-800 shrink-0 relative aspect-square">
                       {(() => {
                         const mediaUrl = getImageUrl(item.product?.images);
-                        return isVideoUrl(mediaUrl) ? (
-                          <video src={mediaUrl} className="w-full h-full object-cover" preload="metadata" muted playsInline />
-                        ) : (
-                          <img src={mediaUrl || "https://placehold.co/400x400/f4f4f5/71717a?text=No+Image"} className="w-full h-full object-cover" alt={item.product?.name} />
-                        );
+                        return isVideoUrl(mediaUrl) ? <video src={mediaUrl} className="w-full h-full object-cover" preload="metadata" muted playsInline /> : <img src={mediaUrl || "https://placehold.co/400x400/f4f4f5/71717a?text=No+Image"} className="w-full h-full object-cover" alt={item.product?.name} />;
                       })()}
                     </div>
                     <div className="space-y-1 min-w-0 flex-1">
                       <div className="flex flex-wrap items-center gap-1.5">
                         <span className="px-1.5 py-0.5 bg-zinc-800 text-[8px] text-zinc-400 rounded font-black uppercase tracking-widest border border-zinc-700">{item.product?.species}</span>
                         <span className="px-1.5 py-0.5 bg-zinc-800 text-[8px] text-zinc-400 rounded font-black uppercase tracking-widest border border-zinc-700">Qty: {item.quantity}</span>
-                        {item.product?.is_free_shipping && (
-                          <span className="px-1.5 py-0.5 bg-emerald-500/15 text-emerald-400 rounded text-[8px] font-black uppercase tracking-widest border border-emerald-500/20">Bebas Ongkir</span>
-                        )}
-                        {item.product?.is_free_packing && (
-                          <span className="px-1.5 py-0.5 bg-blue-500/15 text-blue-400 rounded text-[8px] font-black uppercase tracking-widest border border-blue-500/20">Gratis Packing</span>
-                        )}
+                        {item.product?.is_free_shipping && <span className="px-1.5 py-0.5 bg-emerald-500/15 text-emerald-400 rounded text-[8px] font-black uppercase tracking-widest border border-emerald-500/20">Bebas Ongkir</span>}
+                        {item.product?.is_free_packing && <span className="px-1.5 py-0.5 bg-blue-500/15 text-blue-400 rounded text-[8px] font-black uppercase tracking-widest border border-blue-500/20">Gratis Packing</span>}
                       </div>
                       <h4 className="text-xs font-black text-white leading-tight truncate">{item.product?.name}</h4>
-                      <p className="text-[10px] font-bold text-zinc-500">
-                        {formatPrice(item.price)} / ekor
-                      </p>
+                      <p className="text-[10px] font-bold text-zinc-500">{formatPrice(item.price)} / ekor</p>
                     </div>
                   </div>
                 ))}
@@ -472,23 +459,15 @@ export default function ShippingConfirmationPage({ params }) {
                 <div className="w-24 h-24 rounded-2xl overflow-hidden bg-zinc-950 border border-zinc-800 shrink-0">
                   {(() => {
                     const mediaUrl = getImageUrl(order.product?.images);
-                    return isVideoUrl(mediaUrl) ? (
-                      <video src={mediaUrl} className="w-full h-full object-cover" preload="metadata" muted playsInline />
-                    ) : (
-                      <img src={mediaUrl || "https://placehold.co/400x400/f4f4f5/71717a?text=No+Image"} alt={order.product?.name} className="w-full h-full object-cover" />
-                    );
+                    return isVideoUrl(mediaUrl) ? <video src={mediaUrl} className="w-full h-full object-cover" preload="metadata" muted playsInline /> : <img src={mediaUrl || "https://placehold.co/400x400/f4f4f5/71717a?text=No+Image"} alt={order.product?.name} className="w-full h-full object-cover" />;
                   })()}
                 </div>
                 <div className="space-y-1">
                   <div className="flex flex-wrap items-center gap-2">
                     <span className="px-2 py-0.5 bg-zinc-800 text-[8px] text-zinc-400 rounded font-black uppercase tracking-widest border border-zinc-700">{order.product?.species}</span>
                     <span className="px-2 py-0.5 bg-zinc-800 text-[8px] text-zinc-400 rounded font-black uppercase tracking-widest border border-zinc-700">ID : {order.product?.product_id || "-"}</span>
-                    {order.product?.is_free_shipping && (
-                      <span className="px-2 py-0.5 bg-emerald-500/15 text-emerald-400 rounded text-[8px] font-black uppercase tracking-widest border border-emerald-500/20">Bebas Ongkir</span>
-                    )}
-                    {order.product?.is_free_packing && (
-                      <span className="px-2 py-0.5 bg-blue-500/15 text-blue-400 rounded text-[8px] font-black uppercase tracking-widest border border-blue-500/20">Gratis Packing</span>
-                    )}
+                    {order.product?.is_free_shipping && <span className="px-2 py-0.5 bg-emerald-500/15 text-emerald-400 rounded text-[8px] font-black uppercase tracking-widest border border-emerald-500/20">Bebas Ongkir</span>}
+                    {order.product?.is_free_packing && <span className="px-2 py-0.5 bg-blue-500/15 text-blue-400 rounded text-[8px] font-black uppercase tracking-widest border border-blue-500/20">Gratis Packing</span>}
                   </div>
                   <h4 className="text-lg font-black text-white leading-tight">{order.product?.name}</h4>
                   <p className="text-sm font-bold text-zinc-500">

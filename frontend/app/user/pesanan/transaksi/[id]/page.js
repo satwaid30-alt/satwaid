@@ -88,22 +88,20 @@ export default function TransactionProcessPage({ params }) {
         const orderData = result.data;
         setOrder(orderData);
 
-        // Pre-fill from order if exists, otherwise fetch from user profile
-        if (orderData.receiver_name && orderData.phone_number && orderData.shipping_address) {
-          setShippingForm((prev) => ({
-            ...prev,
-            receiver_name: orderData.receiver_name,
-            phone_number: orderData.phone_number,
-            shipping_address: orderData.shipping_address,
-            bank_name: orderData.bank_name || prev.bank_name,
-            bank_account: orderData.bank_account || prev.bank_account,
-            bank_holder: orderData.bank_holder || prev.bank_holder,
-          }));
-        }
+        // Pre-fill from order if exists
+        setShippingForm((prev) => ({
+          ...prev,
+          receiver_name: orderData.receiver_name || "",
+          phone_number: orderData.phone_number || "",
+          shipping_address: orderData.shipping_address || "",
+          bank_name: orderData.bank_name || "",
+          bank_account: orderData.bank_account || "",
+          bank_holder: orderData.bank_holder || "",
+        }));
 
-        // Always fetch user profile to get latest bank info if not in order
+        // Fetch user profile to get fallbacks
         const userStr = localStorage.getItem("user");
-        if (userStr && !orderData.bank_account) {
+        if (userStr) {
           const user = JSON.parse(userStr);
           const userRes = await fetch(`${getApiUrl()}/users/${user.id}`);
           const userResult = await userRes.json();
@@ -117,12 +115,12 @@ export default function TransactionProcessPage({ params }) {
 
             setShippingForm((prev) => ({
               ...prev,
-              receiver_name: "", // Wajib kosongkan sesuai request
+              receiver_name: prev.receiver_name || userData.name || userData.username || "",
               phone_number: prev.phone_number || userData.phone || "",
               shipping_address: prev.shipping_address || userData.address || "",
-              bank_name: mainBank.bankName || "",
-              bank_account: mainBank.accountNumber || "",
-              bank_holder: mainBank.accountName || "",
+              bank_name: prev.bank_name || mainBank.bankName || "",
+              bank_account: prev.bank_account || mainBank.accountNumber || "",
+              bank_holder: prev.bank_holder || mainBank.accountName || "",
             }));
           }
         }
@@ -327,18 +325,18 @@ export default function TransactionProcessPage({ params }) {
                         setShowShippingModal(true);
                       }
                     }}
-                    className="w-full md:w-auto px-10 py-5 bg-emerald-500 hover:bg-emerald-400 text-zinc-950 font-black rounded-2xl transition-all active:scale-95 flex items-center justify-center gap-3"
+                    className="w-full md:w-auto px-10 py-5 bg-[#2563EB] hover:bg-[#1D4ED8] text-[#FFFFFF] font-black rounded-2xl transition-all active:scale-95 flex items-center justify-center gap-3"
                   >
                     Lengkapi Sekarang <MapPin size={20} />
                   </button>
                 )}
                 {order.status === "waiting_payment" && (
-                  <Link href={`/user/pesanan/bayar/${id}`} className="w-full md:w-auto px-10 py-5 bg-emerald-500 hover:bg-emerald-400 text-zinc-950 font-black rounded-2xl transition-all active:scale-95 flex items-center justify-center gap-3">
+                  <Link href={`/user/pesanan/bayar/${id}`} className="w-full md:w-auto px-10 py-5 bg-[#2563EB] hover:bg-[#1D4ED8] text-[#FFFFFF] font-black rounded-2xl transition-all active:scale-95 flex items-center justify-center gap-3">
                     Bayar Sekarang <CreditCard size={20} />
                   </Link>
                 )}
                 {order.status === "shipped" && (
-                  <Link href={`/user/pesanan/transaksi-selesai/${id}`} replace className="w-full md:w-auto px-10 py-5 bg-blue-500 hover:bg-blue-400 text-zinc-950 font-black rounded-2xl transition-all active:scale-95 flex items-center justify-center gap-3">
+                  <Link href={`/user/pesanan/transaksi-selesai/${id}`} replace className="w-full md:w-auto px-10 py-5 bg-[#2563EB] hover:bg-[#1D4ED8] text-[#FFFFFF] font-black rounded-2xl transition-all active:scale-95 flex items-center justify-center gap-3">
                     Pesanan Diterima <CheckCircle2 size={20} />
                   </Link>
                 )}
@@ -371,12 +369,7 @@ export default function TransactionProcessPage({ params }) {
 
               {order.shop?.whatsapp ? (
                 <div className="space-y-3 pt-3 border-t border-zinc-800/50">
-                  <a
-                    href={getWhatsAppLink()}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="w-full py-3 bg-gradient-to-r from-emerald-600 to-green-500 hover:from-emerald-500 hover:to-green-400 text-zinc-950 text-xs font-black rounded-2xl transition-all flex items-center justify-center gap-2 active:scale-95 shadow-[0_0_15px_rgba(16,185,129,0.2)] border border-emerald-400/20"
-                  >
+                  <a href={getWhatsAppLink()} target="_blank" rel="noopener noreferrer" className="w-full py-3 bg-[#25D366] hover:bg-[#1DA851] text-[#FFFFFF] text-xs font-black rounded-2xl transition-all flex items-center justify-center gap-2 active:scale-95 shadow-[0_0_15px_rgba(16,185,129,0.2)] border border-emerald-400/20">
                     <MessageCircle size={14} /> Hubungi Penjual
                   </a>
                 </div>
@@ -449,7 +442,7 @@ export default function TransactionProcessPage({ params }) {
             <div className="space-y-4">
               <div className="flex justify-between text-xs font-bold">
                 <span className="text-zinc-100 uppercase tracking-tighter">Harga Produk</span>
-                <span className="text-white">{formatPrice(order.items && order.items.length > 0 ? order.items.reduce((sum, item) => sum + (Number(item.price) * (item.quantity || 1)), 0) : (order.price * order.quantity))}</span>
+                <span className="text-white">{formatPrice(order.items && order.items.length > 0 ? order.items.reduce((sum, item) => sum + Number(item.price) * (item.quantity || 1), 0) : order.price * order.quantity)}</span>
               </div>
               <div className="flex justify-between text-xs font-bold">
                 <span className="text-zinc-100 uppercase tracking-tighter">Biaya Pengiriman</span>

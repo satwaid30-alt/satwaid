@@ -591,11 +591,7 @@ export default function PesananMasukPage() {
                     <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-1.5 group/cost border-b border-zinc-800/40 pb-2.5 font-bold">
                       <div className="flex flex-col text-left">
                         <span className="text-[10px] md:text-xs font-bold text-zinc-500 uppercase tracking-tight">Harga Produk</span>
-                        {order.items && order.items.length > 1 && (
-                          <span className="text-[9px] text-zinc-500 font-bold mt-1 leading-normal max-w-full sm:max-w-[320px] bg-zinc-950/40 p-2 rounded-xl border border-zinc-800/20">
-                            {order.items.map((item) => `${item.product?.name || "Produk"} (x${item.quantity})`).join(", ")}
-                          </span>
-                        )}
+                        {order.items && order.items.length > 1 && <span className="text-[9px] text-zinc-500 font-bold mt-1 leading-normal max-w-full sm:max-w-[320px] bg-zinc-950/40 p-2 rounded-xl border border-zinc-800/20">{order.items.map((item) => `${item.product?.name || "Produk"} (x${item.quantity})`).join(", ")}</span>}
                       </div>
                       <span className="text-[11px] md:text-xs font-black text-zinc-300 group-hover/cost:text-white transition-colors">{formatPrice(order.items && order.items.length > 0 ? order.items.reduce((sum, item) => sum + Number(item.price) * (item.quantity || 1), 0) : order.price * order.quantity)}</span>
                     </div>
@@ -621,29 +617,26 @@ export default function PesananMasukPage() {
                   {/* Actions and CTAs */}
                   <div className="space-y-2 pt-1">
                     {order.status === "waiting_shipping_cost" && (
-                      <Link href={`/user/toko/pesanan-masuk/biaya-kirim/${order.id}`} className="w-full py-2 bg-emerald-500 hover:bg-emerald-400 text-zinc-950 rounded-xl transition-all font-black text-[9px] uppercase tracking-widest text-center active:scale-95 block">
+                      <Link href={`/user/toko/pesanan-masuk/biaya-kirim/${order.id}`} className="w-full py-2 bg-[#2563EB] hover:bg-[#1D4ED8] text-[#FFFFFF] rounded-xl transition-all font-black text-[9px] uppercase tracking-widest text-center active:scale-95 block">
                         Input Ongkir
                       </Link>
                     )}
                     {["waiting_shipment", "payment_verified"].includes(order.status) && (
-                      <Link href={`/user/toko/pesanan-masuk/pengiriman/${order.id}`} className="w-full py-2.5 bg-blue-500 hover:bg-blue-400 text-zinc-950 rounded-xl transition-all font-black text-[9px] uppercase tracking-widest text-center active:scale-95 block">
+                      <Link href={`/user/toko/pesanan-masuk/pengiriman/${order.id}`} className="w-full py-2.5 bg-[#2563EB] hover:bg-[#1D4ED8] text-[#FFFFFF] rounded-xl transition-all font-black text-[9px] uppercase tracking-widest text-center active:scale-95 block">
                         Input Resi
                       </Link>
                     )}
                     <div className="grid grid-cols-2 gap-2">
-                      <Link
-                        href={`/user/toko/pesanan-masuk/detail/${order.id}`}
-                        className="py-2 bg-emerald-500/10 hover:bg-emerald-500 text-emerald-400 hover:text-zinc-950 rounded-xl transition-all font-black text-[8px] uppercase tracking-widest text-center border border-emerald-500/20 hover:border-emerald-400 flex items-center justify-center gap-1"
-                      >
+                      <Link href={`/user/toko/pesanan-masuk/detail/${order.id}`} className="py-2 bg-[#F59E0B] hover:bg-[#D97706] text-[#FFFFFF] rounded-xl transition-all font-black text-[8px] uppercase tracking-widest text-center border border-[#F59E0B] hover:border-[#D97706] flex items-center justify-center gap-1">
                         <CheckCircle2 size={10} /> Proses
                       </Link>
                       <a
                         href={`https://wa.me/${order.phone_number?.replace(/^0/, "62")}?text=Halo ${order.user?.username}, saya penjual dari toko ${shop?.name}. Terkait pesanan ${order.order_id}, ...`}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="py-2 bg-zinc-800/50 hover:bg-zinc-800 text-white rounded-xl transition-all font-black text-[8px] uppercase tracking-widest text-center border border-zinc-800 flex items-center justify-center gap-1 hover:border-zinc-700"
+                        className="py-2 bg-[#25D366] hover:bg-[#1DA851] text-white rounded-xl transition-all font-black text-[8px] uppercase tracking-widest text-center border border-[#25D366] hover:border-[#1DA851] flex items-center justify-center gap-1"
                       >
-                        <MessageCircle size={10} className="text-emerald-500" /> WA Pembeli
+                        <MessageCircle size={10} className="text-white" /> WA Pembeli
                       </a>
                     </div>
                     {!["cancelled", "completed", "shipped", "complained"].includes(order.status) && (
@@ -656,30 +649,72 @@ export default function PesananMasukPage() {
 
                 {/* Complaint Section (Conditionally rendered at the bottom) */}
                 {order.status === "complained" && (
-                  <div className="mt-4 border-t border-zinc-800/50 pt-4 space-y-3">
-                    <div onClick={() => toggleComplaint(order.id)} className="flex items-center justify-between gap-2 text-zinc-500 cursor-pointer">
-                      <div className="flex items-center gap-2">
-                        <ShieldAlert size={12} className="text-red-500" />
-                        <span className="text-[8px] font-black uppercase tracking-widest text-red-500">Pesanan Komplain (Tinjau Bukti)</span>
+                  <div className="mt-4 border border-red-500/20 hover:border-red-500/30 rounded-2xl overflow-hidden bg-red-950/5 transition-all duration-300 shadow-lg shadow-red-950/10">
+                    {/* Header / Trigger */}
+                    <div 
+                      onClick={() => toggleComplaint(order.id)} 
+                      className="flex items-center justify-between gap-3 px-4 py-3.5 bg-red-500/10 cursor-pointer select-none hover:bg-red-500/15 transition-colors border-b border-red-500/10"
+                    >
+                      <div className="flex items-center gap-2.5">
+                        <div className="w-7 h-7 rounded-lg bg-red-500/15 flex items-center justify-center text-red-500 border border-red-500/20">
+                          <ShieldAlert size={14} />
+                        </div>
+                        <div>
+                          <h4 className="text-[10px] font-black text-white uppercase tracking-wider">Pesanan Komplain</h4>
+                          <p className="text-[8px] text-red-400 font-bold uppercase tracking-widest">Tinjau Bukti</p>
+                        </div>
                       </div>
-                      <ChevronRight size={14} className={`transition-transform duration-300 ${expandedComplaints[order.id] ? "rotate-90 text-white" : "text-zinc-600"}`} />
+                      <div className="flex items-center gap-2">
+                        <span className="text-[8px] font-black uppercase tracking-widest text-red-400 px-2 py-0.5 rounded bg-red-950/40 border border-red-500/20">
+                          Tinjau
+                        </span>
+                        <ChevronRight size={14} className={`transition-transform duration-300 ${expandedComplaints[order.id] ? "rotate-90 text-white" : "text-zinc-500"}`} />
+                      </div>
                     </div>
 
-                    <div className="space-y-3">
-                      <div className="bg-red-500/5 border border-red-500/20 rounded-2xl p-3.5 space-y-3">
-                        <div className="p-2.5 bg-zinc-950/60 rounded-xl border border-zinc-800/50">
-                          <p className="text-[9px] text-white leading-relaxed font-medium italic">{order.complaint_description || "Tidak ada deskripsi."}</p>
-                        </div>
-                        {order.complaint_image && (
-                          <div onClick={() => setSelectedImage(getImageUrl(order.complaint_image))} className="relative h-20 w-full rounded-xl overflow-hidden border border-zinc-800 bg-zinc-950 cursor-zoom-in group/complaint">
-                            <img src={getImageUrl(order.complaint_image)} className="w-full h-full object-cover group-hover/complaint:scale-105 transition-transform duration-500" alt="Bukti Komplain" />
-                            <div className="absolute inset-0 bg-black/40 opacity-0 group-hover/complaint:opacity-100 transition-opacity flex items-center justify-center">
-                              <Search size={14} className="text-white" />
+                    {/* Body Content */}
+                    {expandedComplaints[order.id] && (
+                      <div className="p-4 space-y-3.5 bg-zinc-950/40 animate-in slide-in-from-top-2 duration-300">
+                        <div className="flex flex-col sm:flex-row gap-4">
+                          {/* Description / Reason */}
+                          <div className="flex-1 space-y-1.5">
+                            <span className="text-[9px] font-black text-zinc-500 uppercase tracking-wider block">Alasan Komplain</span>
+                            <div className="p-3 bg-zinc-950/60 rounded-xl border border-zinc-800/50 min-h-[80px] flex flex-col justify-center">
+                              <p className="text-xs text-zinc-300 leading-relaxed font-medium italic">
+                                &ldquo;{order.complaint_description || "Tidak ada deskripsi alasan komplain dari pembeli."}&rdquo;
+                              </p>
                             </div>
                           </div>
-                        )}
+
+                          {/* Media Proof (Not full size) */}
+                          {order.complaint_image && (
+                            <div className="space-y-1.5 shrink-0">
+                              <span className="text-[9px] font-black text-zinc-500 uppercase tracking-wider block sm:text-right mr-1">Bukti Lampiran</span>
+                              <div 
+                                onClick={() => setSelectedImage(getImageUrl(order.complaint_image))} 
+                                className="relative w-28 h-28 sm:w-32 sm:h-32 rounded-xl overflow-hidden border border-zinc-800 bg-zinc-950 cursor-zoom-in group/complaint shadow-md hover:border-zinc-700 transition-colors"
+                              >
+                                {isVideoUrl(order.complaint_image) ? (
+                                  <div className="relative w-full h-full">
+                                    <video src={getImageUrl(order.complaint_image)} className="w-full h-full object-cover" preload="metadata" muted />
+                                    <div className="absolute inset-0 bg-black/30 flex items-center justify-center">
+                                      <div className="w-7 h-7 rounded-full bg-black/60 border border-white/20 flex items-center justify-center">
+                                        <div className="w-0 h-0 border-y-[3px] border-y-transparent border-l-[5px] border-l-white ml-0.5"></div>
+                                      </div>
+                                    </div>
+                                  </div>
+                                ) : (
+                                  <img src={getImageUrl(order.complaint_image)} className="w-full h-full object-cover group-hover/complaint:scale-105 transition-transform duration-500" alt="Bukti Komplain" />
+                                )}
+                                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover/complaint:opacity-100 transition-opacity flex items-center justify-center">
+                                  <Search size={14} className="text-white" />
+                                </div>
+                              </div>
+                            </div>
+                          )}
+                        </div>
                       </div>
-                    </div>
+                    )}
                   </div>
                 )}
               </div>

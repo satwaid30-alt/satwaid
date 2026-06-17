@@ -5,12 +5,14 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Bell, Home, Store, ChevronDown, User, LogOut, Settings, MessageSquare, ShoppingBag, Trash2, Package, CreditCard, Users, AlertTriangle } from "lucide-react";
 import { io } from "socket.io-client";
-import { getApiUrl, getSocketUrl } from "@/app/utils/api";
+import { getApiUrl, getSocketUrl, getImageUrl, getLogoUrl } from "@/app/utils/api";
 
 export default function UserNavbar() {
   const pathname = usePathname();
   const [user, setUser] = useState(null);
   const [isLoaded, setIsLoaded] = useState(false);
+  const [shopLogo, setShopLogo] = useState(null);
+  const [shopStatus, setShopStatus] = useState("active");
 
   // Notifications State matching Navbar.js
   const [notifCount, setNotifCount] = useState(0);
@@ -39,13 +41,31 @@ export default function UserNavbar() {
     return "Dashboard Pengguna";
   };
 
+  const fetchShopData = async (userId) => {
+    try {
+      const res = await fetch(`${getApiUrl()}/shops/user/${userId}`);
+      const result = await res.json();
+      if (res.ok && result.data) {
+        setShopLogo(result.data.logo_url);
+        setShopStatus(result.data.status?.toLowerCase() || "active");
+      } else {
+        setShopLogo(null);
+        setShopStatus("none");
+      }
+    } catch (err) {
+      console.error("Error fetching shop data in navbar", err);
+    }
+  };
+
   // Load user data on mount
   useEffect(() => {
     if (typeof window !== "undefined") {
       const userData = localStorage.getItem("user");
       if (userData) {
         try {
-          setUser(JSON.parse(userData));
+          const parsedUser = JSON.parse(userData);
+          setUser(parsedUser);
+          fetchShopData(parsedUser.id);
         } catch (e) {
           console.error("Error parsing user data", e);
         }
@@ -110,6 +130,30 @@ export default function UserNavbar() {
     };
   }, [user]);
 
+  useEffect(() => {
+    const handleSyncShop = () => {
+      if (user?.id) {
+        fetchShopData(user.id);
+      }
+    };
+    const handleSyncUser = () => {
+      const userData = localStorage.getItem("user");
+      if (userData) {
+        try {
+          setUser(JSON.parse(userData));
+        } catch (e) {
+          console.error(e);
+        }
+      }
+    };
+    window.addEventListener("shop_status_changed", handleSyncShop);
+    window.addEventListener("user_profile_updated", handleSyncUser);
+    return () => {
+      window.removeEventListener("shop_status_changed", handleSyncShop);
+      window.removeEventListener("user_profile_updated", handleSyncUser);
+    };
+  }, [user?.id]);
+
   const fetchNotifications = async () => {
     if (!user) return;
     setIsLoadingNotifs(true);
@@ -123,12 +167,14 @@ export default function UserNavbar() {
       setIsLoadingNotifs(false);
     }
   };
-
   const handleLogout = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("user");
     window.location.href = "/";
   };
+
+  const isSellerPage = pathname.startsWith("/toko-saya") || pathname.startsWith("/user/toko");
+  const displayLogo = isSellerPage && shopLogo ? getLogoUrl(shopLogo) : (user?.avatar_url ? getImageUrl(user.avatar_url) : null);
 
   return (
     <header className="hidden md:flex sticky top-0 z-30 w-full bg-zinc-950/80 backdrop-blur-md border-b border-zinc-800/80 px-6 py-4 items-center justify-between">
@@ -312,7 +358,11 @@ export default function UserNavbar() {
               className="flex items-center gap-3 p-1.5 pr-3 rounded-xl bg-zinc-900 border border-zinc-800 hover:bg-zinc-800/80 transition-all hover:border-zinc-700 active:scale-95"
             >
               <div className="w-8 h-8 bg-emerald-500 rounded-lg flex items-center justify-center text-zinc-950 font-black text-sm overflow-hidden shrink-0">
-                {user?.avatar_url ? <img src={user.avatar_url.startsWith("http") ? user.avatar_url : `${getApiUrl()}${user.avatar_url}`} alt={user.username || "User"} className="w-full h-full object-cover" /> : user?.username ? user.username.charAt(0).toUpperCase() : "U"}
+                {displayLogo ? (
+                  <img src={displayLogo} alt={user?.username || "User"} className="w-full h-full object-cover" />
+                ) : (
+                  user?.username ? user.username.charAt(0).toUpperCase() : "U"
+                )}
               </div>
               <div className="hidden sm:flex flex-col items-start leading-none">
                 <span className="text-xs font-bold text-white max-w-[80px] truncate">{user?.name || user?.username || "User"}</span>

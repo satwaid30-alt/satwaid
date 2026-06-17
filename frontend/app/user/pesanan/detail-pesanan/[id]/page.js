@@ -371,9 +371,7 @@ export default function OrderDetailPage({ params }) {
                                 Jumlah: <strong className="text-white font-black">{item.quantity} Item</strong>
                               </p>
                             </div>
-                            <p className="text-[10px] text-zinc-500 font-bold flex items-center justify-center md:justify-start gap-1">
-                              <Truck size={12} className="text-blue-400" /> Jangkauan: {item.product?.shipping_type || "Tidak ditentukan"}
-                            </p>
+                            <p className="text-[10px] text-zinc-500 font-bold flex justify-center md:justify-start">Jangkauan: {item.product?.shipping_type || "Tidak ditentukan"}</p>
                           </div>
                         </div>
                       ))}
@@ -392,11 +390,7 @@ export default function OrderDetailPage({ params }) {
                       {order.product?.images?.length > 0 ? (
                         (() => {
                           const mediaUrl = getImageUrl(order.product.images[activeImageIndex]);
-                          return isVideoUrl(mediaUrl) ? (
-                            <video src={mediaUrl} className="w-full h-full object-cover" controls preload="metadata" muted playsInline />
-                          ) : (
-                            <img src={mediaUrl} className="w-full h-full object-cover transition-all duration-500" alt={order.product.name} />
-                          );
+                          return isVideoUrl(mediaUrl) ? <video src={mediaUrl} className="w-full h-full object-cover" controls preload="metadata" muted playsInline /> : <img src={mediaUrl} className="w-full h-full object-cover transition-all duration-500" alt={order.product.name} />;
                         })()
                       ) : (
                         <div className="w-full h-full flex items-center justify-center text-zinc-800">
@@ -434,7 +428,7 @@ export default function OrderDetailPage({ params }) {
                       </div>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-4 pt-6 border-t border-zinc-800">
+                    <div className="grid grid-cols-2 gap-4 pt-2 border-t border-zinc-800">
                       <div>
                         <p className="text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-1">Harga Satuan</p>
                         <p className="text-lg font-black text-emerald-500">{formatPrice(order.price)}</p>
@@ -446,10 +440,7 @@ export default function OrderDetailPage({ params }) {
                     </div>
 
                     {/* Shipping Type Info */}
-                    <div className="flex items-center gap-3 p-4 bg-blue-500/5 border border-dashed border-blue-500/20 rounded-2xl">
-                      <div className="w-10 h-10 bg-blue-500 rounded-xl flex items-center justify-center text-zinc-950 font-black border border-blue-500/20 shrink-0">
-                        <Truck size={20} />
-                      </div>
+                    <div className="p-4 bg-blue-500/5 border border-dashed border-blue-500/20 rounded-2xl mt-[-10px]">
                       <div>
                         <p className="text-[9px] font-black text-zinc-500 uppercase tracking-widest leading-none mb-1">Jangkauan Pengiriman</p>
                         <p className="text-sm font-black text-white">{order.product?.shipping_type || "Tidak ditentukan"}</p>
