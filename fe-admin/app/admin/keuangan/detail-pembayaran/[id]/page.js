@@ -105,7 +105,10 @@ export default function DetailPembayaranPage({ params: paramsPromise }) {
       const stored = localStorage.getItem("sent_invoices");
       if (stored) {
         try {
-          setSentInvoices(JSON.parse(stored));
+          const parsed = JSON.parse(stored);
+          setTimeout(() => {
+            setSentInvoices(parsed);
+          }, 0);
         } catch (e) {
           console.error("Error parsing sent invoices:", e);
         }

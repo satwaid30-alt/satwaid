@@ -169,7 +169,10 @@ export default function TransactionCompletePage({ params }) {
 
     // --- Keamanan 5: Rename file secara acak ---
     const extension = fileName.split(".").pop();
-    const randomName = `${crypto.randomUUID()}.${extension}`;
+    const uniqueId = typeof crypto !== "undefined" && typeof crypto.randomUUID === "function"
+      ? crypto.randomUUID()
+      : Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+    const randomName = `${uniqueId}.${extension}`;
     const renamedFile = new File([file], randomName, { type: file.type });
 
     setComplaintImage(renamedFile);

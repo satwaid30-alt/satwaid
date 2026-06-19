@@ -168,8 +168,11 @@ export default function LelangProdukPage() {
       "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
       "application/vnd.ms-powerpoint",
       "application/vnd.openxmlformats-officedocument.presentationml.presentation",
-      "application/x-php", "application/x-httpd-php", "text/x-php",
-      "application/octet-stream", "image/svg+xml",
+      "application/x-php",
+      "application/x-httpd-php",
+      "text/x-php",
+      "application/octet-stream",
+      "image/svg+xml",
     ];
     if (blockedMime.includes(file.type)) {
       setShowErrorModal(true);
@@ -643,7 +646,7 @@ export default function LelangProdukPage() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-2">
                     <label className="text-xs font-black text-zinc-500 uppercase tracking-widest ml-1">
-                      Nama Produk / Judul Lelang <span className="text-red-500">*</span>
+                      Nama Produk <span className="text-red-500">*</span>
                     </label>
                     <input
                       type="text"
@@ -663,7 +666,7 @@ export default function LelangProdukPage() {
                                 setErrorModalTitle("Produk Dilarang!");
                                 setErrorModalMessage("Produk tidak dapat dipublikasikan karena terdeteksi sebagai satwa dilindungi berdasarkan Permen LHK No. P.106/MENLHK/SETJEN/KUM.1/12/2018. Satwa dilindungi tidak boleh diperjualbelikan melalui SatwaiD.");
                                 setShowErrorModal(true);
-                                setReptileData(prev => ({ ...prev, name: "" }));
+                                setReptileData((prev) => ({ ...prev, name: "" }));
                               }
                             }
                           } catch (err) {
@@ -989,13 +992,9 @@ export default function LelangProdukPage() {
                       type="button"
                       onClick={() => {
                         setMediaType("image");
-                        setReptileData(prev => ({ ...prev, images: [] }));
+                        setReptileData((prev) => ({ ...prev, images: [] }));
                       }}
-                      className={`py-3.5 rounded-xl font-bold text-xs uppercase tracking-wider transition-all border ${
-                        mediaType === "image"
-                          ? "bg-amber-500 border-amber-500 text-zinc-950 font-black shadow-md shadow-amber-500/10"
-                          : "bg-zinc-950 border-zinc-800 text-zinc-400 hover:text-white"
-                      }`}
+                      className={`py-3.5 rounded-xl font-bold text-xs uppercase tracking-wider transition-all border ${mediaType === "image" ? "bg-amber-500 border-amber-500 text-zinc-950 font-black shadow-md shadow-amber-500/10" : "bg-zinc-950 border-zinc-800 text-zinc-400 hover:text-white"}`}
                     >
                       Gambar / Foto
                     </button>
@@ -1003,13 +1002,9 @@ export default function LelangProdukPage() {
                       type="button"
                       onClick={() => {
                         setMediaType("video");
-                        setReptileData(prev => ({ ...prev, images: [] }));
+                        setReptileData((prev) => ({ ...prev, images: [] }));
                       }}
-                      className={`py-3.5 rounded-xl font-bold text-xs uppercase tracking-wider transition-all border ${
-                        mediaType === "video"
-                          ? "bg-amber-500 border-amber-500 text-zinc-950 font-black shadow-md shadow-amber-500/10"
-                          : "bg-zinc-950 border-zinc-800 text-zinc-400 hover:text-white"
-                      }`}
+                      className={`py-3.5 rounded-xl font-bold text-xs uppercase tracking-wider transition-all border ${mediaType === "video" ? "bg-amber-500 border-amber-500 text-zinc-950 font-black shadow-md shadow-amber-500/10" : "bg-zinc-950 border-zinc-800 text-zinc-400 hover:text-white"}`}
                     >
                       Video
                     </button>
@@ -1028,11 +1023,7 @@ export default function LelangProdukPage() {
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
                   {reptileData.images.map((img, index) => (
                     <div key={index} className="relative aspect-square rounded-2xl overflow-hidden group border border-zinc-800 shadow-2xl flex items-center justify-center bg-zinc-900">
-                      {isVideoUrl(img) ? (
-                        <video src={getImageUrl(img)} controls className="w-full h-full object-cover animate-in fade-in" />
-                      ) : (
-                        <img src={getImageUrl(img)} alt="Preview" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
-                      )}
+                      {isVideoUrl(img) ? <video src={getImageUrl(img)} controls className="w-full h-full object-cover animate-in fade-in" /> : <img src={getImageUrl(img)} alt="Preview" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />}
                       <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center backdrop-blur-sm">
                         <button
                           type="button"
@@ -1049,10 +1040,10 @@ export default function LelangProdukPage() {
                     </div>
                   ))}
 
-                  {mediaType === "video" ? (
-                    // Video Upload Input
-                    reptileData.images.length < 1 && (
-                      isUploading ? (
+                  {mediaType === "video"
+                    ? // Video Upload Input
+                      reptileData.images.length < 1 &&
+                      (isUploading ? (
                         <div className="aspect-square bg-zinc-950 border border-zinc-800 rounded-2xl flex flex-col items-center justify-center gap-2 text-amber-500">
                           <Loader2 className="w-8 h-8 animate-spin" />
                           <span className="text-[10px] font-black uppercase tracking-[0.2em] animate-pulse">Mengunggah...</span>
@@ -1069,7 +1060,7 @@ export default function LelangProdukPage() {
                               const isValid = await validateVideoFile(raw, e.target);
                               if (!isValid) return;
                               const file = renameFileRandom(raw);
-                              
+
                               const token = localStorage.getItem("token");
                               setIsUploading(true);
                               try {
@@ -1093,12 +1084,10 @@ export default function LelangProdukPage() {
                           </div>
                           <span className="text-[10px] font-black uppercase tracking-[0.2em]">Upload Video</span>
                         </label>
-                      )
-                    )
-                  ) : (
-                    // Image Upload Input
-                    reptileData.images.length < 3 && (
-                      isUploading ? (
+                      ))
+                    : // Image Upload Input
+                      reptileData.images.length < 3 &&
+                      (isUploading ? (
                         <div className="aspect-square bg-zinc-950 border border-zinc-800 rounded-2xl flex flex-col items-center justify-center gap-2 text-amber-500">
                           <Loader2 className="w-8 h-8 animate-spin" />
                           <span className="text-[10px] font-black uppercase tracking-[0.2em] animate-pulse">Mengunggah...</span>
@@ -1113,7 +1102,7 @@ export default function LelangProdukPage() {
                               const raw = e.target.files[0];
                               if (!validateImageFile(raw, e.target)) return;
                               const file = renameFileRandom(raw);
-                              
+
                               const token = localStorage.getItem("token");
                               setIsUploading(true);
                               try {
@@ -1127,8 +1116,8 @@ export default function LelangProdukPage() {
                                 setErrorModalMessage(err.message || "Gagal mengunggah foto. Silakan coba lagi.");
                                 setShowErrorModal(true);
                               } finally {
-                                  setIsUploading(false);
-                                  e.target.value = null;
+                                setIsUploading(false);
+                                e.target.value = null;
                               }
                             }}
                           />
@@ -1137,16 +1126,10 @@ export default function LelangProdukPage() {
                           </div>
                           <span className="text-[10px] font-black uppercase tracking-[0.2em]">Upload Foto</span>
                         </label>
-                      )
-                    )
-                  )}
+                      ))}
                 </div>
                 <div className="px-1">
-                  {mediaType === "video" ? (
-                    <p className="text-[10px] font-bold text-amber-500/80 italic">* Durasi video maksimal 15 detik dan ukuran maksimal 20MB (Maks 1 Video).</p>
-                  ) : (
-                    <p className="text-[10px] font-bold text-amber-500/80 italic">* Ukuran foto maksimal 1MB per file. Pastikan foto jelas dan terang (Maks 3 Foto).</p>
-                  )}
+                  {mediaType === "video" ? <p className="text-[10px] font-bold text-amber-500/80 italic">* Durasi video maksimal 15 detik dan ukuran maksimal 20MB (Maks 1 Video).</p> : <p className="text-[10px] font-bold text-amber-500/80 italic">* Ukuran foto maksimal 1MB per file. Pastikan foto jelas dan terang (Maks 3 Foto).</p>}
                 </div>
               </div>
 
@@ -1222,16 +1205,26 @@ export default function LelangProdukPage() {
           {/* Error Modal */}
           {showErrorModal && (
             <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-              <div className="absolute inset-0 bg-zinc-950/90 backdrop-blur-md animate-in fade-in duration-300" onClick={() => { setShowErrorModal(false); setErrorModalTitle("File Tidak Valid!"); }}></div>
+              <div
+                className="absolute inset-0 bg-zinc-950/90 backdrop-blur-md animate-in fade-in duration-300"
+                onClick={() => {
+                  setShowErrorModal(false);
+                  setErrorModalTitle("File Tidak Valid!");
+                }}
+              ></div>
               <div className="bg-zinc-900 border border-zinc-800 rounded-[2.5rem] w-full max-w-md p-12 text-center relative z-10 shadow-2xl animate-in zoom-in-95 duration-300">
                 <div className="w-24 h-24 bg-red-500 text-zinc-950 rounded-full flex items-center justify-center mx-auto mb-8 shadow-2xl shadow-red-500/30">
                   <AlertCircle size={48} />
                 </div>
                 <h3 className="text-3xl font-black text-white mb-4">{errorModalTitle}</h3>
-                <p className="text-zinc-400 mb-10 leading-relaxed font-medium">
-                  {errorModalMessage}
-                </p>
-                <button onClick={() => { setShowErrorModal(false); setErrorModalTitle("File Tidak Valid!"); }} className="w-full bg-red-500 hover:bg-red-400 text-zinc-950 font-black py-4 rounded-2xl transition-all shadow-xl shadow-red-500/20">
+                <p className="text-zinc-400 mb-10 leading-relaxed font-medium">{errorModalMessage}</p>
+                <button
+                  onClick={() => {
+                    setShowErrorModal(false);
+                    setErrorModalTitle("File Tidak Valid!");
+                  }}
+                  className="w-full bg-red-500 hover:bg-red-400 text-zinc-950 font-black py-4 rounded-2xl transition-all shadow-xl shadow-red-500/20"
+                >
                   Saya Mengerti
                 </button>
               </div>

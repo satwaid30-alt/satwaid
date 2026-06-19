@@ -183,6 +183,10 @@ const nextConfig = {
         source: "/panel-admin/settings",
         destination: "/admin/settings",
       },
+      {
+        source: "/panel-admin/biaya-admin",
+        destination: "/admin/biaya-admin",
+      },
     ];
   },
 };

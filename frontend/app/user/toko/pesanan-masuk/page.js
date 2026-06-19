@@ -29,8 +29,38 @@ export default function PesananMasukPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
 
-  // Success Message state
   const [successMessage, setSuccessMessage] = useState("");
+  const [activeAdminFee, setActiveAdminFee] = useState(5000);
+
+  useEffect(() => {
+    let active = true;
+    const fetchAdminFee = async () => {
+      try {
+        const res = await fetch(`${getApiUrl()}/settings/admin-fee`);
+        if (res.ok) {
+          const result = await res.json();
+          if (result.success && typeof result.adminFee === "number" && active) {
+            setActiveAdminFee(result.adminFee);
+          }
+        }
+      } catch (err) {
+        console.error("Error fetching admin fee settings:", err);
+      }
+    };
+    fetchAdminFee();
+
+    const handleAdminFeeUpdated = (e) => {
+      if (typeof e.detail === "number" && active) {
+        setActiveAdminFee(e.detail);
+      }
+    };
+    window.addEventListener("admin_fee_updated", handleAdminFeeUpdated);
+
+    return () => {
+      active = false;
+      window.removeEventListener("admin_fee_updated", handleAdminFeeUpdated);
+    };
+  }, []);
 
   // Cancellation State
   const [cancellingOrder, setCancellingOrder] = useState(null); // stores order object
@@ -117,10 +147,18 @@ export default function PesananMasukPage() {
   }, [socket, orders.map((o) => o.id).join(",")]);
 
   const fetchShop = async (userId) => {
+    if (!userId || userId === "undefined" || userId === "null") {
+      console.warn("fetchShop skipped: invalid userId:", userId);
+      setIsLoading(false);
+      return;
+    }
     try {
       const response = await fetch(`${getApiUrl()}/shops/user/${userId}`);
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
       const result = await response.json();
-      if (response.ok && result.data) {
+      if (result.data) {
         setShop(result.data);
         fetchOrders(result.data.id);
       } else {
@@ -133,13 +171,18 @@ export default function PesananMasukPage() {
   };
 
   const fetchOrders = async (shopId, silent = false) => {
+    if (!shopId || shopId === "undefined" || shopId === "null") {
+      console.warn("fetchOrders skipped: invalid shopId:", shopId);
+      return;
+    }
     if (!silent) setIsLoading(true);
     try {
       const response = await fetch(`${getApiUrl()}/orders/shop/${shopId}`);
-      const result = await response.json();
-      if (response.ok) {
-        setOrders(result.data || []);
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
       }
+      const result = await response.json();
+      setOrders(result.data || []);
     } catch (err) {
       console.error("Error fetching orders:", err);
     } finally {
@@ -597,7 +640,7 @@ export default function PesananMasukPage() {
                     </div>
                     <div className="flex justify-between items-center group/cost">
                       <span className="text-[10px] md:text-xs font-bold text-zinc-500 uppercase tracking-tight">Biaya Admin</span>
-                      <span className="text-[11px] md:text-xs font-black text-zinc-300 group-hover/cost:text-white transition-colors">+{formatPrice(order.admin_fee || 5000)}</span>
+                      <span className="text-[11px] md:text-xs font-black text-zinc-300 group-hover/cost:text-white transition-colors">+{formatPrice(order.admin_fee !== undefined && order.admin_fee !== null ? order.admin_fee : activeAdminFee)}</span>
                     </div>
                     <div className="flex justify-between items-center group/cost">
                       <span className="text-[10px] md:text-xs font-bold text-zinc-500 uppercase tracking-tight">Ongkos Kirim</span>
@@ -634,9 +677,9 @@ export default function PesananMasukPage() {
                         href={`https://wa.me/${order.phone_number?.replace(/^0/, "62")}?text=Halo ${order.user?.username}, saya penjual dari toko ${shop?.name}. Terkait pesanan ${order.order_id}, ...`}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="py-2 bg-[#25D366] hover:bg-[#1DA851] text-white rounded-xl transition-all font-black text-[8px] uppercase tracking-widest text-center border border-[#25D366] hover:border-[#1DA851] flex items-center justify-center gap-1"
+                        className="py-2 bg-[#25D366] hover:bg-[#1DA851] text-[#FFFFFF] rounded-xl transition-all font-black text-[8px] uppercase tracking-widest text-center border border-[#25D366] hover:border-[#1DA851] flex items-center justify-center gap-1"
                       >
-                        <MessageCircle size={10} className="text-white" /> WA Pembeli
+                        <MessageCircle size={10} className="text-white" /> Hubungi Pembeli
                       </a>
                     </div>
                     {!["cancelled", "completed", "shipped", "complained"].includes(order.status) && (
@@ -651,10 +694,7 @@ export default function PesananMasukPage() {
                 {order.status === "complained" && (
                   <div className="mt-4 border border-red-500/20 hover:border-red-500/30 rounded-2xl overflow-hidden bg-red-950/5 transition-all duration-300 shadow-lg shadow-red-950/10">
                     {/* Header / Trigger */}
-                    <div 
-                      onClick={() => toggleComplaint(order.id)} 
-                      className="flex items-center justify-between gap-3 px-4 py-3.5 bg-red-500/10 cursor-pointer select-none hover:bg-red-500/15 transition-colors border-b border-red-500/10"
-                    >
+                    <div onClick={() => toggleComplaint(order.id)} className="flex items-center justify-between gap-3 px-4 py-3.5 bg-red-500/10 cursor-pointer select-none hover:bg-red-500/15 transition-colors border-b border-red-500/10">
                       <div className="flex items-center gap-2.5">
                         <div className="w-7 h-7 rounded-lg bg-red-500/15 flex items-center justify-center text-red-500 border border-red-500/20">
                           <ShieldAlert size={14} />
@@ -665,9 +705,7 @@ export default function PesananMasukPage() {
                         </div>
                       </div>
                       <div className="flex items-center gap-2">
-                        <span className="text-[8px] font-black uppercase tracking-widest text-red-400 px-2 py-0.5 rounded bg-red-950/40 border border-red-500/20">
-                          Tinjau
-                        </span>
+                        <span className="text-[8px] font-black uppercase tracking-widest text-red-400 px-2 py-0.5 rounded bg-red-950/40 border border-red-500/20">Tinjau</span>
                         <ChevronRight size={14} className={`transition-transform duration-300 ${expandedComplaints[order.id] ? "rotate-90 text-white" : "text-zinc-500"}`} />
                       </div>
                     </div>
@@ -680,9 +718,7 @@ export default function PesananMasukPage() {
                           <div className="flex-1 space-y-1.5">
                             <span className="text-[9px] font-black text-zinc-500 uppercase tracking-wider block">Alasan Komplain</span>
                             <div className="p-3 bg-zinc-950/60 rounded-xl border border-zinc-800/50 min-h-[80px] flex flex-col justify-center">
-                              <p className="text-xs text-zinc-300 leading-relaxed font-medium italic">
-                                &ldquo;{order.complaint_description || "Tidak ada deskripsi alasan komplain dari pembeli."}&rdquo;
-                              </p>
+                              <p className="text-xs text-zinc-300 leading-relaxed font-medium italic">&ldquo;{order.complaint_description || "Tidak ada deskripsi alasan komplain dari pembeli."}&rdquo;</p>
                             </div>
                           </div>
 
@@ -690,10 +726,7 @@ export default function PesananMasukPage() {
                           {order.complaint_image && (
                             <div className="space-y-1.5 shrink-0">
                               <span className="text-[9px] font-black text-zinc-500 uppercase tracking-wider block sm:text-right mr-1">Bukti Lampiran</span>
-                              <div 
-                                onClick={() => setSelectedImage(getImageUrl(order.complaint_image))} 
-                                className="relative w-28 h-28 sm:w-32 sm:h-32 rounded-xl overflow-hidden border border-zinc-800 bg-zinc-950 cursor-zoom-in group/complaint shadow-md hover:border-zinc-700 transition-colors"
-                              >
+                              <div onClick={() => setSelectedImage(getImageUrl(order.complaint_image))} className="relative w-28 h-28 sm:w-32 sm:h-32 rounded-xl overflow-hidden border border-zinc-800 bg-zinc-950 cursor-zoom-in group/complaint shadow-md hover:border-zinc-700 transition-colors">
                                 {isVideoUrl(order.complaint_image) ? (
                                   <div className="relative w-full h-full">
                                     <video src={getImageUrl(order.complaint_image)} className="w-full h-full object-cover" preload="metadata" muted />

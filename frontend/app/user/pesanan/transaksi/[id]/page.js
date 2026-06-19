@@ -82,7 +82,9 @@ export default function TransactionProcessPage({ params }) {
 
   const fetchOrderDetail = async () => {
     try {
-      const res = await fetch(`${getApiUrl()}/orders/${id}`);
+      const res = await fetch(`${getApiUrl()}/orders/${id}`, {
+        cache: "no-store",
+      });
       const result = await res.json();
       if (res.ok && result.data) {
         const orderData = result.data;
@@ -103,7 +105,9 @@ export default function TransactionProcessPage({ params }) {
         const userStr = localStorage.getItem("user");
         if (userStr) {
           const user = JSON.parse(userStr);
-          const userRes = await fetch(`${getApiUrl()}/users/${user.id}`);
+          const userRes = await fetch(`${getApiUrl()}/users/${user.id}`, {
+            cache: "no-store",
+          });
           const userResult = await userRes.json();
           if (userRes.ok && userResult.data) {
             const userData = userResult.data;
@@ -621,7 +625,7 @@ export default function TransactionProcessPage({ params }) {
                 <h3 className="text-2xl font-black text-white uppercase tracking-tight">Data Tersimpan!</h3>
                 <p className="text-zinc-500 text-sm font-medium leading-relaxed">Informasi pengiriman berhasil diperbarui. Silakan tunggu penjual menentukan biaya pengiriman.</p>
               </div>
-              <button onClick={() => setShowSuccessModal(false)} className="w-full py-4 bg-emerald-500 hover:bg-emerald-400 text-zinc-950 font-black rounded-2xl transition-all active:scale-95">
+              <button onClick={() => setShowSuccessModal(false)} className="w-full py-4 bg-[#2563EB] hover:bg-[#1D4ED8] text-[#FFFFFF] font-black rounded-2xl transition-all active:scale-95">
                 Oke, Mengerti
               </button>
             </div>

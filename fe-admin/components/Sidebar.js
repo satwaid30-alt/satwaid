@@ -22,6 +22,7 @@ const MENU_ITEMS = [
   { name: "Verifikasi Komunitas", href: "/panel-admin/komunitas", icon: MessageSquare },
   { name: "Keuangan Toko", href: "/panel-admin/keuangan", icon: BookOpen },
   { name: "Pengembalian Dana", href: "/panel-admin/pengembalian-dana", icon: Wallet },
+  { name: "Biaya Admin", href: "/panel-admin/biaya-admin", icon: Sliders },
   { name: "Daftar Pengguna", href: "/panel-admin/users", icon: Users },
   { name: "Kontrol Menu", href: "/panel-admin/control-menu", icon: Sliders },
   { name: "Reset Profil", href: "/panel-admin/reset-profil", icon: UserCircle },

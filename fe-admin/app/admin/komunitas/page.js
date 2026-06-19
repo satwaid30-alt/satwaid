@@ -14,10 +14,6 @@ export default function AdminKomunitasPage() {
     const [deleteModal, setDeleteModal] = useState({ isOpen: false, topicId: null });
     const [isProcessing, setIsProcessing] = useState(false);
 
-    useEffect(() => {
-        fetchTopics();
-    }, []);
-
     const fetchTopics = async () => {
         setIsLoading(true);
         try {
@@ -32,6 +28,12 @@ export default function AdminKomunitasPage() {
             setIsLoading(false);
         }
     };
+
+    useEffect(() => {
+        setTimeout(() => {
+            fetchTopics();
+        }, 0);
+    }, []);
 
     const promptUpdateStatus = (id, newStatus) => {
         setStatusModal({ isOpen: true, topicId: id, newStatus, rejectionReason: '' });

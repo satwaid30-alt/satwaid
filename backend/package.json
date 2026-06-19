@@ -9,7 +9,7 @@
     "migrate": "node migrate.js",
     "migrate-reject": "node migrate-payment-reject.js",
     "check-db": "node scratch_check_db.js",
-    "dump-satwa": "node scratch/dump-satwa.js"
+    "check-db-custom": "node scratch/check-db.js"
   },
   "_moduleAliases": {
     "@root": ".",

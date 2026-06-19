@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { User, Mail, Phone, MapPin, CreditCard, Edit2, Save, Plus, Trash2, Camera, X, Check } from "lucide-react";
 import Link from "next/link";
 import ActionModal from "@/components/ActionModal";
-import { getApiUrl } from "@/app/utils/api";
+import { getApiUrl, getImageUrl } from "@/app/utils/api";
 import { uploadImageToS3 } from "@/components/HandleUpload";
 
 export default function PengaturanProfilPage() {
@@ -362,7 +362,7 @@ export default function PengaturanProfilPage() {
           <div className="flex flex-col md:flex-row items-center gap-6 mb-10 pb-10 border-b border-zinc-800">
             <div className="relative group w-24 h-24">
               {user.avatar_url ? (
-                <img src={user.avatar_url.startsWith("http") ? user.avatar_url : `${getApiUrl()}${user.avatar_url}`} alt="Profile" className="w-24 h-24 rounded-full object-cover" />
+                <img src={getImageUrl(user.avatar_url)} alt="Profile" className="w-24 h-24 rounded-full object-cover" />
               ) : (
                 <div className="w-24 h-24 bg-emerald-500 rounded-full flex items-center justify-center text-white font-bold text-3xl">{user.username ? user.username.charAt(0).toUpperCase() : "U"}</div>
               )}

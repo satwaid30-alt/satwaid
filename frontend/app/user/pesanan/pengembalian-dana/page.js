@@ -229,7 +229,7 @@ export default function PengembalianDanaPage() {
                       </td>
                       <td className="px-6 py-6 text-center">
                         {isNotSubmitted && (
-                          <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-blue-500/10 border border-blue-500/20 text-blue-400 rounded-full text-[9px] font-black uppercase tracking-wider">
+                          <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-amber-500/10 border border-amber-500/20 text-amber-400 rounded-full text-[9px] font-black uppercase tracking-wider">
                             <Clock size={8} /> Belum Diajukan
                           </span>
                         )}
@@ -253,7 +253,7 @@ export default function PengembalianDanaPage() {
                         <Link
                           href={`/user/pesanan/pengembalian-dana/detail/${order.id}`}
                           className={`inline-flex items-center gap-1.5 px-4 py-2 border rounded-xl text-[10px] font-black uppercase tracking-widest transition-all active:scale-95 shadow-md ${
-                            isNotSubmitted ? "bg-emerald-500 hover:bg-emerald-400 text-zinc-950 border-emerald-400" : "bg-zinc-800 hover:bg-zinc-700 text-zinc-400 hover:text-white border-zinc-700"
+                            isNotSubmitted ? "bg-[#2563EB] hover:bg-[#1D4ED8] text-[#FFFFFF] border-[#1D4ED8]" : "bg-zinc-800 hover:bg-zinc-700 text-zinc-400 hover:text-white border-zinc-700"
                           }`}
                         >
                           <Eye size={12} /> {isNotSubmitted ? "Ajukan Refund" : "Detail"}
@@ -300,7 +300,7 @@ export default function PengembalianDanaPage() {
                     <p className="text-[10px] text-zinc-500 font-bold">Batal: {formatDate(order.cancelled_at || order.updated_at)}</p>
                   </div>
                   <div>
-                    {isNotSubmitted && <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-blue-500/10 border border-blue-500/20 text-blue-400 rounded-full text-[9px] font-black uppercase tracking-wider">Belum Diajukan</span>}
+                    {isNotSubmitted && <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-amber-500/10 border border-amber-500/20 text-amber-400 rounded-full text-[9px] font-black uppercase tracking-wider">Belum Diajukan</span>}
                     {isPending && <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-amber-500/10 border border-amber-500/20 text-amber-500 rounded-full text-[9px] font-black uppercase tracking-wider">Menunggu Transfer</span>}
                     {isRefunded && <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-emerald-500/10 border border-emerald-500/20 text-emerald-500 rounded-full text-[9px] font-black uppercase tracking-wider">Selesai</span>}
                     {isRejected && <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-red-500/10 border border-red-500/20 text-red-500 rounded-full text-[9px] font-black uppercase tracking-wider">Ditolak</span>}
@@ -338,7 +338,7 @@ export default function PengembalianDanaPage() {
                   <Link
                     href={`/user/pesanan/pengembalian-dana/detail/${order.id}`}
                     className={`inline-flex items-center gap-1.5 px-4 py-2 border rounded-xl text-[10px] font-black uppercase tracking-widest transition-all active:scale-95 shadow-md ${
-                      isNotSubmitted ? "bg-emerald-500 hover:bg-emerald-400 text-zinc-950 border-emerald-400" : "bg-zinc-800 hover:bg-zinc-700 text-zinc-400 hover:text-white border-zinc-700"
+                      isNotSubmitted ? "bg-amber-400 hover:bg-amber-300 text-zinc-950 border-amber-300" : "bg-zinc-800 hover:bg-zinc-700 text-zinc-400 hover:text-white border-zinc-700"
                     }`}
                   >
                     <Eye size={12} /> {isNotSubmitted ? "Ajukan" : "Detail"}

@@ -56,10 +56,6 @@ export default function ManageAds() {
     const [previewImage, setPreviewImage] = useState(null);
     const [previewMobileImage, setPreviewMobileImage] = useState(null);
 
-    useEffect(() => {
-        fetchAds();
-    }, []);
-
     const showNotification = (type, message) => {
         setNotification({ show: true, type, message });
         setTimeout(() => setNotification({ ...notification, show: false }), 3000);
@@ -80,6 +76,12 @@ export default function ManageAds() {
             setIsLoading(false);
         }
     };
+
+    useEffect(() => {
+        setTimeout(() => {
+            fetchAds();
+        }, 0);
+    }, []);
 
     const handleOpenModal = (ad = null) => {
         if (ad) {

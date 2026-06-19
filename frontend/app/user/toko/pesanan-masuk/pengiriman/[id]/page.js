@@ -24,6 +24,37 @@ export default function ShippingConfirmationPage({ params }) {
   const [order, setOrder] = useState(null);
   const [loading, setLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [activeAdminFee, setActiveAdminFee] = useState(5000);
+
+  useEffect(() => {
+    let active = true;
+    const fetchAdminFee = async () => {
+      try {
+        const res = await fetch(`${getApiUrl()}/settings/admin-fee`);
+        if (res.ok) {
+          const result = await res.json();
+          if (result.success && typeof result.adminFee === "number" && active) {
+            setActiveAdminFee(result.adminFee);
+          }
+        }
+      } catch (err) {
+        console.error("Error fetching admin fee settings:", err);
+      }
+    };
+    fetchAdminFee();
+
+    const handleAdminFeeUpdated = (e) => {
+      if (typeof e.detail === "number" && active) {
+        setActiveAdminFee(e.detail);
+      }
+    };
+    window.addEventListener("admin_fee_updated", handleAdminFeeUpdated);
+
+    return () => {
+      active = false;
+      window.removeEventListener("admin_fee_updated", handleAdminFeeUpdated);
+    };
+  }, []);
   const [modalConfig, setModalConfig] = useState({
     isOpen: false,
     type: "success",
@@ -478,6 +509,23 @@ export default function ShippingConfirmationPage({ params }) {
             )}
 
             <div className="space-y-4 pt-6 border-t border-zinc-800">
+              <div className="flex justify-between items-center text-sm">
+                <span className="text-zinc-500 font-bold">Subtotal Produk</span>
+                <span className="text-white font-black">{formatPrice(order.items && order.items.length > 0 ? order.items.reduce((sum, item) => sum + Number(item.price) * (item.quantity || 1), 0) : order.price * order.quantity)}</span>
+              </div>
+              <div className="flex justify-between items-center text-sm">
+                <span className="text-zinc-500 font-bold">Ongkos Kirim</span>
+                <span className="text-white font-black">{order.product?.is_free_shipping ? <span className="text-emerald-500">Gratis</span> : order.shipping_cost !== null ? formatPrice(order.shipping_cost) : formatPrice(0)}</span>
+              </div>
+              <div className="flex justify-between items-center text-sm">
+                <span className="text-zinc-500 font-bold">Biaya Packing</span>
+                <span className="text-white font-black">{order.product?.is_free_packing ? <span className="text-emerald-500">Gratis</span> : order.packing_cost !== null ? formatPrice(order.packing_cost) : formatPrice(0)}</span>
+              </div>
+              <div className="flex justify-between items-center text-sm">
+                <span className="text-zinc-500 font-bold">Biaya Admin</span>
+                <span className="text-white font-black">{formatPrice(order.admin_fee !== undefined && order.admin_fee !== null ? order.admin_fee : activeAdminFee)}</span>
+              </div>
+              <div className="h-px bg-zinc-800 my-2"></div>
               <div className="flex justify-between items-center text-sm">
                 <span className="text-zinc-500 font-bold">Total Pembayaran</span>
                 <span className="text-xl font-black text-white">{formatPrice(order.total_price)}</span>

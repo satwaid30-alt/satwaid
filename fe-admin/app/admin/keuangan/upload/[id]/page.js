@@ -78,8 +78,11 @@ export default function UploadFinanceDocPage({ params }) {
 
   useEffect(() => {
     if (order) {
-      setAdditionalFee(order.additional_fee || 0);
-      setNotes(order.disbursement_notes || "");
+      // Defer state updates to avoid synchronous cascading renders during effect execution
+      setTimeout(() => {
+        setAdditionalFee(order.additional_fee || 0);
+        setNotes(order.disbursement_notes || "");
+      }, 0);
     }
   }, [order]);
 
@@ -115,7 +118,9 @@ export default function UploadFinanceDocPage({ params }) {
   };
 
   useEffect(() => {
-    fetchOrderDetail();
+    setTimeout(() => {
+      fetchOrderDetail();
+    }, 0);
   }, [id]);
 
   const handleFileChange = (e) => {

@@ -36,7 +36,37 @@ export default function OrderDetailPage({ params }) {
 
   const [successMessage, setSuccessMessage] = useState("");
   const [isProductCardOpen, setIsProductCardOpen] = useState(false);
+  const [activeAdminFee, setActiveAdminFee] = useState(5000);
 
+  useEffect(() => {
+    let active = true;
+    const fetchAdminFee = async () => {
+      try {
+        const res = await fetch(`${getApiUrl()}/settings/admin-fee`);
+        if (res.ok) {
+          const result = await res.json();
+          if (result.success && typeof result.adminFee === "number" && active) {
+            setActiveAdminFee(result.adminFee);
+          }
+        }
+      } catch (err) {
+        console.error("Error fetching admin fee settings:", err);
+      }
+    };
+    fetchAdminFee();
+
+    const handleAdminFeeUpdated = (e) => {
+      if (typeof e.detail === "number" && active) {
+        setActiveAdminFee(e.detail);
+      }
+    };
+    window.addEventListener("admin_fee_updated", handleAdminFeeUpdated);
+
+    return () => {
+      active = false;
+      window.removeEventListener("admin_fee_updated", handleAdminFeeUpdated);
+    };
+  }, []);
   useEffect(() => {
     fetchOrderDetail();
 
@@ -444,7 +474,7 @@ export default function OrderDetailPage({ params }) {
               </div>
               <div className="flex justify-between items-center text-sm">
                 <span className="text-zinc-500 font-bold">Biaya Admin</span>
-                <span className="text-white font-black">{formatPrice(order.admin_fee || 5000)}</span>
+                <span className="text-white font-black">{formatPrice(order.admin_fee !== undefined && order.admin_fee !== null ? order.admin_fee : activeAdminFee)}</span>
               </div>
               <div className="h-px bg-zinc-800"></div>
               <div className="flex justify-between items-end">
@@ -535,10 +565,10 @@ export default function OrderDetailPage({ params }) {
                         <p className="text-[9px] font-black text-zinc-500 uppercase tracking-widest px-4 pt-3 mb-2">Bukti Pengiriman</p>
                         <div className="px-4 pb-4">
                           <img
-                            src={order.shipping_proof.startsWith("http") ? order.shipping_proof : `${getApiUrl()}${order.shipping_proof}`}
+                            src={getImageUrl(order.shipping_proof)}
                             alt="Bukti Pengiriman"
                             className="w-32 h-32 object-cover rounded-xl cursor-pointer hover:scale-105 transition-transform duration-500 border border-zinc-800"
-                            onClick={() => window.open(order.shipping_proof.startsWith("http") ? order.shipping_proof : `${getApiUrl()}${order.shipping_proof}`, "_blank")}
+                            onClick={() => window.open(getImageUrl(order.shipping_proof), "_blank")}
                           />
                         </div>
                       </div>

@@ -290,13 +290,12 @@ export default function LelangPage() {
         {/* Promo Banner Image Carousel for Mobile (Visible on mobile only, at the top) */}
         {slides.length > 0 && (
           <div className="block md:hidden mb-6 px-1">
-            <div onTouchStart={handleTouchStart} onTouchMove={handleTouchMove} onTouchEnd={handleTouchEnd} className="relative rounded-2xl overflow-hidden bg-zinc-900 text-white aspect-[2.1/1] min-h-[140px] flex items-center group shadow-md border border-zinc-100/10">
+            <div onTouchStart={handleTouchStart} onTouchMove={handleTouchMove} onTouchEnd={handleTouchEnd} className="relative rounded-2xl overflow-hidden text-white aspect-[2.1/1] min-h-[140px] flex items-center group shadow-md border border-zinc-100/10">
               {slides.map((slide, idx) => {
                 const isActive = idx === activeAdIndex;
                 return (
                   <div key={slide.id} className={`absolute inset-0 w-full h-full transition-all duration-1000 ease-out flex items-center p-4 ${isActive ? "opacity-100 scale-100 pointer-events-auto z-10" : "opacity-0 scale-105 pointer-events-none z-0"}`}>
                     <img src={slide.mobile_image_url || slide.image_url} alt={slide.title} className="absolute inset-0 w-full h-full object-cover" />
-                    <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/40 to-transparent" />
 
                     <div className="relative z-20 w-full text-left">
                       {slide.badge && (
@@ -306,7 +305,7 @@ export default function LelangPage() {
                         </span>
                       )}
                       {slide.title && <h2 className="text-xs sm:text-sm font-black mb-0.5 leading-tight text-white">{slide.title}</h2>}
-                      {slide.description && <p className="text-zinc-300 text-[8px] sm:text-[10px] max-w-[70%] opacity-90 leading-normal line-clamp-1 mb-1.5">{slide.description}</p>}
+                      {slide.description && <p className="text-zinc-300 text-[8px] sm:text-[10px] max-w-[70%] leading-normal line-clamp-1 mb-1.5">{slide.description}</p>}
                       {slide.buttonText && (
                         <Link href={slide.link_url} className="inline-flex items-center gap-1 bg-white hover:bg-zinc-100 text-zinc-900 font-bold px-2.5 py-1 rounded-lg text-[8px] transition-all duration-300 shadow-sm">
                           {slide.buttonText}

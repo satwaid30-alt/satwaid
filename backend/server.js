@@ -1,5 +1,5 @@
 const http = require('http');
-// Force nodemon reload trigger: 2026-06-04T16:50:00
+// Force nodemon reload trigger: 2026-06-19T15:05:00
 const app = require('./app');
 const { Server } = require('socket.io');
 const jwt = require('jsonwebtoken');
@@ -346,7 +346,8 @@ async function autoCloseExpiredAuctions() {
                                 String(now.getMonth() + 1).padStart(2, '0') +
                                 String(now.getDate()).padStart(2, '0');
                             const orderId = `INV/${dateStr}/RH/${uid.rnd()}`;
-                            const ADMIN_FEE = 5000;
+                            const { getAdminFeeValueHelper } = require('./app/controllers/Admin.controller');
+                            const ADMIN_FEE = getAdminFeeValueHelper();
 
                             const productPrice = Number(highestBid.bid_amount);
                             const totalPrice = productPrice + ADMIN_FEE;
@@ -505,6 +506,37 @@ sequelize.sync({ alter: true })
 
         // Run historical listings correction
         await correctHistoricalListingStatuses();
+
+        // Initialize admin fee cache from database settings table
+        try {
+            const adminFeeSetting = await models.settings.findOne({ where: { key: 'admin_fee' } });
+            if (adminFeeSetting) {
+                global.adminFeeCache = Number(adminFeeSetting.value);
+                console.log(`[DB Settings] Loaded admin fee configuration: Rp ${global.adminFeeCache}`);
+            } else {
+                // Initialize default in database using file settings.json fallback
+                const fs = require('fs');
+                const path = require('path');
+                const settingsJsonPath = path.join(__dirname, './app/config/settings.json');
+                let initialFee = 5000;
+                if (fs.existsSync(settingsJsonPath)) {
+                    const fileData = JSON.parse(fs.readFileSync(settingsJsonPath, 'utf8'));
+                    if (fileData && fileData.admin_fee !== undefined) {
+                        initialFee = Number(fileData.admin_fee);
+                    }
+                }
+                
+                await models.settings.create({
+                    key: 'admin_fee',
+                    value: String(initialFee)
+                });
+                global.adminFeeCache = initialFee;
+                console.log(`[DB Settings] Initialized admin fee setting in database: Rp ${global.adminFeeCache}`);
+            }
+        } catch (dbErr) {
+            console.error('[DB Settings] Error loading/initializing admin fee setting:', dbErr.message);
+            global.adminFeeCache = 5000; // safe fallback
+        }
 
         // Run auto check for shipped orders and auctions on startup
         autoCheckShippedOrders();

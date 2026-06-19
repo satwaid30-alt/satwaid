@@ -10,7 +10,7 @@ import MobileMenuGrid from "../components/MobileMenuGrid";
 import ProductCard from "../components/ProductCard";
 import { io } from "socket.io-client";
 import { SPECIES_DATA } from "../data/species";
-import { getApiUrl, getSocketUrl } from "@/app/utils/api";
+import { getApiUrl, getSocketUrl, getImageUrl } from "@/app/utils/api";
 
 export default function Home() {
   const [speciesCount, setSpeciesCount] = useState(SPECIES_DATA.length);
@@ -33,13 +33,13 @@ export default function Home() {
 
       return {
         id: ad.id,
-        title: "Promosi",
         description: ad.description || "",
-        badge: "PROMOSI MITRA",
+        badge: ad.badge || "",
         badgeColor: "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30",
-        buttonText: "Kunjungi Link",
+        buttonText: "",
         link_url: ad.link_url || "",
-        image_url: ad.image_url.startsWith("http") ? ad.image_url : `${getApiUrl()}${ad.image_url}`,
+        image_url: getImageUrl(ad.image_url),
+        mobile_image_url: ad.mobile_image_url ? getImageUrl(ad.mobile_image_url) : null,
         glowColor: glowGradients[index % glowGradients.length],
       };
     });
@@ -336,87 +336,116 @@ export default function Home() {
 
       {/* Premium 3D Landscape Ad Deck Carousel (Optimized for Mobile/Handphones & Desktop) */}
       {slidesLength > 0 && (
-        <section className="pt-24 pb-12 md:py-12 relative overflow-hidden select-none">
-          {/* Glowing decorative background backlights */}
-          <div className="absolute top-1/2 left-1/4 -translate-y-1/2 w-80 h-80 " />
-          <div className="absolute top-1/2 right-1/4 -translate-y-1/2 w-80 h-80 " />
+        <>
+          {/* Desktop Version (Visible on desktop/tablet only) */}
+          <section className="pt-24 pb-12 md:py-12 relative overflow-hidden select-none hidden md:block">
+            {/* Glowing decorative background backlights */}
+            <div className="absolute top-1/2 left-1/4 -translate-y-1/2 w-80 h-80 " />
+            <div className="absolute top-1/2 right-1/4 -translate-y-1/2 w-80 h-80 " />
 
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 relative z-10">
-            {/* Centered slide indicator controls */}
-            <div className="flex items-center justify-center mb-8 sm:mb-10">
-              {/* Dot Indicators */}
-              <div className="flex gap-2">
-                {Array.from({ length: slidesLength }).map((_, idx) => (
-                  <button key={idx} onClick={() => setActiveAdIndex(idx)} className={`h-2 rounded-full transition-all duration-300 ${activeAdIndex === idx ? "w-6 bg-emerald-500" : "w-2 bg-zinc-300 hover:bg-zinc-400"}`} aria-label={`Slide ${idx + 1}`} />
-                ))}
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 relative z-10">
+              {/* Centered slide indicator controls */}
+              <div className="flex items-center justify-center mb-8 sm:mb-10">
+                {/* Dot Indicators */}
+                <div className="flex gap-2">
+                  {Array.from({ length: slidesLength }).map((_, idx) => (
+                    <button key={idx} onClick={() => setActiveAdIndex(idx)} className={`h-2 rounded-full transition-all duration-300 ${activeAdIndex === idx ? "w-6 bg-emerald-500" : "w-2 bg-zinc-300 hover:bg-zinc-400"}`} aria-label={`Slide ${idx + 1}`} />
+                  ))}
+                </div>
+              </div>
+
+              {/* 3D Landscape Deck Wrapper */}
+              <div onTouchStart={handleTouchStart} onTouchMove={handleTouchMove} onTouchEnd={handleTouchEnd} className="relative w-full max-w-4xl mx-auto aspect-[16/9] sm:aspect-[21/9] flex items-center justify-center overflow-visible">
+                {activeSlides.map((ad, idx) => {
+                  const isActive = idx === activeAdIndex;
+                  const isLeft = idx === (activeAdIndex - 1 + slidesLength) % slidesLength;
+                  const isRight = idx === (activeAdIndex + 1) % slidesLength;
+
+                  let positionClasses = "z-0 opacity-0 scale-[0.7] translate-x-[50%] pointer-events-none";
+                  if (isActive) {
+                    positionClasses = "z-30 opacity-100 scale-100 translate-x-0 bg-zinc-100 shadow-xl group";
+                  } else if (isLeft) {
+                    positionClasses = "z-10 opacity-30 scale-[0.82] -translate-x-[15%] sm:-translate-x-[25%] pointer-events-none bg-zinc-100/80";
+                  } else if (isRight) {
+                    positionClasses = "z-10 opacity-30 scale-[0.82] translate-x-[15%] sm:translate-x-[25%] pointer-events-none bg-zinc-100/80";
+                  }
+
+                  return (
+                    <div key={ad.id} className={`absolute w-[85%] sm:w-full h-full rounded-2xl sm:rounded-[2rem] p-5 sm:p-8 flex flex-col justify-center overflow-hidden transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] ${positionClasses} ${ad.link_url ? "cursor-pointer" : ""}`}>
+                      {/* Full-bleed Widescreen Background Image (Fits perfectly without cropping) */}
+                      <img
+                        src={ad.image_url}
+                        className="absolute inset-0 w-full h-full object-fill transition-transform duration-1000 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-[1.03]"
+                        alt={ad.title}
+                        onError={(e) => {
+                          // Fallback if image fails to load
+                          e.target.src = "/images/lizards.png";
+                        }}
+                      />
+
+                      {/* Subtle colorful glow matching the active slide */}
+                      <div className={`absolute -right-20 -bottom-20 w-80 h-80 bg-gradient-to-tr ${ad.glowColor} rounded-full blur-[80px] opacity-25 z-10`} />
+
+                      {/* Entire Widescreen Clickable Link Layer (Opens in new tab) */}
+                      <Link href={ad.link_url || "/toko"} target="_blank" rel="noopener noreferrer" className="absolute inset-0 z-30 cursor-pointer" aria-label="Kunjungi link promosi" />
+                    </div>
+                  );
+                })}
+
+                {/* Navigation Chevrons (Visible on Desktop) */}
+                {slidesLength > 1 && (
+                  <>
+                    <button
+                      onClick={() => setActiveAdIndex((prev) => (prev - 1 + slidesLength) % slidesLength)}
+                      className="flex absolute left-2 sm:left-4 md:-left-12 top-1/2 -translate-y-1/2 w-8 h-8 sm:w-10 sm:h-10 rounded-lg sm:rounded-xl bg-black/40 sm:bg-zinc-100 border border-zinc-200 text-zinc-700 hover:bg-emerald-500 hover:text-white hover:border-emerald-500 items-center justify-center transition-all active:scale-90 z-40 backdrop-blur-sm"
+                      aria-label="Previous Slide"
+                    >
+                      <ChevronLeft className="w-4 h-4 sm:w-5 sm:h-5" />
+                    </button>
+                    <button
+                      onClick={() => setActiveAdIndex((prev) => (prev + 1) % slidesLength)}
+                      className="flex absolute right-2 sm:right-4 md:-right-12 top-1/2 -translate-y-1/2 w-8 h-8 sm:w-10 sm:h-10 rounded-lg sm:rounded-xl bg-black/40 sm:bg-zinc-100 border border-zinc-200 text-zinc-700 hover:bg-emerald-500 hover:text-white hover:border-emerald-500 items-center justify-center transition-all active:scale-90 z-40 backdrop-blur-sm"
+                      aria-label="Next Slide"
+                    >
+                      <ChevronRight className="w-4 h-4 sm:w-5 sm:h-5" />
+                    </button>
+                  </>
+                )}
               </div>
             </div>
+          </section>
 
-            {/* 3D Landscape Deck Wrapper */}
-            <div onTouchStart={handleTouchStart} onTouchMove={handleTouchMove} onTouchEnd={handleTouchEnd} className="relative w-full max-w-4xl mx-auto aspect-[16/9] sm:aspect-[21/9] flex items-center justify-center overflow-visible">
-              {activeSlides.map((ad, idx) => {
+          {/* Promo Banner Image Carousel for Mobile (Visible on mobile only, at the top) */}
+          <div className="block md:hidden pt-24 pb-4 px-4 select-none">
+            <div onTouchStart={handleTouchStart} onTouchMove={handleTouchMove} onTouchEnd={handleTouchEnd} className="relative rounded-2xl overflow-hidden text-white aspect-[2.1/1] min-h-[140px] flex items-center group shadow-md border border-zinc-100/10">
+              {activeSlides.map((slide, idx) => {
                 const isActive = idx === activeAdIndex;
-                const isLeft = idx === (activeAdIndex - 1 + slidesLength) % slidesLength;
-                const isRight = idx === (activeAdIndex + 1) % slidesLength;
-
-                let positionClasses = "z-0 opacity-0 scale-[0.7] translate-x-[50%] pointer-events-none";
-                if (isActive) {
-                  positionClasses = "z-30 opacity-100 scale-100 translate-x-0 bg-zinc-100 shadow-xl group";
-                } else if (isLeft) {
-                  positionClasses = "z-10 opacity-30 scale-[0.82] -translate-x-[15%] sm:-translate-x-[25%] pointer-events-none bg-zinc-100/80";
-                } else if (isRight) {
-                  positionClasses = "z-10 opacity-30 scale-[0.82] translate-x-[15%] sm:translate-x-[25%] pointer-events-none bg-zinc-100/80";
-                }
-
                 return (
-                  <div key={ad.id} className={`absolute w-[85%] sm:w-full h-full rounded-2xl sm:rounded-[2rem] p-5 sm:p-8 flex flex-col justify-center overflow-hidden transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] ${positionClasses} ${ad.link_url ? "cursor-pointer" : ""}`}>
-                    {/* Full-bleed Widescreen Background Image (Fits perfectly without cropping) */}
-                    <img
-                      src={ad.image_url}
-                      className="absolute inset-0 w-full h-full object-fill transition-transform duration-1000 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-[1.03]"
-                      alt={ad.title}
-                      onError={(e) => {
-                        // Fallback if image fails to load
-                        e.target.src = "/images/lizards.png";
-                      }}
-                    />
+                  <div key={slide.id} className={`absolute inset-0 w-full h-full transition-all duration-1000 ease-out flex items-center p-4 ${isActive ? "opacity-100 scale-100 pointer-events-auto z-10" : "opacity-0 scale-105 pointer-events-none z-0"}`}>
+                    <img src={slide.mobile_image_url || slide.image_url} alt={slide.title} className="absolute inset-0 w-full h-full object-cover" />
 
-                    {/* Subtle colorful glow matching the active slide */}
-                    <div className={`absolute -right-20 -bottom-20 w-80 h-80 bg-gradient-to-tr ${ad.glowColor} rounded-full blur-[80px] opacity-25 z-10`} />
+                    {slide.link_url && <Link href={slide.link_url} target="_blank" rel="noopener noreferrer" className="absolute inset-0 z-30 cursor-pointer" aria-label="Kunjungi link promosi" />}
 
-                    {/* Entire Widescreen Clickable Link Layer (Opens in new tab) */}
-                    <Link href={ad.link_url || "/toko"} target="_blank" rel="noopener noreferrer" className="absolute inset-0 z-30 cursor-pointer" aria-label="Kunjungi link promosi" />
-                    {/* Understated Faded/Disguised bottom-left indicator */}
-                    <div className="absolute left-4 bottom-4 sm:left-6 sm:bottom-6 bg-black/30 border border-white/5 text-white/60 font-black text-[7px] sm:text-[9px] px-2.5 py-1 rounded-lg flex items-center gap-1 transition-all duration-300 z-20 pointer-events-none uppercase tracking-widest">
-                      {ad.buttonText || "Kunjungi Link"}
-                      <ArrowRight size={8} className="opacity-40" />
+                    <div className="relative z-20 w-full text-left">
+                      {slide.badge && <span className="inline-flex items-center bg-emerald-500/25 border border-emerald-500/30 text-emerald-300 px-2 py-0.5 rounded-lg text-[8px] font-black tracking-wider mb-1">{slide.badge}</span>}
+                      {slide.title && <h2 className="text-xs sm:text-sm font-black mb-0.5 leading-tight text-white">{slide.title}</h2>}
+                      {slide.description && <p className="text-zinc-300 text-[8px] sm:text-[10px] max-w-[70%] leading-normal line-clamp-1 mb-1.5">{slide.description}</p>}
                     </div>
                   </div>
                 );
               })}
 
-              {/* Navigation Chevrons (Visible on Mobile & Desktop) */}
+              {/* Dot Indicators */}
               {slidesLength > 1 && (
-                <>
-                  <button
-                    onClick={() => setActiveAdIndex((prev) => (prev - 1 + slidesLength) % slidesLength)}
-                    className="flex absolute left-2 sm:left-4 md:-left-12 top-1/2 -translate-y-1/2 w-8 h-8 sm:w-10 sm:h-10 rounded-lg sm:rounded-xl bg-black/40 sm:bg-zinc-100 border border-zinc-200 text-zinc-700 hover:bg-emerald-500 hover:text-white hover:border-emerald-500 items-center justify-center transition-all active:scale-90 z-40 backdrop-blur-sm"
-                    aria-label="Previous Slide"
-                  >
-                    <ChevronLeft className="w-4 h-4 sm:w-5 sm:h-5" />
-                  </button>
-                  <button
-                    onClick={() => setActiveAdIndex((prev) => (prev + 1) % slidesLength)}
-                    className="flex absolute right-2 sm:right-4 md:-right-12 top-1/2 -translate-y-1/2 w-8 h-8 sm:w-10 sm:h-10 rounded-lg sm:rounded-xl bg-black/40 sm:bg-zinc-100 border border-zinc-200 text-zinc-700 hover:bg-emerald-500 hover:text-white hover:border-emerald-500 items-center justify-center transition-all active:scale-90 z-40 backdrop-blur-sm"
-                    aria-label="Next Slide"
-                  >
-                    <ChevronRight className="w-4 h-4 sm:w-5 sm:h-5" />
-                  </button>
-                </>
+                <div className="absolute bottom-2 left-1/2 -translate-x-1/2 z-20 flex gap-1">
+                  {activeSlides.map((_, idx) => (
+                    <button key={idx} onClick={() => setActiveAdIndex(idx)} className={`h-0.5 rounded-full transition-all duration-300 ${activeAdIndex === idx ? "w-3 bg-emerald-500" : "w-1 bg-white/30"}`} aria-label={`Go to slide ${idx + 1}`} />
+                  ))}
+                </div>
               )}
             </div>
           </div>
-        </section>
+        </>
       )}
 
       <section className="pt-8 pb-24 md:py-24 bg-zinc-50 relative overflow-hidden">

@@ -95,10 +95,7 @@ function PusatInformasiContent() {
 
         {/* Back Navigation Bar */}
         <div className="max-w-7xl mx-auto px-6 mb-8 flex justify-start relative z-10">
-          <Link
-            href="/"
-            className="inline-flex items-center gap-2 px-4 py-2 bg-zinc-900/50 hover:bg-zinc-800/80 backdrop-blur-md border border-zinc-800/80 rounded-xl text-zinc-400 hover:text-white text-xs font-bold uppercase tracking-wider transition-all duration-200 active:scale-95 shadow-lg"
-          >
+          <Link href="/" className="inline-flex items-center gap-2 px-4 py-2 bg-zinc-900/50 hover:bg-zinc-800/80 backdrop-blur-md border border-zinc-800/80 rounded-xl text-zinc-400 hover:text-white text-xs font-bold uppercase tracking-wider transition-all duration-200 active:scale-95 shadow-lg">
             <ArrowLeft size={14} className="text-emerald-500" /> Kembali ke Beranda
           </Link>
         </div>
@@ -228,7 +225,7 @@ function PusatInformasiContent() {
                 rel="noopener noreferrer"
                 className="px-8 py-4 bg-emerald-500 hover:bg-emerald-400 text-zinc-950 font-black rounded-2xl text-xs md:text-sm uppercase tracking-widest flex items-center gap-3 transition-all shrink-0 active:scale-95 shadow-xl shadow-emerald-500/10 z-10"
               >
-                <MessageCircle size={16} /> Hubungi WhatsApp CS
+                <MessageCircle size={16} /> Hubungi CS
               </a>
             </div>
           </div>

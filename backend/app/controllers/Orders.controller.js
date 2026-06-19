@@ -1,2104 +1,2184 @@
-const { Sequelize } = require('sequelize');
-const initModels = require('../database/init');
+const { Sequelize } = require("sequelize");
+const initModels = require("../database/init");
 const sequelize = new Sequelize(process.env.DATABASE_URL);
 var models = initModels(sequelize);
-const ShortUniqueId = require('short-unique-id');
+const ShortUniqueId = require("short-unique-id");
 
-const ADMIN_FEE = 5000;
+const fs = require("fs");
+const path = require("path");
+
+const getAdminFee = () => {
+  if (global.adminFeeCache !== undefined && global.adminFeeCache !== null) {
+    return global.adminFeeCache;
+  }
+  try {
+    const filePath = path.join(__dirname, "../config/settings.json");
+    if (fs.existsSync(filePath)) {
+      const data = JSON.parse(fs.readFileSync(filePath, "utf8"));
+      if (data && data.admin_fee !== undefined) {
+        global.adminFeeCache = Number(data.admin_fee);
+        return global.adminFeeCache;
+      }
+    }
+  } catch (e) {
+    console.error("Error reading admin fee in OrdersController:", e);
+  }
+  return 5000;
+};
 
 // Helper: generate order ID like INV/20260507/RH/0001
 const generateOrderId = () => {
-    const now = new Date();
-    const dateStr = now.getFullYear().toString() +
-        String(now.getMonth() + 1).padStart(2, '0') +
-        String(now.getDate()).padStart(2, '0');
-    const uid = new ShortUniqueId({ length: 6, dictionary: 'number' });
-    return `INV/${dateStr}/RH/${uid.rnd()}`;
+  const now = new Date();
+  const dateStr = now.getFullYear().toString() + String(now.getMonth() + 1).padStart(2, "0") + String(now.getDate()).padStart(2, "0");
+  const uid = new ShortUniqueId({ length: 6, dictionary: "number" });
+  return `INV/${dateStr}/RH/${uid.rnd()}`;
 };
 
 const emitOrderUpdated = (req, order) => {
-    if (!order) return;
-    const io = req.app.get('socketio');
-    if (io) {
-        const roomName = `order_${order.id}`;
-        const room = io.sockets.adapter.rooms.get(roomName);
-        const numClients = room ? room.size : 0;
-        console.log(`[Socket Broadcast] Emitting order_updated for order ${order.id} to room ${roomName} (Active clients: ${numClients})`);
-        io.to(roomName).emit('order_updated', {
-            order_id: order.id,
-            status: order.status
-        });
-    } else {
-        console.warn(`[Socket Broadcast Warning] io instance not found in req.app for order ${order.id}`);
-    }
+  if (!order) return;
+  const io = req.app.get("socketio");
+  if (io) {
+    const roomName = `order_${order.id}`;
+    const room = io.sockets.adapter.rooms.get(roomName);
+    const numClients = room ? room.size : 0;
+    console.log(`[Socket Broadcast] Emitting order_updated for order ${order.id} to room ${roomName} (Active clients: ${numClients})`);
+    io.to(roomName).emit("order_updated", {
+      order_id: order.id,
+      status: order.status,
+    });
+  } else {
+    console.warn(`[Socket Broadcast Warning] io instance not found in req.app for order ${order.id}`);
+  }
 };
 
 const OrdersController = {
+  // GET /orders - Admin: ambil semua pesanan
+  getAllOrders: async (req, res) => {
+    try {
+      const data = await models.orders.findAll({
+        include: [
+          {
+            model: models.listings,
+            as: "product",
+            attributes: ["id", "product_id", "name", "images", "type", "species", "price", "description", "sex", "shipping_description", "is_free_shipping", "is_free_packing", "stock", "shipping_type"],
+          },
+          {
+            model: models.order_items,
+            as: "items",
+            include: [
+              {
+                model: models.listings,
+                as: "product",
+                attributes: ["id", "product_id", "name", "images", "type", "species", "price", "description", "sex", "shipping_description", "is_free_shipping", "is_free_packing", "stock", "shipping_type"],
+              },
+            ],
+          },
+          {
+            model: models.shops,
+            as: "shop",
+            attributes: ["id", "name", "city", "address", "logo_url", "whatsapp", "shop_code", "shipping_policy", "warranty_policy"],
+            include: [
+              {
+                model: models.users,
+                as: "owner",
+                attributes: ["id", "name", "email", "bank_accounts", "phone"],
+              },
+            ],
+          },
+          {
+            model: models.users,
+            as: "user",
+            attributes: ["id", "username", "email", "phone", "avatar_url", "city", "province"],
+          },
+        ],
+        order: [["created_at", "DESC"]],
+      });
 
-    // GET /orders - Admin: ambil semua pesanan
-    getAllOrders: async (req, res) => {
-        try {
-            const data = await models.orders.findAll({
-                include: [
-                    {
-                        model: models.listings,
-                        as: 'product',
-                        attributes: ['id', 'product_id', 'name', 'images', 'type', 'species', 'price', 'description', 'sex', 'shipping_description', 'is_free_shipping', 'is_free_packing', 'stock', 'shipping_type']
-                    },
-                    {
-                        model: models.order_items,
-                        as: 'items',
-                        include: [
-                            {
-                                model: models.listings,
-                                as: 'product',
-                                attributes: ['id', 'product_id', 'name', 'images', 'type', 'species', 'price', 'description', 'sex', 'shipping_description', 'is_free_shipping', 'is_free_packing', 'stock', 'shipping_type']
-                            }
-                        ]
-                    },
-                    {
-                        model: models.shops,
-                        as: 'shop',
-                        attributes: ['id', 'name', 'city', 'address', 'logo_url', 'whatsapp', 'shop_code', 'shipping_policy', 'warranty_policy'],
-                        include: [
-                            {
-                                model: models.users,
-                                as: 'owner',
-                                attributes: ['id', 'name', 'email', 'bank_accounts', 'phone']
-                            }
-                        ]
-                    },
-                    {
-                        model: models.users,
-                        as: 'user',
-                        attributes: ['id', 'username', 'email', 'phone', 'avatar_url', 'city', 'province']
-                    }
-                ],
-                order: [['created_at', 'DESC']]
-            });
+      return res.status(200).json({
+        message: "Semua data pesanan berhasil diambil",
+        data,
+      });
+    } catch (err) {
+      console.error("getAllOrders error:", err);
+      return res.status(500).json({ message: err.message, detail: err });
+    }
+  },
 
-            return res.status(200).json({
-                message: 'Semua data pesanan berhasil diambil',
-                data
-            });
-        } catch (err) {
-            console.error('getAllOrders error:', err);
-            return res.status(500).json({ message: err.message, detail: err });
+  // GET /orders/user/:user_id - Buyer: ambil pesanan milik user
+  getUserOrders: async (req, res) => {
+    try {
+      const { user_id } = req.params;
+      const { Op } = require("sequelize");
+
+      // === AUTO-CLEANUP: Batalkan pesanan zombie ===
+      // Pesanan aktif yang produknya sudah terjual (stok=0 atau status='sold')
+      // Ini membersihkan order lama yang dibuat sebelum sistem enforcement diterapkan
+      // PENTING: Exclude semua status final/selesai agar tidak membatalkan order yang sudah done
+      const activeOrders = await models.orders.findAll({
+        where: {
+          user_id,
+          status: { [Op.notIn]: ["completed", "cancelled", "complained", "disbursement_requested", "disbursed", "cancelled_dismissed"] },
+        },
+        include: [
+          {
+            model: models.listings,
+            as: "product",
+            attributes: ["id", "stock", "status"],
+          },
+        ],
+      });
+
+      for (const order of activeOrders) {
+        const product = order.product;
+        // Hanya batalkan jika produk SUDAH TERJUAL (status 'sold') oleh orang lain
+        // Jangan gunakan stok <= 0 karena pesanan yang sedang berjalan memang mengurangi stok menjadi 0
+        if (product && product.status === "sold") {
+          await order.update({
+            status: "cancelled",
+            cancelled_at: new Date(),
+            updated_at: new Date(),
+          });
+          // Hapus juga dari keranjang jika masih ada
+          await models.carts.destroy({
+            where: { user_id, listing_id: product.id },
+          });
         }
-    },
+      }
+      // === END AUTO-CLEANUP ===
 
-    // GET /orders/user/:user_id - Buyer: ambil pesanan milik user
-    getUserOrders: async (req, res) => {
-        try {
-            const { user_id } = req.params;
-            const { Op } = require('sequelize');
+      const data = await models.orders.findAll({
+        where: {
+          user_id,
+          status: { [Op.ne]: "cancelled_dismissed" },
+        },
+        include: [
+          {
+            model: models.listings,
+            as: "product",
+            attributes: ["id", "product_id", "name", "images", "type", "is_free_shipping", "is_free_packing", "species", "price", "description", "sex", "shipping_description", "stock", "status", "shipping_type"],
+          },
+          {
+            model: models.order_items,
+            as: "items",
+            include: [
+              {
+                model: models.listings,
+                as: "product",
+                attributes: ["id", "product_id", "name", "images", "type", "is_free_shipping", "is_free_packing", "species", "price", "description", "sex", "shipping_description", "stock", "status", "shipping_type"],
+              },
+            ],
+          },
+          {
+            model: models.shops,
+            as: "shop",
+            attributes: ["id", "name", "city", "address", "logo_url", "whatsapp", "shop_code", "shipping_policy", "warranty_policy"],
+          },
+        ],
+        order: [["created_at", "DESC"]],
+      });
 
-            // === AUTO-CLEANUP: Batalkan pesanan zombie ===
-            // Pesanan aktif yang produknya sudah terjual (stok=0 atau status='sold')
-            // Ini membersihkan order lama yang dibuat sebelum sistem enforcement diterapkan
-            // PENTING: Exclude semua status final/selesai agar tidak membatalkan order yang sudah done
-            const activeOrders = await models.orders.findAll({
-                where: {
-                    user_id,
-                    status: { [Op.notIn]: ['completed', 'cancelled', 'complained', 'disbursement_requested', 'disbursed', 'cancelled_dismissed'] }
-                },
-                include: [{
-                    model: models.listings,
-                    as: 'product',
-                    attributes: ['id', 'stock', 'status']
-                }]
-            });
+      return res.status(200).json({
+        message: "Pesanan user berhasil diambil",
+        data,
+      });
+    } catch (err) {
+      console.error("getUserOrders error:", err);
+      return res.status(500).json({ message: err.message, detail: err });
+    }
+  },
 
-            for (const order of activeOrders) {
-                const product = order.product;
-                // Hanya batalkan jika produk SUDAH TERJUAL (status 'sold') oleh orang lain
-                // Jangan gunakan stok <= 0 karena pesanan yang sedang berjalan memang mengurangi stok menjadi 0
-                if (product && product.status === 'sold') {
-                    await order.update({
-                        status: 'cancelled',
-                        cancelled_at: new Date(),
-                        updated_at: new Date()
-                    });
-                    // Hapus juga dari keranjang jika masih ada
-                    await models.carts.destroy({
-                        where: { user_id, listing_id: product.id }
-                    });
-                }
-            }
-            // === END AUTO-CLEANUP ===
+  // GET /orders/shop/:shop_id - Seller: ambil pesanan masuk ke toko
+  getShopOrders: async (req, res) => {
+    try {
+      const { shop_id } = req.params;
 
-            const data = await models.orders.findAll({
-                where: {
-                    user_id,
-                    status: { [Op.ne]: 'cancelled_dismissed' }
-                },
-                include: [
-                    {
-                        model: models.listings,
-                        as: 'product',
-                        attributes: ['id', 'product_id', 'name', 'images', 'type', 'is_free_shipping', 'is_free_packing', 'species', 'price', 'description', 'sex', 'shipping_description', 'stock', 'status', 'shipping_type']
-                    },
-                    {
-                        model: models.order_items,
-                        as: 'items',
-                        include: [
-                            {
-                                model: models.listings,
-                                as: 'product',
-                                attributes: ['id', 'product_id', 'name', 'images', 'type', 'is_free_shipping', 'is_free_packing', 'species', 'price', 'description', 'sex', 'shipping_description', 'stock', 'status', 'shipping_type']
-                            }
-                        ]
-                    },
-                    {
-                        model: models.shops,
-                        as: 'shop',
-                        attributes: ['id', 'name', 'city', 'address', 'logo_url', 'whatsapp', 'shop_code', 'shipping_policy', 'warranty_policy']
-                    }
-                ],
-                order: [['created_at', 'DESC']]
-            });
+      const { Op } = require("sequelize");
+      const data = await models.orders.findAll({
+        where: {
+          shop_id,
+          status: { [Op.ne]: "cancelled_dismissed" },
+        },
+        include: [
+          {
+            model: models.listings,
+            as: "product",
+            attributes: ["id", "product_id", "name", "images", "type", "species", "price", "description", "shipping_description", "is_free_shipping", "is_free_packing", "shipping_type"],
+          },
+          {
+            model: models.order_items,
+            as: "items",
+            include: [
+              {
+                model: models.listings,
+                as: "product",
+                attributes: ["id", "product_id", "name", "images", "type", "species", "price", "description", "shipping_description", "is_free_shipping", "is_free_packing", "shipping_type"],
+              },
+            ],
+          },
+          {
+            model: models.users,
+            as: "user",
+            attributes: ["id", "username", "name", "email", "phone", "city", "province"],
+          },
+        ],
+        order: [["created_at", "DESC"]],
+      });
 
-            return res.status(200).json({
-                message: 'Pesanan user berhasil diambil',
-                data
-            });
-        } catch (err) {
-            console.error('getUserOrders error:', err);
-            return res.status(500).json({ message: err.message, detail: err });
-        }
-    },
+      return res.status(200).json({
+        message: "Pesanan toko berhasil diambil",
+        data,
+      });
+    } catch (err) {
+      console.error("getShopOrders error:", err);
+      return res.status(500).json({ message: err.message, detail: err });
+    }
+  },
 
-    // GET /orders/shop/:shop_id - Seller: ambil pesanan masuk ke toko
-    getShopOrders: async (req, res) => {
-        try {
-            const { shop_id } = req.params;
+  // GET /orders/listing/:listing_id - Admin/Seller: ambil semua pesanan untuk satu produk
+  getListingOrders: async (req, res) => {
+    try {
+      const { listing_id } = req.params;
 
-            const { Op } = require('sequelize');
-            const data = await models.orders.findAll({
-                where: {
-                    shop_id,
-                    status: { [Op.ne]: 'cancelled_dismissed' }
-                },
-                include: [
-                    {
-                        model: models.listings,
-                        as: 'product',
-                        attributes: ['id', 'product_id', 'name', 'images', 'type', 'species', 'price', 'description', 'shipping_description', 'is_free_shipping', 'is_free_packing', 'shipping_type']
-                    },
-                    {
-                        model: models.order_items,
-                        as: 'items',
-                        include: [
-                            {
-                                model: models.listings,
-                                as: 'product',
-                                attributes: ['id', 'product_id', 'name', 'images', 'type', 'species', 'price', 'description', 'shipping_description', 'is_free_shipping', 'is_free_packing', 'shipping_type']
-                            }
-                        ]
-                    },
-                    {
-                        model: models.users,
-                        as: 'user',
-                        attributes: ['id', 'username', 'name', 'email', 'phone', 'city', 'province']
-                    }
-                ],
-                order: [['created_at', 'DESC']]
-            });
-
-            return res.status(200).json({
-                message: 'Pesanan toko berhasil diambil',
-                data
-            });
-        } catch (err) {
-            console.error('getShopOrders error:', err);
-            return res.status(500).json({ message: err.message, detail: err });
-        }
-    },
-
-    // GET /orders/listing/:listing_id - Admin/Seller: ambil semua pesanan untuk satu produk
-    getListingOrders: async (req, res) => {
-        try {
-            const { listing_id } = req.params;
-
-            const { Op } = require('sequelize');
-            const data = await models.orders.findAll({
-                where: {
-                    [Op.or]: [
-                        { listing_id },
-                        Sequelize.literal(`EXISTS (
+      const { Op } = require("sequelize");
+      const data = await models.orders.findAll({
+        where: {
+          [Op.or]: [
+            { listing_id },
+            Sequelize.literal(`EXISTS (
                             SELECT 1 FROM order_items 
                             WHERE order_items.order_id = "orders"."id" 
                               AND order_items.listing_id = ${sequelize.escape(listing_id)}
-                        )`)
-                    ]
-                },
-                attributes: {
-                    include: [
-                        [
-                            Sequelize.literal(`COALESCE(
+                        )`),
+          ],
+        },
+        attributes: {
+          include: [
+            [
+              Sequelize.literal(`COALESCE(
                                 (SELECT quantity FROM order_items WHERE order_items.order_id = "orders"."id" AND order_items.listing_id = ${sequelize.escape(listing_id)} LIMIT 1),
                                 "orders"."quantity",
                                 1
                             )`),
-                            'item_quantity'
-                        ]
-                    ]
-                },
-                include: [
-                    {
-                        model: models.users,
-                        as: 'user',
-                        attributes: ['id', 'username', 'email', 'phone', 'city', 'province']
-                    }
-                ],
-                order: [['created_at', 'DESC']]
-            });
+              "item_quantity",
+            ],
+          ],
+        },
+        include: [
+          {
+            model: models.users,
+            as: "user",
+            attributes: ["id", "username", "email", "phone", "city", "province"],
+          },
+        ],
+        order: [["created_at", "DESC"]],
+      });
 
-            return res.status(200).json({
-                message: 'Pesanan produk berhasil diambil',
-                data
-            });
-        } catch (err) {
-            console.error('getListingOrders error:', err);
-            return res.status(500).json({ message: err.message, detail: err });
+      return res.status(200).json({
+        message: "Pesanan produk berhasil diambil",
+        data,
+      });
+    } catch (err) {
+      console.error("getListingOrders error:", err);
+      return res.status(500).json({ message: err.message, detail: err });
+    }
+  },
+
+  // GET /orders/:order_id - Detail satu pesanan
+  getOrderById: async (req, res) => {
+    try {
+      const { order_id } = req.params;
+
+      const queryOptions = {
+        include: [
+          {
+            model: models.listings,
+            as: "product",
+            attributes: ["id", "product_id", "name", "images", "type", "is_free_shipping", "is_free_packing", "species", "price", "description", "sex", "shipping_description", "stock", "shipping_type"],
+          },
+          {
+            model: models.order_items,
+            as: "items",
+            include: [
+              {
+                model: models.listings,
+                as: "product",
+                attributes: ["id", "product_id", "name", "images", "type", "is_free_shipping", "is_free_packing", "species", "price", "description", "sex", "shipping_description", "stock", "shipping_type"],
+              },
+            ],
+          },
+          {
+            model: models.shops,
+            as: "shop",
+            attributes: ["id", "name", "city", "address", "logo_url", "whatsapp", "shop_code", "shipping_policy", "warranty_policy"],
+            include: [
+              {
+                model: models.users,
+                as: "owner",
+                attributes: ["id", "name", "email", "bank_accounts", "phone"],
+              },
+            ],
+          },
+          {
+            model: models.users,
+            as: "user",
+            attributes: ["id", "name", "username", "email", "phone", "avatar_url", "city", "province"],
+          },
+        ],
+      };
+
+      const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(order_id);
+      let data = null;
+
+      if (isUUID) {
+        data = await models.orders.findByPk(order_id, queryOptions).catch(() => null);
+      }
+
+      if (!data) {
+        data = await models.orders
+          .findOne({
+            where: { order_id: order_id },
+            ...queryOptions,
+          })
+          .catch(() => null);
+      }
+
+      if (!data) {
+        return res.status(404).json({ message: "Pesanan tidak ditemukan" });
+      }
+
+      return res.status(200).json({
+        message: "Detail pesanan berhasil diambil",
+        data,
+      });
+    } catch (err) {
+      console.error("getOrderById error:", err);
+      return res.status(500).json({ message: err.message, detail: err });
+    }
+  },
+
+  // POST /orders - Buat pesanan baru
+  createOrder: async (req, res) => {
+    const { Op } = require("sequelize");
+    const transaction = await sequelize.transaction();
+
+    try {
+      let { user_id, listing_id, quantity, items, from_cart, is_bin } = req.body;
+
+      if (!items || !Array.isArray(items) || items.length === 0) {
+        if (!listing_id) {
+          await transaction.rollback();
+          return res.status(400).json({ message: "listing_id atau items wajib diisi" });
         }
-    },
+        items = [{ listing_id, quantity: quantity || 1 }];
+      }
 
-    // GET /orders/:order_id - Detail satu pesanan
-    getOrderById: async (req, res) => {
-        try {
-            const { order_id } = req.params;
+      let shopId = null;
+      const listingsMap = new Map(); // listing_id -> listing
+      const resolvedPrices = new Map(); // listing_id -> price
 
-            const queryOptions = {
-                include: [
-                    {
-                        model: models.listings,
-                        as: 'product',
-                        attributes: ['id', 'product_id', 'name', 'images', 'type', 'is_free_shipping', 'is_free_packing', 'species', 'price', 'description', 'sex', 'shipping_description', 'stock', 'shipping_type']
-                    },
-                    {
-                        model: models.order_items,
-                        as: 'items',
-                        include: [
-                            {
-                                model: models.listings,
-                                as: 'product',
-                                attributes: ['id', 'product_id', 'name', 'images', 'type', 'is_free_shipping', 'is_free_packing', 'species', 'price', 'description', 'sex', 'shipping_description', 'stock', 'shipping_type']
-                            }
-                        ]
-                    },
-                    {
-                        model: models.shops,
-                        as: 'shop',
-                        attributes: ['id', 'name', 'city', 'address', 'logo_url', 'whatsapp', 'shop_code', 'shipping_policy', 'warranty_policy'],
-                        include: [
-                            {
-                                model: models.users,
-                                as: 'owner',
-                                attributes: ['id', 'name', 'email', 'bank_accounts', 'phone']
-                            }
-                        ]
-                    },
-                    {
-                        model: models.users,
-                        as: 'user',
-                        attributes: ['id', 'name', 'username', 'email', 'phone', 'avatar_url', 'city', 'province']
-                    }
-                ]
-            };
+      for (const item of items) {
+        const requestedQty = parseInt(item.quantity) || 1;
+        const lst = await models.listings.findByPk(item.listing_id, {
+          transaction,
+          lock: transaction.LOCK.UPDATE,
+        });
 
-            const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(order_id);
-            let data = null;
-            
-            if (isUUID) {
-                data = await models.orders.findByPk(order_id, queryOptions).catch(() => null);
-            }
-            
-            if (!data) {
-                data = await models.orders.findOne({
-                    where: { order_id: order_id },
-                    ...queryOptions
-                }).catch(() => null);
-            }
-
-            if (!data) {
-                return res.status(404).json({ message: 'Pesanan tidak ditemukan' });
-            }
-
-            return res.status(200).json({
-                message: 'Detail pesanan berhasil diambil',
-                data
-            });
-        } catch (err) {
-            console.error('getOrderById error:', err);
-            return res.status(500).json({ message: err.message, detail: err });
+        if (!lst) {
+          await transaction.rollback();
+          return res.status(404).json({ message: `Produk dengan ID ${item.listing_id} tidak ditemukan.` });
         }
-    },
 
-    // POST /orders - Buat pesanan baru
-    createOrder: async (req, res) => {
-        const { Op } = require('sequelize');
-        const transaction = await sequelize.transaction();
+        if (lst.stock < requestedQty) {
+          await transaction.rollback();
+          return res.status(400).json({ message: `Maaf, produk "${lst.name}" sudah laku terjual atau stok tidak mencukupi.` });
+        }
 
-        try {
-            let { user_id, listing_id, quantity, items, from_cart, is_bin } = req.body;
+        if (shopId === null) {
+          shopId = lst.shop_id;
+        } else if (lst.shop_id !== shopId) {
+          await transaction.rollback();
+          return res.status(400).json({ message: "Semua produk harus berasal dari toko yang sama." });
+        }
 
-            if (!items || !Array.isArray(items) || items.length === 0) {
-                if (!listing_id) {
-                    await transaction.rollback();
-                    return res.status(400).json({ message: 'listing_id atau items wajib diisi' });
-                }
-                items = [{ listing_id, quantity: quantity || 1 }];
+        let productPrice;
+        if (lst.type === "auction") {
+          if (is_bin === true) {
+            if (!lst.bin_price) {
+              await transaction.rollback();
+              return res.status(400).json({ message: `Harga BIN tidak tersedia untuk produk lelang "${lst.name}".` });
             }
-
-            let shopId = null;
-            const listingsMap = new Map(); // listing_id -> listing
-            const resolvedPrices = new Map(); // listing_id -> price
-
-            for (const item of items) {
-                const requestedQty = parseInt(item.quantity) || 1;
-                const lst = await models.listings.findByPk(item.listing_id, {
-                    transaction,
-                    lock: transaction.LOCK.UPDATE
-                });
-
-                if (!lst) {
-                    await transaction.rollback();
-                    return res.status(404).json({ message: `Produk dengan ID ${item.listing_id} tidak ditemukan.` });
-                }
-
-                if (lst.stock < requestedQty) {
-                    await transaction.rollback();
-                    return res.status(400).json({ message: `Maaf, produk "${lst.name}" sudah laku terjual atau stok tidak mencukupi.` });
-                }
-
-                if (shopId === null) {
-                    shopId = lst.shop_id;
-                } else if (lst.shop_id !== shopId) {
-                    await transaction.rollback();
-                    return res.status(400).json({ message: 'Semua produk harus berasal dari toko yang sama.' });
-                }
-
-                let productPrice;
-                if (lst.type === 'auction') {
-                    if (is_bin === true) {
-                        if (!lst.bin_price) {
-                            await transaction.rollback();
-                            return res.status(400).json({ message: `Harga BIN tidak tersedia untuk produk lelang "${lst.name}".` });
-                        }
-                        productPrice = Number(lst.bin_price);
-                    } else {
-                        const highestBid = await models.bids.findOne({
-                            where: { listing_id: lst.id },
-                            order: [['bid_amount', 'DESC']],
-                            transaction
-                        });
-
-                        if (!highestBid) {
-                            await transaction.rollback();
-                            return res.status(400).json({ message: `Produk lelang "${lst.name}" tidak memiliki penawaran, tidak dapat memproses transaksi.` });
-                        }
-
-                        if (highestBid.user_id !== user_id) {
-                            await transaction.rollback();
-                            return res.status(403).json({ message: `Hanya pemenang lelang (penawar tertinggi) yang dapat memproses transaksi untuk "${lst.name}".` });
-                        }
-
-                        productPrice = Number(highestBid.bid_amount);
-                    }
-                } else {
-                    productPrice = Number(lst.price) || 0;
-                }
-
-                listingsMap.set(item.listing_id, lst);
-                resolvedPrices.set(item.listing_id, productPrice);
-            }
-
-            // Cek apakah produk sudah ada di keranjang (jika bukan checkout dari keranjang)
-            if (!from_cart) {
-                for (const item of items) {
-                    const existingCartItem = await models.carts.findOne({
-                        where: { user_id, listing_id: item.listing_id },
-                        transaction
-                    });
-                    if (existingCartItem) {
-                        await transaction.rollback();
-                        return res.status(400).json({ message: 'Produk ini sudah ada di dalam keranjang Anda. Silakan checkout melalui keranjang untuk mencegah pembelian ganda.' });
-                    }
-                }
-            }
-
-            let totalSubtotal = 0;
-            for (const item of items) {
-                const requestedQty = parseInt(item.quantity) || 1;
-                const price = resolvedPrices.get(item.listing_id);
-                totalSubtotal += price * requestedQty;
-            }
-            const totalPrice = totalSubtotal + ADMIN_FEE;
-
-            const firstItem = items[0];
-            const firstListing = listingsMap.get(firstItem.listing_id);
-            const firstPrice = resolvedPrices.get(firstItem.listing_id);
-            const firstQty = parseInt(firstItem.quantity) || 1;
-
-            const orderId = generateOrderId();
-
-            const order = await models.orders.create({
-                order_id: orderId,
-                user_id,
-                listing_id: firstItem.listing_id,
-                shop_id: shopId,
-                quantity: firstQty,
-                price: firstPrice,
-                admin_fee: ADMIN_FEE,
-                total_price: totalPrice,
-                status: 'pending_shipping_info'
-            }, { transaction });
-
-            for (const item of items) {
-                const qty = parseInt(item.quantity) || 1;
-                const price = resolvedPrices.get(item.listing_id);
-                await models.order_items.create({
-                    order_id: order.id,
-                    listing_id: item.listing_id,
-                    quantity: qty,
-                    price: price
-                }, { transaction });
-            }
-
-            for (const item of items) {
-                const qty = parseInt(item.quantity) || 1;
-                const lst = listingsMap.get(item.listing_id);
-                const newStock = lst.stock - qty;
-                const updateFields = {
-                    stock: newStock,
-                    updated_at: new Date()
-                };
-                if (lst.type === 'auction') {
-                    updateFields.end_date = new Date();
-                    updateFields.status = 'ended';
-                }
-                await lst.update(updateFields, { transaction });
-
-                // Sinkronisasi Keranjang (Cart)
-                if (newStock <= 0) {
-                    await models.carts.destroy({
-                        where: { listing_id: item.listing_id },
-                        transaction
-                    });
-                } else {
-                    await models.carts.destroy({
-                        where: {
-                            user_id: user_id,
-                            listing_id: item.listing_id
-                        },
-                        transaction
-                    });
-                }
-            }
-
-            await transaction.commit();
-
-            // Emit Notifications & Sockets
-            const io = req.app.get('socketio');
-            if (io) {
-                for (const item of items) {
-                    const lst = listingsMap.get(item.listing_id);
-                    const qty = parseInt(item.quantity) || 1;
-                    const newStock = lst.stock - qty;
-                    console.log(`[Socket] Broadcasting listing_stock_updated for listing ${lst.id}: stock=${newStock}`);
-                    io.emit('listing_stock_updated', {
-                        listing_id: lst.id,
-                        stock: newStock
-                    });
-
-                    if (is_bin === true && lst.type === 'auction') {
-                        const buyer = await models.users.findByPk(user_id);
-                        const buyerName = buyer?.name || buyer?.username || 'Seseorang';
-                        io.to(`auction_${lst.id}`).emit('auction_ended', {
-                            listing_id: lst.id,
-                            ended_at: new Date().toISOString(),
-                            reason: 'bin_purchase',
-                            buyer_name: buyerName,
-                            winner_id: user_id,
-                            order_uuid: order.id,
-                            order_id: order.order_id
-                        });
-                    }
-                }
-
-                io.to('admin_room').emit('order_updated_admin', { order_id: orderId, status: 'pending_shipping_info' });
-
-                const shop = await models.shops.findByPk(shopId);
-                if (shop) {
-                    const buyer = await models.users.findByPk(user_id);
-                    const buyerName = buyer?.name || buyer?.username || 'Seseorang';
-
-                    let sellerMessage = `${buyerName} memesan "${firstListing.name}".`;
-                    let buyerMessage = `Pesanan "${firstListing.name}" berhasil dibuat. Silakan tunggu informasi pengiriman.`;
-
-                    if (items.length > 1) {
-                        sellerMessage = `${buyerName} memesan "${firstListing.name}" dan ${items.length - 1} produk lainnya.`;
-                        buyerMessage = `Pesanan "${firstListing.name}" dan ${items.length - 1} produk lainnya berhasil dibuat. Silakan tunggu informasi pengiriman.`;
-                    }
-
-                    console.log(`Emitting new_notification to user_${shop.user_id} for new order ${orderId}`);
-
-                    io.to(`user_${shop.user_id}`).emit('new_notification', {
-                        type: 'order_seller',
-                        title: 'Pesanan Baru Diterima',
-                        message: sellerMessage,
-                        link: '/user/toko/dashboard',
-                        time: new Date()
-                    });
-
-                    io.to(`user_${user_id}`).emit('new_notification', {
-                        type: 'order_buyer',
-                        title: 'Pesanan Berhasil Dibuat',
-                        message: buyerMessage,
-                        link: `/user/pesanan`,
-                        time: new Date()
-                    });
-                }
-            }
-
-            return res.status(201).json({
-                message: 'Pesanan berhasil dibuat',
-                data: order
+            productPrice = Number(lst.bin_price);
+          } else {
+            const highestBid = await models.bids.findOne({
+              where: { listing_id: lst.id },
+              order: [["bid_amount", "DESC"]],
+              transaction,
             });
-        } catch (err) {
+
+            if (!highestBid) {
+              await transaction.rollback();
+              return res.status(400).json({ message: `Produk lelang "${lst.name}" tidak memiliki penawaran, tidak dapat memproses transaksi.` });
+            }
+
+            if (highestBid.user_id !== user_id) {
+              await transaction.rollback();
+              return res.status(403).json({ message: `Hanya pemenang lelang (penawar tertinggi) yang dapat memproses transaksi untuk "${lst.name}".` });
+            }
+
+            productPrice = Number(highestBid.bid_amount);
+          }
+        } else {
+          productPrice = Number(lst.price) || 0;
+        }
+
+        listingsMap.set(item.listing_id, lst);
+        resolvedPrices.set(item.listing_id, productPrice);
+      }
+
+      // Cek apakah produk sudah ada di keranjang (jika bukan checkout dari keranjang)
+      if (!from_cart) {
+        for (const item of items) {
+          const existingCartItem = await models.carts.findOne({
+            where: { user_id, listing_id: item.listing_id },
+            transaction,
+          });
+          if (existingCartItem) {
             await transaction.rollback();
-            console.error('createOrder error:', err);
-            return res.status(500).json({ message: err.message, detail: err });
+            return res.status(400).json({ message: "Produk ini sudah ada di dalam keranjang Anda. Silakan checkout melalui keranjang untuk mencegah pembelian ganda." });
+          }
         }
-    },
+      }
 
-    // PUT /orders/:order_id/shipping-info - Buyer isi data pengiriman
-    updateShippingInfo: async (req, res) => {
-        try {
-            const { order_id } = req.params;
-            const { receiver_name, phone_number, shipping_address, bank_name, bank_account, bank_holder } = req.body;
+      let totalSubtotal = 0;
+      for (const item of items) {
+        const requestedQty = parseInt(item.quantity) || 1;
+        const price = resolvedPrices.get(item.listing_id);
+        totalSubtotal += price * requestedQty;
+      }
+      const currentAdminFee = getAdminFee();
+      const totalPrice = totalSubtotal + currentAdminFee;
 
-            const order = await models.orders.findByPk(order_id);
-            if (!order) return res.status(404).json({ message: 'Pesanan tidak ditemukan' });
+      const firstItem = items[0];
+      const firstListing = listingsMap.get(firstItem.listing_id);
+      const firstPrice = resolvedPrices.get(firstItem.listing_id);
+      const firstQty = parseInt(firstItem.quantity) || 1;
 
-            await order.update({
-                receiver_name,
-                phone_number,
-                shipping_address,
-                bank_name: bank_name || null,
-                bank_account: bank_account || null,
-                bank_holder: bank_holder || null,
-                status: 'waiting_shipping_cost',
-                address_filled_at: new Date(),   // ← otomatis
-                updated_at: new Date()
-            });
+      const orderId = generateOrderId();
 
-            emitOrderUpdated(req, order);
+      const order = await models.orders.create(
+        {
+          order_id: orderId,
+          user_id,
+          listing_id: firstItem.listing_id,
+          shop_id: shopId,
+          quantity: firstQty,
+          price: firstPrice,
+          admin_fee: currentAdminFee,
+          total_price: totalPrice,
+          status: "pending_shipping_info",
+        },
+        { transaction },
+      );
 
-            // Emit to Seller
-            const io = req.app.get('socketio');
-            if (io) {
-                io.to('admin_room').emit('order_updated_admin', { order_id: order.order_id, status: order.status });
-                const shop = await models.shops.findByPk(order.shop_id);
-                if (shop) {
-                    io.to(`user_${shop.user_id}`).emit('new_notification', {
-                        type: 'order_seller',
-                        title: 'Alamat Pengiriman Diisi',
-                        message: `Pembeli telah mengisi alamat untuk pesanan ${order.order_id}. Silakan input ongkir.`,
-                        link: '/user/toko/dashboard',
-                        time: new Date()
-                    });
+      for (const item of items) {
+        const qty = parseInt(item.quantity) || 1;
+        const price = resolvedPrices.get(item.listing_id);
+        await models.order_items.create(
+          {
+            order_id: order.id,
+            listing_id: item.listing_id,
+            quantity: qty,
+            price: price,
+          },
+          { transaction },
+        );
+      }
 
-                    // Emit to Buyer to refresh their Navbar
-                    io.to(`user_${order.user_id}`).emit('new_notification', {
-                        type: 'order_buyer',
-                        title: 'Alamat Pengiriman Diperbarui',
-                        message: `Anda telah mengisi alamat pengiriman untuk pesanan ${order.order_id}.`,
-                        link: `/user/pesanan/transaksi/${order.order_id}`,
-                        time: new Date()
-                    });
-                }
-            }
-
-            return res.status(200).json({
-                message: 'Info pengiriman berhasil disimpan',
-                data: order
-            });
-        } catch (err) {
-            console.error('updateShippingInfo error:', err);
-            return res.status(500).json({ message: err.message, detail: err });
+      for (const item of items) {
+        const qty = parseInt(item.quantity) || 1;
+        const lst = listingsMap.get(item.listing_id);
+        const newStock = lst.stock - qty;
+        const updateFields = {
+          stock: newStock,
+          updated_at: new Date(),
+        };
+        if (lst.type === "auction") {
+          updateFields.end_date = new Date();
+          updateFields.status = "ended";
         }
-    },
+        await lst.update(updateFields, { transaction });
 
-    // PUT /orders/:order_id/shipping-cost - Seller masukkan ongkir & packing
-    updateShippingCost: async (req, res) => {
-        try {
-            const { order_id } = req.params;
-            const { shipping_cost, packing_cost, bank_name, bank_account, bank_holder } = req.body;
-
-            const order = await models.orders.findByPk(order_id);
-            if (!order) return res.status(404).json({ message: 'Pesanan tidak ditemukan' });
-
-            const shippingCost = parseInt(shipping_cost) || 0;
-            const packingCost = parseInt(packing_cost) || 0;
-            const adminFee = ADMIN_FEE;
-
-            // Load all items under the order to sum up prices for multi-product orders
-            const items = await models.order_items.findAll({
-                where: { order_id: order.id }
-            });
-
-            let productSubtotal = 0;
-            if (items && items.length > 0) {
-                for (const item of items) {
-                    productSubtotal += (Number(item.price) * (item.quantity || 1));
-                }
-            } else {
-                productSubtotal = Number(order.price) * Number(order.quantity);
-            }
-
-            const newTotal = productSubtotal + shippingCost + packingCost + adminFee;
-
-            await order.update({
-                shipping_cost: shippingCost,
-                packing_cost: packingCost,
-                admin_fee: adminFee,
-                total_price: newTotal,
-                bank_name: bank_name || order.bank_name,
-                bank_account: bank_account || order.bank_account,
-                bank_holder: bank_holder || order.bank_holder,
-                status: 'waiting_payment',
-                shipping_cost_set_at: new Date(),   // ← otomatis
-                updated_at: new Date()
-            });
-
-            emitOrderUpdated(req, order);
-
-            // Emit to Buyer
-            const io = req.app.get('socketio');
-            if (io) {
-                io.to('admin_room').emit('order_updated_admin', { order_id: order.order_id, status: order.status });
-                io.to(`user_${order.user_id}`).emit('new_notification', {
-                    type: 'order_buyer',
-                    title: 'Biaya Pengiriman Tersedia',
-                    message: `Biaya pengiriman untuk pesanan ${order.order_id} telah ditentukan. Silakan lakukan pembayaran.`,
-                    link: `/user/pesanan`,
-                    time: new Date()
-                });
-
-                // Emit to Seller
-                const shop = await models.shops.findByPk(order.shop_id);
-                if (shop) {
-                    io.to(`user_${shop.user_id}`).emit('new_notification', {
-                        type: 'order_seller',
-                        title: 'Biaya Pengiriman Diupdate',
-                        message: `Anda telah memperbarui biaya pengiriman untuk pesanan ${order.order_id}.`,
-                        link: '/user/toko/dashboard',
-                        time: new Date()
-                    });
-                }
-            }
-
-            return res.status(200).json({
-                message: 'Biaya pengiriman berhasil diperbarui',
-                data: order
-            });
-        } catch (err) {
-            console.error('updateShippingCost error:', err);
-            return res.status(500).json({ message: err.message, detail: err });
+        // Sinkronisasi Keranjang (Cart)
+        if (newStock <= 0) {
+          await models.carts.destroy({
+            where: { listing_id: item.listing_id },
+            transaction,
+          });
+        } else {
+          await models.carts.destroy({
+            where: {
+              user_id: user_id,
+              listing_id: item.listing_id,
+            },
+            transaction,
+          });
         }
-    },
+      }
 
-    // PUT /orders/:order_id/confirm-payment - Buyer upload bukti bayar
-    confirmPayment: async (req, res) => {
-        try {
-            const { order_id } = req.params;
-            const { payment_proof } = req.body;
+      await transaction.commit();
 
-            const order = await models.orders.findByPk(order_id);
-            if (!order) return res.status(404).json({ message: 'Pesanan tidak ditemukan' });
+      // Emit Notifications & Sockets
+      const io = req.app.get("socketio");
+      if (io) {
+        for (const item of items) {
+          const lst = listingsMap.get(item.listing_id);
+          const qty = parseInt(item.quantity) || 1;
+          const newStock = lst.stock - qty;
+          console.log(`[Socket] Broadcasting listing_stock_updated for listing ${lst.id}: stock=${newStock}`);
+          io.emit("listing_stock_updated", {
+            listing_id: lst.id,
+            stock: newStock,
+          });
 
-            await order.update({
-                payment_proof: payment_proof || null,
-                status: 'processing',
-                payment_uploaded_at: new Date(),   // ← otomatis
-                payment_rejection_reason: null,
-                updated_at: new Date()
+          if (is_bin === true && lst.type === "auction") {
+            const buyer = await models.users.findByPk(user_id);
+            const buyerName = buyer?.name || buyer?.username || "Seseorang";
+            io.to(`auction_${lst.id}`).emit("auction_ended", {
+              listing_id: lst.id,
+              ended_at: new Date().toISOString(),
+              reason: "bin_purchase",
+              buyer_name: buyerName,
+              winner_id: user_id,
+              order_uuid: order.id,
+              order_id: order.order_id,
             });
-
-            emitOrderUpdated(req, order);
-
-            // Emit to Seller
-            const io = req.app.get('socketio');
-            if (io) {
-                io.to('admin_room').emit('order_updated_admin', { order_id: order.order_id, status: order.status });
-                const shop = await models.shops.findByPk(order.shop_id);
-                if (shop) {
-                    io.to(`user_${shop.user_id}`).emit('new_notification', {
-                        type: 'order_seller',
-                        title: 'Pembayaran Diterima',
-                        message: `Pembeli telah mengunggah bukti pembayaran untuk pesanan ${order.order_id}.`,
-                        link: '/user/toko/dashboard',
-                        time: new Date()
-                    });
-
-                    // Emit to Buyer to refresh their Navbar
-                    io.to(`user_${order.user_id}`).emit('new_notification', {
-                        type: 'order_buyer',
-                        title: 'Pembayaran Terkirim',
-                        message: `Bukti pembayaran untuk pesanan ${order.order_id} telah terkirim.`,
-                        link: `/user/pesanan/transaksi/${order.order_id}`,
-                        time: new Date()
-                    });
-                }
-            }
-
-            return res.status(200).json({
-                message: 'Bukti pembayaran berhasil dikirim',
-                data: order
-            });
-        } catch (err) {
-            console.error('confirmPayment error:', err);
-            return res.status(500).json({ message: err.message, detail: err });
+          }
         }
-    },
 
-    // PUT /orders/:order_id/admin-confirm-payment - Admin verifikasi pembayaran
-    adminConfirmPayment: async (req, res) => {
-        try {
-            const { order_id } = req.params;
+        io.to("admin_room").emit("order_updated_admin", { id: order.id, order_id: orderId, status: "pending_shipping_info" });
 
-            const order = await models.orders.findByPk(order_id);
-            if (!order) return res.status(404).json({ message: 'Pesanan tidak ditemukan' });
+        const shop = await models.shops.findByPk(shopId);
+        if (shop) {
+          const buyer = await models.users.findByPk(user_id);
+          const buyerName = buyer?.name || buyer?.username || "Seseorang";
 
-            await order.update({
-                status: 'payment_verified',
-                payment_verified_at: new Date(),   // ← otomatis
-                updated_at: new Date()
-            });
+          let sellerMessage = `${buyerName} memesan "${firstListing.name}".`;
+          let buyerMessage = `Pesanan "${firstListing.name}" berhasil dibuat. Silakan tunggu informasi pengiriman.`;
 
-            emitOrderUpdated(req, order);
+          if (items.length > 1) {
+            sellerMessage = `${buyerName} memesan "${firstListing.name}" dan ${items.length - 1} produk lainnya.`;
+            buyerMessage = `Pesanan "${firstListing.name}" dan ${items.length - 1} produk lainnya berhasil dibuat. Silakan tunggu informasi pengiriman.`;
+          }
 
-            // Emit to both Buyer and Seller
-            const io = req.app.get('socketio');
-            if (io) {
-                io.to('admin_room').emit('order_updated_admin', { order_id: order.order_id, status: order.status });
-                // Emit to Buyer
-                io.to(`user_${order.user_id}`).emit('new_notification', {
-                    type: 'order_buyer',
-                    title: 'Pembayaran Diverifikasi',
-                    message: `Pembayaran untuk pesanan ${order.order_id} telah diverifikasi oleh admin.`,
-                    link: `/user/pesanan/transaksi/${order.order_id}`,
-                    time: new Date()
-                });
+          console.log(`Emitting new_notification to user_${shop.user_id} for new order ${orderId}`);
 
-                // Emit to Seller
-                const shop = await models.shops.findByPk(order.shop_id);
-                if (shop) {
-                    io.to(`user_${shop.user_id}`).emit('new_notification', {
-                        type: 'order_seller',
-                        title: 'Pembayaran Terverifikasi',
-                        message: `Pembayaran untuk pesanan ${order.order_id} telah diverifikasi. Silakan proses pengiriman.`,
-                        link: '/user/toko/dashboard',
-                        time: new Date()
-                    });
-                }
-            }
+          io.to(`user_${shop.user_id}`).emit("new_notification", {
+            type: "order_seller",
+            title: "Pesanan Baru Diterima",
+            message: sellerMessage,
+            link: "/user/toko/dashboard",
+            time: new Date(),
+          });
 
-            return res.status(200).json({
-                message: 'Pembayaran berhasil diverifikasi oleh admin',
-                data: order
-            });
-        } catch (err) {
-            console.error('adminConfirmPayment error:', err);
-            return res.status(500).json({ message: err.message, detail: err });
+          io.to(`user_${user_id}`).emit("new_notification", {
+            type: "order_buyer",
+            title: "Pesanan Berhasil Dibuat",
+            message: buyerMessage,
+            link: `/user/pesanan`,
+            time: new Date(),
+          });
         }
-    },
+      }
 
-    // PUT /orders/:order_id/ship-order - Seller input nomor resi & bukti kirim
-    shipOrder: async (req, res) => {
-        try {
-            const { order_id } = req.params;
-            const { tracking_number, shipping_proof } = req.body;
+      return res.status(201).json({
+        message: "Pesanan berhasil dibuat",
+        data: order,
+      });
+    } catch (err) {
+      await transaction.rollback();
+      console.error("createOrder error:", err);
+      return res.status(500).json({ message: err.message, detail: err });
+    }
+  },
 
-            console.log(`[shipOrder] Called by user_data:`, req.user_data);
-            console.log(`[shipOrder] order_id: ${order_id}, tracking: ${tracking_number}`);
+  // PUT /orders/:order_id/shipping-info - Buyer isi data pengiriman
+  updateShippingInfo: async (req, res) => {
+    try {
+      const { order_id } = req.params;
+      const { receiver_name, phone_number, shipping_address, bank_name, bank_account, bank_holder } = req.body;
 
-            if (!tracking_number) {
-                return res.status(400).json({ message: 'Nomor resi wajib diisi' });
-            }
+      const order = await models.orders.findByPk(order_id);
+      if (!order) return res.status(404).json({ message: "Pesanan tidak ditemukan" });
 
-            const order = await models.orders.findByPk(order_id, {
-                include: [
-                    {
-                        model: models.shops,
-                        as: 'shop',
-                        attributes: ['id', 'user_id']
-                    }
-                ]
-            });
-            if (!order) return res.status(404).json({ message: 'Pesanan tidak ditemukan' });
+      await order.update({
+        receiver_name,
+        phone_number,
+        shipping_address,
+        bank_name: bank_name || null,
+        bank_account: bank_account || null,
+        bank_holder: bank_holder || null,
+        status: "waiting_shipping_cost",
+        address_filled_at: new Date(), // ← otomatis
+        updated_at: new Date(),
+      });
 
-            // Validasi status: hanya bisa ship jika payment_verified atau waiting_shipment
-            const allowedStatuses = ['payment_verified', 'waiting_shipment'];
-            if (!allowedStatuses.includes(order.status)) {
-                return res.status(400).json({
-                    message: `Status pesanan tidak valid untuk pengiriman. Status saat ini: ${order.status}`
-                });
-            }
+      emitOrderUpdated(req, order);
 
-            // Validasi kepemilikan: hanya seller toko ini yang bisa kirim
-            const callerUserId = req.user_data?.id || req.user_data?.user_id;
-            if (order.shop && order.shop.user_id !== callerUserId) {
-                console.warn(`[shipOrder] Unauthorized: caller ${callerUserId} is not owner ${order.shop.user_id}`);
-                return res.status(403).json({ message: 'Anda tidak memiliki akses untuk pesanan ini' });
-            }
+      // Emit to Seller
+      const io = req.app.get("socketio");
+      if (io) {
+        io.to("admin_room").emit("order_updated_admin", { id: order.id, order_id: order.order_id, status: order.status });
+        const shop = await models.shops.findByPk(order.shop_id);
+        if (shop) {
+          io.to(`user_${shop.user_id}`).emit("new_notification", {
+            type: "order_seller",
+            title: "Alamat Pengiriman Diisi",
+            message: `Pembeli telah mengisi alamat untuk pesanan ${order.order_id}. Silakan input ongkir.`,
+            link: "/user/toko/dashboard",
+            time: new Date(),
+          });
 
-            await order.update({
-                tracking_number: tracking_number || null,
-                shipping_proof: shipping_proof || null,
-                status: 'shipped',
-                shipped_at: new Date(),
-                updated_at: new Date()
-            });
-
-            emitOrderUpdated(req, order);
-
-            // Emit to Buyer & Admin
-            const io = req.app.get('socketio');
-            if (io) {
-                io.to('admin_room').emit('order_updated_admin', { order_id: order.order_id, status: 'shipped' });
-                io.to(`user_${order.user_id}`).emit('new_notification', {
-                    type: 'order_buyer',
-                    title: 'Pesanan Dikirim',
-                    message: `Pesanan ${order.order_id} sedang dalam perjalanan. Resi: ${tracking_number || '-'}`,
-                    link: `/user/pesanan`,
-                    time: new Date()
-                });
-
-                // Emit to Seller
-                if (order.shop) {
-                    io.to(`user_${order.shop.user_id}`).emit('new_notification', {
-                        type: 'order_seller',
-                        title: 'Pesanan Telah Dikirim',
-                        message: `Anda telah menandai pesanan ${order.order_id} sebagai dikirim.`,
-                        link: '/user/toko/dashboard',
-                        time: new Date()
-                    });
-                }
-            }
-
-            return res.status(200).json({
-                message: 'Pesanan berhasil dikirim',
-                data: order
-            });
-        } catch (err) {
-            console.error('shipOrder error:', err);
-            return res.status(500).json({ message: err.message, detail: err });
+          // Emit to Buyer to refresh their Navbar
+          io.to(`user_${order.user_id}`).emit("new_notification", {
+            type: "order_buyer",
+            title: "Alamat Pengiriman Diperbarui",
+            message: `Anda telah mengisi alamat pengiriman untuk pesanan ${order.order_id}.`,
+            link: `/user/pesanan/transaksi/${order.order_id}`,
+            time: new Date(),
+          });
         }
-    },
+      }
 
-    // PUT /orders/:order_id/complete - Buyer konfirmasi pesanan diterima (selesai)
-    completeOrder: async (req, res) => {
-        try {
-            const { order_id } = req.params;
-            const { rating, review } = req.body;
+      return res.status(200).json({
+        message: "Info pengiriman berhasil disimpan",
+        data: order,
+      });
+    } catch (err) {
+      console.error("updateShippingInfo error:", err);
+      return res.status(500).json({ message: err.message, detail: err });
+    }
+  },
 
-            const order = await models.orders.findByPk(order_id);
-            if (!order) return res.status(404).json({ message: 'Pesanan tidak ditemukan' });
+  // PUT /orders/:order_id/shipping-cost - Seller masukkan ongkir & packing
+  updateShippingCost: async (req, res) => {
+    try {
+      const { order_id } = req.params;
+      const { shipping_cost, packing_cost, bank_name, bank_account, bank_holder } = req.body;
 
-            // Update listing status to 'sold' jika benar-benar sudah habis
-            // Ambil semua listing_id dari pesanan ini (dari order.listing_id dan order_items)
-            const listingIds = new Set();
-            if (order.listing_id) {
-                listingIds.add(order.listing_id);
-            }
-            const orderItems = await models.order_items.findAll({
-                where: { order_id: order.id }
-            });
-            if (orderItems && orderItems.length > 0) {
-                orderItems.forEach(item => {
-                    if (item.listing_id) {
-                        listingIds.add(item.listing_id);
-                    }
-                });
-            }
+      const order = await models.orders.findByPk(order_id);
+      if (!order) return res.status(404).json({ message: "Pesanan tidak ditemukan" });
 
-            const { Op } = require('sequelize');
-            for (const lid of listingIds) {
-                const listing = await models.listings.findByPk(lid);
-                if (listing) {
-                    // Hitung pesanan lain yang masih aktif untuk produk ini
-                    const otherActiveOrdersCount = await models.orders.count({
-                        where: {
-                            id: { [Op.ne]: order.id },
-                            status: { [Op.notIn]: ['completed', 'cancelled', 'complained', 'disbursement_requested', 'disbursed', 'cancelled_dismissed'] },
-                            [Op.or]: [
-                                { listing_id: lid },
-                                Sequelize.literal(`EXISTS (
+      const shippingCost = parseInt(shipping_cost) || 0;
+      const packingCost = parseInt(packing_cost) || 0;
+      const adminFee = getAdminFee();
+
+      // Load all items under the order to sum up prices for multi-product orders
+      const items = await models.order_items.findAll({
+        where: { order_id: order.id },
+      });
+
+      let productSubtotal = 0;
+      if (items && items.length > 0) {
+        for (const item of items) {
+          productSubtotal += Number(item.price) * (item.quantity || 1);
+        }
+      } else {
+        productSubtotal = Number(order.price) * Number(order.quantity);
+      }
+
+      const newTotal = productSubtotal + shippingCost + packingCost + adminFee;
+
+      await order.update({
+        shipping_cost: shippingCost,
+        packing_cost: packingCost,
+        admin_fee: adminFee,
+        total_price: newTotal,
+        bank_name: bank_name || order.bank_name,
+        bank_account: bank_account || order.bank_account,
+        bank_holder: bank_holder || order.bank_holder,
+        status: "waiting_payment",
+        shipping_cost_set_at: new Date(), // ← otomatis
+        updated_at: new Date(),
+      });
+
+      emitOrderUpdated(req, order);
+
+      // Emit to Buyer
+      const io = req.app.get("socketio");
+      if (io) {
+        io.to("admin_room").emit("order_updated_admin", { id: order.id, order_id: order.order_id, status: order.status });
+        io.to(`user_${order.user_id}`).emit("new_notification", {
+          type: "order_buyer",
+          title: "Biaya Pengiriman Tersedia",
+          message: `Biaya pengiriman untuk pesanan ${order.order_id} telah ditentukan. Silakan lakukan pembayaran.`,
+          link: `/user/pesanan`,
+          time: new Date(),
+        });
+
+        // Emit to Seller
+        const shop = await models.shops.findByPk(order.shop_id);
+        if (shop) {
+          io.to(`user_${shop.user_id}`).emit("new_notification", {
+            type: "order_seller",
+            title: "Biaya Pengiriman Diupdate",
+            message: `Anda telah memperbarui biaya pengiriman untuk pesanan ${order.order_id}.`,
+            link: "/user/toko/dashboard",
+            time: new Date(),
+          });
+        }
+      }
+
+      return res.status(200).json({
+        message: "Biaya pengiriman berhasil diperbarui",
+        data: order,
+      });
+    } catch (err) {
+      console.error("updateShippingCost error:", err);
+      return res.status(500).json({ message: err.message, detail: err });
+    }
+  },
+
+  // PUT /orders/:order_id/confirm-payment - Buyer upload bukti bayar
+  confirmPayment: async (req, res) => {
+    try {
+      const { order_id } = req.params;
+      const { payment_proof } = req.body;
+
+      const order = await models.orders.findByPk(order_id);
+      if (!order) return res.status(404).json({ message: "Pesanan tidak ditemukan" });
+
+      await order.update({
+        payment_proof: payment_proof || null,
+        status: "processing",
+        payment_uploaded_at: new Date(), // ← otomatis
+        payment_rejection_reason: null,
+        updated_at: new Date(),
+      });
+
+      emitOrderUpdated(req, order);
+
+      // Emit to Seller
+      const io = req.app.get("socketio");
+      if (io) {
+        io.to("admin_room").emit("order_updated_admin", { id: order.id, order_id: order.order_id, status: order.status });
+
+        // Admin notification: pembayaran masuk untuk diverifikasi
+        io.to("admin_room").emit("admin_notification", {
+          type: "payment_received",
+          title: "Bukti Pembayaran Masuk",
+          message: `Pembeli mengunggah bukti pembayaran untuk pesanan #${order.order_id}. Segera verifikasi.`,
+          order_id: order.order_id,
+          id: order.id,
+          link: `/admin/transaksi-user/detail/${order.id}`,
+          time: new Date(),
+        });
+
+        const shop = await models.shops.findByPk(order.shop_id);
+        if (shop) {
+          io.to(`user_${shop.user_id}`).emit("new_notification", {
+            type: "order_seller",
+            title: "Pembayaran Diterima",
+            message: `Pembeli telah mengunggah bukti pembayaran untuk pesanan ${order.order_id}.`,
+            link: "/user/toko/dashboard",
+            time: new Date(),
+          });
+
+          // Emit to Buyer to refresh their Navbar
+          io.to(`user_${order.user_id}`).emit("new_notification", {
+            type: "order_buyer",
+            title: "Pembayaran Terkirim",
+            message: `Bukti pembayaran untuk pesanan ${order.order_id} telah terkirim.`,
+            link: `/user/pesanan/transaksi/${order.order_id}`,
+            time: new Date(),
+          });
+        }
+      }
+
+      return res.status(200).json({
+        message: "Bukti pembayaran berhasil dikirim",
+        data: order,
+      });
+    } catch (err) {
+      console.error("confirmPayment error:", err);
+      return res.status(500).json({ message: err.message, detail: err });
+    }
+  },
+
+  // PUT /orders/:order_id/admin-confirm-payment - Admin verifikasi pembayaran
+  adminConfirmPayment: async (req, res) => {
+    try {
+      const { order_id } = req.params;
+
+      const order = await models.orders.findByPk(order_id);
+      if (!order) return res.status(404).json({ message: "Pesanan tidak ditemukan" });
+
+      await order.update({
+        status: "payment_verified",
+        payment_verified_at: new Date(), // ← otomatis
+        updated_at: new Date(),
+      });
+
+      emitOrderUpdated(req, order);
+
+      // Emit to both Buyer and Seller
+      const io = req.app.get("socketio");
+      if (io) {
+        io.to("admin_room").emit("order_updated_admin", { id: order.id, order_id: order.order_id, status: order.status });
+        // Emit to Buyer
+        io.to(`user_${order.user_id}`).emit("new_notification", {
+          type: "order_buyer",
+          title: "Pembayaran Diverifikasi",
+          message: `Pembayaran untuk pesanan ${order.order_id} telah diverifikasi oleh admin.`,
+          link: `/user/pesanan/transaksi/${order.order_id}`,
+          time: new Date(),
+        });
+
+        // Emit to Seller
+        const shop = await models.shops.findByPk(order.shop_id);
+        if (shop) {
+          io.to(`user_${shop.user_id}`).emit("new_notification", {
+            type: "order_seller",
+            title: "Pembayaran Terverifikasi",
+            message: `Pembayaran untuk pesanan ${order.order_id} telah diverifikasi. Silakan proses pengiriman.`,
+            link: "/user/toko/dashboard",
+            time: new Date(),
+          });
+        }
+      }
+
+      return res.status(200).json({
+        message: "Pembayaran berhasil diverifikasi oleh admin",
+        data: order,
+      });
+    } catch (err) {
+      console.error("adminConfirmPayment error:", err);
+      return res.status(500).json({ message: err.message, detail: err });
+    }
+  },
+
+  // PUT /orders/:order_id/ship-order - Seller input nomor resi & bukti kirim
+  shipOrder: async (req, res) => {
+    try {
+      const { order_id } = req.params;
+      const { tracking_number, shipping_proof } = req.body;
+
+      console.log(`[shipOrder] Called by user_data:`, req.user_data);
+      console.log(`[shipOrder] order_id: ${order_id}, tracking: ${tracking_number}`);
+
+      if (!tracking_number) {
+        return res.status(400).json({ message: "Nomor resi wajib diisi" });
+      }
+
+      const order = await models.orders.findByPk(order_id, {
+        include: [
+          {
+            model: models.shops,
+            as: "shop",
+            attributes: ["id", "user_id"],
+          },
+        ],
+      });
+      if (!order) return res.status(404).json({ message: "Pesanan tidak ditemukan" });
+
+      // Validasi status: hanya bisa ship jika payment_verified atau waiting_shipment
+      const allowedStatuses = ["payment_verified", "waiting_shipment"];
+      if (!allowedStatuses.includes(order.status)) {
+        return res.status(400).json({
+          message: `Status pesanan tidak valid untuk pengiriman. Status saat ini: ${order.status}`,
+        });
+      }
+
+      // Validasi kepemilikan: hanya seller toko ini yang bisa kirim
+      const callerUserId = req.user_data?.id || req.user_data?.user_id;
+      if (order.shop && order.shop.user_id !== callerUserId) {
+        console.warn(`[shipOrder] Unauthorized: caller ${callerUserId} is not owner ${order.shop.user_id}`);
+        return res.status(403).json({ message: "Anda tidak memiliki akses untuk pesanan ini" });
+      }
+
+      await order.update({
+        tracking_number: tracking_number || null,
+        shipping_proof: shipping_proof || null,
+        status: "shipped",
+        shipped_at: new Date(),
+        updated_at: new Date(),
+      });
+
+      emitOrderUpdated(req, order);
+
+      // Emit to Buyer & Admin
+      const io = req.app.get("socketio");
+      if (io) {
+        io.to("admin_room").emit("order_updated_admin", { order_id: order.order_id, status: "shipped" });
+        io.to(`user_${order.user_id}`).emit("new_notification", {
+          type: "order_buyer",
+          title: "Pesanan Dikirim",
+          message: `Pesanan ${order.order_id} sedang dalam perjalanan. Resi: ${tracking_number || "-"}`,
+          link: `/user/pesanan`,
+          time: new Date(),
+        });
+
+        // Emit to Seller
+        if (order.shop) {
+          io.to(`user_${order.shop.user_id}`).emit("new_notification", {
+            type: "order_seller",
+            title: "Pesanan Telah Dikirim",
+            message: `Anda telah menandai pesanan ${order.order_id} sebagai dikirim.`,
+            link: "/user/toko/dashboard",
+            time: new Date(),
+          });
+        }
+      }
+
+      return res.status(200).json({
+        message: "Pesanan berhasil dikirim",
+        data: order,
+      });
+    } catch (err) {
+      console.error("shipOrder error:", err);
+      return res.status(500).json({ message: err.message, detail: err });
+    }
+  },
+
+  // PUT /orders/:order_id/complete - Buyer konfirmasi pesanan diterima (selesai)
+  completeOrder: async (req, res) => {
+    try {
+      const { order_id } = req.params;
+      const { rating, review } = req.body;
+
+      const order = await models.orders.findByPk(order_id);
+      if (!order) return res.status(404).json({ message: "Pesanan tidak ditemukan" });
+
+      // Update listing status to 'sold' jika benar-benar sudah habis
+      // Ambil semua listing_id dari pesanan ini (dari order.listing_id dan order_items)
+      const listingIds = new Set();
+      if (order.listing_id) {
+        listingIds.add(order.listing_id);
+      }
+      const orderItems = await models.order_items.findAll({
+        where: { order_id: order.id },
+      });
+      if (orderItems && orderItems.length > 0) {
+        orderItems.forEach((item) => {
+          if (item.listing_id) {
+            listingIds.add(item.listing_id);
+          }
+        });
+      }
+
+      const { Op } = require("sequelize");
+      for (const lid of listingIds) {
+        const listing = await models.listings.findByPk(lid);
+        if (listing) {
+          // Hitung pesanan lain yang masih aktif untuk produk ini
+          const otherActiveOrdersCount = await models.orders.count({
+            where: {
+              id: { [Op.ne]: order.id },
+              status: { [Op.notIn]: ["completed", "cancelled", "complained", "disbursement_requested", "disbursed", "cancelled_dismissed"] },
+              [Op.or]: [
+                { listing_id: lid },
+                Sequelize.literal(`EXISTS (
                                     SELECT 1 FROM order_items 
                                     WHERE order_items.order_id = "orders"."id" 
                                       AND order_items.listing_id = ${sequelize.escape(lid)}
-                                )`)
-                            ]
-                        }
-                    });
+                                )`),
+              ],
+            },
+          });
 
-                    // Hanya tandai 'sold' jika stok 0 DAN tidak ada pesanan lain yang sedang diproses
-                    if (listing.stock <= 0 && otherActiveOrdersCount === 0) {
-                        await listing.update({
-                            status: 'sold',
-                            sold_at: new Date(),
-                            updated_at: new Date()
-                        });
-
-                        // Hapus dari keranjang SEMUA pembeli (jika masih ada)
-                        await models.carts.destroy({
-                            where: { listing_id: lid }
-                        });
-                    }
-                }
-            }
-
-            await order.update({
-                status: 'completed',
-                rating: rating || null,
-                review: review || null,
-                completed_at: new Date(),
-                updated_at: new Date()
+          // Hanya tandai 'sold' jika stok 0 DAN tidak ada pesanan lain yang sedang diproses
+          if (listing.stock <= 0 && otherActiveOrdersCount === 0) {
+            await listing.update({
+              status: "sold",
+              sold_at: new Date(),
+              updated_at: new Date(),
             });
 
-            emitOrderUpdated(req, order);
-
-            // Fetch shop to get seller's user_id
-            const shop = await models.shops.findByPk(order.shop_id);
-            if (shop) {
-                try {
-                    const title = 'Transaksi Selesai';
-                    const message = `Pembeli telah mengkonfirmasi penerimaan barang untuk pesanan ${order.order_id}. Dana akan segera diproses ke saldo Anda.`;
-
-                    const newNotif = await models.notifications.create({
-                        user_id: shop.user_id,
-                        type: 'order_completed',
-                        title,
-                        message,
-                        link: '/user/toko/dashboard',
-                        created_at: new Date()
-                    });
-
-                    const io = req.app.get('socketio');
-                    if (io) {
-                        io.to('admin_room').emit('order_updated_admin', { order_id: order.order_id, status: order.status });
-                        io.to(`user_${shop.user_id}`).emit('new_notification', {
-                            id: newNotif.id,
-                            type: 'order_completed',
-                            title,
-                            message,
-                            time: newNotif.created_at
-                        });
-
-                        // Emit to buyer to trigger count update
-                        io.to(`user_${order.user_id}`).emit('new_notification', {
-                            type: 'order_buyer',
-                            title: 'Pesanan Selesai',
-                            message: `Anda telah mengkonfirmasi penyelesaian pesanan ${order.order_id}.`,
-                            link: `/user/pesanan/transaksi-selesai/${order.order_id}`,
-                            time: new Date()
-                        });
-                    }
-                } catch (notifErr) {
-                    console.error("Failed to create completion notification:", notifErr);
-                }
-            }
-
-            return res.status(200).json({
-                message: 'Pesanan selesai. Terima kasih!',
-                data: order
+            // Hapus dari keranjang SEMUA pembeli (jika masih ada)
+            await models.carts.destroy({
+              where: { listing_id: lid },
             });
-        } catch (err) {
-            console.error('completeOrder error:', err);
-            return res.status(500).json({ message: err.message, detail: err });
+          }
         }
-    },
+      }
 
-    // PUT /orders/:order_id/complain - Buyer ajukan komplain
-    complainOrder: async (req, res) => {
+      await order.update({
+        status: "completed",
+        rating: rating || null,
+        review: review || null,
+        completed_at: new Date(),
+        updated_at: new Date(),
+      });
+
+      emitOrderUpdated(req, order);
+
+      // Fetch shop to get seller's user_id
+      const shop = await models.shops.findByPk(order.shop_id);
+      if (shop) {
         try {
-            const { order_id } = req.params;
-            const { complaint_description, complaint_image, rating, review } = req.body;
+          const title = "Transaksi Selesai";
+          const message = `Pembeli telah mengkonfirmasi penerimaan barang untuk pesanan ${order.order_id}. Dana akan segera diproses ke saldo Anda.`;
 
-            const order = await models.orders.findByPk(order_id);
-            if (!order) return res.status(404).json({ message: 'Pesanan tidak ditemukan' });
+          const newNotif = await models.notifications.create({
+            user_id: shop.user_id,
+            type: "order_completed",
+            title,
+            message,
+            link: "/user/toko/dashboard",
+            created_at: new Date(),
+          });
 
-            await order.update({
-                status: 'complained',
-                complaint_description: complaint_description || null,
-                complaint_image: complaint_image || null,
-                rating: rating || null,
-                review: review || null,
-                cancelled_at: new Date(),   // ← otomatis (gunakan sebagai waktu eskalasi)
-                updated_at: new Date()
+          const io = req.app.get("socketio");
+          if (io) {
+            io.to("admin_room").emit("order_updated_admin", { id: order.id, order_id: order.order_id, status: order.status });
+            io.to(`user_${shop.user_id}`).emit("new_notification", {
+              id: newNotif.id,
+              type: "order_completed",
+              title,
+              message,
+              time: newNotif.created_at,
             });
 
-            emitOrderUpdated(req, order);
-
-            const shop = await models.shops.findByPk(order.shop_id);
-            const io = req.app.get('socketio');
-            if (io) {
-                io.to('admin_room').emit('order_updated_admin', { order_id: order.order_id, status: order.status });
-                // Emit to seller
-                if (shop) {
-                    io.to(`user_${shop.user_id}`).emit('new_notification', {
-                        type: 'order_seller',
-                        title: 'Pesanan Dikomplain',
-                        message: `Pembeli mengajukan komplain untuk pesanan ${order.order_id}.`,
-                        link: `/user/toko/dashboard`,
-                        time: new Date()
-                    });
-                }
-
-                // Emit to buyer
-                io.to(`user_${order.user_id}`).emit('new_notification', {
-                    type: 'order_buyer',
-                    title: 'Komplain Diajukan',
-                    message: `Komplain untuk pesanan ${order.order_id} berhasil diajukan.`,
-                    link: `/user/pesanan/transaksi-selesai/${order.order_id}`,
-                    time: new Date()
-                });
-            }
-
-            return res.status(200).json({
-                message: 'Komplain berhasil diajukan',
-                data: order
+            // Emit to buyer to trigger count update
+            io.to(`user_${order.user_id}`).emit("new_notification", {
+              type: "order_buyer",
+              title: "Pesanan Selesai",
+              message: `Anda telah mengkonfirmasi penyelesaian pesanan ${order.order_id}.`,
+              link: `/user/pesanan/transaksi-selesai/${order.order_id}`,
+              time: new Date(),
             });
-        } catch (err) {
-            console.error('complainOrder error:', err);
-            return res.status(500).json({ message: err.message, detail: err });
+          }
+        } catch (notifErr) {
+          console.error("Failed to create completion notification:", notifErr);
         }
-    },
-
-    // PUT /orders/:order_id/resolve-complaint - Buyer selesaikan komplain
-    resolveComplaint: async (req, res) => {
-        try {
-            const { order_id } = req.params;
-            const { rating, review } = req.body;
-
-            const order = await models.orders.findByPk(order_id);
-            if (!order) return res.status(404).json({ message: 'Pesanan tidak ditemukan' });
-
-            if (order.status !== 'complained') {
-                return res.status(400).json({ message: 'Pesanan ini tidak dalam status komplain' });
-            }
-
-            await order.update({
-                status: 'completed',
-                rating: rating || null,
-                review: review || null,
-                completed_at: new Date(),
-                updated_at: new Date()
-            });
-
-            emitOrderUpdated(req, order);
-
-            // Emit to Seller
-            const shop = await models.shops.findByPk(order.shop_id);
-            if (shop) {
-                try {
-                    const title = 'Komplain Diselesaikan';
-                    const message = `Pembeli telah menyelesaikan komplain untuk pesanan ${order.order_id}. Dana akan segera diproses ke saldo Anda.`;
-
-                    const newNotif = await models.notifications.create({
-                        user_id: shop.user_id,
-                        type: 'order_completed',
-                        title,
-                        message,
-                        link: '/user/toko/dashboard',
-                        created_at: new Date()
-                    });
-
-                    const io = req.app.get('socketio');
-                    if (io) {
-                        io.to('admin_room').emit('order_updated_admin', { order_id: order.order_id, status: order.status });
-                        io.to(`user_${shop.user_id}`).emit('new_notification', {
-                            id: newNotif.id,
-                            type: 'order_completed',
-                            title,
-                            message,
-                            time: newNotif.created_at
-                        });
-
-                        // Emit to buyer
-                        io.to(`user_${order.user_id}`).emit('new_notification', {
-                            type: 'order_buyer',
-                            title: 'Komplain Diselesaikan',
-                            message: `Anda telah menyelesaikan komplain untuk pesanan ${order.order_id}.`,
-                            link: `/user/pesanan/transaksi-selesai/${order.order_id}`,
-                            time: new Date()
-                        });
-                    }
-                } catch (notifErr) {
-                    console.error("Failed to create resolve complaint notification:", notifErr);
-                }
-            }
-
-            return res.status(200).json({
-                message: 'Komplain berhasil diselesaikan',
-                data: order
-            });
-        } catch (err) {
-            console.error('resolveComplaint error:', err);
-            return res.status(500).json({ message: err.message, detail: err });
-        }
-    },
-
-    // PUT /orders/:order_id/reset-payment - Reset bukti bayar (buyer kirim ulang)
-    resetPayment: async (req, res) => {
-        try {
-            const { order_id } = req.params;
-            const { payment_rejection_reason } = req.body;
-
-            const order = await models.orders.findByPk(order_id);
-            if (!order) return res.status(404).json({ message: 'Pesanan tidak ditemukan' });
-
-            await order.update({
-                payment_proof: null,
-                status: 'waiting_payment',
-                payment_rejection_reason: payment_rejection_reason || null,
-                updated_at: new Date()
-            });
-
-            emitOrderUpdated(req, order);
-
-            // Create notification database record for the buyer
-            try {
-                const io = req.app.get('socketio');
-                const title = 'Bukti Pembayaran Ditolak';
-                const message = `Bukti pembayaran untuk pesanan ${order.order_id} ditolak oleh admin. Alasan: ${payment_rejection_reason || 'Tidak ada alasan spesifik.'}`;
-                const newNotif = await models.notifications.create({
-                    user_id: order.user_id,
-                    type: 'order_buyer',
-                    title,
-                    message,
-                    link: `/user/pesanan/bayar/${order.id}`,
-                    created_at: new Date()
-                });
-
-                if (io) {
-                    io.to(`user_${order.user_id}`).emit('new_notification', {
-                        id: newNotif.id,
-                        type: 'order_buyer',
-                        title,
-                        message,
-                        link: newNotif.link,
-                        time: newNotif.created_at
-                    });
-                }
-
-                // Create database notification for seller & emit socket
-                const shop = await models.shops.findByPk(order.shop_id);
-                if (shop) {
-                    const sellerNotif = await models.notifications.create({
-                        user_id: shop.user_id,
-                        type: 'order_seller',
-                        title: 'Bukti Pembayaran Pembeli Ditolak Admin',
-                        message: `Bukti pembayaran dari pembeli untuk pesanan ${order.order_id} ditolak oleh admin. Alasan: ${payment_rejection_reason || 'Tidak ada alasan spesifik.'}`,
-                        link: `/user/toko/dashboard`,
-                        created_at: new Date()
-                    });
-                    if (io) {
-                        io.to(`user_${shop.user_id}`).emit('new_notification', {
-                            id: sellerNotif.id,
-                            type: 'order_seller',
-                            title: sellerNotif.title,
-                            message: sellerNotif.message,
-                            link: sellerNotif.link,
-                            time: sellerNotif.created_at
-                        });
-                    }
-                }
-            } catch (notifErr) {
-                console.error("Failed to create rejection notifications:", notifErr);
-            }
-
-            return res.status(200).json({
-                message: 'Pembayaran direset, silakan upload ulang bukti bayar',
-                data: order
-            });
-        } catch (err) {
-            console.error('resetPayment error:', err);
-            return res.status(500).json({ message: err.message, detail: err });
-        }
-    },
-
-    // PUT /orders/:order_id/cancel - Batalkan pesanan (Seller/Buyer)
-    cancelOrder: async (req, res) => {
-        try {
-            const { order_id } = req.params;
-            const { cancellation_reason } = req.body;
-
-            const order = await models.orders.findByPk(order_id, {
-                include: [
-                    {
-                        model: models.shops,
-                        as: 'shop',
-                        attributes: ['id', 'user_id']
-                    }
-                ]
-            });
-            if (!order) return res.status(404).json({ message: 'Pesanan tidak ditemukan' });
-
-            // Enforce authorization
-            const callerUserId = req.user_data?.id || req.user_data?.user_id;
-            const isBuyer = String(order.user_id) === String(callerUserId);
-            const isSeller = order.shop && String(order.shop.user_id) === String(callerUserId);
-
-            if (!isBuyer && !isSeller) {
-                return res.status(403).json({ message: 'Anda tidak memiliki akses untuk membatalkan pesanan ini' });
-            }
-
-            if (isSeller && (!cancellation_reason || !cancellation_reason.trim())) {
-                return res.status(400).json({ message: 'Alasan pembatalan wajib diisi oleh penjual' });
-            }
-
-            if (['completed', 'cancelled', 'shipped'].includes(order.status)) {
-                return res.status(400).json({ message: 'Pesanan tidak dapat dibatalkan pada tahap ini' });
-            }
-
-            // Kembalikan stok jika pesanan dibatalkan (untuk all items di order_items dan order.listing_id)
-            const orderItemsToRestore = [];
-            const orderItems = await models.order_items.findAll({
-                where: { order_id: order.id }
-            });
-            if (orderItems && orderItems.length > 0) {
-                for (const item of orderItems) {
-                    orderItemsToRestore.push({
-                        listing_id: item.listing_id,
-                        quantity: item.quantity || 1
-                    });
-                }
-            } else if (order.listing_id) {
-                orderItemsToRestore.push({
-                    listing_id: order.listing_id,
-                    quantity: order.quantity || 1
-                });
-            }
-
-            const restoredListings = [];
-            for (const item of orderItemsToRestore) {
-                const listing = await models.listings.findByPk(item.listing_id);
-                if (listing) {
-                    const newStatus = listing.status === 'sold' ? 'active' : listing.status;
-                    const newStock = listing.stock + item.quantity;
-                    await listing.update({
-                        stock: newStock,
-                        status: newStatus,
-                        updated_at: new Date()
-                    });
-                    restoredListings.push({
-                        listing_id: listing.id,
-                        stock: newStock
-                    });
-                }
-            }
-
-            // Determine default cancellation reason based on who cancelled
-            const defaultReason = isBuyer ? 'Dibatalkan oleh pembeli' : 'Dibatalkan oleh penjual/sistem';
-
-            // Update status pesanan
-            await order.update({
-                status: 'cancelled',
-                rejection_reason: cancellation_reason || defaultReason,
-                refund_status: null,
-                cancelled_at: new Date(),
-                updated_at: new Date()
-            });
-
-            emitOrderUpdated(req, order);
-
-            // Emit Notification to Buyer
-            const io = req.app.get('socketio');
-            if (io) {
-                for (const item of restoredListings) {
-                    console.log(`[Socket] Broadcasting listing_stock_updated (on cancel) for listing ${item.listing_id}: stock=${item.stock}`);
-                    io.emit('listing_stock_updated', {
-                        listing_id: item.listing_id,
-                        stock: item.stock
-                    });
-                }
-                io.to('admin_room').emit('order_updated_admin', { order_id: order.order_id, status: order.status });
-                io.to(`user_${order.user_id}`).emit('new_notification', {
-                    type: 'order_buyer',
-                    title: 'Pesanan Dibatalkan',
-                    message: `Pesanan ${order.order_id} telah dibatalkan. Alasan: ${cancellation_reason || '-'}`,
-                    link: `/user/pesanan`,
-                    time: new Date()
-                });
-
-                // Emit to seller
-                const shop = await models.shops.findByPk(order.shop_id);
-                if (shop) {
-                    io.to(`user_${shop.user_id}`).emit('new_notification', {
-                        type: 'order_seller',
-                        title: 'Pesanan Dibatalkan',
-                        message: `Pesanan ${order.order_id} telah dibatalkan.`,
-                        link: `/user/toko/dashboard`,
-                        time: new Date()
-                    });
-                }
-            }
-
-            return res.status(200).json({
-                message: 'Pesanan berhasil dibatalkan',
-                data: order
-            });
-        } catch (err) {
-            console.error('cancelOrder error:', err);
-            return res.status(500).json({ message: err.message, detail: err });
-        }
-    },
-
-    // PUT /orders/:order_id/admin-cancel - Batalkan pesanan oleh Admin
-    adminCancelOrder: async (req, res) => {
-        try {
-            const { order_id } = req.params;
-            const { cancellation_reason } = req.body;
-
-            const order = await models.orders.findByPk(order_id);
-            if (!order) return res.status(404).json({ message: 'Pesanan tidak ditemukan' });
-
-            if (order.status !== 'waiting_payment') {
-                return res.status(400).json({ message: 'Pesanan tidak dapat dibatalkan pada tahap ini' });
-            }
-
-            // Kembalikan stok jika pesanan dibatalkan (untuk all items di order_items dan order.listing_id)
-            const orderItemsToRestore = [];
-            const orderItems = await models.order_items.findAll({
-                where: { order_id: order.id }
-            });
-            if (orderItems && orderItems.length > 0) {
-                for (const item of orderItems) {
-                    orderItemsToRestore.push({
-                        listing_id: item.listing_id,
-                        quantity: item.quantity || 1
-                    });
-                }
-            } else if (order.listing_id) {
-                orderItemsToRestore.push({
-                    listing_id: order.listing_id,
-                    quantity: order.quantity || 1
-                });
-            }
-
-            const restoredListings = [];
-            for (const item of orderItemsToRestore) {
-                const listing = await models.listings.findByPk(item.listing_id);
-                if (listing) {
-                    const newStatus = listing.status === 'sold' ? 'active' : listing.status;
-                    const newStock = listing.stock + item.quantity;
-                    await listing.update({
-                        stock: newStock,
-                        status: newStatus,
-                        updated_at: new Date()
-                    });
-                    restoredListings.push({
-                        listing_id: listing.id,
-                        stock: newStock
-                    });
-                }
-            }
-
-            // Update status pesanan
-            await order.update({
-                status: 'cancelled',
-                rejection_reason: cancellation_reason || 'Dibatalkan oleh Admin (Pembayaran Ditolak)',
-                refund_status: null,
-                cancelled_at: new Date(),
-                updated_at: new Date()
-            });
-
-            emitOrderUpdated(req, order);
-
-            // Emit Notification to Buyer & Seller
-            const io = req.app.get('socketio');
-            if (io) {
-                for (const item of restoredListings) {
-                    console.log(`[Socket] Broadcasting listing_stock_updated (on admin cancel) for listing ${item.listing_id}: stock=${item.stock}`);
-                    io.emit('listing_stock_updated', {
-                        listing_id: item.listing_id,
-                        stock: item.stock
-                    });
-                }
-                io.to('admin_room').emit('order_updated_admin', { order_id: order.order_id, status: order.status });
-                
-                // Create database notification for buyer & emit socket
-                const buyerNotif = await models.notifications.create({
-                    user_id: order.user_id,
-                    type: 'order_buyer',
-                    title: 'Pesanan Dibatalkan oleh Admin',
-                    message: `Pesanan ${order.order_id} telah dibatalkan oleh Admin. Alasan: ${cancellation_reason || '-'}`,
-                    link: `/user/pesanan`,
-                    created_at: new Date()
-                });
-                io.to(`user_${order.user_id}`).emit('new_notification', {
-                    id: buyerNotif.id,
-                    type: 'order_buyer',
-                    title: buyerNotif.title,
-                    message: buyerNotif.message,
-                    link: buyerNotif.link,
-                    time: buyerNotif.created_at
-                });
-
-                // Create database notification for seller & emit socket
-                const shop = await models.shops.findByPk(order.shop_id);
-                if (shop) {
-                    const sellerNotif = await models.notifications.create({
-                        user_id: shop.user_id,
-                        type: 'order_seller',
-                        title: 'Pesanan Dibatalkan oleh Admin',
-                        message: `Pesanan ${order.order_id} telah dibatalkan oleh Admin. Alasan: ${cancellation_reason || '-'}`,
-                        link: `/user/toko/dashboard`,
-                        created_at: new Date()
-                    });
-                    io.to(`user_${shop.user_id}`).emit('new_notification', {
-                        id: sellerNotif.id,
-                        type: 'order_seller',
-                        title: sellerNotif.title,
-                        message: sellerNotif.message,
-                        link: sellerNotif.link,
-                        time: sellerNotif.created_at
-                    });
-                }
-            }
-
-            return res.status(200).json({
-                message: 'Pesanan berhasil dibatalkan oleh Admin',
-                data: order
-            });
-        } catch (err) {
-            console.error('adminCancelOrder error:', err);
-            return res.status(500).json({ message: err.message, detail: err });
-        }
-    },
-
-    // DELETE /orders/:order_id/history - Hapus riwayat pesanan yang sudah selesai
-    deleteOrderHistory: async (req, res) => {
-        try {
-            const { order_id } = req.params;
-
-            const order = await models.orders.findByPk(order_id);
-            if (!order) return res.status(404).json({ message: 'Pesanan tidak ditemukan' });
-
-            if (!['completed', 'cancelled', 'complained', 'cancelled_dismissed'].includes(order.status)) {
-                return res.status(400).json({ message: 'Hanya pesanan selesai/batal yang bisa dihapus dari riwayat' });
-            }
-
-            await order.destroy();
-
-            return res.status(200).json({
-                message: 'Riwayat pesanan berhasil dihapus'
-            });
-        } catch (err) {
-            console.error('deleteOrderHistory error:', err);
-            return res.status(500).json({ message: err.message, detail: err });
-        }
-    },
-
-    // PUT /orders/:order_id/request-disbursement - Seller mengajukan pencairan dana
-    requestDisbursement: async (req, res) => {
-        try {
-            const { order_id } = req.params;
-
-            const order = await models.orders.findByPk(order_id);
-            if (!order) return res.status(404).json({ message: 'Pesanan tidak ditemukan' });
-
-            if (order.status !== 'completed') {
-                return res.status(400).json({ message: 'Hanya pesanan berstatus selesai yang dapat diajukan pencairannya' });
-            }
-
-            await order.update({
-                status: 'disbursement_requested',
-                disbursement_requested_at: new Date(),
-                updated_at: new Date()
-            });
-
-            emitOrderUpdated(req, order);
-
-            // Emit Notification to Admin (if needed)
-            const io = req.app.get('socketio');
-            if (io) {
-                // Admin typically doesn't have a specific user_id room like user_X, 
-                // but we can broadcast or use a specific admin room
-                io.emit('admin_notification', {
-                    type: 'disbursement_request',
-                    title: 'Pengajuan Pencairan Baru',
-                    message: `Seller mengajukan pencairan untuk pesanan ${order.order_id}`,
-                    link: '/admin/keuangan',
-                    time: new Date()
-                });
-            }
-
-            return res.status(200).json({
-                message: 'Pengajuan pencairan dana berhasil dikirim',
-                data: order
-            });
-        } catch (err) {
-            console.error('requestDisbursement error:', err);
-            return res.status(500).json({ message: err.message, detail: err });
-        }
-    },
-
-    // POST /orders/bulk-request-disbursement - Seller mengajukan pencairan dana sekaligus
-    bulkRequestDisbursement: async (req, res) => {
-        try {
-            const { order_ids } = req.body;
-
-            if (!order_ids || !Array.isArray(order_ids) || order_ids.length === 0) {
-                return res.status(400).json({ message: 'Daftar ID pesanan tidak boleh kosong' });
-            }
-
-            const { Op } = require('sequelize');
-            const orders = await models.orders.findAll({
-                where: {
-                    id: order_ids,
-                    status: 'completed'
-                }
-            });
-
-            if (orders.length === 0) {
-                return res.status(400).json({ message: 'Tidak ada pesanan berstatus selesai yang valid untuk dicairkan' });
-            }
-
-            // Update status untuk semua pesanan terpilih
-            await models.orders.update({
-                status: 'disbursement_requested',
-                disbursement_requested_at: new Date(),
-                updated_at: new Date()
-            }, {
-                where: {
-                    id: orders.map(o => o.id)
-                }
-            });
-
-            // Emit notifications
-            const io = req.app.get('socketio');
-            if (io) {
-                // Emit event to admin page for real-time update
-                io.to('admin_room').emit('order_updated_admin', { status: 'disbursement_requested' });
-
-                for (const order of orders) {
-                    order.status = 'disbursement_requested';
-                    emitOrderUpdated(req, order);
-
-                    io.emit('admin_notification', {
-                        type: 'disbursement_request',
-                        title: 'Pengajuan Pencairan Baru',
-                        message: `Seller mengajukan pencairan untuk pesanan ${order.order_id}`,
-                        link: '/admin/keuangan',
-                        time: new Date()
-                    });
-                }
-            }
-
-            return res.status(200).json({
-                message: `${orders.length} pesanan berhasil diajukan pencairannya sekaligus`,
-                count: orders.length
-            });
-        } catch (err) {
-            console.error('bulkRequestDisbursement error:', err);
-            return res.status(500).json({ message: err.message, detail: err });
-        }
-    },
-
-    // PUT /orders/:order_id/disburse - Admin upload bukti transfer ke seller
-    disburseOrder: async (req, res) => {
-        try {
-            const { order_id } = req.params;
-            const { disbursement_proof, disbursement_notes, additional_fee } = req.body;
-
-            const order = await models.orders.findByPk(order_id);
-            if (!order) return res.status(404).json({ message: 'Pesanan tidak ditemukan' });
-
-            // Guard: hanya proses jika order sudah dalam status pengajuan pencairan
-            if (!['completed', 'disbursement_requested'].includes(order.status)) {
-                return res.status(400).json({ message: 'Pesanan tidak dalam status yang valid untuk pencairan dana' });
-            }
-
-            // FIX: Update status ke 'disbursed' setelah admin mencairkan dana
-            await order.update({
-                status: 'disbursed',
-                disbursement_proof: disbursement_proof || null,
-                disbursement_notes: disbursement_notes || null,
-                additional_fee: parseInt(additional_fee) || 0,
-                disbursed_at: new Date(),
-                updated_at: new Date()
-            });
-
-            emitOrderUpdated(req, order);
-
-            // Emit Notification to Seller
-            const io = req.app.get('socketio');
-            if (io) {
-                io.to('admin_room').emit('order_updated_admin', { order_id: order.order_id, status: order.status });
-                const shop = await models.shops.findByPk(order.shop_id);
-                if (shop) {
-                    // 1. Save to Database
-                    await models.notifications.create({
-                        user_id: shop.user_id,
-                        type: 'disbursement',
-                        title: 'Dana Dicairkan',
-                        message: `Dana untuk pesanan ${order.order_id} telah dicairkan. Silakan cek riwayat transaksi.`,
-                        link: '/user/toko/pengajuan-keuangan',
-                        is_read: false,
-                        created_at: new Date()
-                    });
-
-                    // 2. Emit Real-time Socket
-                    io.to(`user_${shop.user_id}`).emit('new_notification', {
-                        type: 'disbursement',
-                        title: 'Dana Dicairkan',
-                        message: `Dana untuk pesanan ${order.order_id} telah dicairkan. Silakan cek riwayat transaksi.`,
-                        link: '/user/toko/pengajuan-keuangan',
-                        time: new Date()
-                    });
-                }
-            }
-
-            return res.status(200).json({
-                message: 'Dana berhasil dicairkan ke seller',
-                data: order
-            });
-        } catch (err) {
-            console.error('disburseOrder error:', err);
-            return res.status(500).json({ message: err.message, detail: err });
-        }
-    },
-
-    // POST /orders/bulk-disburse - Admin upload bukti transfer dan cairkan banyak pesanan sekaligus
-    bulkDisburseOrders: async (req, res) => {
-        try {
-            const { order_ids, disbursement_proof, disbursement_notes, additional_fee } = req.body;
-
-            if (!order_ids || !Array.isArray(order_ids) || order_ids.length === 0) {
-                return res.status(400).json({ message: 'Daftar ID pesanan tidak boleh kosong' });
-            }
-
-            const { Op } = require('sequelize');
-            const orders = await models.orders.findAll({
-                where: {
-                    id: order_ids,
-                    status: ['completed', 'disbursement_requested']
-                }
-            });
-
-            if (orders.length === 0) {
-                return res.status(400).json({ message: 'Tidak ada pesanan valid untuk dicairkan' });
-            }
-
-            // Update status ke 'disbursed' untuk semua pesanan terpilih
-            await models.orders.update({
-                status: 'disbursed',
-                disbursement_proof: disbursement_proof || null,
-                disbursement_notes: disbursement_notes || null,
-                additional_fee: parseInt(additional_fee) || 0,
-                disbursed_at: new Date(),
-                updated_at: new Date()
-            }, {
-                where: {
-                    id: orders.map(o => o.id)
-                }
-            });
-
-            // Emit Notifications
-            const io = req.app.get('socketio');
-            if (io) {
-                io.to('admin_room').emit('order_updated_admin', { status: 'disbursed' });
-
-                for (const order of orders) {
-                    order.status = 'disbursed';
-                    emitOrderUpdated(req, order);
-
-                    const shop = await models.shops.findByPk(order.shop_id);
-                    if (shop) {
-                        // 1. Save to Database
-                        await models.notifications.create({
-                            user_id: shop.user_id,
-                            type: 'disbursement',
-                            title: 'Dana Dicairkan',
-                            message: `Dana untuk pesanan ${order.order_id} telah dicairkan. Silakan cek riwayat transaksi.`,
-                            link: '/user/toko/pengajuan-keuangan',
-                            is_read: false,
-                            created_at: new Date()
-                        });
-
-                        // 2. Emit Real-time Socket
-                        io.to(`user_${shop.user_id}`).emit('new_notification', {
-                            type: 'disbursement',
-                            title: 'Dana Dicairkan',
-                            message: `Dana untuk pesanan ${order.order_id} telah dicairkan. Silakan cek riwayat transaksi.`,
-                            link: '/user/toko/pengajuan-keuangan',
-                            time: new Date()
-                        });
-                    }
-                }
-            }
-
-            return res.status(200).json({
-                message: `${orders.length} pesanan berhasil dicairkan sekaligus`,
-                count: orders.length
-            });
-        } catch (err) {
-            console.error('bulkDisburseOrders error:', err);
-            return res.status(500).json({ message: err.message, detail: err });
-        }
-    },
-
-    dismissCancellation: async (req, res) => {
-        try {
-            const { order_id } = req.params;
-
-            // Coba cari berdasarkan Primary Key dulu
-            let order = await models.orders.findByPk(order_id).catch(() => null);
-
-            // Jika tidak ketemu, coba cari berdasarkan nomor invoice (string)
-            if (!order) {
-                order = await models.orders.findOne({
-                    where: { order_id: order_id }
-                });
-            }
-
-            if (!order) return res.status(404).json({ message: 'Pesanan tidak ditemukan' });
-
-            await order.update({
-                status: 'cancelled_dismissed',
-                updated_at: new Date()
-            });
-
-            emitOrderUpdated(req, order);
-
-            // Fetch current stock to return to frontend for sync
-            let currentStock = null;
-            if (order.listing_id) {
-                const listing = await models.listings.findByPk(order.listing_id);
-                if (listing) currentStock = listing.stock;
-            }
-
-            return res.status(200).json({
-                message: 'Pembatalan berhasil diabaikan',
-                currentStock: currentStock
-            });
-        } catch (err) {
-            console.error('dismissCancellation error:', err);
-            return res.status(500).json({ message: err.message });
-        }
-    },
-
-    // GET /orders/refunds - Admin: Ambil semua pengajuan refund
-    getAllRefunds: async (req, res) => {
-        try {
-            const { Op } = require('sequelize');
-            const data = await models.orders.findAll({
-                where: {
-                    status: 'cancelled',
-                    refund_status: { [Op.ne]: null }
-                },
-                include: [
-                    {
-                        model: models.listings,
-                        as: 'product',
-                        attributes: ['id', 'product_id', 'name', 'images', 'type', 'species', 'price']
-                    },
-                    {
-                        model: models.order_items,
-                        as: 'items',
-                        include: [
-                            {
-                                model: models.listings,
-                                as: 'product',
-                                attributes: ['id', 'product_id', 'name', 'images', 'type', 'species', 'price']
-                            }
-                        ]
-                    },
-                    {
-                        model: models.shops,
-                        as: 'shop',
-                        attributes: ['id', 'name', 'city', 'logo_url', 'user_id'],
-                        include: [
-                            {
-                                model: models.users,
-                                as: 'owner',
-                                attributes: ['id', 'name', 'username', 'email']
-                            }
-                        ]
-                    },
-                    {
-                        model: models.users,
-                        as: 'user',
-                        attributes: ['id', 'username', 'email', 'phone', 'avatar_url', 'bank_accounts']
-                    }
-                ],
-                order: [['cancelled_at', 'DESC'], ['created_at', 'DESC']]
-            });
-
-            return res.status(200).json({
-                message: 'Data refund berhasil diambil',
-                data
-            });
-        } catch (err) {
-            console.error('getAllRefunds error:', err);
-            return res.status(500).json({ message: err.message });
-        }
-    },
-
-    // PUT /orders/:order_id/refund - Admin: Proses refund (kirim uang)
-    processRefund: async (req, res) => {
-        try {
-            const { order_id } = req.params;
-            const { refund_proof, image, refund_notes } = req.body;
-
-            const order = await models.orders.findByPk(order_id);
-            if (!order) return res.status(404).json({ message: 'Pesanan tidak ditemukan' });
-
-            if (order.status !== 'cancelled') {
-                return res.status(400).json({ message: 'Pesanan tidak dalam status dibatalkan' });
-            }
-
-            let refundProofUrl = refund_proof || image || null;
-
-            // Handle direct file upload if present
-            if (req.files && (req.files.image || req.files.refund_proof)) {
-                const file = req.files.image || req.files.refund_proof;
-                
-                // Validate size (Max 1MB)
-                if (file.size > 1 * 1024 * 1024) {
-                    return res.status(400).json({ message: "Ukuran gambar bukti transfer tidak boleh melebihi 1MB" });
-                }
-
-                const path = require('path');
-                const fs = require('fs');
-                const { v4: uuidv4 } = require('uuid');
-
-                const uploadDir = path.join(__dirname, '../../public/uploads');
-                if (!fs.existsSync(uploadDir)) {
-                    fs.mkdirSync(uploadDir, { recursive: true });
-                }
-
-                const ext = path.extname(file.name);
-                const filename = `${uuidv4()}${ext}`;
-                const uploadPath = path.join(uploadDir, filename);
-
-                await new Promise((resolve, reject) => {
-                    file.mv(uploadPath, (err) => {
-                        if (err) reject(err);
-                        else resolve();
-                    });
-                });
-
-                refundProofUrl = `/uploads/${filename}`;
-            }
-
-            if (!refundProofUrl) {
-                return res.status(400).json({ message: "Bukti transfer (Gambar) wajib diunggah!" });
-            }
-
-            await order.update({
-                refund_proof: refundProofUrl,
-                refund_notes: refund_notes || null,
-                refunded_at: new Date(),
-                refund_status: 'refunded',
-                updated_at: new Date()
-            });
-
-            emitOrderUpdated(req, order);
-
-            // Create notification for the buyer
-            try {
-                const title = 'Refund Dana Berhasil';
-                const message = `Pengembalian dana untuk pesanan ${order.order_id} sebesar ${new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(order.total_price)} telah berhasil diproses oleh Admin.`;
-                const newNotif = await models.notifications.create({
-                    user_id: order.user_id,
-                    type: 'order_buyer',
-                    title,
-                    message,
-                    link: `/user/pesanan/pengembalian-dana`,
-                    created_at: new Date()
-                });
-
-                const io = req.app.get('socketio');
-                if (io) {
-                    io.to(`user_${order.user_id}`).emit('new_notification', {
-                        id: newNotif.id,
-                        type: 'order_buyer',
-                        title,
-                        message,
-                        link: newNotif.link,
-                        time: newNotif.created_at
-                    });
-                }
-            } catch (notifErr) {
-                console.error("Failed to create refund completion notification:", notifErr);
-            }
-
-            return res.status(200).json({
-                message: 'Pengembalian dana berhasil diproses',
-                data: order
-            });
-        } catch (err) {
-            console.error('processRefund error:', err);
-            return res.status(500).json({ message: err.message });
-        }
-    },
-
-    // PUT /orders/:order_id/reject-refund - Admin: Tolak refund
-    rejectRefund: async (req, res) => {
-        try {
-            const { order_id } = req.params;
-            const { refund_notes } = req.body;
-
-            const order = await models.orders.findByPk(order_id);
-            if (!order) return res.status(404).json({ message: 'Pesanan tidak ditemukan' });
-
-            if (order.status !== 'cancelled') {
-                return res.status(400).json({ message: 'Pesanan tidak dalam status dibatalkan' });
-            }
-
-            await order.update({
-                refund_notes: refund_notes || 'Ditolak oleh admin',
-                refund_status: 'rejected',
-                updated_at: new Date()
-            });
-
-            emitOrderUpdated(req, order);
-
-            // Create notification for the buyer
-            try {
-                const title = 'Refund Dana Ditolak';
-                const message = `Pengembalian dana untuk pesanan ${order.order_id} ditolak oleh Admin. Alasan: ${refund_notes || '-'}`;
-                const newNotif = await models.notifications.create({
-                    user_id: order.user_id,
-                    type: 'order_buyer',
-                    title,
-                    message,
-                    link: `/user/pesanan/pengembalian-dana`,
-                    created_at: new Date()
-                });
-
-                const io = req.app.get('socketio');
-                if (io) {
-                    io.to(`user_${order.user_id}`).emit('new_notification', {
-                        id: newNotif.id,
-                        type: 'order_buyer',
-                        title,
-                        message,
-                        link: newNotif.link,
-                        time: newNotif.created_at
-                    });
-                }
-            } catch (notifErr) {
-                console.error("Failed to create refund rejection notification:", notifErr);
-            }
-
-            return res.status(200).json({
-                message: 'Pengembalian dana berhasil ditolak',
-                data: order
-            });
-        } catch (err) {
-            console.error('rejectRefund error:', err);
-            return res.status(500).json({ message: err.message });
-        }
-    },
-
-    // PUT /orders/:order_id/request-refund - Buyer: Ajukan refund dengan detail rekening
-    requestRefund: async (req, res) => {
-        try {
-            const { order_id } = req.params;
-            const { bank_name, bank_account, bank_holder } = req.body;
-
-            const order = await models.orders.findByPk(order_id);
-            if (!order) return res.status(404).json({ message: 'Pesanan tidak ditemukan' });
-
-            // Verify caller is the owner of the order
-            if (order.user_id !== req.user_data.id) {
-                return res.status(403).json({ message: 'Anda tidak berwenang untuk mengajukan refund pada pesanan ini' });
-            }
-
-            if (order.status !== 'cancelled') {
-                return res.status(400).json({ message: 'Pesanan tidak dalam status dibatalkan' });
-            }
-
-            await order.update({
-                bank_name,
-                bank_account,
-                bank_holder,
-                refund_status: 'pending',
-                updated_at: new Date()
-            });
-
-            // Helper to emit update via socket if present
-            try {
-                const io = req.app.get('socketio');
-                if (io) {
-                    // Notify admins
-                    io.to('admin').emit('admin_notification', {
-                        type: 'refund_requested',
-                        title: 'Pengajuan Refund Baru',
-                        message: `Pembeli mengajukan refund untuk pesanan ${order.order_id}`,
-                        link: '/admin/pengembalian-dana'
-                    });
-                    
-                    // Also notify general admin room for transactions/orders update
-                    io.emit('order_updated_admin', { id: order.id });
-                }
-            } catch (socketErr) {
-                console.error('requestRefund socket emit error:', socketErr);
-            }
-
-            return res.status(200).json({
-                message: 'Pengajuan refund berhasil dikirim',
-                data: order
-            });
-        } catch (err) {
-            console.error('requestRefund error:', err);
-            return res.status(500).json({ message: err.message });
-        }
-    },
-    // PUT /orders/:order_id/reset-refund-status - Admin: Reset refund status ke null (untuk testing/koreksi)
-    resetRefundStatus: async (req, res) => {
-        try {
-            const { order_id } = req.params;
-
-            // Cari berdasarkan UUID atau order_id string
-            let order = await models.orders.findByPk(order_id).catch(() => null);
-            if (!order) {
-                order = await models.orders.findOne({ where: { order_id } });
-            }
-            if (!order) return res.status(404).json({ message: 'Pesanan tidak ditemukan' });
-
-            await order.update({
-                refund_status: null,
-                bank_name: null,
-                bank_account: null,
-                bank_holder: null,
-                refund_proof: null,
-                refund_notes: null,
-                refunded_at: null,
-                updated_at: new Date()
-            });
-
-            return res.status(200).json({
-                message: 'Status refund berhasil direset ke tahap awal',
-                data: {
-                    id: order.id,
-                    order_id: order.order_id,
-                    status: order.status,
-                    refund_status: order.refund_status
-                }
-            });
-        } catch (err) {
-            console.error('resetRefundStatus error:', err);
-            return res.status(500).json({ message: err.message });
-        }
+      }
+
+      return res.status(200).json({
+        message: "Pesanan selesai. Terima kasih!",
+        data: order,
+      });
+    } catch (err) {
+      console.error("completeOrder error:", err);
+      return res.status(500).json({ message: err.message, detail: err });
     }
+  },
+
+  // PUT /orders/:order_id/complain - Buyer ajukan komplain
+  complainOrder: async (req, res) => {
+    try {
+      const { order_id } = req.params;
+      const { complaint_description, complaint_image, rating, review } = req.body;
+
+      const order = await models.orders.findByPk(order_id);
+      if (!order) return res.status(404).json({ message: "Pesanan tidak ditemukan" });
+
+      await order.update({
+        status: "complained",
+        complaint_description: complaint_description || null,
+        complaint_image: complaint_image || null,
+        rating: rating || null,
+        review: review || null,
+        cancelled_at: new Date(), // ← otomatis (gunakan sebagai waktu eskalasi)
+        updated_at: new Date(),
+      });
+
+      emitOrderUpdated(req, order);
+
+      const shop = await models.shops.findByPk(order.shop_id);
+      const io = req.app.get("socketio");
+      if (io) {
+        io.to("admin_room").emit("order_updated_admin", { id: order.id, order_id: order.order_id, status: order.status });
+        // Emit to seller
+        if (shop) {
+          io.to(`user_${shop.user_id}`).emit("new_notification", {
+            type: "order_seller",
+            title: "Pesanan Dikomplain",
+            message: `Pembeli mengajukan komplain untuk pesanan ${order.order_id}.`,
+            link: `/user/toko/dashboard`,
+            time: new Date(),
+          });
+        }
+
+        // Emit to buyer
+        io.to(`user_${order.user_id}`).emit("new_notification", {
+          type: "order_buyer",
+          title: "Komplain Diajukan",
+          message: `Komplain untuk pesanan ${order.order_id} berhasil diajukan.`,
+          link: `/user/pesanan/transaksi-selesai/${order.order_id}`,
+          time: new Date(),
+        });
+      }
+
+      return res.status(200).json({
+        message: "Komplain berhasil diajukan",
+        data: order,
+      });
+    } catch (err) {
+      console.error("complainOrder error:", err);
+      return res.status(500).json({ message: err.message, detail: err });
+    }
+  },
+
+  // PUT /orders/:order_id/resolve-complaint - Buyer selesaikan komplain
+  resolveComplaint: async (req, res) => {
+    try {
+      const { order_id } = req.params;
+      const { rating, review } = req.body;
+
+      const order = await models.orders.findByPk(order_id);
+      if (!order) return res.status(404).json({ message: "Pesanan tidak ditemukan" });
+
+      if (order.status !== "complained") {
+        return res.status(400).json({ message: "Pesanan ini tidak dalam status komplain" });
+      }
+
+      await order.update({
+        status: "completed",
+        rating: rating || null,
+        review: review || null,
+        completed_at: new Date(),
+        updated_at: new Date(),
+      });
+
+      emitOrderUpdated(req, order);
+
+      // Emit to Seller
+      const shop = await models.shops.findByPk(order.shop_id);
+      if (shop) {
+        try {
+          const title = "Komplain Diselesaikan";
+          const message = `Pembeli telah menyelesaikan komplain untuk pesanan ${order.order_id}. Dana akan segera diproses ke saldo Anda.`;
+
+          const newNotif = await models.notifications.create({
+            user_id: shop.user_id,
+            type: "order_completed",
+            title,
+            message,
+            link: "/user/toko/dashboard",
+            created_at: new Date(),
+          });
+
+          const io = req.app.get("socketio");
+          if (io) {
+            io.to("admin_room").emit("order_updated_admin", { id: order.id, order_id: order.order_id, status: order.status });
+            io.to(`user_${shop.user_id}`).emit("new_notification", {
+              id: newNotif.id,
+              type: "order_completed",
+              title,
+              message,
+              time: newNotif.created_at,
+            });
+
+            // Emit to buyer
+            io.to(`user_${order.user_id}`).emit("new_notification", {
+              type: "order_buyer",
+              title: "Komplain Diselesaikan",
+              message: `Anda telah menyelesaikan komplain untuk pesanan ${order.order_id}.`,
+              link: `/user/pesanan/transaksi-selesai/${order.order_id}`,
+              time: new Date(),
+            });
+          }
+        } catch (notifErr) {
+          console.error("Failed to create resolve complaint notification:", notifErr);
+        }
+      }
+
+      return res.status(200).json({
+        message: "Komplain berhasil diselesaikan",
+        data: order,
+      });
+    } catch (err) {
+      console.error("resolveComplaint error:", err);
+      return res.status(500).json({ message: err.message, detail: err });
+    }
+  },
+
+  // PUT /orders/:order_id/reset-payment - Reset bukti bayar (buyer kirim ulang)
+  resetPayment: async (req, res) => {
+    try {
+      const { order_id } = req.params;
+      const { payment_rejection_reason } = req.body;
+
+      const order = await models.orders.findByPk(order_id);
+      if (!order) return res.status(404).json({ message: "Pesanan tidak ditemukan" });
+
+      await order.update({
+        payment_proof: null,
+        status: "waiting_payment",
+        payment_rejection_reason: payment_rejection_reason || null,
+        updated_at: new Date(),
+      });
+
+      emitOrderUpdated(req, order);
+
+      // Create notification database record for the buyer
+      try {
+        const io = req.app.get("socketio");
+        const title = "Bukti Pembayaran Ditolak";
+        const message = `Bukti pembayaran untuk pesanan ${order.order_id} ditolak oleh admin. Alasan: ${payment_rejection_reason || "Tidak ada alasan spesifik."}`;
+        const newNotif = await models.notifications.create({
+          user_id: order.user_id,
+          type: "order_buyer",
+          title,
+          message,
+          link: `/user/pesanan/bayar/${order.id}`,
+          created_at: new Date(),
+        });
+
+        if (io) {
+          io.to(`user_${order.user_id}`).emit("new_notification", {
+            id: newNotif.id,
+            type: "order_buyer",
+            title,
+            message,
+            link: newNotif.link,
+            time: newNotif.created_at,
+          });
+        }
+
+        // Create database notification for seller & emit socket
+        const shop = await models.shops.findByPk(order.shop_id);
+        if (shop) {
+          const sellerNotif = await models.notifications.create({
+            user_id: shop.user_id,
+            type: "order_seller",
+            title: "Bukti Pembayaran Pembeli Ditolak Admin",
+            message: `Bukti pembayaran dari pembeli untuk pesanan ${order.order_id} ditolak oleh admin. Alasan: ${payment_rejection_reason || "Tidak ada alasan spesifik."}`,
+            link: `/user/toko/dashboard`,
+            created_at: new Date(),
+          });
+          if (io) {
+            io.to(`user_${shop.user_id}`).emit("new_notification", {
+              id: sellerNotif.id,
+              type: "order_seller",
+              title: sellerNotif.title,
+              message: sellerNotif.message,
+              link: sellerNotif.link,
+              time: sellerNotif.created_at,
+            });
+          }
+        }
+      } catch (notifErr) {
+        console.error("Failed to create rejection notifications:", notifErr);
+      }
+
+      return res.status(200).json({
+        message: "Pembayaran direset, silakan upload ulang bukti bayar",
+        data: order,
+      });
+    } catch (err) {
+      console.error("resetPayment error:", err);
+      return res.status(500).json({ message: err.message, detail: err });
+    }
+  },
+
+  // PUT /orders/:order_id/cancel - Batalkan pesanan (Seller/Buyer)
+  cancelOrder: async (req, res) => {
+    try {
+      const { order_id } = req.params;
+      const { cancellation_reason } = req.body;
+
+      const order = await models.orders.findByPk(order_id, {
+        include: [
+          {
+            model: models.shops,
+            as: "shop",
+            attributes: ["id", "user_id"],
+          },
+        ],
+      });
+      if (!order) return res.status(404).json({ message: "Pesanan tidak ditemukan" });
+
+      // Enforce authorization
+      const callerUserId = req.user_data?.id || req.user_data?.user_id;
+      const isBuyer = String(order.user_id) === String(callerUserId);
+      const isSeller = order.shop && String(order.shop.user_id) === String(callerUserId);
+
+      if (!isBuyer && !isSeller) {
+        return res.status(403).json({ message: "Anda tidak memiliki akses untuk membatalkan pesanan ini" });
+      }
+
+      if (isSeller && (!cancellation_reason || !cancellation_reason.trim())) {
+        return res.status(400).json({ message: "Alasan pembatalan wajib diisi oleh penjual" });
+      }
+
+      if (["completed", "cancelled", "shipped"].includes(order.status)) {
+        return res.status(400).json({ message: "Pesanan tidak dapat dibatalkan pada tahap ini" });
+      }
+
+      // Kembalikan stok jika pesanan dibatalkan (untuk all items di order_items dan order.listing_id)
+      const orderItemsToRestore = [];
+      const orderItems = await models.order_items.findAll({
+        where: { order_id: order.id },
+      });
+      if (orderItems && orderItems.length > 0) {
+        for (const item of orderItems) {
+          orderItemsToRestore.push({
+            listing_id: item.listing_id,
+            quantity: item.quantity || 1,
+          });
+        }
+      } else if (order.listing_id) {
+        orderItemsToRestore.push({
+          listing_id: order.listing_id,
+          quantity: order.quantity || 1,
+        });
+      }
+
+      const restoredListings = [];
+      for (const item of orderItemsToRestore) {
+        const listing = await models.listings.findByPk(item.listing_id);
+        if (listing) {
+          const newStatus = listing.status === "sold" ? "active" : listing.status;
+          const newStock = listing.stock + item.quantity;
+          await listing.update({
+            stock: newStock,
+            status: newStatus,
+            updated_at: new Date(),
+          });
+          restoredListings.push({
+            listing_id: listing.id,
+            stock: newStock,
+          });
+        }
+      }
+
+      // Determine default cancellation reason based on who cancelled
+      const defaultReason = isBuyer ? "Dibatalkan oleh pembeli" : "Dibatalkan oleh penjual/sistem";
+
+      // Update status pesanan
+      await order.update({
+        status: "cancelled",
+        rejection_reason: cancellation_reason || defaultReason,
+        refund_status: null,
+        cancelled_at: new Date(),
+        updated_at: new Date(),
+      });
+
+      emitOrderUpdated(req, order);
+
+      // Create database notifications
+      try {
+        const title = "Pesanan Dibatalkan";
+        const buyerMessage = `Pesanan ${order.order_id} telah dibatalkan. Alasan: ${cancellation_reason || defaultReason}`;
+        
+        const buyerNotif = await models.notifications.create({
+          user_id: order.user_id,
+          type: "order_cancelled",
+          title,
+          message: buyerMessage,
+          link: `/user/pesanan`,
+          created_at: new Date(),
+        });
+
+        const shop = await models.shops.findByPk(order.shop_id);
+        if (shop) {
+          const sellerMessage = isBuyer 
+            ? `Pesanan ${order.order_id} telah dibatalkan oleh pembeli. Alasan: ${cancellation_reason || "-"}` 
+            : `Pesanan ${order.order_id} telah dibatalkan oleh penjual. Alasan: ${cancellation_reason || "-"}`;
+            
+          const sellerNotif = await models.notifications.create({
+            user_id: shop.user_id,
+            type: "order_cancelled",
+            title,
+            message: sellerMessage,
+            link: `/user/toko/dashboard`,
+            created_at: new Date(),
+          });
+
+          const io = req.app.get("socketio");
+          if (io) {
+            for (const item of restoredListings) {
+              console.log(`[Socket] Broadcasting listing_stock_updated (on cancel) for listing ${item.listing_id}: stock=${item.stock}`);
+              io.emit("listing_stock_updated", {
+                listing_id: item.listing_id,
+                stock: item.stock,
+              });
+            }
+            io.to("admin_room").emit("order_updated_admin", { id: order.id, order_id: order.order_id, status: order.status });
+            
+            io.to(`user_${order.user_id}`).emit("new_notification", {
+              id: buyerNotif.id,
+              type: "order_cancelled",
+              title,
+              message: buyerMessage,
+              link: buyerNotif.link,
+              time: buyerNotif.created_at,
+            });
+
+            io.to(`user_${shop.user_id}`).emit("new_notification", {
+              id: sellerNotif.id,
+              type: "order_cancelled",
+              title,
+              message: sellerMessage,
+              link: sellerNotif.link,
+              time: sellerNotif.created_at,
+            });
+          }
+        }
+      } catch (notifErr) {
+        console.error("Failed to create cancellation notifications:", notifErr);
+      }
+
+      return res.status(200).json({
+        message: "Pesanan berhasil dibatalkan",
+        data: order,
+      });
+    } catch (err) {
+      console.error("cancelOrder error:", err);
+      return res.status(500).json({ message: err.message, detail: err });
+    }
+  },
+
+  // PUT /orders/:order_id/admin-cancel - Batalkan pesanan oleh Admin
+  adminCancelOrder: async (req, res) => {
+    try {
+      const { order_id } = req.params;
+      const { cancellation_reason } = req.body;
+
+      const order = await models.orders.findByPk(order_id);
+      if (!order) return res.status(404).json({ message: "Pesanan tidak ditemukan" });
+
+      if (order.status !== "waiting_payment") {
+        return res.status(400).json({ message: "Pesanan tidak dapat dibatalkan pada tahap ini" });
+      }
+
+      // Kembalikan stok jika pesanan dibatalkan (untuk all items di order_items dan order.listing_id)
+      const orderItemsToRestore = [];
+      const orderItems = await models.order_items.findAll({
+        where: { order_id: order.id },
+      });
+      if (orderItems && orderItems.length > 0) {
+        for (const item of orderItems) {
+          orderItemsToRestore.push({
+            listing_id: item.listing_id,
+            quantity: item.quantity || 1,
+          });
+        }
+      } else if (order.listing_id) {
+        orderItemsToRestore.push({
+          listing_id: order.listing_id,
+          quantity: order.quantity || 1,
+        });
+      }
+
+      const restoredListings = [];
+      for (const item of orderItemsToRestore) {
+        const listing = await models.listings.findByPk(item.listing_id);
+        if (listing) {
+          const newStatus = listing.status === "sold" ? "active" : listing.status;
+          const newStock = listing.stock + item.quantity;
+          await listing.update({
+            stock: newStock,
+            status: newStatus,
+            updated_at: new Date(),
+          });
+          restoredListings.push({
+            listing_id: listing.id,
+            stock: newStock,
+          });
+        }
+      }
+
+      // Update status pesanan
+      await order.update({
+        status: "cancelled",
+        rejection_reason: cancellation_reason || "Dibatalkan oleh Admin (Pembayaran Ditolak)",
+        refund_status: null,
+        cancelled_at: new Date(),
+        updated_at: new Date(),
+      });
+
+      emitOrderUpdated(req, order);
+
+      // Emit Notification to Buyer & Seller
+      const io = req.app.get("socketio");
+      if (io) {
+        for (const item of restoredListings) {
+          console.log(`[Socket] Broadcasting listing_stock_updated (on admin cancel) for listing ${item.listing_id}: stock=${item.stock}`);
+          io.emit("listing_stock_updated", {
+            listing_id: item.listing_id,
+            stock: item.stock,
+          });
+        }
+        io.to("admin_room").emit("order_updated_admin", { id: order.id, order_id: order.order_id, status: order.status });
+
+        // Create database notification for buyer & emit socket
+        const buyerNotif = await models.notifications.create({
+          user_id: order.user_id,
+          type: "order_buyer",
+          title: "Pesanan Dibatalkan oleh Admin",
+          message: `Pesanan ${order.order_id} telah dibatalkan oleh Admin. Alasan: ${cancellation_reason || "-"}`,
+          link: `/user/pesanan`,
+          created_at: new Date(),
+        });
+        io.to(`user_${order.user_id}`).emit("new_notification", {
+          id: buyerNotif.id,
+          type: "order_buyer",
+          title: buyerNotif.title,
+          message: buyerNotif.message,
+          link: buyerNotif.link,
+          time: buyerNotif.created_at,
+        });
+
+        // Create database notification for seller & emit socket
+        const shop = await models.shops.findByPk(order.shop_id);
+        if (shop) {
+          const sellerNotif = await models.notifications.create({
+            user_id: shop.user_id,
+            type: "order_seller",
+            title: "Pesanan Dibatalkan oleh Admin",
+            message: `Pesanan ${order.order_id} telah dibatalkan oleh Admin. Alasan: ${cancellation_reason || "-"}`,
+            link: `/user/toko/dashboard`,
+            created_at: new Date(),
+          });
+          io.to(`user_${shop.user_id}`).emit("new_notification", {
+            id: sellerNotif.id,
+            type: "order_seller",
+            title: sellerNotif.title,
+            message: sellerNotif.message,
+            link: sellerNotif.link,
+            time: sellerNotif.created_at,
+          });
+        }
+      }
+
+      return res.status(200).json({
+        message: "Pesanan berhasil dibatalkan oleh Admin",
+        data: order,
+      });
+    } catch (err) {
+      console.error("adminCancelOrder error:", err);
+      return res.status(500).json({ message: err.message, detail: err });
+    }
+  },
+
+  // DELETE /orders/:order_id/history - Hapus riwayat pesanan yang sudah selesai
+  deleteOrderHistory: async (req, res) => {
+    try {
+      const { order_id } = req.params;
+
+      const order = await models.orders.findByPk(order_id);
+      if (!order) return res.status(404).json({ message: "Pesanan tidak ditemukan" });
+
+      if (!["completed", "cancelled", "complained", "cancelled_dismissed"].includes(order.status)) {
+        return res.status(400).json({ message: "Hanya pesanan selesai/batal yang bisa dihapus dari riwayat" });
+      }
+
+      await order.destroy();
+
+      return res.status(200).json({
+        message: "Riwayat pesanan berhasil dihapus",
+      });
+    } catch (err) {
+      console.error("deleteOrderHistory error:", err);
+      return res.status(500).json({ message: err.message, detail: err });
+    }
+  },
+
+  // PUT /orders/:order_id/request-disbursement - Seller mengajukan pencairan dana
+  requestDisbursement: async (req, res) => {
+    try {
+      const { order_id } = req.params;
+
+      const order = await models.orders.findByPk(order_id);
+      if (!order) return res.status(404).json({ message: "Pesanan tidak ditemukan" });
+
+      if (order.status !== "completed") {
+        return res.status(400).json({ message: "Hanya pesanan berstatus selesai yang dapat diajukan pencairannya" });
+      }
+
+      await order.update({
+        status: "disbursement_requested",
+        disbursement_requested_at: new Date(),
+        updated_at: new Date(),
+      });
+
+      emitOrderUpdated(req, order);
+
+      // Emit Notification to Admin (if needed)
+      const io = req.app.get("socketio");
+      if (io) {
+        // Admin typically doesn't have a specific user_id room like user_X,
+        // but we can broadcast or use a specific admin room
+        io.emit("admin_notification", {
+          type: "disbursement_request",
+          title: "Pengajuan Pencairan Baru",
+          message: `Seller mengajukan pencairan untuk pesanan ${order.order_id}`,
+          link: "/admin/keuangan",
+          time: new Date(),
+        });
+      }
+
+      return res.status(200).json({
+        message: "Pengajuan pencairan dana berhasil dikirim",
+        data: order,
+      });
+    } catch (err) {
+      console.error("requestDisbursement error:", err);
+      return res.status(500).json({ message: err.message, detail: err });
+    }
+  },
+
+  // POST /orders/bulk-request-disbursement - Seller mengajukan pencairan dana sekaligus
+  bulkRequestDisbursement: async (req, res) => {
+    try {
+      const { order_ids } = req.body;
+
+      if (!order_ids || !Array.isArray(order_ids) || order_ids.length === 0) {
+        return res.status(400).json({ message: "Daftar ID pesanan tidak boleh kosong" });
+      }
+
+      const { Op } = require("sequelize");
+      const orders = await models.orders.findAll({
+        where: {
+          id: order_ids,
+          status: "completed",
+        },
+      });
+
+      if (orders.length === 0) {
+        return res.status(400).json({ message: "Tidak ada pesanan berstatus selesai yang valid untuk dicairkan" });
+      }
+
+      // Update status untuk semua pesanan terpilih
+      await models.orders.update(
+        {
+          status: "disbursement_requested",
+          disbursement_requested_at: new Date(),
+          updated_at: new Date(),
+        },
+        {
+          where: {
+            id: orders.map((o) => o.id),
+          },
+        },
+      );
+
+      // Emit notifications
+      const io = req.app.get("socketio");
+      if (io) {
+        // Emit event to admin page for real-time update
+        io.to("admin_room").emit("order_updated_admin", { status: "disbursement_requested" });
+
+        for (const order of orders) {
+          order.status = "disbursement_requested";
+          emitOrderUpdated(req, order);
+
+          io.emit("admin_notification", {
+            type: "disbursement_request",
+            title: "Pengajuan Pencairan Baru",
+            message: `Seller mengajukan pencairan untuk pesanan ${order.order_id}`,
+            link: "/admin/keuangan",
+            time: new Date(),
+          });
+        }
+      }
+
+      return res.status(200).json({
+        message: `${orders.length} pesanan berhasil diajukan pencairannya sekaligus`,
+        count: orders.length,
+      });
+    } catch (err) {
+      console.error("bulkRequestDisbursement error:", err);
+      return res.status(500).json({ message: err.message, detail: err });
+    }
+  },
+
+  // PUT /orders/:order_id/disburse - Admin upload bukti transfer ke seller
+  disburseOrder: async (req, res) => {
+    try {
+      const { order_id } = req.params;
+      const { disbursement_proof, disbursement_notes, additional_fee } = req.body;
+
+      const order = await models.orders.findByPk(order_id);
+      if (!order) return res.status(404).json({ message: "Pesanan tidak ditemukan" });
+
+      // Guard: hanya proses jika order sudah dalam status pengajuan pencairan
+      if (!["completed", "disbursement_requested"].includes(order.status)) {
+        return res.status(400).json({ message: "Pesanan tidak dalam status yang valid untuk pencairan dana" });
+      }
+
+      // FIX: Update status ke 'disbursed' setelah admin mencairkan dana
+      await order.update({
+        status: "disbursed",
+        disbursement_proof: disbursement_proof || null,
+        disbursement_notes: disbursement_notes || null,
+        additional_fee: parseInt(additional_fee) || 0,
+        disbursed_at: new Date(),
+        updated_at: new Date(),
+      });
+
+      emitOrderUpdated(req, order);
+
+      // Emit Notification to Seller
+      const io = req.app.get("socketio");
+      if (io) {
+        io.to("admin_room").emit("order_updated_admin", { id: order.id, order_id: order.order_id, status: order.status });
+        const shop = await models.shops.findByPk(order.shop_id);
+        if (shop) {
+          // 1. Save to Database
+          await models.notifications.create({
+            user_id: shop.user_id,
+            type: "disbursement",
+            title: "Dana Dicairkan",
+            message: `Dana untuk pesanan ${order.order_id} telah dicairkan. Silakan cek riwayat transaksi.`,
+            link: "/user/toko/pengajuan-keuangan",
+            is_read: false,
+            created_at: new Date(),
+          });
+
+          // 2. Emit Real-time Socket
+          io.to(`user_${shop.user_id}`).emit("new_notification", {
+            type: "disbursement",
+            title: "Dana Dicairkan",
+            message: `Dana untuk pesanan ${order.order_id} telah dicairkan. Silakan cek riwayat transaksi.`,
+            link: "/user/toko/pengajuan-keuangan",
+            time: new Date(),
+          });
+        }
+      }
+
+      return res.status(200).json({
+        message: "Dana berhasil dicairkan ke seller",
+        data: order,
+      });
+    } catch (err) {
+      console.error("disburseOrder error:", err);
+      return res.status(500).json({ message: err.message, detail: err });
+    }
+  },
+
+  // POST /orders/bulk-disburse - Admin upload bukti transfer dan cairkan banyak pesanan sekaligus
+  bulkDisburseOrders: async (req, res) => {
+    try {
+      const { order_ids, disbursement_proof, disbursement_notes, additional_fee } = req.body;
+
+      if (!order_ids || !Array.isArray(order_ids) || order_ids.length === 0) {
+        return res.status(400).json({ message: "Daftar ID pesanan tidak boleh kosong" });
+      }
+
+      const { Op } = require("sequelize");
+      const orders = await models.orders.findAll({
+        where: {
+          id: order_ids,
+          status: ["completed", "disbursement_requested"],
+        },
+      });
+
+      if (orders.length === 0) {
+        return res.status(400).json({ message: "Tidak ada pesanan valid untuk dicairkan" });
+      }
+
+      // Update status ke 'disbursed' untuk semua pesanan terpilih
+      await models.orders.update(
+        {
+          status: "disbursed",
+          disbursement_proof: disbursement_proof || null,
+          disbursement_notes: disbursement_notes || null,
+          additional_fee: parseInt(additional_fee) || 0,
+          disbursed_at: new Date(),
+          updated_at: new Date(),
+        },
+        {
+          where: {
+            id: orders.map((o) => o.id),
+          },
+        },
+      );
+
+      // Emit Notifications
+      const io = req.app.get("socketio");
+      if (io) {
+        io.to("admin_room").emit("order_updated_admin", { status: "disbursed" });
+
+        for (const order of orders) {
+          order.status = "disbursed";
+          emitOrderUpdated(req, order);
+
+          const shop = await models.shops.findByPk(order.shop_id);
+          if (shop) {
+            // 1. Save to Database
+            await models.notifications.create({
+              user_id: shop.user_id,
+              type: "disbursement",
+              title: "Dana Dicairkan",
+              message: `Dana untuk pesanan ${order.order_id} telah dicairkan. Silakan cek riwayat transaksi.`,
+              link: "/user/toko/pengajuan-keuangan",
+              is_read: false,
+              created_at: new Date(),
+            });
+
+            // 2. Emit Real-time Socket
+            io.to(`user_${shop.user_id}`).emit("new_notification", {
+              type: "disbursement",
+              title: "Dana Dicairkan",
+              message: `Dana untuk pesanan ${order.order_id} telah dicairkan. Silakan cek riwayat transaksi.`,
+              link: "/user/toko/pengajuan-keuangan",
+              time: new Date(),
+            });
+          }
+        }
+      }
+
+      return res.status(200).json({
+        message: `${orders.length} pesanan berhasil dicairkan sekaligus`,
+        count: orders.length,
+      });
+    } catch (err) {
+      console.error("bulkDisburseOrders error:", err);
+      return res.status(500).json({ message: err.message, detail: err });
+    }
+  },
+
+  dismissCancellation: async (req, res) => {
+    try {
+      const { order_id } = req.params;
+
+      // Coba cari berdasarkan Primary Key dulu
+      let order = await models.orders.findByPk(order_id).catch(() => null);
+
+      // Jika tidak ketemu, coba cari berdasarkan nomor invoice (string)
+      if (!order) {
+        order = await models.orders.findOne({
+          where: { order_id: order_id },
+        });
+      }
+
+      if (!order) return res.status(404).json({ message: "Pesanan tidak ditemukan" });
+
+      await order.update({
+        status: "cancelled_dismissed",
+        updated_at: new Date(),
+      });
+
+      emitOrderUpdated(req, order);
+
+      // Fetch current stock to return to frontend for sync
+      let currentStock = null;
+      if (order.listing_id) {
+        const listing = await models.listings.findByPk(order.listing_id);
+        if (listing) currentStock = listing.stock;
+      }
+
+      return res.status(200).json({
+        message: "Pembatalan berhasil diabaikan",
+        currentStock: currentStock,
+      });
+    } catch (err) {
+      console.error("dismissCancellation error:", err);
+      return res.status(500).json({ message: err.message });
+    }
+  },
+
+  // GET /orders/refunds - Admin: Ambil semua pengajuan refund
+  getAllRefunds: async (req, res) => {
+    try {
+      const { Op } = require("sequelize");
+      const data = await models.orders.findAll({
+        where: {
+          status: "cancelled",
+          refund_status: { [Op.ne]: null },
+        },
+        include: [
+          {
+            model: models.listings,
+            as: "product",
+            attributes: ["id", "product_id", "name", "images", "type", "species", "price"],
+          },
+          {
+            model: models.order_items,
+            as: "items",
+            include: [
+              {
+                model: models.listings,
+                as: "product",
+                attributes: ["id", "product_id", "name", "images", "type", "species", "price"],
+              },
+            ],
+          },
+          {
+            model: models.shops,
+            as: "shop",
+            attributes: ["id", "name", "city", "logo_url", "user_id"],
+            include: [
+              {
+                model: models.users,
+                as: "owner",
+                attributes: ["id", "name", "username", "email"],
+              },
+            ],
+          },
+          {
+            model: models.users,
+            as: "user",
+            attributes: ["id", "username", "email", "phone", "avatar_url", "bank_accounts"],
+          },
+        ],
+        order: [
+          ["cancelled_at", "DESC"],
+          ["created_at", "DESC"],
+        ],
+      });
+
+      return res.status(200).json({
+        message: "Data refund berhasil diambil",
+        data,
+      });
+    } catch (err) {
+      console.error("getAllRefunds error:", err);
+      return res.status(500).json({ message: err.message });
+    }
+  },
+
+  // PUT /orders/:order_id/refund - Admin: Proses refund (kirim uang)
+  processRefund: async (req, res) => {
+    try {
+      const { order_id } = req.params;
+      const { refund_proof, image, refund_notes } = req.body;
+
+      const order = await models.orders.findByPk(order_id);
+      if (!order) return res.status(404).json({ message: "Pesanan tidak ditemukan" });
+
+      if (order.status !== "cancelled") {
+        return res.status(400).json({ message: "Pesanan tidak dalam status dibatalkan" });
+      }
+
+      let refundProofUrl = refund_proof || image || null;
+
+      // Handle direct file upload if present
+      if (req.files && (req.files.image || req.files.refund_proof)) {
+        const file = req.files.image || req.files.refund_proof;
+
+        // Validate size (Max 1MB)
+        if (file.size > 1 * 1024 * 1024) {
+          return res.status(400).json({ message: "Ukuran gambar bukti transfer tidak boleh melebihi 1MB" });
+        }
+
+        const path = require("path");
+        const fs = require("fs");
+        const { v4: uuidv4 } = require("uuid");
+
+        const uploadDir = path.join(__dirname, "../../public/uploads");
+        if (!fs.existsSync(uploadDir)) {
+          fs.mkdirSync(uploadDir, { recursive: true });
+        }
+
+        const ext = path.extname(file.name);
+        const filename = `${uuidv4()}${ext}`;
+        const uploadPath = path.join(uploadDir, filename);
+
+        await new Promise((resolve, reject) => {
+          file.mv(uploadPath, (err) => {
+            if (err) reject(err);
+            else resolve();
+          });
+        });
+
+        refundProofUrl = `/uploads/${filename}`;
+      }
+
+      if (!refundProofUrl) {
+        return res.status(400).json({ message: "Bukti transfer (Gambar) wajib diunggah!" });
+      }
+
+      await order.update({
+        refund_proof: refundProofUrl,
+        refund_notes: refund_notes || null,
+        refunded_at: new Date(),
+        refund_status: "refunded",
+        updated_at: new Date(),
+      });
+
+      emitOrderUpdated(req, order);
+
+      // Create notification for the buyer
+      try {
+        const title = "Refund Dana Berhasil";
+        const message = `Pengembalian dana untuk pesanan ${order.order_id} sebesar ${new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", minimumFractionDigits: 0 }).format(order.total_price)} telah berhasil diproses oleh Admin.`;
+        const newNotif = await models.notifications.create({
+          user_id: order.user_id,
+          type: "order_buyer",
+          title,
+          message,
+          link: `/user/pesanan/pengembalian-dana`,
+          created_at: new Date(),
+        });
+
+        const io = req.app.get("socketio");
+        if (io) {
+          io.to(`user_${order.user_id}`).emit("new_notification", {
+            id: newNotif.id,
+            type: "order_buyer",
+            title,
+            message,
+            link: newNotif.link,
+            time: newNotif.created_at,
+          });
+        }
+      } catch (notifErr) {
+        console.error("Failed to create refund completion notification:", notifErr);
+      }
+
+      return res.status(200).json({
+        message: "Pengembalian dana berhasil diproses",
+        data: order,
+      });
+    } catch (err) {
+      console.error("processRefund error:", err);
+      return res.status(500).json({ message: err.message });
+    }
+  },
+
+  // PUT /orders/:order_id/reject-refund - Admin: Tolak refund
+  rejectRefund: async (req, res) => {
+    try {
+      const { order_id } = req.params;
+      const { refund_notes } = req.body;
+
+      const order = await models.orders.findByPk(order_id);
+      if (!order) return res.status(404).json({ message: "Pesanan tidak ditemukan" });
+
+      if (order.status !== "cancelled") {
+        return res.status(400).json({ message: "Pesanan tidak dalam status dibatalkan" });
+      }
+
+      await order.update({
+        refund_notes: refund_notes || "Ditolak oleh admin",
+        refund_status: "rejected",
+        updated_at: new Date(),
+      });
+
+      emitOrderUpdated(req, order);
+
+      // Create notification for the buyer
+      try {
+        const title = "Refund Dana Ditolak";
+        const message = `Pengembalian dana untuk pesanan ${order.order_id} ditolak oleh Admin. Alasan: ${refund_notes || "-"}`;
+        const newNotif = await models.notifications.create({
+          user_id: order.user_id,
+          type: "order_buyer",
+          title,
+          message,
+          link: `/user/pesanan/pengembalian-dana`,
+          created_at: new Date(),
+        });
+
+        const io = req.app.get("socketio");
+        if (io) {
+          io.to(`user_${order.user_id}`).emit("new_notification", {
+            id: newNotif.id,
+            type: "order_buyer",
+            title,
+            message,
+            link: newNotif.link,
+            time: newNotif.created_at,
+          });
+        }
+      } catch (notifErr) {
+        console.error("Failed to create refund rejection notification:", notifErr);
+      }
+
+      return res.status(200).json({
+        message: "Pengembalian dana berhasil ditolak",
+        data: order,
+      });
+    } catch (err) {
+      console.error("rejectRefund error:", err);
+      return res.status(500).json({ message: err.message });
+    }
+  },
+
+  // PUT /orders/:order_id/request-refund - Buyer: Ajukan refund dengan detail rekening
+  requestRefund: async (req, res) => {
+    try {
+      const { order_id } = req.params;
+      const { bank_name, bank_account, bank_holder } = req.body;
+
+      const order = await models.orders.findByPk(order_id);
+      if (!order) return res.status(404).json({ message: "Pesanan tidak ditemukan" });
+
+      // Verify caller is the owner of the order
+      if (order.user_id !== req.user_data.id) {
+        return res.status(403).json({ message: "Anda tidak berwenang untuk mengajukan refund pada pesanan ini" });
+      }
+
+      if (order.status !== "cancelled") {
+        return res.status(400).json({ message: "Pesanan tidak dalam status dibatalkan" });
+      }
+
+      await order.update({
+        bank_name,
+        bank_account,
+        bank_holder,
+        refund_status: "pending",
+        updated_at: new Date(),
+      });
+
+      // Helper to emit update via socket if present
+      try {
+        const io = req.app.get("socketio");
+        if (io) {
+          // Notify admins
+          io.to("admin").emit("admin_notification", {
+            type: "refund_requested",
+            title: "Pengajuan Refund Baru",
+            message: `Pembeli mengajukan refund untuk pesanan ${order.order_id}`,
+            link: "/admin/pengembalian-dana",
+          });
+
+          // Also notify general admin room for transactions/orders update
+          io.emit("order_updated_admin", { id: order.id });
+        }
+      } catch (socketErr) {
+        console.error("requestRefund socket emit error:", socketErr);
+      }
+
+      return res.status(200).json({
+        message: "Pengajuan refund berhasil dikirim",
+        data: order,
+      });
+    } catch (err) {
+      console.error("requestRefund error:", err);
+      return res.status(500).json({ message: err.message });
+    }
+  },
+  // PUT /orders/:order_id/reset-refund-status - Admin: Reset refund status ke null (untuk testing/koreksi)
+  resetRefundStatus: async (req, res) => {
+    try {
+      const { order_id } = req.params;
+
+      // Cari berdasarkan UUID atau order_id string
+      let order = await models.orders.findByPk(order_id).catch(() => null);
+      if (!order) {
+        order = await models.orders.findOne({ where: { order_id } });
+      }
+      if (!order) return res.status(404).json({ message: "Pesanan tidak ditemukan" });
+
+      await order.update({
+        refund_status: null,
+        bank_name: null,
+        bank_account: null,
+        bank_holder: null,
+        refund_proof: null,
+        refund_notes: null,
+        refunded_at: null,
+        updated_at: new Date(),
+      });
+
+      return res.status(200).json({
+        message: "Status refund berhasil direset ke tahap awal",
+        data: {
+          id: order.id,
+          order_id: order.order_id,
+          status: order.status,
+          refund_status: order.refund_status,
+        },
+      });
+    } catch (err) {
+      console.error("resetRefundStatus error:", err);
+      return res.status(500).json({ message: err.message });
+    }
+  },
 };
 
 module.exports = OrdersController;

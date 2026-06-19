@@ -30,6 +30,38 @@ export default function InputShippingCostPage({ params }) {
   const [order, setOrder] = useState(null);
   const [loading, setLoading] = useState(true);
   const [isUpdatingCost, setIsUpdatingCost] = useState(false);
+  const [activeAdminFee, setActiveAdminFee] = useState(5000);
+
+  useEffect(() => {
+    let active = true;
+    const fetchAdminFee = async () => {
+      try {
+        const res = await fetch(`${getApiUrl()}/settings/admin-fee`);
+        if (res.ok) {
+          const result = await res.json();
+          if (result.success && typeof result.adminFee === "number" && active) {
+            setActiveAdminFee(result.adminFee);
+          }
+        }
+      } catch (err) {
+        console.error("Error fetching admin fee settings:", err);
+      }
+    };
+    fetchAdminFee();
+
+    const handleAdminFeeUpdated = (e) => {
+      if (typeof e.detail === "number" && active) {
+        setActiveAdminFee(e.detail);
+      }
+    };
+    window.addEventListener("admin_fee_updated", handleAdminFeeUpdated);
+
+    return () => {
+      active = false;
+      window.removeEventListener("admin_fee_updated", handleAdminFeeUpdated);
+    };
+  }, []);
+
   const [modalConfig, setModalConfig] = useState({
     isOpen: false,
     type: "success",
@@ -150,7 +182,7 @@ export default function InputShippingCostPage({ params }) {
       isOpen: true,
       type: "save",
       title: "Kirim Invoice?",
-      message: `Kirim rincian biaya ke pembeli? Total tagihan akan menjadi ${formatPrice((order.items && order.items.length > 0 ? order.items.reduce((sum, item) => sum + Number(item.price) * (item.quantity || 1), 0) : Number(order.price) * Number(order.quantity)) + rawShippingCost + rawPackingCost + (Number(order.admin_fee) || 5000))}.`,
+      message: `Kirim rincian biaya ke pembeli? Total tagihan akan menjadi ${formatPrice((order.items && order.items.length > 0 ? order.items.reduce((sum, item) => sum + Number(item.price) * (item.quantity || 1), 0) : Number(order.price) * Number(order.quantity)) + rawShippingCost + rawPackingCost + (order.admin_fee !== undefined && order.admin_fee !== null ? Number(order.admin_fee) : activeAdminFee))}.`,
       confirmText: "Ya, Kirim Sekarang",
       cancelText: "Periksa Lagi",
       onConfirm: () => processUpdateCost(rawShippingCost, rawPackingCost),
@@ -331,7 +363,7 @@ export default function InputShippingCostPage({ params }) {
                   </div>
                   <div className="flex justify-between items-center text-sm border-b border-zinc-800/50 pb-4">
                     <span className="text-zinc-500 font-bold">Biaya Admin</span>
-                    <span className="text-white font-black">{formatPrice(order.admin_fee || 5000)}</span>
+                    <span className="text-white font-black">{formatPrice(order.admin_fee !== undefined && order.admin_fee !== null ? order.admin_fee : activeAdminFee)}</span>
                   </div>
                   <div className="flex justify-between items-center pt-2">
                     <div className="space-y-1">
@@ -344,7 +376,7 @@ export default function InputShippingCostPage({ params }) {
                           (order.items && order.items.length > 0 ? order.items.reduce((sum, item) => sum + Number(item.price) * (item.quantity || 1), 0) : Number(order.price) * Number(order.quantity)) +
                             (parseInt(costForm.shipping_cost.toString().replace(/\D/g, "")) || 0) +
                             (parseInt(costForm.packing_cost.toString().replace(/\D/g, "")) || 0) +
-                            (Number(order.admin_fee) || 5000),
+                            (order.admin_fee !== undefined && order.admin_fee !== null ? Number(order.admin_fee) : activeAdminFee),
                         )}
                       </p>
                     </div>
@@ -435,7 +467,7 @@ export default function InputShippingCostPage({ params }) {
               </div>
               <div className="p-4 bg-amber-500/5 border border-dashed border-amber-500/20 rounded-2xl flex gap-3">
                 <AlertCircle size={18} className="text-amber-500 shrink-0 mt-0.5" />
-                <p className="text-[11px] text-amber-500/80 font-medium leading-relaxed italic">Pastikan Anda telah mengecek tarif kurir sesuai dengan dimensi & berat paket ke alamat tujuan di samping.</p>
+                <p className="text-[11px] text-amber-500/80 font-medium leading-relaxed italic">Pastikan Anda telah mengecek tarif kurir sesuai dengan dimensi & berat paket ke alamat tujuan</p>
               </div>
             </div>
           </div>

@@ -35,11 +35,12 @@ export default function AdminResetTokoDetailPage() {
     message: "",
   });
 
-  useEffect(() => {
-    if (shopId) {
-      fetchShopDetail();
-    }
-  }, [shopId]);
+  const showAlert = (message, type = "success") => {
+    setAlertInfo({ show: true, message, type });
+    setTimeout(() => {
+      setAlertInfo((prev) => ({ ...prev, show: false }));
+    }, 5000);
+  };
 
   const fetchShopDetail = async () => {
     try {
@@ -58,12 +59,13 @@ export default function AdminResetTokoDetailPage() {
     }
   };
 
-  const showAlert = (message, type = "success") => {
-    setAlertInfo({ show: true, message, type });
-    setTimeout(() => {
-      setAlertInfo((prev) => ({ ...prev, show: false }));
-    }, 5000);
-  };
+  useEffect(() => {
+    if (shopId) {
+      setTimeout(() => {
+        fetchShopDetail();
+      }, 0);
+    }
+  }, [shopId]);
 
   const toggleCheckbox = (field) => {
     setSelectedFields((prev) => ({

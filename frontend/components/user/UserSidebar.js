@@ -234,12 +234,20 @@ export default function UserSidebar() {
   };
 
   const fetchShopStatus = async (userId) => {
+    if (!userId || userId === "undefined" || userId === "null") {
+      console.warn("fetchShopStatus skipped: invalid userId:", userId);
+      setIsLoadingShop(false);
+      return;
+    }
     setIsLoadingShop(true);
     try {
       const url = `${getApiUrl()}/shops/user/${userId}`;
       const res = await fetch(url);
+      if (!res.ok) {
+        throw new Error(`HTTP error! status: ${res.status}`);
+      }
       const result = await res.json();
-      if (res.ok && result.data) {
+      if (result.data) {
         setShopStatus(result.data.status?.toLowerCase() || "active");
         setShopId(result.data.id);
         setShopLogo(result.data.logo_url);

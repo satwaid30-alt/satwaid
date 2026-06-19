@@ -1,6 +1,6 @@
 "use client";
 
-import { Tag, Trash2, Edit, Eye, Search, Plus, CheckCircle2, ChevronLeft, ChevronRight, ShoppingBag, AlertCircle, XCircle, Truck, ScrollText, RotateCcw, Clock } from "lucide-react";
+import { Tag, Trash2, Edit, Eye, Search, Plus, CheckCircle2, ChevronLeft, ChevronRight, ShoppingBag, AlertCircle, XCircle, Truck, ScrollText, RotateCcw, Clock, PackageCheck } from "lucide-react";
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import ActionModal from "@/components/ActionModal";
@@ -251,10 +251,13 @@ export default function DaftarJualanPage() {
     let status = item.status?.toLowerCase() || "active";
 
     if (item.type === "auction") {
+      // Pending auctions should always remain "pending" regardless of dates
+      if (status === "pending") return "pending";
+
       const now = new Date();
       const startDate = item.start_date ? new Date(item.start_date) : null;
       const endDate = item.end_date ? new Date(item.end_date) : null;
-      const isEnded = status === "ended" || status === "sold" || (endDate && endDate <= now);
+      const isEnded = status === "ended" || status === "sold" || (status === "active" && endDate && endDate <= now);
 
       if (isEnded) {
         if (Number(item.bid_count) > 0) {
@@ -289,7 +292,8 @@ export default function DaftarJualanPage() {
 
     const effectiveStatus = getEffectiveStatus(item);
 
-    // Exclude completed or cancelled auctions from product list (already in dashboard)
+    // Exclude completed/dismissed auctions and sold items (they appear in dashboard/history)
+    if (effectiveStatus === "sold") return [];
     if (item.type === "auction" && ["auction_completed", "auction_cancelled_dismissed", "auction_cancelled_transaction"].includes(effectiveStatus)) {
       return [];
     }
@@ -297,14 +301,13 @@ export default function DaftarJualanPage() {
     let matchesStatus = false;
     if (filterStatus === "all") {
       matchesStatus = true;
-    } else if (filterStatus === "sold") {
-      matchesStatus = effectiveStatus === "sold";
     } else if (filterStatus === "rejected") {
       matchesStatus = ["rejected", "cancelled"].includes(effectiveStatus);
     } else if (filterStatus === "active") {
-      // 'active' filter: only show non-running auctions + non-auction actives
-      // auction_in_transaction & auction_waiting_checkout are post-auction, not "active"
-      matchesStatus = ["active", "proses_lelang", "auction_in_transaction", "auction_waiting_checkout"].includes(effectiveStatus);
+      // 'active' filter: show active + pending + all auction statuses that are still ongoing
+      matchesStatus = ["active", "pending", "proses_lelang", "auction_in_transaction", "auction_waiting_checkout", "auction_no_bids"].includes(effectiveStatus);
+    } else if (filterStatus === "pending") {
+      matchesStatus = effectiveStatus === "pending";
     } else {
       matchesStatus = effectiveStatus === filterStatus;
     }
@@ -435,7 +438,7 @@ export default function DaftarJualanPage() {
                 </div>
                 <div className="min-w-0">
                   <p className="text-[10px] sm:text-xs font-black text-zinc-400 uppercase tracking-widest leading-tight">Total Produk</p>
-                  <p className="text-[9px] text-zinc-600 font-bold mt-0.5">Seluruh iklan aktif & non-aktif</p>
+                  <p className="text-[9px] text-zinc-600 font-bold mt-0.5">Seluruh Produk aktif & non-aktif</p>
                 </div>
               </div>
             </div>
@@ -443,7 +446,7 @@ export default function DaftarJualanPage() {
               <div>
                 <div className="flex items-baseline gap-1.5">
                   <span className="text-2xl sm:text-3xl md:text-4xl font-black tabular-nums leading-none text-white">{listings.length}</span>
-                  <span className="text-zinc-600 font-bold text-xs sm:text-sm">iklan</span>
+                  <span className="text-zinc-600 font-bold text-xs sm:text-sm">Produk</span>
                 </div>
                 <p className="text-[9px] sm:text-[10px] text-zinc-600 font-bold mt-0.5 uppercase tracking-wider">Terdaftar di sistem</p>
               </div>
@@ -514,7 +517,6 @@ export default function DaftarJualanPage() {
               { id: "all", label: "Status: Semua" },
               { id: "active", label: "Aktif" },
               { id: "pending", label: "Pending" },
-              { id: "sold", label: "Terjual" },
               { id: "rejected", label: "Dibatalkan" },
             ].map((status) => (
               <button
@@ -547,7 +549,6 @@ export default function DaftarJualanPage() {
               <option value="all">Status: Semua</option>
               <option value="active">Aktif</option>
               <option value="pending">Pending</option>
-              <option value="sold">Terjual</option>
               <option value="rejected">Dibatalkan</option>
             </select>
           </div>
@@ -597,8 +598,20 @@ export default function DaftarJualanPage() {
                                 </>
                               )}
                             </div>
-                            <div className="flex items-center gap-2 mt-1">
+                            <div className="flex items-center gap-2 mt-1 flex-wrap">
                               <span className={`px-2 py-0.5 rounded text-[8px] font-black uppercase tracking-tighter border ${item.type === "sell" ? "bg-blue-500/10 text-blue-400 border-blue-500/20" : "bg-amber-500/10 text-amber-400 border-amber-500/20"}`}>{item.type === "sell" ? "Reguler" : "Lelang"}</span>
+                              {item.is_free_shipping && (
+                                <span className="flex items-center gap-1 px-2 py-0.5 rounded text-[8px] font-black uppercase tracking-tighter border bg-emerald-500/10 text-emerald-400 border-emerald-500/20">
+                                  <Truck size={8} />
+                                  Gratis Ongkir
+                                </span>
+                              )}
+                              {item.is_free_packing && (
+                                <span className="flex items-center gap-1 px-2 py-0.5 rounded text-[8px] font-black uppercase tracking-tighter border bg-violet-500/10 text-violet-400 border-violet-500/20">
+                                  <PackageCheck size={8} />
+                                  Gratis Packing
+                                </span>
+                              )}
                             </div>
                             {item.displayStatus === "rejected" && item.rejection_reason && (
                               <div className="flex items-start gap-1.5 mt-2 bg-red-500/5 border border-red-500/20 rounded-xl px-3 py-2 max-w-xs">
@@ -719,10 +732,26 @@ export default function DaftarJualanPage() {
                   </div>
                   <div className="flex-1 min-w-0">
                     <h3 className="text-sm font-black text-white line-clamp-1 mb-0.5">{item.name}</h3>
-                    <div className="flex items-center gap-2 mb-2">
+                    <div className="flex items-center gap-2 mb-1 flex-wrap">
                       <p className="text-[10px] font-bold text-emerald-500 uppercase tracking-widest">{item.species}</p>
                       {item.product_id && <p className="text-[9px] font-mono font-black text-zinc-500 bg-zinc-950 px-1.5 py-0.5 rounded border border-zinc-800">{item.product_id}</p>}
                     </div>
+                    {(item.is_free_shipping || item.is_free_packing) && (
+                      <div className="flex items-center gap-1.5 flex-wrap mb-2">
+                        {item.is_free_shipping && (
+                          <span className="flex items-center gap-1 px-2 py-0.5 rounded text-[8px] font-black uppercase tracking-tighter border bg-emerald-500/10 text-emerald-400 border-emerald-500/20">
+                            <Truck size={8} />
+                            Gratis Ongkir
+                          </span>
+                        )}
+                        {item.is_free_packing && (
+                          <span className="flex items-center gap-1 px-2 py-0.5 rounded text-[8px] font-black uppercase tracking-tighter border bg-violet-500/10 text-violet-400 border-violet-500/20">
+                            <PackageCheck size={8} />
+                            Gratis Packing
+                          </span>
+                        )}
+                      </div>
+                    )}
                     <div className="flex items-center justify-between gap-4">
                       <span className="text-xs font-black text-white">{formatPrice(item.type === "sell" ? item.price : item.current_bid || item.start_bid)}</span>
                       <div className="flex flex-col items-end shrink-0">
@@ -741,15 +770,6 @@ export default function DaftarJualanPage() {
                     </div>
                   </div>
                 )}
-                <div className="grid grid-cols-2 gap-3 pt-1">
-                  <div className="p-3 bg-zinc-950/40 border border-zinc-800/50 rounded-xl col-span-2">
-                    <p className="text-[8px] font-black text-zinc-500 uppercase tracking-widest mb-1 flex items-center gap-1">
-                      <ScrollText size={10} className={item.latestOrderId ? "text-emerald-500" : "text-zinc-500"} />
-                      Nomor Invoice
-                    </p>
-                    {item.latestOrderId ? <p className="text-[10px] font-black text-white font-mono">{item.latestOrderId}</p> : <p className="text-[10px] font-bold text-zinc-600 italic">Belum Terjual</p>}
-                  </div>
-                </div>
 
                 <div className="flex flex-wrap gap-2 pt-2">
                   <>

@@ -3,7 +3,8 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Bell, Home, Store, ChevronDown, User, LogOut, Settings, MessageSquare, ShoppingBag, Trash2, Package, CreditCard, Users, AlertTriangle } from "lucide-react";
+import { Bell, Home, Store, ChevronDown, User, LogOut, Settings, MessageSquare, ShoppingBag, Trash2, Package, CreditCard, Users, AlertTriangle, XCircle, List } from "lucide-react";
+
 import { io } from "socket.io-client";
 import { getApiUrl, getSocketUrl, getImageUrl, getLogoUrl } from "@/app/utils/api";
 
@@ -42,10 +43,17 @@ export default function UserNavbar() {
   };
 
   const fetchShopData = async (userId) => {
+    if (!userId || userId === "undefined" || userId === "null") {
+      console.warn("fetchShopData skipped: invalid userId:", userId);
+      return;
+    }
     try {
       const res = await fetch(`${getApiUrl()}/shops/user/${userId}`);
+      if (!res.ok) {
+        throw new Error(`HTTP error! status: ${res.status}`);
+      }
       const result = await res.json();
-      if (res.ok && result.data) {
+      if (result.data) {
         setShopLogo(result.data.logo_url);
         setShopStatus(result.data.status?.toLowerCase() || "active");
       } else {
@@ -120,6 +128,14 @@ export default function UserNavbar() {
 
     newSocket.on("new_notification", (data) => {
       handleSyncNotifs();
+    });
+
+    newSocket.on("admin_fee_updated", (data) => {
+      console.log("[Socket UserNavbar] Admin fee updated received:", data);
+      if (data && typeof data.adminFee === "number") {
+        const event = new CustomEvent("admin_fee_updated", { detail: data.adminFee });
+        window.dispatchEvent(event);
+      }
     });
 
     window.addEventListener("sync_notifications", handleSyncNotifs);
@@ -271,10 +287,12 @@ export default function UserNavbar() {
                     {notifications.map((notif) => {
                       let Icon = Bell;
                       let iconColor = "bg-zinc-800/80 text-zinc-400";
-
                       if (notif.type === "chat") {
                         Icon = MessageSquare;
                         iconColor = "bg-emerald-500/10 text-emerald-400";
+                      } else if (notif.type === "order_cancelled" || notif.type.includes("cancel") || notif.title.toLowerCase().includes("batal") || notif.message.toLowerCase().includes("batal")) {
+                        Icon = XCircle;
+                        iconColor = "bg-red-500/10 text-red-400";
                       } else if (notif.type === "disbursement") {
                         Icon = CreditCard;
                         iconColor = "bg-emerald-500/10 text-emerald-400";

@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import Sidebar from "../../components/Sidebar";
+import Navbar from "../../components/Navbar";
 
 export default function AdminLayout({ children }) {
   const [isLoading, setIsLoading] = useState(true);
@@ -50,14 +51,17 @@ export default function AdminLayout({ children }) {
   }
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-white flex">
+    <div className="min-h-screen bg-zinc-950 text-white flex overflow-hidden">
       <Sidebar />
-      <main className="flex-1 p-8 overflow-y-auto flex flex-col">
-        <div className="flex-1 w-full">{children}</div>
-        <footer className="mt-20 py-8 border-t border-zinc-800 text-center">
-          <p className="text-zinc-500 text-sm font-bold tracking-widest uppercase">© 2026 SatwaiD ADMIN PANEL. HAK CIPTA DILINDUNGI.</p>
-        </footer>
-      </main>
+      <div className="flex-1 flex flex-col h-screen overflow-hidden">
+        <Navbar />
+        <main className="flex-1 p-8 overflow-y-auto flex flex-col">
+          <div className="flex-1 w-full">{children}</div>
+          <footer className="mt-20 py-8 border-t border-zinc-800 text-center">
+            <p className="text-zinc-500 text-sm font-bold tracking-widest uppercase">© 2026 SatwaiD ADMIN PANEL. HAK CIPTA DILINDUNGI.</p>
+          </footer>
+        </main>
+      </div>
     </div>
   );
 }

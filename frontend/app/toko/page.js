@@ -6,7 +6,7 @@ import ProductCard from "../../components/ProductCard";
 import Link from "next/link";
 import { useState, useEffect, useMemo, useRef } from "react";
 import { io } from "socket.io-client";
-import { getApiUrl, getSocketUrl } from "@/app/utils/api";
+import { getApiUrl, getSocketUrl, getImageUrl } from "@/app/utils/api";
 import { MapPin, ShoppingBag, Store, Truck, Package, Zap, Search, ChevronRight, ChevronLeft, ArrowUpRight, MessageSquare, Gavel, Home } from "lucide-react";
 
 // Dummy data for products
@@ -226,8 +226,8 @@ export default function TokoPage() {
 
     return filteredAds.map((ad, idx) => ({
       id: ad.id || `ad-${idx}`,
-      image_url: ad.image_url.startsWith("http") ? ad.image_url : `${getApiUrl()}${ad.image_url}`,
-      mobile_image_url: ad.mobile_image_url ? (ad.mobile_image_url.startsWith("http") ? ad.mobile_image_url : `${getApiUrl()}${ad.mobile_image_url}`) : null,
+      image_url: getImageUrl(ad.image_url),
+      mobile_image_url: ad.mobile_image_url ? getImageUrl(ad.mobile_image_url) : null,
       link_url: ad.link_url || "#",
       badge: ad.badge || "",
       title: ad.title || "",
@@ -378,18 +378,17 @@ export default function TokoPage() {
         {/* Promo Banner Image Carousel for Mobile (Visible on mobile only, at the top) */}
         {slides.length > 0 && (
           <div className="block md:hidden mb-6 px-1">
-            <div onTouchStart={handleTouchStart} onTouchMove={handleTouchMove} onTouchEnd={handleTouchEnd} className="relative rounded-2xl overflow-hidden bg-zinc-900 text-white aspect-[2.1/1] min-h-[140px] flex items-center group shadow-md border border-zinc-100/10">
+            <div onTouchStart={handleTouchStart} onTouchMove={handleTouchMove} onTouchEnd={handleTouchEnd} className="relative rounded-2xl overflow-hidden text-white aspect-[2.1/1] min-h-[140px] flex items-center group shadow-md border border-zinc-100/10">
               {slides.map((slide, idx) => {
                 const isActive = idx === activeAdIndex;
                 return (
                   <div key={slide.id} className={`absolute inset-0 w-full h-full transition-all duration-1000 ease-out flex items-center p-4 ${isActive ? "opacity-100 scale-100 pointer-events-auto z-10" : "opacity-0 scale-105 pointer-events-none z-0"}`}>
                     <img src={slide.mobile_image_url || slide.image_url} alt={slide.title} className="absolute inset-0 w-full h-full object-cover" />
-                    <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/40 to-transparent" />
 
                     <div className="relative z-20 w-full text-left">
                       {slide.badge && <span className="inline-flex items-center bg-emerald-500/25 border border-emerald-500/30 text-emerald-300 px-2 py-0.5 rounded-lg text-[8px] font-black tracking-wider mb-1">{slide.badge}</span>}
                       {slide.title && <h2 className="text-xs sm:text-sm font-black mb-0.5 leading-tight text-white">{slide.title}</h2>}
-                      {slide.description && <p className="text-zinc-300 text-[8px] sm:text-[10px] max-w-[70%] opacity-90 leading-normal line-clamp-1 mb-1.5">{slide.description}</p>}
+                      {slide.description && <p className="text-zinc-300 text-[8px] sm:text-[10px] max-w-[70%] leading-normal line-clamp-1 mb-1.5">{slide.description}</p>}
                       {slide.buttonText && (
                         <Link href={slide.link_url} className="inline-flex items-center gap-1 bg-white hover:bg-zinc-100 text-zinc-900 font-bold px-2.5 py-1 rounded-lg text-[8px] transition-all duration-300 shadow-sm">
                           {slide.buttonText}

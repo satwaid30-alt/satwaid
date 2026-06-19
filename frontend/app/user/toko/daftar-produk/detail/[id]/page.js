@@ -4,7 +4,7 @@ import { useState, useEffect, use } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Tag, Trash2, Edit, ChevronLeft, ChevronRight, Truck, AlertCircle, CheckCircle2, XCircle, Calendar, ScrollText, ShoppingBag, History, Package, Globe, VenusAndMars, Clock, Gavel } from "lucide-react";
-import { getApiUrl } from "@/app/utils/api";
+import { getApiUrl, getImageUrl } from "@/app/utils/api";
 
 const isVideoUrl = (url) => {
   if (!url) return false;
@@ -42,23 +42,11 @@ export default function ListingDetailPage({ params }) {
     }
 
     const arr = Array.isArray(rawImages) ? rawImages : [rawImages];
-    return arr
-      .filter((img) => img && typeof img === "string")
-      .map((img) => {
-        if (img.startsWith("http") || img.startsWith("data:")) {
-          return img;
-        }
-        const baseUrl = getApiUrl();
-        const path = img.startsWith("/") ? img : `/${img}`;
-        return `${baseUrl}${path}`;
-      });
+    return arr.filter((img) => img && typeof img === "string").map((img) => getImageUrl(img));
   };
 
   const getAvatarUrl = (url) => {
-    if (!url) return null;
-    if (url.startsWith("http") || url.startsWith("data:")) return url;
-    const path = url.startsWith("/") ? url : `/${url}`;
-    return `${getApiUrl()}${path}`;
+    return getImageUrl(url);
   };
 
   const parsedImages = getParsedImages(listing?.images);
@@ -168,7 +156,7 @@ export default function ListingDetailPage({ params }) {
   if (!listing) return null;
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 lg:py-12 animate-in fade-in duration-700">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 lg:py-12">
       {/* Navigation Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-6">
         <Link href="/user/toko/daftar-produk" className="inline-flex items-center gap-3 text-zinc-500 hover:text-white transition-all group">
@@ -188,9 +176,9 @@ export default function ListingDetailPage({ params }) {
                 </div> */}
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12">
-        <div className="lg:col-span-5 space-y-4 lg:space-y-6">
-          <div className="bg-zinc-900 border border-zinc-800 rounded-3xl lg:rounded-[2.5rem] overflow-hidden relative">
+      <div className="flex flex-col lg:flex-row gap-8 lg:gap-12 items-start">
+        <div className="w-full lg:w-[42%] space-y-4 lg:space-y-6 lg:sticky lg:top-24 shrink-0">
+          <div className="bg-zinc-900 border border-zinc-800 rounded-3xl lg:rounded-[2.5rem] overflow-hidden relative animate-in fade-in duration-700">
             <div className="w-full aspect-square bg-zinc-950 relative group cursor-zoom-in">
               {parsedImages && parsedImages[activeImageIndex] ? (
                 isVideoUrl(parsedImages[activeImageIndex]) ? (
@@ -229,11 +217,7 @@ export default function ListingDetailPage({ params }) {
               <div className="p-4 lg:p-6 bg-zinc-950/30 border-t border-zinc-800 flex gap-3 lg:gap-4 overflow-x-auto custom-scrollbar">
                 {parsedImages?.map((img, idx) => (
                   <button key={idx} onClick={() => setActiveImageIndex(idx)} className={`w-16 h-16 lg:w-20 lg:h-20 rounded-xl lg:rounded-2xl overflow-hidden border-2 shrink-0 transition-all duration-300 ${activeImageIndex === idx ? "border-emerald-500 scale-105" : "border-zinc-800 opacity-40 hover:opacity-100"}`}>
-                    {isVideoUrl(img) ? (
-                      <video src={img} className="w-full h-full object-cover" />
-                    ) : (
-                      <img src={img} className="w-full h-full object-cover" />
-                    )}
+                    {isVideoUrl(img) ? <video src={img} className="w-full h-full object-cover" /> : <img src={img} className="w-full h-full object-cover" />}
                   </button>
                 ))}
               </div>
@@ -242,7 +226,7 @@ export default function ListingDetailPage({ params }) {
         </div>
 
         {/* RIGHT: Info Section */}
-        <div className="lg:col-span-7 space-y-6 lg:space-y-8">
+        <div className="flex-1 space-y-6 lg:space-y-8 min-w-0 animate-in fade-in duration-700">
           {/* Basic Info & Price */}
           <div className="bg-zinc-900 border border-zinc-800 rounded-3xl lg:rounded-[2.5rem] p-6 lg:p-12 relative overflow-hidden group">
             <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-500/5 blur-[100px] -mr-32 -mt-32 group-hover:bg-emerald-500/10 transition-colors duration-700"></div>
@@ -400,7 +384,7 @@ export default function ListingDetailPage({ params }) {
                 <div className="p-4 lg:p-5 bg-zinc-950/40 border border-zinc-800/60 rounded-2xl lg:rounded-3xl group/spec hover:border-emerald-500/30 transition-all duration-300">
                   <Clock size={16} className="text-emerald-500 mb-2 lg:mb-3 group-hover/spec:scale-110 transition-transform" />
                   <p className="text-[9px] font-black text-zinc-600 uppercase tracking-widest mb-1">Posting</p>
-                  <p className="text-xs lg:text-sm font-black text-zinc-200">{new Date(listing.created_at).toLocaleDateString("id-ID", { day: "numeric", month: "short" })}</p>
+                  <p className="text-xs lg:text-sm font-black text-zinc-200">{new Date(listing.created_at).toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" })}</p>
                 </div>
               </div>
 
@@ -447,7 +431,7 @@ export default function ListingDetailPage({ params }) {
                 <div className="w-10 h-10 lg:w-12 lg:h-12 bg-zinc-950 border border-zinc-800 rounded-xl lg:rounded-2xl flex items-center justify-center text-amber-500 group-hover:border-amber-500/30 transition-colors">
                   <Truck size={22} />
                 </div>
-                <h3 className="text-lg lg:text-xl font-black text-white tracking-tight uppercase tracking-[0.2em]">Info Pengiriman</h3>
+                <h3 className="text-lg lg:text-xl font-black text-white tracking-tight uppercase tracking-[0.2em]">Info Pengiriman & Garansi</h3>
                 <div className="flex-1 h-px bg-zinc-800/50"></div>
               </div>
 

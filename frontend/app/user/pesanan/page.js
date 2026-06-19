@@ -21,6 +21,37 @@ export default function PesananPage() {
   const [orders, setOrders] = useState([]);
   const [cartItems, setCartItems] = useState([]);
   const [isProcessingCart, setIsProcessingCart] = useState(false);
+  const [activeAdminFee, setActiveAdminFee] = useState(5000);
+
+  useEffect(() => {
+    let active = true;
+    const fetchAdminFee = async () => {
+      try {
+        const res = await fetch(`${getApiUrl()}/settings/admin-fee`);
+        if (res.ok) {
+          const result = await res.json();
+          if (result.success && typeof result.adminFee === "number" && active) {
+            setActiveAdminFee(result.adminFee);
+          }
+        }
+      } catch (err) {
+        console.error("Error fetching admin fee settings:", err);
+      }
+    };
+    fetchAdminFee();
+
+    const handleAdminFeeUpdated = (e) => {
+      if (typeof e.detail === "number" && active) {
+        setActiveAdminFee(e.detail);
+      }
+    };
+    window.addEventListener("admin_fee_updated", handleAdminFeeUpdated);
+
+    return () => {
+      active = false;
+      window.removeEventListener("admin_fee_updated", handleAdminFeeUpdated);
+    };
+  }, []);
 
   // Global Action Modal State
   const [actionModal, setActionModal] = useState({
@@ -995,7 +1026,9 @@ export default function PesananPage() {
                                 <span className="text-[9px] font-black text-zinc-500 uppercase tracking-wider">Total Tagihan</span>
                                 <div className="flex flex-col items-end gap-1">
                                   <p className="text-xl font-black text-white whitespace-nowrap">{formatPrice(order.total_price)}</p>
-                                  <span className="text-[9px] text-zinc-400 font-bold leading-normal bg-zinc-950/40 py-1 rounded-xl border border-zinc-800/20 whitespace-nowrap">(termasuk biaya admin Rp 5.000)</span>
+                                  <span className="text-[9px] text-zinc-400 font-bold leading-normal bg-zinc-950/40 py-1 rounded-xl border border-zinc-800/20 whitespace-nowrap">
+                                    (termasuk biaya admin {formatPrice(order.admin_fee !== undefined && order.admin_fee !== null ? order.admin_fee : activeAdminFee)})
+                                  </span>
                                 </div>
                                 <div className="flex items-center justify-end gap-1.5 text-zinc-500 text-[10px] font-bold pt-1">
                                   <span>{order.items && order.items.length > 0 ? order.items.reduce((sum, i) => sum + (i.quantity || 1), 0) : order.quantity} Item</span>

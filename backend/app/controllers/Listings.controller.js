@@ -3,6 +3,29 @@ const initModels = require('../database/init');
 const sequelize = new Sequelize(process.env.DATABASE_URL);
 var models = initModels(sequelize);
 
+const fs = require('fs');
+const path = require('path');
+
+const getAdminFee = () => {
+  if (global.adminFeeCache !== undefined && global.adminFeeCache !== null) {
+    return global.adminFeeCache;
+  }
+  try {
+    const filePath = path.join(__dirname, '../config/settings.json');
+    if (fs.existsSync(filePath)) {
+      const data = JSON.parse(fs.readFileSync(filePath, 'utf8'));
+      if (data && data.admin_fee !== undefined) {
+        global.adminFeeCache = Number(data.admin_fee);
+        return global.adminFeeCache;
+      }
+    }
+  } catch (e) {
+    console.error('Error reading admin fee in ListingsController:', e);
+  }
+  return 5000;
+};
+
+
 const ListingsController = {
     // 1. Create (POST)
     createListing: async (req, res) => {
@@ -521,7 +544,7 @@ const ListingsController = {
                                         String(now.getMonth() + 1).padStart(2, '0') +
                                         String(now.getDate()).padStart(2, '0');
                                     const orderId = `INV/${dateStr}/RH/${uid.rnd()}`;
-                                    const ADMIN_FEE = 5000;
+                                    const ADMIN_FEE = getAdminFee();
 
                                     const productPrice = Number(highestBid.bid_amount);
                                     const totalPrice = productPrice + ADMIN_FEE;

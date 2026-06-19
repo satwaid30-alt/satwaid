@@ -25,9 +25,12 @@ export default function AdminResetProfilPage() {
 
   const [isResetting, setIsResetting] = useState(false);
 
-  useEffect(() => {
-    fetchUsers();
-  }, []);
+  const showAlert = (message, type = "success") => {
+    setAlertInfo({ show: true, message, type });
+    setTimeout(() => {
+      setAlertInfo((prev) => ({ ...prev, show: false }));
+    }, 5000);
+  };
 
   const fetchUsers = async () => {
     try {
@@ -51,12 +54,11 @@ export default function AdminResetProfilPage() {
     }
   };
 
-  const showAlert = (message, type = "success") => {
-    setAlertInfo({ show: true, message, type });
+  useEffect(() => {
     setTimeout(() => {
-      setAlertInfo((prev) => ({ ...prev, show: false }));
-    }, 5000);
-  };
+      fetchUsers();
+    }, 0);
+  }, []);
 
   const isProfileComplete = (user) => {
     return !!(

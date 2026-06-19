@@ -25,7 +25,11 @@ export default function FloatingChatButton() {
     const userRaw = localStorage.getItem("user");
     if (userRaw) {
       const userData = JSON.parse(userRaw);
-      setUser(userData);
+      
+      // Defer state update to avoid synchronous cascading renders
+      setTimeout(() => {
+        setUser(userData);
+      }, 0);
 
       // Socket for real-time notification dot
       const token = localStorage.getItem("token");

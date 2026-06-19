@@ -54,11 +54,7 @@ const ActionModal = ({
       button: "bg-blue-500 hover:bg-blue-400 text-white shadow-blue-500/20",
     },
     save: {
-      icon: <Save size={40} />,
-      color: "emerald",
-      bg: "bg-[emerald-500/10]",
       text: "text-emerald-500",
-      border: "border-[#2563EB]",
       button: "bg-[#2563EB] hover:bg-[#1D4ED8] text-[#FFFFFF]",
     },
     edit: {
@@ -96,9 +92,6 @@ const ActionModal = ({
         )}
 
         <div className="p-10 text-center space-y-8">
-          {/* Icon Section */}
-          <div className={`w-20 h-20 ${config.bg} ${config.text} rounded-3xl flex items-center justify-center mx-auto shadow-inner border ${config.border}`}>{config.icon}</div>
-
           {/* Text Section */}
           <div className="space-y-3">
             <h3 className="text-2xl font-black text-white uppercase tracking-tight">{title}</h3>

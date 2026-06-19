@@ -72,12 +72,20 @@ export default function StoreStatisticsPage() {
   }, [shop?.id]);
 
   const fetchShop = async (userId) => {
+    if (!userId || userId === "undefined" || userId === "null") {
+      console.warn("fetchShop skipped: invalid userId:", userId);
+      setIsLoading(false);
+      return;
+    }
     try {
       const response = await fetch(
         `${getApiUrl()}/shops/user/${userId}`
       );
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
       const result = await response.json();
-      if (response.ok && result.data) {
+      if (result.data) {
         setShop(result.data);
         setHasShop(true);
         await Promise.all([
@@ -95,28 +103,38 @@ export default function StoreStatisticsPage() {
   };
 
   const fetchShopOrders = async (shopId) => {
+    if (!shopId || shopId === "undefined" || shopId === "null") {
+      console.warn("fetchShopOrders skipped: invalid shopId:", shopId);
+      return;
+    }
     try {
       const response = await fetch(
         `${getApiUrl()}/orders/shop/${shopId}`
       );
-      const result = await response.json();
-      if (response.ok) {
-        setOrders(result.data || []);
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
       }
+      const result = await response.json();
+      setOrders(result.data || []);
     } catch (err) {
       console.error("Error fetching orders:", err);
     }
   };
 
   const fetchShopListings = async (shopId) => {
+    if (!shopId || shopId === "undefined" || shopId === "null") {
+      console.warn("fetchShopListings skipped: invalid shopId:", shopId);
+      return;
+    }
     try {
       const response = await fetch(
         `${getApiUrl()}/listings/shop/${shopId}`
       );
-      const result = await response.json();
-      if (response.ok) {
-        setListings(result.data || []);
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
       }
+      const result = await response.json();
+      setListings(result.data || []);
     } catch (err) {
       console.error("Error fetching listings:", err);
     }

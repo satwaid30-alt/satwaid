@@ -102,7 +102,9 @@ export default function AdminRefundPage() {
   };
 
   useEffect(() => {
-    fetchRefunds();
+    setTimeout(() => {
+      fetchRefunds();
+    }, 0);
 
     // Setup Socket.io for Real-time Updates
     let socket;
@@ -350,7 +352,7 @@ export default function AdminRefundPage() {
                     <div style="font-size:11px;color:#9ca3af;margin-top:2px;font-weight:600;">Kategori: ${printRefund.product?.species || "-"}</div>
                   </td>
                   <td style="padding:16px 20px;text-align:center;font-weight:700;color:#374151;">${printRefund.quantity || 1}</td>
-                  <td style="padding:16px 20px;text-align:right;font-weight:800;color:#111827;">${priceStr(printRefund.total_price)}</td>
+                  <td style="padding:16px 20px;text-align:right;font-weight:800;color:#111827;">${priceStr(printRefund.price * (printRefund.quantity || 1))}</td>
                 </tr>
               </tbody>
             </table>
@@ -358,10 +360,22 @@ export default function AdminRefundPage() {
 
           <!-- Cost Breakdown -->
           <div style="margin-bottom:32px;display:flex;justify-content:flex-end;">
-            <div style="width:320px;background:#f9fafb;border-radius:16px;overflow:hidden;border:1px solid #e5e7eb;">
-              <div style="display:flex;justify-content:space-between;padding:14px 20px;border-bottom:1px solid #e5e7eb;">
-                <span style="font-size:12px;color:#6b7280;font-weight:600;">Nominal Pesanan</span>
-                <span style="font-size:12px;font-weight:700;color:#374151;">${priceStr(printRefund.total_price)}</span>
+            <div style="width:340px;background:#f9fafb;border-radius:16px;overflow:hidden;border:1px solid #e5e7eb;">
+              <div style="display:flex;justify-content:space-between;padding:12px 14px;border-bottom:1px solid #e5e7eb;">
+                <span style="font-size:12px;color:#6b7280;font-weight:600;">Subtotal Produk</span>
+                <span style="font-size:12px;font-weight:700;color:#374151;">${priceStr(printRefund.price * (printRefund.quantity || 1))}</span>
+              </div>
+              <div style="display:flex;justify-content:space-between;padding:12px 14px;border-bottom:1px solid #e5e7eb;">
+                <span style="font-size:12px;color:#6b7280;font-weight:600;">Ongkos Kirim</span>
+                <span style="font-size:12px;font-weight:700;color:#374151;">${priceStr(printRefund.shipping_cost || 0)}</span>
+              </div>
+              <div style="display:flex;justify-content:space-between;padding:12px 14px;border-bottom:1px solid #e5e7eb;">
+                <span style="font-size:12px;color:#6b7280;font-weight:600;">Biaya Packing</span>
+                <span style="font-size:12px;font-weight:700;color:#374151;">${priceStr(printRefund.packing_cost || 0)}</span>
+              </div>
+              <div style="display:flex;justify-content:space-between;padding:12px 14px;border-bottom:1px solid #e5e7eb;">
+                <span style="font-size:12px;color:#6b7280;font-weight:600;">Biaya Admin</span>
+                <span style="font-size:12px;font-weight:700;color:#374151;">${priceStr(printRefund.admin_fee || 5000)}</span>
               </div>
               <div style="display:flex;justify-content:space-between;padding:16px 20px;background:#ecfdf5;border-top:2px solid #6ee7b7;">
                 <span style="font-size:13px;color:#065f46;font-weight:800;text-transform:uppercase;letter-spacing:0.05em;">Total Dikembalikan</span>
@@ -602,9 +616,14 @@ export default function AdminRefundPage() {
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
   const currentItems = filteredRefunds.slice(indexOfFirstItem, indexOfLastItem);
 
-  useEffect(() => {
+  const [prevFilterStatus, setPrevFilterStatus] = useState(filterStatus);
+  const [prevSearchQuery, setPrevSearchQuery] = useState(searchQuery);
+
+  if (filterStatus !== prevFilterStatus || searchQuery !== prevSearchQuery) {
+    setPrevFilterStatus(filterStatus);
+    setPrevSearchQuery(searchQuery);
     setCurrentPage(1);
-  }, [filterStatus, searchQuery]);
+  }
 
   if (loading) {
     return (
@@ -692,6 +711,7 @@ export default function AdminRefundPage() {
                 <th className="px-6 py-5 text-[10px] font-black text-zinc-500 uppercase tracking-widest">Produk & Toko</th>
                 <th className="px-6 py-5 text-[10px] font-black text-zinc-500 uppercase tracking-widest">Pembeli</th>
                 <th className="px-6 py-5 text-[10px] font-black text-zinc-500 uppercase tracking-widest">Rekening Refund</th>
+                <th className="px-6 py-5 text-[10px] font-black text-zinc-500 uppercase tracking-widest">Tanggal Refund</th>
                 <th className="px-6 py-5 text-[10px] font-black text-zinc-500 uppercase tracking-widest text-right">Nominal</th>
                 <th className="px-6 py-5 text-[10px] font-black text-zinc-500 uppercase tracking-widest text-center">Bukti Bayar</th>
                 <th className="px-6 py-5 text-[10px] font-black text-zinc-500 uppercase tracking-widest text-center">Status</th>
@@ -765,6 +785,16 @@ export default function AdminRefundPage() {
                           </div>
                         )}
                       </td>
+                      <td className="px-6 py-6 whitespace-nowrap">
+                        {isRefunded && (refund.refunded_at || refund.updated_at) ? (
+                          <div className="space-y-1">
+                            <span className="text-xs font-black text-white">{formatDate(refund.refunded_at || refund.updated_at)}</span>
+                            <p className="text-[9px] font-bold text-zinc-500">Pukul {new Date(refund.refunded_at || refund.updated_at).toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" })}</p>
+                          </div>
+                        ) : (
+                          <span className="text-xs font-bold text-zinc-600">-</span>
+                        )}
+                      </td>
                       <td className="px-6 py-6 text-right">
                         <span className="text-sm font-black text-white">{formatPrice(refund.total_price)}</span>
                       </td>
@@ -805,9 +835,14 @@ export default function AdminRefundPage() {
                                 Tolak
                               </button>
                             </div>
-                            <button type="button" onClick={() => setPrintRefund(refund)} className="inline-flex items-center gap-1.5 px-2.5 py-1.5 bg-zinc-900 border border-zinc-800 hover:border-zinc-700 text-zinc-400 hover:text-white rounded-lg text-[9px] font-black uppercase tracking-widest transition-all active:scale-95">
-                              <Receipt size={10} /> Unduh Invoice
-                            </button>
+                            <div className="flex items-center gap-1.5 justify-center">
+                              <Link href={`/admin/pengembalian-dana/detail/${refund.id}`} className="inline-flex items-center gap-1 px-2.5 py-1.5 bg-zinc-900 border border-zinc-800 hover:border-zinc-700 text-zinc-400 hover:text-white rounded-lg text-[9px] font-black uppercase tracking-widest transition-all active:scale-95">
+                                <Eye size={10} /> Detail
+                              </Link>
+                              <button type="button" onClick={() => setPrintRefund(refund)} className="inline-flex items-center gap-1.5 px-2.5 py-1.5 bg-zinc-900 border border-zinc-800 hover:border-zinc-700 text-zinc-400 hover:text-white rounded-lg text-[9px] font-black uppercase tracking-widest transition-all active:scale-95">
+                                <Receipt size={10} /> Invoice
+                              </button>
+                            </div>
                           </div>
                         ) : (
                           <div className="space-y-1.5 max-w-[150px] mx-auto flex flex-col items-center">
@@ -817,14 +852,19 @@ export default function AdminRefundPage() {
                                 Bukti Transfer <ExternalLink size={8} />
                               </button>
                             )}
-                            <button
-                              onClick={() => setPrintRefund(refund)}
-                              className={`inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all mt-1 active:scale-95 ${
-                                isRefunded ? "bg-emerald-500 hover:bg-emerald-400 text-zinc-950 shadow-md shadow-emerald-500/10" : "bg-zinc-900 border border-zinc-800 hover:border-zinc-700 text-zinc-400 hover:text-white"
-                              }`}
-                            >
-                              <Receipt size={10} /> Unduh Invoice
-                            </button>
+                            <div className="flex items-center gap-1.5 justify-center mt-1">
+                              <Link href={`/admin/pengembalian-dana/detail/${refund.id}`} className="inline-flex items-center gap-1 px-2.5 py-1.5 bg-zinc-900 border border-zinc-800 hover:border-zinc-700 text-zinc-400 hover:text-white rounded-lg text-[9px] font-black uppercase tracking-widest transition-all active:scale-95">
+                                <Eye size={10} /> Detail
+                              </Link>
+                              <button
+                                onClick={() => setPrintRefund(refund)}
+                                className={`inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all active:scale-95 ${
+                                  isRefunded ? "bg-emerald-500 hover:bg-emerald-400 text-zinc-950 shadow-md shadow-emerald-500/10" : "bg-zinc-900 border border-zinc-800 hover:border-zinc-700 text-zinc-400 hover:text-white"
+                                }`}
+                              >
+                                <Receipt size={10} /> Invoice
+                              </button>
+                            </div>
                           </div>
                         )}
                       </td>
@@ -833,7 +873,7 @@ export default function AdminRefundPage() {
                 })
               ) : (
                 <tr>
-                  <td colSpan={9} className="px-6 py-20 text-center">
+                  <td colSpan={10} className="px-6 py-20 text-center">
                     <div className="max-w-md mx-auto space-y-4">
                       <div className="w-12 h-12 bg-zinc-900 border border-zinc-800 rounded-2xl flex items-center justify-center text-zinc-650 mx-auto">
                         <Wallet size={24} />
@@ -1272,7 +1312,7 @@ export default function AdminRefundPage() {
                             <div style={{ fontSize: "11px", color: "#9ca3af", marginTop: "2px", fontWeight: "600" }}>Kategori: {printRefund.product?.species || "-"}</div>
                           </td>
                           <td style={{ padding: "16px 20px", textAlign: "center", fontWeight: "700", color: "#374151" }}>{printRefund.quantity || 1}</td>
-                          <td style={{ padding: "16px 20px", textAlign: "right", fontWeight: "800", color: "#111827" }}>{formatPrice(printRefund.total_price)}</td>
+                          <td style={{ padding: "16px 20px", textAlign: "right", fontWeight: "800", color: "#111827" }}>{formatPrice(printRefund.price * (printRefund.quantity || 1))}</td>
                         </tr>
                       </tbody>
                     </table>
@@ -1280,10 +1320,22 @@ export default function AdminRefundPage() {
 
                   {/* Cost Breakdown */}
                   <div style={{ marginBottom: "32px", display: "flex", justifyContent: "flex-end" }}>
-                    <div style={{ width: "320px", background: "#f9fafb", borderRadius: "16px", overflow: "hidden", border: "1px solid #e5e7eb", height: "fit-content" }}>
-                      <div style={{ display: "flex", justifyContent: "space-between", padding: "14px 20px", borderBottom: "1px solid #e5e7eb" }}>
-                        <span style={{ fontSize: "12px", color: "#6b7280", fontWeight: "600" }}>Nominal Pesanan</span>
-                        <span style={{ fontSize: "12px", fontWeight: "700", color: "#374151" }}>{formatPrice(printRefund.total_price)}</span>
+                    <div style={{ width: "340px", background: "#f9fafb", borderRadius: "16px", overflow: "hidden", border: "1px solid #e5e7eb", height: "fit-content" }}>
+                      <div style={{ display: "flex", justifyContent: "space-between", padding: "12px 14px", borderBottom: "1px solid #e5e7eb" }}>
+                        <span style={{ fontSize: "12px", color: "#6b7280", fontWeight: "600" }}>Subtotal Produk</span>
+                        <span style={{ fontSize: "12px", fontWeight: "700", color: "#374151" }}>{formatPrice(printRefund.price * (printRefund.quantity || 1))}</span>
+                      </div>
+                      <div style={{ display: "flex", justifyContent: "space-between", padding: "12px 14px", borderBottom: "1px solid #e5e7eb" }}>
+                        <span style={{ fontSize: "12px", color: "#6b7280", fontWeight: "600" }}>Ongkos Kirim</span>
+                        <span style={{ fontSize: "12px", fontWeight: "700", color: "#374151" }}>{formatPrice(printRefund.shipping_cost || 0)}</span>
+                      </div>
+                      <div style={{ display: "flex", justifyContent: "space-between", padding: "12px 14px", borderBottom: "1px solid #e5e7eb" }}>
+                        <span style={{ fontSize: "12px", color: "#6b7280", fontWeight: "600" }}>Biaya Packing</span>
+                        <span style={{ fontSize: "12px", fontWeight: "700", color: "#374151" }}>{formatPrice(printRefund.packing_cost || 0)}</span>
+                      </div>
+                      <div style={{ display: "flex", justifyContent: "space-between", padding: "12px 14px", borderBottom: "1px solid #e5e7eb" }}>
+                        <span style={{ fontSize: "12px", color: "#6b7280", fontWeight: "600" }}>Biaya Admin</span>
+                        <span style={{ fontSize: "12px", fontWeight: "700", color: "#374151" }}>{formatPrice(printRefund.admin_fee || 5000)}</span>
                       </div>
                       <div style={{ display: "flex", justifyContent: "space-between", padding: "16px 20px", background: "#ecfdf5", borderTop: "2px solid #6ee7b7" }}>
                         <span style={{ fontSize: "13px", color: "#065f46", fontWeight: "800", textTransform: "uppercase", letterSpacing: "0.05em" }}>Total Dikembalikan</span>

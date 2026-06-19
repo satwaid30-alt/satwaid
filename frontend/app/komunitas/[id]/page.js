@@ -20,7 +20,7 @@ import Link from "next/link";
 import Navbar from "../../../components/Navbar";
 import Comments from "../../../components/Comments";
 import { copyToClipboard } from "../../utils/clipboard";
-import { getApiUrl } from "@/app/utils/api";
+import { getApiUrl, getImageUrl } from "@/app/utils/api";
 
 export default function DetailKomunitasPage() {
     const params = useParams();
@@ -151,13 +151,9 @@ export default function DetailKomunitasPage() {
         );
     }
 
-    const imageUrl = topic.image
-        ? (topic.image.startsWith('http') ? topic.image : `${getApiUrl()}${topic.image}`)
-        : null;
+    const imageUrl = topic.image ? getImageUrl(topic.image) : null;
 
-    const avatarUrl = topic.author?.avatar_url
-        ? `${getApiUrl()}${topic.author.avatar_url}`
-        : null;
+    const avatarUrl = topic.author?.avatar_url ? getImageUrl(topic.author.avatar_url) : null;
 
     return (
         <div className="min-h-screen bg-zinc-950 text-white selection:bg-emerald-500/30">

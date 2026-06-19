@@ -26,14 +26,13 @@ export default function OrderDetailPage({ params }) {
   const [loading, setLoading] = useState(true);
   const [activeImageIndex, setActiveImageIndex] = useState(0);
   const [showShippingModal, setShowShippingModal] = useState(false);
-  const [isUpdatingShipping, setIsUpdatingShipping] = useState(false);
-  const [isProcessingCart, setIsProcessingCart] = useState(false);
   const [shippingForm, setShippingForm] = useState({
     receiver_name: "",
     phone_number: "",
     shipping_address: "",
   });
-
+  const [isUpdatingShipping, setIsUpdatingShipping] = useState(false);
+  const [isProcessingCart, setIsProcessingCart] = useState(false);
   const [cancelModal, setCancelModal] = useState({
     isOpen: false,
     reason: "",
@@ -42,6 +41,38 @@ export default function OrderDetailPage({ params }) {
   });
 
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
+  const [isProductOpen, setIsProductOpen] = useState(false);
+  const [activeAdminFee, setActiveAdminFee] = useState(5000);
+
+  useEffect(() => {
+    let active = true;
+    const fetchAdminFee = async () => {
+      try {
+        const res = await fetch(`${getApiUrl()}/settings/admin-fee`);
+        if (res.ok) {
+          const result = await res.json();
+          if (result.success && typeof result.adminFee === "number" && active) {
+            setActiveAdminFee(result.adminFee);
+          }
+        }
+      } catch (err) {
+        console.error("Error fetching admin fee settings:", err);
+      }
+    };
+    fetchAdminFee();
+
+    const handleAdminFeeUpdated = (e) => {
+      if (typeof e.detail === "number" && active) {
+        setActiveAdminFee(e.detail);
+      }
+    };
+    window.addEventListener("admin_fee_updated", handleAdminFeeUpdated);
+
+    return () => {
+      active = false;
+      window.removeEventListener("admin_fee_updated", handleAdminFeeUpdated);
+    };
+  }, []);
 
   useEffect(() => {
     fetchOrderDetail();
@@ -76,11 +107,9 @@ export default function OrderDetailPage({ params }) {
   const fetchOrderDetail = async () => {
     try {
       const url = source === "cart" ? `${getApiUrl()}/cart/item/${id}` : `${getApiUrl()}/orders/${id}`;
-
       const res = await fetch(url);
       const result = await res.json();
       if (res.ok && result.data) {
-        // If cart, map product info to look like order
         if (source === "cart") {
           const cartItem = result.data;
           setOrder({
@@ -291,6 +320,14 @@ export default function OrderDetailPage({ params }) {
 
   if (!order) return null;
 
+  const subtotal = order
+    ? (order.items && order.items.length > 0
+        ? order.items.reduce((sum, item) => sum + Number(item.price) * (item.quantity || 1), 0)
+        : Number(order.price) * Number(order.quantity))
+    : 0;
+  const displayAdminFee = order && (order.admin_fee !== undefined && order.admin_fee !== null) ? Number(order.admin_fee) : activeAdminFee;
+  const displayTotalPrice = source === "cart" ? (subtotal + (Number(order?.shipping_cost) || 0) + (Number(order?.packing_cost) || 0) + displayAdminFee) : (order ? Number(order.total_price) : 0);
+
   return (
     <div className="max-w-7xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700 pb-20">
       {/* Header Navigation */}
@@ -380,73 +417,84 @@ export default function OrderDetailPage({ params }) {
                 </div>
               ) : (
                 // Single-product checkout display
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
-                  {/* Image Carousel */}
-                  <div className="space-y-4">
-                    <h3 className="text-xs font-black text-zinc-500 uppercase tracking-widest flex items-center gap-2">
-                      <Package size={14} className="text-emerald-500" /> Foto Produk
+                <div className="space-y-6">
+                  <button type="button" onClick={() => setIsProductOpen(!isProductOpen)} className="w-full flex items-center justify-between pb-4 border-b border-zinc-800/80 focus:outline-none group">
+                    <h3 className="text-xs font-black text-zinc-500 uppercase tracking-widest flex items-center gap-2 group-hover:text-zinc-300 transition-colors">
+                      <Package size={14} className="text-emerald-500" /> Detail Informasi Produk
                     </h3>
-                    <div className="bg-zinc-950 border border-zinc-800 rounded-3xl overflow-hidden relative aspect-square group">
-                      {order.product?.images?.length > 0 ? (
-                        (() => {
-                          const mediaUrl = getImageUrl(order.product.images[activeImageIndex]);
-                          return isVideoUrl(mediaUrl) ? <video src={mediaUrl} className="w-full h-full object-cover" controls preload="metadata" muted playsInline /> : <img src={mediaUrl} className="w-full h-full object-cover transition-all duration-500" alt={order.product.name} />;
-                        })()
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center text-zinc-800">
-                          <Package size={48} />
-                        </div>
-                      )}
-                      {order.product?.images?.length > 1 && (
-                        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-1.5 px-3 py-1.5 bg-zinc-950/50 backdrop-blur-md rounded-full border border-white/10">
-                          {order.product.images.map((_, i) => (
-                            <div key={i} onClick={() => setActiveImageIndex(i)} className={`w-1.5 h-1.5 rounded-full transition-all cursor-pointer ${activeImageIndex === i ? "bg-emerald-500 w-3" : "bg-white/30"}`}></div>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  </div>
+                    <ChevronDown size={16} className={`text-zinc-500 transition-transform duration-300 ${isProductOpen ? "rotate-180" : ""}`} />
+                  </button>
 
-                  {/* Order Meta */}
-                  <div className="space-y-8">
-                    <div className="space-y-4">
-                      <h3 className="text-xs font-black text-zinc-500 uppercase tracking-widest flex items-center gap-2">
-                        <Info size={14} className="text-emerald-500" /> Informasi Produk
-                      </h3>
-                      <div>
-                        <h4 className="text-2xl font-black text-white mb-3">{order.product?.name}</h4>
-                        <div className="flex flex-wrap gap-2">
-                          <span className="px-3 py-1 bg-zinc-800 text-[10px] text-zinc-300 rounded-lg border border-zinc-700 font-bold uppercase tracking-wider">{order.product?.species}</span>
-                          <span
-                            className={`px-3 py-1 text-[10px] rounded-lg border font-bold uppercase tracking-wider ${order.product?.sex === "Male" ? "bg-blue-500/10 text-blue-400 border-blue-500/20" : order.product?.sex === "Female" ? "bg-pink-500/10 text-pink-400 border-pink-500/20" : "bg-zinc-500/10 text-zinc-400 border-zinc-500/20"}`}
-                          >
-                            {order.product?.sex || "Unsex"}
-                          </span>
-                          <span className="px-3 py-1 bg-emerald-500/10 text-emerald-400 rounded-lg border border-emerald-500/20 text-[10px] font-bold uppercase tracking-wider">{order.product?.type === "sell" ? "Jual Langsung" : "Lelang"}</span>
-                          <span className="px-3 py-1 bg-zinc-800 text-[10px] text-zinc-400 rounded-lg border border-zinc-700 font-bold uppercase tracking-wider">ID Produk: {order.product?.product_id || "-"}</span>
+                  {isProductOpen && (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-10 pt-2 animate-in fade-in duration-300">
+                      {/* Image Carousel */}
+                      <div className="space-y-4">
+                        <h3 className="text-xs font-black text-zinc-500 uppercase tracking-widest flex items-center gap-2">
+                          <Package size={14} className="text-emerald-500" /> Foto Produk
+                        </h3>
+                        <div className="bg-zinc-950 border border-zinc-800 rounded-3xl overflow-hidden relative aspect-square group">
+                          {order.product?.images?.length > 0 ? (
+                            (() => {
+                              const mediaUrl = getImageUrl(order.product.images[activeImageIndex]);
+                              return isVideoUrl(mediaUrl) ? <video src={mediaUrl} className="w-full h-full object-cover" controls preload="metadata" muted playsInline /> : <img src={mediaUrl} className="w-full h-full object-cover transition-all duration-500" alt={order.product.name} />;
+                            })()
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center text-zinc-800">
+                              <Package size={48} />
+                            </div>
+                          )}
+                          {order.product?.images?.length > 1 && (
+                            <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-1.5 px-3 py-1.5 bg-zinc-950/50 backdrop-blur-md rounded-full border border-white/10">
+                              {order.product.images.map((_, i) => (
+                                <div key={i} onClick={() => setActiveImageIndex(i)} className={`w-1.5 h-1.5 rounded-full transition-all cursor-pointer ${activeImageIndex === i ? "bg-emerald-500 w-3" : "bg-white/30"}`}></div>
+                              ))}
+                            </div>
+                          )}
                         </div>
                       </div>
-                    </div>
 
-                    <div className="grid grid-cols-2 gap-4 pt-2 border-t border-zinc-800">
-                      <div>
-                        <p className="text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-1">Harga Satuan</p>
-                        <p className="text-lg font-black text-emerald-500">{formatPrice(order.price)}</p>
-                      </div>
-                      <div>
-                        <p className="text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-1">Jumlah</p>
-                        <p className="text-lg font-black text-white">{order.quantity} Item</p>
-                      </div>
-                    </div>
+                      {/* Order Meta */}
+                      <div className="space-y-8">
+                        <div className="space-y-4">
+                          <h3 className="text-xs font-black text-zinc-500 uppercase tracking-widest flex items-center gap-2">
+                            <Info size={14} className="text-emerald-500" /> Informasi Produk
+                          </h3>
+                          <div>
+                            <h4 className="text-2xl font-black text-white mb-3">{order.product?.name}</h4>
+                            <div className="flex flex-wrap gap-2">
+                              <span className="px-3 py-1 bg-zinc-800 text-[10px] text-zinc-300 rounded-lg border border-zinc-700 font-bold uppercase tracking-wider">{order.product?.species}</span>
+                              <span
+                                className={`px-3 py-1 text-[10px] rounded-lg border font-bold uppercase tracking-wider ${order.product?.sex === "Male" ? "bg-blue-500/10 text-blue-400 border-blue-500/20" : order.product?.sex === "Female" ? "bg-pink-500/10 text-pink-400 border-pink-500/20" : "bg-zinc-500/10 text-zinc-400 border-zinc-500/20"}`}
+                              >
+                                {order.product?.sex || "Unsex"}
+                              </span>
+                              <span className="px-3 py-1 bg-emerald-500/10 text-emerald-400 rounded-lg border border-emerald-500/20 text-[10px] font-bold uppercase tracking-wider">{order.product?.type === "sell" ? "Jual Langsung" : "Lelang"}</span>
+                              <span className="px-3 py-1 bg-zinc-800 text-[10px] text-zinc-400 rounded-lg border border-zinc-700 font-bold uppercase tracking-wider">ID Produk: {order.product?.product_id || "-"}</span>
+                            </div>
+                          </div>
+                        </div>
 
-                    {/* Shipping Type Info */}
-                    <div className="p-4 bg-blue-500/5 border border-dashed border-blue-500/20 rounded-2xl mt-[-10px]">
-                      <div>
-                        <p className="text-[9px] font-black text-zinc-500 uppercase tracking-widest leading-none mb-1">Jangkauan Pengiriman</p>
-                        <p className="text-sm font-black text-white">{order.product?.shipping_type || "Tidak ditentukan"}</p>
+                        <div className="grid grid-cols-2 gap-4 pt-2 border-t border-zinc-800">
+                          <div>
+                            <p className="text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-1">Harga Satuan</p>
+                            <p className="text-lg font-black text-emerald-500">{formatPrice(order.price)}</p>
+                          </div>
+                          <div>
+                            <p className="text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-1">Jumlah</p>
+                            <p className="text-lg font-black text-white">{order.quantity} Item</p>
+                          </div>
+                        </div>
+
+                        {/* Shipping Type Info */}
+                        <div className="p-4 bg-blue-500/5 border border-dashed border-blue-500/20 rounded-2xl mt-[-10px]">
+                          <div>
+                            <p className="text-[9px] font-black text-zinc-500 uppercase tracking-widest leading-none mb-1">Jangkauan Pengiriman</p>
+                            <p className="text-sm font-black text-white">{order.product?.shipping_type || "Tidak ditentukan"}</p>
+                          </div>
+                        </div>
                       </div>
                     </div>
-                  </div>
+                  )}
                 </div>
               )}
 
@@ -536,8 +584,8 @@ export default function OrderDetailPage({ params }) {
                 <p className="text-sm font-black text-white truncate">{order.shop?.name}</p>
               </div>
             </div>
-            <button onClick={handleWhatsAppChat} className="w-full py-3 bg-emerald-500/10 hover:bg-emerald-500 text-emerald-500 hover:text-zinc-950 text-xs font-black rounded-xl transition-all border border-emerald-500/20 flex items-center justify-center gap-2">
-              <MessageCircle size={14} /> Chat Penjual
+            <button onClick={handleWhatsAppChat} className="w-full py-3 bg-[#25D366] hover:bg-[#1DA851] text-[#FFFFFF] text-xs font-black rounded-xl transition-all border border-emerald-500/20 flex items-center justify-center gap-2">
+              <MessageCircle size={14} /> Hubungi Penjual
             </button>
           </div>
 
@@ -561,12 +609,12 @@ export default function OrderDetailPage({ params }) {
               </div>
               <div className="flex justify-between text-sm">
                 <span className="text-zinc-400 font-medium">Biaya Admin</span>
-                <span className="text-white font-black">{formatPrice(order.admin_fee || 5000)}</span>
+                <span className="text-white font-black">{formatPrice(displayAdminFee)}</span>
               </div>
               <div className="h-px bg-zinc-800 my-6"></div>
               <div className="flex justify-between items-center">
                 <span className="text-white font-black">Total Bayar</span>
-                <span className="text-3xl font-black text-emerald-500 tracking-tighter">{formatPrice(order.total_price)}</span>
+                <span className="text-3xl font-black text-emerald-500 tracking-tighter">{formatPrice(displayTotalPrice)}</span>
               </div>
             </div>
 

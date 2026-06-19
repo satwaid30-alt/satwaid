@@ -4,7 +4,7 @@ import Navbar from "../../../../components/Navbar";
 import { useState, useEffect, Suspense } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { io } from "socket.io-client";
-import { getApiUrl, getSocketUrl, getLogoUrl } from "@/app/utils/api";
+import { getApiUrl, getSocketUrl, getLogoUrl, getImageUrl } from "@/app/utils/api";
 import { ChevronLeft, ChevronRight, AlertCircle, MapPin, XCircle, Info, Store, ShoppingBag, Star, Truck, Share2, Tag, Clock, Gavel, Calendar } from "lucide-react";
 import Link from "next/link";
 import ActionModal from "../../../../components/ActionModal";
@@ -52,14 +52,7 @@ function DetailContent() {
     const arr = Array.isArray(rawImages) ? rawImages : [rawImages];
     return arr
       .filter((img) => img && typeof img === "string")
-      .map((img) => {
-        if (img.startsWith("http") || img.startsWith("data:")) {
-          return img;
-        }
-        const baseUrl = getApiUrl();
-        const path = img.startsWith("/") ? img : `/${img}`;
-        return `${baseUrl}${path}`;
-      });
+      .map((img) => getImageUrl(img));
   };
 
   const [selectedProduct, setSelectedProduct] = useState(null);
@@ -1064,7 +1057,7 @@ function DetailContent() {
                                 <div className={`w-8 h-8 rounded-xl overflow-hidden flex items-center justify-center text-xs font-black shrink-0 border ${isHighest ? "bg-[#2b4c7e] text-white border-transparent" : "bg-white text-zinc-600 border-zinc-200"}`}>
                                   {bid.bidder?.avatar_url ? (
                                     <img
-                                      src={`${getApiUrl()}${bid.bidder.avatar_url}`}
+                                      src={getImageUrl(bid.bidder.avatar_url)}
                                       alt={bidderName}
                                       className="w-full h-full object-cover"
                                       onError={(e) => {

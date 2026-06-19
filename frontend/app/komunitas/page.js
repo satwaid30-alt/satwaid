@@ -5,7 +5,7 @@ import Link from "next/link";
 import { Users, MessageSquare, Flame, Clock, ChevronRight, ChevronLeft, Search, Heart, TrendingUp, Star, Hash, Megaphone, ArrowRight, ShoppingBag, Gavel, Home } from "lucide-react";
 import Navbar from "../../components/Navbar";
 import MobileMenuGrid from "../../components/MobileMenuGrid";
-import { getApiUrl } from "@/app/utils/api";
+import { getApiUrl, getImageUrl } from "@/app/utils/api";
 
 export default function KomunitasPage() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -190,7 +190,7 @@ export default function KomunitasPage() {
         ) : ads.length > 0 ? (
           <div className="block md:hidden mb-6 px-1">
             <a href={ads[0].link_url || "#"} target="_blank" rel="noopener noreferrer" className="block relative aspect-[2.1/1] min-h-[140px] rounded-2xl overflow-hidden border border-zinc-200/70 shadow-md group">
-              <img src={`${getApiUrl()}${ads[0].image_url}`} alt={ads[0].placement} className="absolute inset-0 w-full h-full object-cover" />
+              <img src={getImageUrl(ads[0].image_url)} alt={ads[0].placement} className="absolute inset-0 w-full h-full object-cover" />
               <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/40 to-transparent"></div>
               <div className="absolute inset-0 p-4 flex flex-col justify-end">
                 <div className="mb-auto flex">
@@ -277,7 +277,7 @@ export default function KomunitasPage() {
                           className="w-full flex items-center gap-3 p-2 rounded-xl hover:bg-zinc-50 transition-all text-left group"
                         >
                           <div className="w-10 h-10 rounded-xl bg-zinc-100 overflow-hidden shrink-0 border border-zinc-100 group-hover:border-emerald-200">
-                            {otherUser?.avatar_url ? <img src={`${getApiUrl()}${otherUser.avatar_url}`} className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center bg-zinc-200 text-zinc-500 font-bold text-xs">{otherUser?.name?.charAt(0)}</div>}
+                            {otherUser?.avatar_url ? <img src={getImageUrl(otherUser.avatar_url)} className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center bg-zinc-200 text-zinc-500 font-bold text-xs">{otherUser?.name?.charAt(0)}</div>}
                           </div>
                           <div className="min-w-0">
                             <p className="text-[11px] font-black text-zinc-900 truncate">{otherUser?.name || otherUser?.username}</p>
@@ -301,7 +301,7 @@ export default function KomunitasPage() {
             ) : ads.length > 0 ? (
               <a href={ads[0].link_url || "#"} target="_blank" rel="noopener noreferrer" className="hidden md:block relative aspect-[3/4] rounded-2xl overflow-hidden border border-zinc-200/70 group transition-all hover:scale-[1.02] active:scale-[0.98]">
                 {/* Full Image Background */}
-                <img src={`${getApiUrl()}${ads[0].image_url}`} alt={ads[0].placement} className="absolute inset-0 w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110" />
+                <img src={getImageUrl(ads[0].image_url)} alt={ads[0].placement} className="absolute inset-0 w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110" />
 
                 {/* Gradient Overlay */}
                 <div className="absolute inset-0 bg-gradient-to-t from-zinc-950 via-zinc-950/40 to-transparent opacity-90 group-hover:opacity-100 transition-opacity"></div>
@@ -441,7 +441,7 @@ export default function KomunitasPage() {
                         <div className="flex items-center gap-3 mb-3">
                           <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-emerald-100 to-teal-100 border border-emerald-200/50 overflow-hidden flex items-center justify-center text-emerald-700 font-black text-sm shrink-0">
                             {topic.author?.avatar_url ? (
-                              <img src={`${getApiUrl()}${topic.author.avatar_url}`} alt={topic.author.username} className="w-full h-full object-cover" />
+                              <img src={getImageUrl(topic.author.avatar_url)} alt={topic.author.username} className="w-full h-full object-cover" />
                             ) : (
                               topic.author?.username ? topic.author.username.charAt(0).toUpperCase() : "U"
                             )}
@@ -473,7 +473,7 @@ export default function KomunitasPage() {
                         {/* Image */}
                         {topic.image && (
                           <div className="w-full aspect-video rounded-xl overflow-hidden border border-zinc-100 mt-auto bg-zinc-50 mb-4">
-                            <img src={topic.image.startsWith("http") ? topic.image : `${getApiUrl()}${topic.image}`} alt={topic.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
+                            <img src={getImageUrl(topic.image)} alt={topic.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
                           </div>
                         )}
                       </div>

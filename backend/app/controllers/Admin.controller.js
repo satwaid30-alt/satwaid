@@ -162,3 +162,108 @@ exports.getDashboardStats = async (req, res) => {
     });
   }
 };
+
+const fs = require("fs");
+const path = require("path");
+const SETTINGS_FILE_PATH = path.join(__dirname, "../config/settings.json");
+
+const getAdminFeeValue = () => {
+  try {
+    if (fs.existsSync(SETTINGS_FILE_PATH)) {
+      const data = JSON.parse(fs.readFileSync(SETTINGS_FILE_PATH, "utf8"));
+      if (data && data.admin_fee !== undefined) {
+        return Number(data.admin_fee);
+      }
+    }
+  } catch (error) {
+    console.error("Error reading admin fee from file:", error);
+  }
+  return 5000;
+};
+
+const saveAdminFeeValue = (fee) => {
+  try {
+    const data = { admin_fee: Number(fee) };
+    fs.writeFileSync(SETTINGS_FILE_PATH, JSON.stringify(data, null, 2), "utf8");
+    return true;
+  } catch (error) {
+    console.error("Error saving admin fee to file:", error);
+    return false;
+  }
+};
+
+exports.getAdminFeeValueHelper = getAdminFeeValue;
+
+exports.getAdminFee = async (req, res) => {
+  try {
+    let adminFee;
+    const adminFeeSetting = await models.settings.findOne({ where: { key: "admin_fee" } });
+    if (adminFeeSetting) {
+      adminFee = Number(adminFeeSetting.value);
+    } else {
+      adminFee = getAdminFeeValue();
+      await models.settings.create({
+        key: "admin_fee",
+        value: String(adminFee)
+      }).catch(err => console.error("Error initializing settings in DB:", err));
+    }
+    
+    global.adminFeeCache = adminFee;
+
+    return res.json({
+      success: true,
+      adminFee,
+    });
+  } catch (error) {
+    console.error("Error in getAdminFee controller:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Internal Server Error: " + error.message,
+    });
+  }
+};
+
+exports.updateAdminFee = async (req, res) => {
+  try {
+    const { adminFee } = req.body;
+    if (adminFee === undefined || isNaN(Number(adminFee)) || Number(adminFee) < 0) {
+      return res.status(400).json({
+        success: false,
+        message: "Biaya admin tidak valid",
+      });
+    }
+
+    // Update or create in the database
+    const [setting, created] = await models.settings.findOrCreate({
+      where: { key: "admin_fee" },
+      defaults: { value: String(adminFee) }
+    });
+
+    if (!created) {
+      await setting.update({ value: String(adminFee) });
+    }
+
+    // Sync in-memory cache and fallback JSON file
+    global.adminFeeCache = Number(adminFee);
+    saveAdminFeeValue(adminFee);
+
+    // Emit real-time update socket event
+    const io = req.app.get('socketio');
+    if (io) {
+      io.emit('admin_fee_updated', { adminFee: Number(adminFee) });
+      console.log(`[Socket] Broadcast admin_fee_updated: Rp ${adminFee}`);
+    }
+
+    return res.json({
+      success: true,
+      message: "Biaya admin berhasil diperbarui",
+      adminFee: Number(adminFee),
+    });
+  } catch (error) {
+    console.error("Error in updateAdminFee controller:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Internal Server Error: " + error.message,
+    });
+  }
+};

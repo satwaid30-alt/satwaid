@@ -554,7 +554,7 @@ export default function JualProdukPage() {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="space-y-2">
                       <label className="text-xs font-black text-zinc-300 uppercase tracking-widest ml-1">
-                        Nama Produk / Judul Iklan <span className="text-red-500">*</span>
+                        Nama Produk <span className="text-red-500">*</span>
                       </label>
                       <input
                         type="text"
@@ -574,7 +574,7 @@ export default function JualProdukPage() {
                                   setErrorModalTitle("Produk Dilarang!");
                                   setErrorModalMessage("Produk tidak dapat dipublikasikan karena terdeteksi sebagai satwa dilindungi berdasarkan Permen LHK No. P.106/MENLHK/SETJEN/KUM.1/12/2018. Satwa dilindungi tidak boleh diperjualbelikan melalui SatwaiD.");
                                   setShowErrorModal(true);
-                                  setReptileData(prev => ({ ...prev, name: "" }));
+                                  setReptileData((prev) => ({ ...prev, name: "" }));
                                 }
                               }
                             } catch (err) {
@@ -588,17 +588,22 @@ export default function JualProdukPage() {
                       <label className="text-xs font-black text-zinc-300 uppercase tracking-widest ml-1">
                         Kategori / Spesies <span className="text-red-500">*</span>
                       </label>
-                      <select required className="w-full bg-zinc-950 border border-zinc-800 text-white rounded-2xl px-5 py-4 focus:outline-none focus:border-emerald-500 transition-all font-bold appearance-none cursor-pointer" value={reptileData.species} onChange={(e) => {
-                        const val = e.target.value;
-                        setReptileData(prev => ({
-                          ...prev,
-                          species: val,
-                          images: val !== "Ikan" && val !== "Burung" && mediaType === "video" ? [] : prev.images
-                        }));
-                        if (val !== "Ikan" && val !== "Burung") {
-                          setMediaType("image");
-                        }
-                      }}>
+                      <select
+                        required
+                        className="w-full bg-zinc-950 border border-zinc-800 text-white rounded-2xl px-5 py-4 focus:outline-none focus:border-emerald-500 transition-all font-bold appearance-none cursor-pointer"
+                        value={reptileData.species}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          setReptileData((prev) => ({
+                            ...prev,
+                            species: val,
+                            images: val !== "Ikan" && val !== "Burung" && mediaType === "video" ? [] : prev.images,
+                          }));
+                          if (val !== "Ikan" && val !== "Burung") {
+                            setMediaType("image");
+                          }
+                        }}
+                      >
                         <option value="">Pilih Kategori</option>
                         <option value="Reptil">Reptil</option>
                         <option value="Mamalia">Mamalia</option>
@@ -765,13 +770,9 @@ export default function JualProdukPage() {
                         type="button"
                         onClick={() => {
                           setMediaType("image");
-                          setReptileData(prev => ({ ...prev, images: [] }));
+                          setReptileData((prev) => ({ ...prev, images: [] }));
                         }}
-                        className={`py-3.5 rounded-xl font-bold text-xs uppercase tracking-wider transition-all border ${
-                          mediaType === "image"
-                            ? "bg-emerald-500 border-emerald-500 text-zinc-950 font-black shadow-md shadow-emerald-500/10"
-                            : "bg-zinc-950 border-zinc-800 text-zinc-400 hover:text-white"
-                        }`}
+                        className={`py-3.5 rounded-xl font-bold text-xs uppercase tracking-wider transition-all border ${mediaType === "image" ? "bg-emerald-500 border-emerald-500 text-zinc-950 font-black shadow-md shadow-emerald-500/10" : "bg-zinc-950 border-zinc-800 text-zinc-400 hover:text-white"}`}
                       >
                         Gambar / Foto
                       </button>
@@ -779,13 +780,9 @@ export default function JualProdukPage() {
                         type="button"
                         onClick={() => {
                           setMediaType("video");
-                          setReptileData(prev => ({ ...prev, images: [] }));
+                          setReptileData((prev) => ({ ...prev, images: [] }));
                         }}
-                        className={`py-3.5 rounded-xl font-bold text-xs uppercase tracking-wider transition-all border ${
-                          mediaType === "video"
-                            ? "bg-emerald-500 border-emerald-500 text-zinc-950 font-black shadow-md shadow-emerald-500/10"
-                            : "bg-zinc-950 border-zinc-800 text-zinc-400 hover:text-white"
-                        }`}
+                        className={`py-3.5 rounded-xl font-bold text-xs uppercase tracking-wider transition-all border ${mediaType === "video" ? "bg-emerald-500 border-emerald-500 text-zinc-950 font-black shadow-md shadow-emerald-500/10" : "bg-zinc-950 border-zinc-800 text-zinc-400 hover:text-white"}`}
                       >
                         Video
                       </button>
@@ -826,10 +823,10 @@ export default function JualProdukPage() {
                       </div>
                     ))}
 
-                    {mediaType === "video" ? (
-                      // Video Upload Input
-                      reptileData.images.length < 1 && (
-                        isUploading ? (
+                    {mediaType === "video"
+                      ? // Video Upload Input
+                        reptileData.images.length < 1 &&
+                        (isUploading ? (
                           <div className="aspect-square bg-zinc-950 border border-zinc-800 rounded-2xl flex flex-col items-center justify-center gap-2 text-emerald-500">
                             <Loader2 className="w-8 h-8 animate-spin" />
                             <span className="text-[10px] font-black uppercase tracking-[0.2em] animate-pulse">Mengunggah...</span>
@@ -846,7 +843,7 @@ export default function JualProdukPage() {
                                 const isValid = await validateVideoFile(raw, e.target);
                                 if (!isValid) return;
                                 const file = renameFileRandom(raw);
-                                
+
                                 const token = localStorage.getItem("token");
                                 setIsUploading(true);
                                 try {
@@ -870,12 +867,10 @@ export default function JualProdukPage() {
                             </div>
                             <span className="text-[10px] font-black uppercase tracking-[0.2em]">Upload Video</span>
                           </label>
-                        )
-                      )
-                    ) : (
-                      // Image Upload Input
-                      reptileData.images.length < 3 && (
-                        isUploading ? (
+                        ))
+                      : // Image Upload Input
+                        reptileData.images.length < 3 &&
+                        (isUploading ? (
                           <div className="aspect-square bg-zinc-950 border border-zinc-800 rounded-2xl flex flex-col items-center justify-center gap-2 text-emerald-500">
                             <Loader2 className="w-8 h-8 animate-spin" />
                             <span className="text-[10px] font-black uppercase tracking-[0.2em] animate-pulse">Mengunggah...</span>
@@ -890,7 +885,7 @@ export default function JualProdukPage() {
                                 const raw = e.target.files[0];
                                 if (!validateImageFile(raw, e.target)) return;
                                 const file = renameFileRandom(raw);
-                                
+
                                 const token = localStorage.getItem("token");
                                 setIsUploading(true);
                                 try {
@@ -914,16 +909,10 @@ export default function JualProdukPage() {
                             </div>
                             <span className="text-[10px] font-black uppercase tracking-[0.2em]">Upload Foto</span>
                           </label>
-                        )
-                      )
-                    )}
+                        ))}
                   </div>
                   <div className="px-1">
-                    {mediaType === "video" ? (
-                      <p className="text-[11px] font-bold text-amber-500/80 italic">* Durasi video maksimal 15 detik dan ukuran maksimal 20MB (Maks 1 Video).</p>
-                    ) : (
-                      <p className="text-[11px] font-bold text-amber-500/80 italic">* Ukuran foto maksimal 1MB per file. Pastikan foto jelas dan terang (Maks 3 Foto).</p>
-                    )}
+                    {mediaType === "video" ? <p className="text-[11px] font-bold text-amber-500/80 italic">* Durasi video maksimal 15 detik dan ukuran maksimal 20MB (Maks 1 Video).</p> : <p className="text-[11px] font-bold text-amber-500/80 italic">* Ukuran foto maksimal 1MB per file. Pastikan foto jelas dan terang (Maks 3 Foto).</p>}
                   </div>
                 </div>
 
@@ -989,14 +978,26 @@ export default function JualProdukPage() {
             {/* Error Modal */}
             {showErrorModal && (
               <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-                <div className="absolute inset-0 bg-zinc-950/90 backdrop-blur-md animate-in fade-in duration-300" onClick={() => { setShowErrorModal(false); setErrorModalTitle("File Tidak Valid!"); }}></div>
+                <div
+                  className="absolute inset-0 bg-zinc-950/90 backdrop-blur-md animate-in fade-in duration-300"
+                  onClick={() => {
+                    setShowErrorModal(false);
+                    setErrorModalTitle("File Tidak Valid!");
+                  }}
+                ></div>
                 <div className="bg-zinc-900 border border-zinc-800 rounded-[2.5rem] w-full max-w-md p-12 text-center relative z-10 animate-in zoom-in-95 duration-300">
                   <div className="w-24 h-24 bg-red-500 text-zinc-950 rounded-full flex items-center justify-center mx-auto mb-8">
                     <AlertCircle size={48} />
                   </div>
                   <h3 className="text-3xl font-black text-white mb-4">{errorModalTitle}</h3>
                   <p className="text-zinc-400 mb-10 leading-relaxed font-medium">{errorModalMessage}</p>
-                  <button onClick={() => { setShowErrorModal(false); setErrorModalTitle("File Tidak Valid!"); }} className="w-full bg-red-500 hover:bg-red-400 text-zinc-950 font-black py-4 rounded-2xl transition-all">
+                  <button
+                    onClick={() => {
+                      setShowErrorModal(false);
+                      setErrorModalTitle("File Tidak Valid!");
+                    }}
+                    className="w-full bg-red-500 hover:bg-red-400 text-zinc-950 font-black py-4 rounded-2xl transition-all"
+                  >
                     Saya Mengerti
                   </button>
                 </div>

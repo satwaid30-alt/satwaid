@@ -124,10 +124,17 @@ export default function UserTokoLayout({ children }) {
 
   // ─── Fetch helpers ────────────────────────────────────────────────────────
   const fetchShop = async (userId) => {
+    if (!userId || userId === "undefined" || userId === "null") {
+      console.warn("fetchShop skipped: invalid userId:", userId);
+      return;
+    }
     try {
       const response = await fetch(`${getApiUrl()}/shops/user/${userId}`);
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
       const result = await response.json();
-      if (response.ok && result.data) {
+      if (result.data) {
         setShop(result.data);
         fetchOrders(result.data.id);
       }
@@ -137,10 +144,17 @@ export default function UserTokoLayout({ children }) {
   };
 
   const fetchOrders = async (shopId) => {
+    if (!shopId || shopId === "undefined" || shopId === "null") {
+      console.warn("fetchOrders skipped: invalid shopId:", shopId);
+      return;
+    }
     try {
       const response = await fetch(`${getApiUrl()}/orders/shop/${shopId}`);
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
       const result = await response.json();
-      if (response.ok) setOrders(result.data || []);
+      setOrders(result.data || []);
     } catch (err) {
       console.error("Error fetching orders:", err);
     }
@@ -220,9 +234,9 @@ export default function UserTokoLayout({ children }) {
     <div className="min-h-screen bg-zinc-950 flex flex-col md:flex-row">
       <UserSidebar />
 
-      <div className="flex-1 flex flex-col min-h-screen overflow-hidden">
+      <div className="flex-1 flex flex-col min-h-screen">
         <UserNavbar />
-        <main className="flex-1 overflow-y-auto p-4 md:p-8 custom-scrollbar">{children}</main>
+        <main className="flex-1 p-4 md:p-8">{children}</main>
       </div>
 
       {/* ─── Floating Reminder Badge (saat modal tertutup, countdown berjalan) ─── */}

@@ -4,9 +4,10 @@ import { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { MessageSquare, Bell, Package, CreditCard, Users, Trash2, CheckCircle2, ShieldCheck, AlertCircle, Store, Gavel } from "lucide-react";
+import { MessageSquare, Bell, Package, CreditCard, Users, Trash2, CheckCircle2, ShieldCheck, AlertCircle, Store, Gavel, XCircle } from "lucide-react";
+
 import { io } from "socket.io-client";
-import { getApiUrl, getSocketUrl } from "@/app/utils/api";
+import { getApiUrl, getSocketUrl, getImageUrl } from "@/app/utils/api";
 
 export default function Navbar({ theme = "dark", onNotification }) {
   const pathname = usePathname();
@@ -243,10 +244,12 @@ export default function Navbar({ theme = "dark", onNotification }) {
                         {notifications.map((notif) => {
                           let Icon = Bell;
                           let iconColor = "bg-zinc-100 text-zinc-500";
-
                           if (notif.type === "chat") {
                             Icon = MessageSquare;
                             iconColor = "bg-emerald-100 text-emerald-600";
+                          } else if (notif.type === "order_cancelled" || notif.type.includes("cancel") || notif.title.toLowerCase().includes("batal") || notif.message.toLowerCase().includes("batal")) {
+                            Icon = XCircle;
+                            iconColor = "bg-red-100 text-red-600";
                           } else if (notif.type === "disbursement") {
                             Icon = CreditCard;
                             iconColor = "bg-emerald-100 text-emerald-600";
@@ -339,7 +342,7 @@ export default function Navbar({ theme = "dark", onNotification }) {
                 className={`flex items-center gap-2 px-4 py-2 rounded-full font-bold transition-all border shadow-sm ${isLightText ? "bg-white/10 text-white border-white/20 hover:bg-white/20" : "bg-white text-zinc-900 border-zinc-200 hover:border-emerald-500 hover:shadow-lg hover:shadow-emerald-500/10"}`}
               >
                 <div className="w-7 h-7 rounded-full overflow-hidden flex-shrink-0 ring-2 ring-emerald-500/50">
-                  {user.avatar_url ? <img src={`${getApiUrl()}${user.avatar_url}`} alt={user.username} className="w-full h-full object-cover" /> : <div className="w-full h-full bg-emerald-500 flex items-center justify-center text-white text-xs font-bold">{user.username ? user.username.charAt(0).toUpperCase() : "U"}</div>}
+                  {user.avatar_url ? <img src={getImageUrl(user.avatar_url)} alt={user.username} className="w-full h-full object-cover" /> : <div className="w-full h-full bg-emerald-500 flex items-center justify-center text-white text-xs font-bold">{user.username ? user.username.charAt(0).toUpperCase() : "U"}</div>}
                 </div>
                 <span>{user.username}</span>
               </button>
@@ -349,7 +352,7 @@ export default function Navbar({ theme = "dark", onNotification }) {
                 <div className="absolute right-0 mt-3 w-56 bg-white border border-zinc-100 rounded-2xl shadow-xl py-2 overflow-hidden animate-in slide-in-from-top-2 fade-in duration-200 z-50">
                   <div className="px-4 py-3 border-b border-zinc-100 mb-2 bg-zinc-50/50 flex items-center gap-3">
                     <div className="w-10 h-10 rounded-full overflow-hidden flex-shrink-0 ring-2 ring-emerald-500/30">
-                      {user.avatar_url ? <img src={`${getApiUrl()}${user.avatar_url}`} alt={user.username} className="w-full h-full object-cover" /> : <div className="w-full h-full bg-emerald-500 flex items-center justify-center text-white text-sm font-bold">{user.username ? user.username.charAt(0).toUpperCase() : "U"}</div>}
+                      {user.avatar_url ? <img src={getImageUrl(user.avatar_url)} alt={user.username} className="w-full h-full object-cover" /> : <div className="w-full h-full bg-emerald-500 flex items-center justify-center text-white text-sm font-bold">{user.username ? user.username.charAt(0).toUpperCase() : "U"}</div>}
                     </div>
                     <div className="min-w-0">
                       <p className="text-sm font-bold text-zinc-800 truncate">{user.name || user.username}</p>
@@ -389,7 +392,7 @@ export default function Navbar({ theme = "dark", onNotification }) {
               <div className="w-9 h-9 rounded-full bg-zinc-200/50 dark:bg-white/10 animate-pulse"></div>
             ) : user ? (
               <div className="w-9 h-9 rounded-full overflow-hidden ring-2 ring-emerald-500/50 shadow-md">
-                {user.avatar_url ? <img src={`${getApiUrl()}${user.avatar_url}`} alt="User" className="w-full h-full object-cover" /> : <div className="w-full h-full bg-emerald-500 flex items-center justify-center text-white text-xs font-black">{user.username ? user.username.charAt(0).toUpperCase() : "U"}</div>}
+                {user.avatar_url ? <img src={getImageUrl(user.avatar_url)} alt="User" className="w-full h-full object-cover" /> : <div className="w-full h-full bg-emerald-500 flex items-center justify-center text-white text-xs font-black">{user.username ? user.username.charAt(0).toUpperCase() : "U"}</div>}
               </div>
             ) : (
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -430,7 +433,7 @@ export default function Navbar({ theme = "dark", onNotification }) {
             <div className="sm:hidden border-t border-zinc-100 pt-6 mt-2 flex flex-col gap-4">
               <div className="flex items-center gap-3 mb-2">
                 <div className="w-10 h-10 rounded-full overflow-hidden flex-shrink-0 ring-2 ring-emerald-500/30">
-                  {user.avatar_url ? <img src={`${getApiUrl()}${user.avatar_url}`} alt={user.username} className="w-full h-full object-cover" /> : <div className="w-full h-full bg-emerald-500 flex items-center justify-center text-white font-bold">{user.username ? user.username.charAt(0).toUpperCase() : "U"}</div>}
+                  {user.avatar_url ? <img src={getImageUrl(user.avatar_url)} alt={user.username} className="w-full h-full object-cover" /> : <div className="w-full h-full bg-emerald-500 flex items-center justify-center text-white font-bold">{user.username ? user.username.charAt(0).toUpperCase() : "U"}</div>}
                 </div>
                 <div>
                   <p className="font-bold text-zinc-900">{user.username}</p>

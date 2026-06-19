@@ -9,20 +9,13 @@ import Link from "next/link";
 import ActionModal from "../../../../components/ActionModal";
 import ChatModal from "../../../../components/ChatModal";
 import { copyToClipboard } from "../../../utils/clipboard";
-import { getApiUrl, getLogoUrl, getSocketUrl } from "@/app/utils/api";
+import { getApiUrl, getLogoUrl, getSocketUrl, getImageUrl } from "@/app/utils/api";
 import { io } from "socket.io-client";
 
 const isVideoUrl = (url) => {
   if (!url) return false;
   const lower = url.toLowerCase();
-  return (
-    lower.endsWith(".mp4") ||
-    lower.endsWith(".mov") ||
-    lower.endsWith(".avi") ||
-    lower.endsWith(".webm") ||
-    lower.endsWith(".mkv") ||
-    lower.endsWith(".3gp")
-  );
+  return lower.endsWith(".mp4") || lower.endsWith(".mov") || lower.endsWith(".avi") || lower.endsWith(".webm") || lower.endsWith(".mkv") || lower.endsWith(".3gp");
 };
 
 function DetailContent() {
@@ -53,14 +46,7 @@ function DetailContent() {
     const arr = Array.isArray(rawImages) ? rawImages : [rawImages];
     return arr
       .filter((img) => img && typeof img === "string")
-      .map((img) => {
-        if (img.startsWith("http") || img.startsWith("data:")) {
-          return img;
-        }
-        const baseUrl = getApiUrl();
-        const path = img.startsWith("/") ? img : `/${img}`;
-        return `${baseUrl}${path}`;
-      });
+      .map((img) => getImageUrl(img));
   };
 
   const [selectedProduct, setSelectedProduct] = useState(null);
@@ -205,11 +191,7 @@ function DetailContent() {
           return str !== "" && str.toLowerCase() !== "null" && str.toLowerCase() !== "undefined";
         };
 
-        const isIncomplete = !isFieldFilled(freshUser.name) || 
-                             !isFieldFilled(freshUser.phone) || 
-                             !isFieldFilled(freshUser.address) || 
-                             !isFieldFilled(freshUser.city) || 
-                             !isFieldFilled(freshUser.province);
+        const isIncomplete = !isFieldFilled(freshUser.name) || !isFieldFilled(freshUser.phone) || !isFieldFilled(freshUser.address) || !isFieldFilled(freshUser.city) || !isFieldFilled(freshUser.province);
 
         if (isIncomplete) {
           setActionModal({
@@ -312,11 +294,7 @@ function DetailContent() {
           return str !== "" && str.toLowerCase() !== "null" && str.toLowerCase() !== "undefined";
         };
 
-        const isIncomplete = !isFieldFilled(freshUser.name) || 
-                             !isFieldFilled(freshUser.phone) || 
-                             !isFieldFilled(freshUser.address) || 
-                             !isFieldFilled(freshUser.city) || 
-                             !isFieldFilled(freshUser.province);
+        const isIncomplete = !isFieldFilled(freshUser.name) || !isFieldFilled(freshUser.phone) || !isFieldFilled(freshUser.address) || !isFieldFilled(freshUser.city) || !isFieldFilled(freshUser.province);
 
         if (isIncomplete) {
           setActionModal({
@@ -485,18 +463,9 @@ function DetailContent() {
             <div className="bg-zinc-50 rounded-[1.5rem] relative group overflow-hidden border border-zinc-100 flex items-center justify-center aspect-square w-full">
               {parsedImages.length > 0 && parsedImages[activeImageIndex] ? (
                 isVideoUrl(parsedImages[activeImageIndex]) ? (
-                  <video
-                    src={parsedImages[activeImageIndex]}
-                    controls
-                    className="w-full h-full object-contain p-6 lg:p-12"
-                  />
+                  <video src={parsedImages[activeImageIndex]} controls className="w-full h-full object-contain p-6 lg:p-12" />
                 ) : (
-                  <img
-                    src={parsedImages[activeImageIndex]}
-                    className="w-full h-full object-contain p-6 lg:p-12 transition-transform duration-700 group-hover:scale-105 cursor-zoom-in"
-                    alt={selectedProduct.name}
-                    onClick={() => setIsImageZoomed(true)}
-                  />
+                  <img src={parsedImages[activeImageIndex]} className="w-full h-full object-contain p-6 lg:p-12 transition-transform duration-700 group-hover:scale-105 cursor-zoom-in" alt={selectedProduct.name} onClick={() => setIsImageZoomed(true)} />
                 )
               ) : (
                 <div className="w-full h-full flex flex-col items-center justify-center text-zinc-400 bg-zinc-100">
@@ -528,18 +497,8 @@ function DetailContent() {
             {parsedImages.length > 1 && (
               <div className="flex justify-center gap-2 overflow-x-auto no-scrollbar py-1">
                 {parsedImages.map((img, idx) => (
-                  <button
-                    key={idx}
-                    onClick={() => setActiveImageIndex(idx)}
-                    className={`w-14 h-14 rounded-xl border-2 overflow-hidden transition-all flex-shrink-0 bg-white ${
-                      activeImageIndex === idx ? "border-emerald-500 scale-105" : "border-zinc-200 opacity-60 hover:opacity-100"
-                    }`}
-                  >
-                    {isVideoUrl(img) ? (
-                      <video src={img} className="w-full h-full object-cover" preload="metadata" />
-                    ) : (
-                      <img src={img} className="w-full h-full object-cover" alt={`Thumb ${idx}`} />
-                    )}
+                  <button key={idx} onClick={() => setActiveImageIndex(idx)} className={`w-14 h-14 rounded-xl border-2 overflow-hidden transition-all flex-shrink-0 bg-white ${activeImageIndex === idx ? "border-emerald-500 scale-105" : "border-zinc-200 opacity-60 hover:opacity-100"}`}>
+                    {isVideoUrl(img) ? <video src={img} className="w-full h-full object-cover" preload="metadata" /> : <img src={img} className="w-full h-full object-cover" alt={`Thumb ${idx}`} />}
                   </button>
                 ))}
               </div>
@@ -597,9 +556,9 @@ function DetailContent() {
                         className="flex items-center justify-center gap-2 text-[11px] font-black text-white bg-[#25D366] hover:bg-[#128C7E] transition-all py-2.5 px-4 rounded-xl"
                       >
                         <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24">
-                           <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.246 2.248 3.484 5.232 3.484 8.412-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.309 1.656zm6.224-3.82l.448.265c1.485.881 3.192 1.347 4.933 1.348 5.456 0 9.897-4.44 9.899-9.898.001-2.646-1.03-5.133-2.903-7.006-1.874-1.874-4.359-2.907-7.004-2.907-5.457 0-9.898 4.44-9.9 9.898-.001 2.107.549 4.159 1.59 5.968l.301.517-1.103 4.029 4.125-1.082zM17.472 14.382c-.301-.15-1.78-.879-2.056-.979-.276-.1-.477-.15-.677.15-.2.299-.777.979-.951 1.178-.174.2-.349.226-.65.075-.301-.15-1.272-.469-2.422-1.494-.894-.797-1.498-1.783-1.674-2.083-.176-.3-.019-.462.132-.611.135-.134.301-.35.451-.525.15-.175.2-.299.301-.499.1-.2.05-.375-.025-.525-.075-.15-.677-1.633-.927-2.235-.243-.587-.491-.507-.677-.517-.175-.008-.376-.01-.577-.01s-.526.075-.802.375c-.276.3-1.052 1.026-1.052 2.503s1.077 2.903 1.227 3.103c.15.2 2.119 3.235 5.132 4.532.716.308 1.276.492 1.711.631.719.228 1.373.196 1.89.119.576-.086 1.78-.727 2.031-1.428.25-.701.25-1.302.175-1.428-.075-.126-.276-.226-.577-.376z" />
+                          <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.246 2.248 3.484 5.232 3.484 8.412-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.309 1.656zm6.224-3.82l.448.265c1.485.881 3.192 1.347 4.933 1.348 5.456 0 9.897-4.44 9.899-9.898.001-2.646-1.03-5.133-2.903-7.006-1.874-1.874-4.359-2.907-7.004-2.907-5.457 0-9.898 4.44-9.9 9.898-.001 2.107.549 4.159 1.59 5.968l.301.517-1.103 4.029 4.125-1.082zM17.472 14.382c-.301-.15-1.78-.879-2.056-.979-.276-.1-.477-.15-.677.15-.2.299-.777.979-.951 1.178-.174.2-.349.226-.65.075-.301-.15-1.272-.469-2.422-1.494-.894-.797-1.498-1.783-1.674-2.083-.176-.3-.019-.462.132-.611.135-.134.301-.35.451-.525.15-.175.2-.299.301-.499.1-.2.05-.375-.025-.525-.075-.15-.677-1.633-.927-2.235-.243-.587-.491-.507-.677-.517-.175-.008-.376-.01-.577-.01s-.526.075-.802.375c-.276.3-1.052 1.026-1.052 2.503s1.077 2.903 1.227 3.103c.15.2 2.119 3.235 5.132 4.532.716.308 1.276.492 1.711.631.719.228 1.373.196 1.89.119.576-.086 1.78-.727 2.031-1.428.25-.701.25-1.302.175-1.428-.075-.126-.276-.226-.577-.376z" />
                         </svg>
-                        Hubungi WA
+                        Hubungi
                       </a>
                     )}
 

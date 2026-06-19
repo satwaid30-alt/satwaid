@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import { Send, MessageSquare, ChevronDown } from "lucide-react";
 import { io } from "socket.io-client";
 import Link from "next/link";
-import { getApiUrl, getSocketUrl } from "@/app/utils/api";
+import { getApiUrl, getSocketUrl, getImageUrl } from "@/app/utils/api";
 
 const MAX_VISIBLE = 5; // show this many before enabling scroll
 
@@ -123,7 +123,7 @@ export default function Comments({ topicId }) {
                 <div key={comment.id} className={`flex gap-4 group animate-in fade-in slide-in-from-bottom-2 duration-300 ${isMe ? "flex-row-reverse" : ""}`} style={{ animationDelay: `${i * 30}ms` }}>
                   <div className="w-10 h-10 rounded-2xl overflow-hidden bg-zinc-800 shrink-0 border border-zinc-700">
                     {comment.author?.avatar_url ? (
-                      <img src={`${getApiUrl()}${comment.author.avatar_url}`} alt={comment.author.username} className="w-full h-full object-cover" />
+                      <img src={getImageUrl(comment.author.avatar_url)} alt={comment.author.username} className="w-full h-full object-cover" />
                     ) : (
                       <div className={`w-full h-full flex items-center justify-center font-black text-sm text-white ${isMe ? "bg-gradient-to-br from-amber-500 to-amber-700" : "bg-gradient-to-br from-emerald-500 to-emerald-700"}`}>{comment.author?.username?.charAt(0).toUpperCase()}</div>
                     )}
@@ -158,7 +158,7 @@ export default function Comments({ topicId }) {
           <form onSubmit={handleSubmit} className="mt-4 space-y-3">
             <div className="flex items-start gap-3">
               <div className="w-9 h-9 rounded-xl overflow-hidden bg-zinc-800 shrink-0 border border-zinc-700 mt-1">
-                {user.avatar_url ? <img src={`${getApiUrl()}${user.avatar_url}`} className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-emerald-500 to-emerald-700 text-white font-black text-xs">{user.username?.charAt(0).toUpperCase()}</div>}
+                {user.avatar_url ? <img src={getImageUrl(user.avatar_url)} className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-emerald-500 to-emerald-700 text-white font-black text-xs">{user.username?.charAt(0).toUpperCase()}</div>}
               </div>
               <div className="flex-1 relative group">
                 <textarea

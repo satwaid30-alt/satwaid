@@ -20,8 +20,29 @@ export default function AdminTransactionPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
 
+  const fetchOrders = async () => {
+    try {
+      const token = localStorage.getItem("admin_token");
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/orders`, {
+        headers: {
+          Authorization: token ? `Bearer ${token}` : "",
+        },
+      });
+      const result = await res.json();
+      if (res.ok) {
+        setOrders(result.data);
+      }
+    } catch (err) {
+      console.error("Error fetching orders:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    fetchOrders();
+    setTimeout(() => {
+      fetchOrders();
+    }, 0);
 
     // Setup Socket.io for Real-time Transaction Updates
     let socket;
@@ -62,25 +83,6 @@ export default function AdminTransactionPage() {
       if (socket) socket.disconnect();
     };
   }, []);
-
-  const fetchOrders = async () => {
-    try {
-      const token = localStorage.getItem("admin_token");
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/orders`, {
-        headers: {
-          Authorization: token ? `Bearer ${token}` : "",
-        },
-      });
-      const result = await res.json();
-      if (res.ok) {
-        setOrders(result.data);
-      }
-    } catch (err) {
-      console.error("Error fetching orders:", err);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const handleOpenCancelModal = (order) => {
     setCancelOrderData(order);
@@ -254,9 +256,14 @@ export default function AdminTransactionPage() {
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
   const currentItems = filteredOrders.slice(indexOfFirstItem, indexOfLastItem);
 
-  useEffect(() => {
+  const [prevFilterStatus, setPrevFilterStatus] = useState(filterStatus);
+  const [prevSearchQuery, setPrevSearchQuery] = useState(searchQuery);
+
+  if (filterStatus !== prevFilterStatus || searchQuery !== prevSearchQuery) {
+    setPrevFilterStatus(filterStatus);
+    setPrevSearchQuery(searchQuery);
     setCurrentPage(1);
-  }, [filterStatus, searchQuery]);
+  }
 
   if (loading) {
     return (

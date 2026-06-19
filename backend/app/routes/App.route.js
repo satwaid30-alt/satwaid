@@ -27,6 +27,10 @@ const StorageControllers = require("../controllers/Storage.controller");
 
 // Admin Routes
 router.get("/admin/stats", checkAuthAdmin, adminController.getDashboardStats);
+router.get("/admin/settings/admin-fee", checkAuthAdmin, adminController.getAdminFee);
+router.put("/admin/settings/admin-fee", checkAuthAdmin, adminController.updateAdminFee);
+router.get("/settings/admin-fee", adminController.getAdminFee);
+
 
 // Menu Controls Routes
 router.get("/menu-controls", menuControlsController.getMenuControls);

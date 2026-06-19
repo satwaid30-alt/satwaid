@@ -25,9 +25,12 @@ export default function AdminResetTokoPage() {
 
   const [isResetting, setIsResetting] = useState(false);
 
-  useEffect(() => {
-    fetchShops();
-  }, []);
+  const showAlert = (message, type = "success") => {
+    setAlertInfo({ show: true, message, type });
+    setTimeout(() => {
+      setAlertInfo((prev) => ({ ...prev, show: false }));
+    }, 5000);
+  };
 
   const fetchShops = async () => {
     try {
@@ -46,12 +49,11 @@ export default function AdminResetTokoPage() {
     }
   };
 
-  const showAlert = (message, type = "success") => {
-    setAlertInfo({ show: true, message, type });
+  useEffect(() => {
     setTimeout(() => {
-      setAlertInfo((prev) => ({ ...prev, show: false }));
-    }, 5000);
-  };
+      fetchShops();
+    }, 0);
+  }, []);
 
   const handleOpenResetModal = (shop) => {
     setConfirmModal({

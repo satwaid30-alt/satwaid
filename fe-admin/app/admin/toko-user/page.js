@@ -47,10 +47,6 @@ export default function AdminTokoUserPage() {
     newLevel: "Standard Seller",
   });
 
-  useEffect(() => {
-    fetchShops();
-  }, []);
-
   const fetchShops = async () => {
     try {
       const response = await fetch(`${getApiUrl()}/shops`);
@@ -64,6 +60,12 @@ export default function AdminTokoUserPage() {
       setIsLoading(false);
     }
   };
+
+  useEffect(() => {
+    setTimeout(() => {
+      fetchShops();
+    }, 0);
+  }, []);
 
   const handleConfirmAction = (shop, type) => {
     setConfirmModal({

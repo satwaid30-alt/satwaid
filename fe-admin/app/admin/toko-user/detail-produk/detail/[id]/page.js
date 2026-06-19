@@ -171,7 +171,7 @@ export default function AdminProductDetailPage({ params }) {
   return (
     <div className="min-h-screen bg-zinc-950 pb-20 animate-in fade-in duration-700">
       {/* Top Navigation Bar */}
-      <div className="sticky top-0 z-[100] bg-zinc-950/80 backdrop-blur-md border-b border-zinc-800 p-6 lg:px-10">
+      <div className="bg-zinc-950/80 border-b border-zinc-800 p-6 lg:px-10">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           <Link href="/admin/toko-user/detail-produk" className="flex items-center gap-3 text-zinc-400 hover:text-white transition-all group">
             <div className="w-10 h-10 rounded-xl bg-zinc-900 border border-zinc-800 flex items-center justify-center group-hover:bg-zinc-800 transition-all">
@@ -187,8 +187,8 @@ export default function AdminProductDetailPage({ params }) {
         </div>
       </div>
 
-      <div className="max-w-5xl mx-auto mt-10 px-6">
-        <div className="bg-zinc-900 border border-zinc-800 rounded-[3rem] overflow-hidden shadow-2xl flex flex-col">
+      <div className="w-full max-w-[1440px] mx-auto mt-6 px-6 lg:px-8">
+        <div className={listing.status?.toLowerCase() === "history" ? "bg-zinc-900 border border-zinc-800 rounded-[3rem] overflow-hidden shadow-2xl flex flex-col" : "flex flex-col lg:flex-row gap-8 items-start w-full"}>
           {listing.status?.toLowerCase() === "history" ? (
             <div className="p-10 lg:p-14 space-y-8 animate-in fade-in duration-500">
               {/* Basic Header Info */}
@@ -258,7 +258,11 @@ export default function AdminProductDetailPage({ params }) {
                             <td className="py-4 text-right">
                               <span
                                 className={`px-2.5 py-1 rounded-full text-[9px] font-black uppercase tracking-wider ${
-                                  order.status === "completed" || order.status === "disbursed" ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20" : (order.status === "cancelled" || order.status === "cancelled_dismissed") ? "bg-red-500/10 text-red-400 border border-red-500/20" : "bg-amber-500/10 text-amber-400 border border-amber-500/20"
+                                  order.status === "completed" || order.status === "disbursed"
+                                    ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"
+                                    : order.status === "cancelled" || order.status === "cancelled_dismissed"
+                                      ? "bg-red-500/10 text-red-400 border border-red-500/20"
+                                      : "bg-amber-500/10 text-amber-400 border border-amber-500/20"
                                 }`}
                               >
                                 {order.status === "pending_shipping_info"
@@ -302,48 +306,95 @@ export default function AdminProductDetailPage({ params }) {
             </div>
           ) : (
             <>
-              {/* Image Area */}
-              <div className="w-full h-[400px] md:h-[500px] bg-zinc-950 relative group shrink-0">
-                {listing.images && listing.images[activeImageIndex] ? (
-                  isVideoUrl(listing.images[activeImageIndex]) ? (
-                    <video src={getImageUrl(listing.images[activeImageIndex])} controls className="w-full h-full object-contain bg-zinc-950" />
-                  ) : (
-                    <img src={getImageUrl(listing.images[activeImageIndex])} alt={listing.name} className="w-full h-full object-contain bg-zinc-950" />
-                  )
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center text-zinc-800">
-                    <ShoppingBag size={120} />
-                  </div>
-                )}
-
-                {/* Image Navigation */}
-                {listing.images?.length > 1 && (
-                  <>
-                    <button onClick={() => setActiveImageIndex((prev) => (prev > 0 ? prev - 1 : listing.images.length - 1))} className="absolute left-6 top-1/2 -translate-y-1/2 p-4 bg-zinc-900/50 backdrop-blur-md text-white rounded-2xl hover:bg-emerald-500 hover:text-zinc-950 transition-all opacity-0 group-hover:opacity-100">
-                      <ChevronLeft size={28} />
-                    </button>
-                    <button onClick={() => setActiveImageIndex((prev) => (prev < listing.images.length - 1 ? prev + 1 : 0))} className="absolute right-6 top-1/2 -translate-y-1/2 p-4 bg-zinc-900/50 backdrop-blur-md text-white rounded-2xl hover:bg-emerald-500 hover:text-zinc-950 transition-all opacity-0 group-hover:opacity-100">
-                      <ChevronRight size={28} />
-                    </button>
-                  </>
-                )}
-
-                {/* Thumbnails */}
-                <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex gap-3 p-3 bg-zinc-950/30 backdrop-blur-md rounded-[2rem] border border-white/5">
-                  {listing.images?.map((img, idx) => (
-                    <button key={idx} onClick={() => setActiveImageIndex(idx)} className={`w-14 h-14 rounded-2xl overflow-hidden border-2 transition-all ${activeImageIndex === idx ? "border-emerald-500 scale-110 shadow-lg shadow-emerald-500/20" : "border-transparent opacity-50 hover:opacity-100"}`}>
-                      {isVideoUrl(img) ? (
-                        <video src={getImageUrl(img)} className="w-full h-full object-cover" />
+              {/* Left Side: Image Gallery & Moderation Panel */}
+              <div className="w-full lg:w-[calc(45%-1rem)] lg:shrink-0 flex flex-col gap-6 lg:sticky lg:top-24">
+                {/* Image Gallery Card */}
+                <div className="w-full bg-zinc-900 border border-zinc-800 rounded-[2.5rem] p-6 shadow-2xl flex flex-col gap-6">
+                  <div className="bg-zinc-950 rounded-[1.5rem] relative group overflow-hidden border border-zinc-850 flex items-center justify-center aspect-square w-full">
+                    {listing.images && listing.images[activeImageIndex] ? (
+                      isVideoUrl(listing.images[activeImageIndex]) ? (
+                        <video src={getImageUrl(listing.images[activeImageIndex])} controls className="w-full h-full object-contain p-4 bg-zinc-950" />
                       ) : (
-                        <img src={getImageUrl(img)} className="w-full h-full object-cover" />
-                      )}
+                        <img src={getImageUrl(listing.images[activeImageIndex])} alt={listing.name} className="w-full h-full object-contain p-4 bg-zinc-950 transition-transform duration-700 group-hover:scale-105" />
+                      )
+                    ) : (
+                      <div className="w-full h-full flex flex-col items-center justify-center text-zinc-500 bg-zinc-950">
+                        <ShoppingBag size={64} strokeWidth={1} />
+                        <p className="mt-4 font-bold text-xs uppercase tracking-widest text-zinc-600">Tidak ada gambar</p>
+                      </div>
+                    )}
+
+                    {/* Navigation Arrows */}
+                    {listing.images?.length > 1 && (
+                      <div className="absolute inset-x-4 top-1/2 -translate-y-1/2 flex justify-between pointer-events-none">
+                        <button
+                          onClick={() => setActiveImageIndex((prev) => (prev > 0 ? prev - 1 : listing.images.length - 1))}
+                          className="w-10 h-10 rounded-xl bg-zinc-900/90 backdrop-blur-md border border-zinc-800 flex items-center justify-center text-white hover:bg-emerald-500 hover:text-zinc-950 transition-all pointer-events-auto active:scale-90"
+                        >
+                          <ChevronLeft size={20} />
+                        </button>
+                        <button
+                          onClick={() => setActiveImageIndex((prev) => (prev < listing.images.length - 1 ? prev + 1 : 0))}
+                          className="w-10 h-10 rounded-xl bg-zinc-900/90 backdrop-blur-md border border-zinc-800 flex items-center justify-center text-white hover:bg-emerald-500 hover:text-zinc-950 transition-all pointer-events-auto active:scale-90"
+                        >
+                          <ChevronRight size={20} />
+                        </button>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Thumbnails */}
+                  {listing.images?.length > 1 && (
+                    <div className="flex justify-center gap-3 overflow-x-auto no-scrollbar py-1">
+                      {listing.images.map((img, idx) => (
+                        <button key={idx} onClick={() => setActiveImageIndex(idx)} className={`w-14 h-14 rounded-xl border-2 overflow-hidden transition-all flex-shrink-0 bg-zinc-950 ${activeImageIndex === idx ? "border-emerald-500 scale-105 shadow-md shadow-emerald-500/10" : "border-zinc-800 opacity-60 hover:opacity-100"}`}>
+                          {isVideoUrl(img) ? <video src={getImageUrl(img)} className="w-full h-full object-cover" /> : <img src={getImageUrl(img)} className="w-full h-full object-cover" alt={`Thumb ${idx}`} />}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                {/* Admin Action Bar (Panel Moderasi) */}
+                <div className="w-full bg-zinc-900 border border-zinc-800 rounded-3xl p-6 md:p-8 shadow-2xl space-y-6">
+                  <div className="flex items-center justify-between gap-4 border-b border-zinc-800/80 pb-4">
+                    <h3 className="text-sm font-black text-white uppercase tracking-[0.2em] flex items-center gap-2.5">
+                      <Info size={16} className="text-emerald-500" /> Panel Moderasi Produk
+                    </h3>
+                    <button onClick={() => handleActionClick("delete")} className="flex items-center gap-2 text-xs font-black text-red-500 hover:text-white transition-all bg-red-500/10 hover:bg-red-500 border border-red-500/20 hover:border-red-500 px-4 py-2.5 rounded-2xl active:scale-95 uppercase tracking-widest">
+                      <Trash2 size={14} /> Hapus Produk
                     </button>
-                  ))}
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    {listing.status?.toLowerCase() === "pending" && (
+                      <>
+                        <button onClick={() => handleActionClick("verify")} className="flex items-center justify-center gap-2.5 py-4 bg-emerald-500 text-zinc-950 rounded-2xl font-black text-xs hover:bg-emerald-400 transition-all shadow-lg shadow-emerald-500/10 active:scale-95">
+                          <CheckCircle2 size={16} /> Setujui & Verifikasi
+                        </button>
+                        <button onClick={() => handleActionClick("reject")} className="flex items-center justify-center gap-2.5 py-4 bg-zinc-800 text-zinc-400 rounded-2xl font-black text-xs hover:bg-red-500 hover:text-white transition-all border border-zinc-700 active:scale-95">
+                          <XCircle size={16} /> Tolak Pemasangan
+                        </button>
+                      </>
+                    )}
+
+                    {listing.status?.toLowerCase() === "active" && (
+                      <button onClick={() => handleActionClick("reject")} className="sm:col-span-2 flex items-center justify-center gap-2.5 py-4 bg-zinc-950 border border-zinc-800 text-zinc-500 rounded-2xl font-black text-xs hover:bg-red-500 hover:text-white hover:border-red-500 transition-all active:scale-95 shadow-md">
+                        <XCircle size={16} /> Turunkan Produk dari Marketplace
+                      </button>
+                    )}
+
+                    {listing.status?.toLowerCase() === "rejected" && (
+                      <button onClick={() => handleActionClick("verify")} className="sm:col-span-2 flex items-center justify-center gap-2.5 py-4 bg-zinc-950 border border-zinc-800 text-zinc-400 rounded-2xl font-black text-xs hover:bg-emerald-500 hover:text-zinc-950 hover:border-emerald-500 transition-all active:scale-95 shadow-md">
+                        <AlertCircle size={16} /> Pulihkan Status Menjadi Aktif
+                      </button>
+                    )}
+                  </div>
                 </div>
               </div>
 
-              {/* Content Area */}
-              <div className="p-10 lg:p-14 space-y-5">
+              {/* Right Side: Content Area Card */}
+              <div className="w-full lg:w-[calc(55%-1rem)] lg:shrink-0 min-w-0 bg-zinc-900 border border-zinc-800 rounded-[2.5rem] p-6 lg:p-8 shadow-2xl space-y-6">
                 {/* Header Title */}
                 <div className="space-y-6">
                   <div className="flex flex-wrap items-center gap-4">
@@ -356,40 +407,59 @@ export default function AdminProductDetailPage({ params }) {
                   </div>
                 </div>
 
-                {/* Price Card */}
-                <div className={`rounded-[2.5rem] p-8 border flex flex-col md:flex-row md:items-center justify-between shadow-inner relative overflow-hidden ${listing.type === "auction" ? "bg-amber-500/5 border-amber-500/20" : "bg-zinc-950/50 border-zinc-800"}`}>
-                  <div className="relative z-10 w-full">
-                    <p className="text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-2">{listing.type === "sell" ? "Harga Jual Produk" : "Open Bid (OB)"}</p>
-                    <div className="flex flex-wrap items-baseline gap-2 lg:gap-4">
-                      <p className="text-2xl lg:text-3xl font-black text-white">Rp {new Number(listing.type === "sell" ? listing.price : listing.current_bid || listing.start_bid).toLocaleString("id-ID")}</p>
-                      {listing.type === "auction" && <p className="text-amber-500 font-black text-sm mb-2">(Kelipatan +Rp {new Number(listing.multiple).toLocaleString("id-ID")})</p>}
-                    </div>
-
-                    {listing.type === "auction" && listing.bin_price && (
-                      <div className="mt-4 pt-4 border-t border-amber-500/10 w-full max-w-sm">
-                        <p className="text-[10px] font-black text-zinc-500 uppercase tracking-[0.3em] mb-2">Beli Sekarang (BIN)</p>
-                        <p className="text-xl font-black text-white">Rp {new Number(listing.bin_price).toLocaleString("id-ID")}</p>
-                      </div>
-                    )}
-
-                    {listing.type === "auction" && (
-                      <div className="mt-6 pt-6 border-t border-amber-500/10 grid grid-cols-1 md:grid-cols-2 gap-4 w-full">
-                        <div className="bg-zinc-950/50 p-4 rounded-2xl border border-zinc-800/50">
-                          <p className="text-[9px] font-black text-zinc-500 uppercase tracking-widest mb-1.5 flex items-center gap-1.5">
-                            <Calendar size={12} className="text-amber-500" /> Mulai Lelang
-                          </p>
-                          <p className="text-sm font-bold text-zinc-300">{new Date(listing.start_date).toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" }).replace(".", ":").replace(" pukul ", " • ")} WIB</p>
-                        </div>
-                        <div className="bg-amber-500/10 p-4 rounded-2xl border border-amber-500/20">
-                          <p className="text-[9px] font-black text-amber-500/80 uppercase tracking-widest mb-1.5 flex items-center gap-1.5">
-                            <Clock size={12} className="text-amber-500" /> Berakhir Pada
-                          </p>
-                          <p className="text-sm font-black text-amber-500">{new Date(listing.end_date).toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" }).replace(".", ":").replace(" pukul ", " • ")} WIB</p>
-                        </div>
-                      </div>
+                {/* Toko & Harga Row */}
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 w-full items-stretch">
+                  {/* Shop Logo Card */}
+                  <div className="bg-zinc-950/50 border border-zinc-800 rounded-[2rem] shadow-inner flex items-center justify-center overflow-hidden w-full h-full min-h-[120px]">
+                    {listing.shop?.logo_url ? (
+                      <img src={getLogoUrl(listing.shop.logo_url)} className="w-full h-full object-cover" alt={listing.shop.name} />
+                    ) : (
+                      <Store size={40} className="text-zinc-500" />
                     )}
                   </div>
-                  <div className={`absolute top-0 right-0 p-8 transition-colors hidden sm:block ${listing.type === "auction" ? "text-amber-500/5" : "text-emerald-500/5"}`}>{listing.type === "auction" ? <Gavel size={120} strokeWidth={1.5} /> : <Tag size={120} strokeWidth={1.5} />}</div>
+
+                  {/* Shop Name & Info Card */}
+                  <div className="p-6 lg:p-6 xl:p-8 bg-zinc-950/50 border border-zinc-800 rounded-[2rem] shadow-inner flex flex-col justify-center w-full h-full min-w-0">
+                    <p className="text-[10px] font-black text-zinc-500 uppercase tracking-[0.2em] mb-1.5">Toko Penjual</p>
+                    <p className="text-base lg:text-lg font-black text-white leading-snug break-words">{listing.shop?.name || "Toko Penjual"}</p>
+                    <p className="text-xs lg:text-sm text-zinc-400 font-bold mt-1.5">{listing.shop?.city || "Kota Toko"}</p>
+                  </div>
+
+                  {/* Price Card */}
+                  <div className={`rounded-[2rem] p-6 lg:p-6 xl:p-8 border flex flex-col justify-center shadow-inner relative overflow-hidden w-full h-full ${listing.type === "auction" ? "bg-amber-500/5 border-amber-500/20" : "bg-zinc-950/50 border-zinc-800"}`}>
+                    <div className="relative z-10 w-full">
+                      <p className="text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-2">{listing.type === "sell" ? "Harga Jual Produk" : "Open Bid (OB)"}</p>
+                      <div className="flex flex-wrap items-baseline gap-2">
+                        <p className="text-2xl font-black text-white">Rp {new Number(listing.type === "sell" ? listing.price : listing.current_bid || listing.start_bid).toLocaleString("id-ID")}</p>
+                        {listing.type === "auction" && <p className="text-amber-500 font-black text-sm mb-2">(Kelipatan +Rp {new Number(listing.multiple).toLocaleString("id-ID")})</p>}
+                      </div>
+
+                      {listing.type === "auction" && listing.bin_price && (
+                        <div className="mt-4 pt-4 border-t border-amber-500/10 w-full">
+                          <p className="text-[10px] font-black text-zinc-500 uppercase tracking-[0.3em] mb-2">Beli Sekarang (BIN)</p>
+                          <p className="text-xl font-black text-white">Rp {new Number(listing.bin_price).toLocaleString("id-ID")}</p>
+                        </div>
+                      )}
+
+                      {listing.type === "auction" && (
+                        <div className="mt-6 pt-6 border-t border-amber-500/10 grid grid-cols-1 gap-4 w-full">
+                          <div className="bg-zinc-950/50 p-4 rounded-2xl border border-zinc-800/50">
+                            <p className="text-[9px] font-black text-zinc-500 uppercase tracking-widest mb-1.5 flex items-center gap-1.5">
+                              <Calendar size={12} className="text-amber-500" /> Mulai Lelang
+                            </p>
+                            <p className="text-sm font-bold text-zinc-300">{new Date(listing.start_date).toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" }).replace(".", ":").replace(" pukul ", " • ")} WIB</p>
+                          </div>
+                          <div className="bg-amber-500/10 p-4 rounded-2xl border border-amber-500/20">
+                            <p className="text-[9px] font-black text-amber-500/80 uppercase tracking-widest mb-1.5 flex items-center gap-1.5">
+                              <Clock size={12} className="text-amber-500" /> Berakhir Pada
+                            </p>
+                            <p className="text-sm font-black text-amber-500">{new Date(listing.end_date).toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" }).replace(".", ":").replace(" pukul ", " • ")} WIB</p>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                    <div className={`absolute top-0 right-0 p-8 transition-colors hidden sm:block ${listing.type === "auction" ? "text-amber-500/5" : "text-emerald-500/5"}`}>{listing.type === "auction" ? <Gavel size={120} strokeWidth={1.5} /> : <Tag size={120} strokeWidth={1.5} />}</div>
+                  </div>
                 </div>
 
                 {/* Badges */}
@@ -421,14 +491,7 @@ export default function AdminProductDetailPage({ params }) {
                 )}
 
                 {/* Grid Details */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                  <div className="p-6 bg-zinc-950/30 rounded-[2rem] border border-zinc-800/50 flex items-center gap-4">
-                    <div className="w-14 h-14 rounded-2xl bg-zinc-900 border border-zinc-800 flex items-center justify-center text-emerald-500 overflow-hidden shrink-0">{listing.shop?.logo_url ? <img src={getLogoUrl(listing.shop.logo_url)} className="w-full h-full object-cover" alt={listing.shop.name} /> : <Store size={28} />}</div>
-                    <div className="min-w-0">
-                      <p className="text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-1">Toko Penjual</p>
-                      <p className="text-sm font-black text-white truncate">{listing.shop?.name}</p>
-                    </div>
-                  </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                   <div className="p-6 bg-zinc-950/30 rounded-[2rem] border border-zinc-800/50">
                     <p className="text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-2 flex items-center gap-2">
                       <Calendar size={14} className="text-emerald-500" /> Tanggal Pasang
@@ -441,7 +504,7 @@ export default function AdminProductDetailPage({ params }) {
                     </p>
                     <p className="text-sm font-black text-white">{listing.shipping_type || "Belum diatur"}</p>
                   </div>
-                  <div className="md:col-span-3 p-8 bg-zinc-950/30 rounded-[2.5rem] border border-zinc-800/50">
+                  <div className="sm:col-span-2 p-8 bg-zinc-950/30 rounded-[2.5rem] border border-zinc-800/50">
                     <p className="text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-6 flex items-center gap-2">
                       <Package size={14} className="text-emerald-500" /> Ringkasan Sinkronisasi Stok
                     </p>
@@ -466,8 +529,7 @@ export default function AdminProductDetailPage({ params }) {
                       </div>
                     </div>
                   </div>
-
-                  <div className="md:col-span-3 p-8 bg-zinc-950/30 rounded-[2.5rem] border border-zinc-800/50">
+                  <div className="sm:col-span-2 p-8 bg-zinc-950/30 rounded-[2.5rem] border border-zinc-800/50">
                     <div className="flex items-center justify-between mb-6">
                       <p className="text-[10px] font-black text-zinc-500 uppercase tracking-widest flex items-center gap-2">
                         <ScrollText size={14} className="text-purple-500" /> Daftar Invoice Penjualan
@@ -499,7 +561,11 @@ export default function AdminProductDetailPage({ params }) {
                                 <td className="py-4 text-right">
                                   <span
                                     className={`px-2.5 py-1 rounded-full text-[9px] font-black uppercase tracking-wider ${
-                                      order.status === "completed" || order.status === "disbursed" ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20" : (order.status === "cancelled" || order.status === "cancelled_dismissed") ? "bg-red-500/10 text-red-400 border border-red-500/20" : "bg-amber-500/10 text-amber-400 border border-amber-500/20"
+                                      order.status === "completed" || order.status === "disbursed"
+                                        ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"
+                                        : order.status === "cancelled" || order.status === "cancelled_dismissed"
+                                          ? "bg-red-500/10 text-red-400 border border-red-500/20"
+                                          : "bg-amber-500/10 text-amber-400 border border-amber-500/20"
                                     }`}
                                   >
                                     {order.status === "pending_shipping_info"
@@ -565,41 +631,6 @@ export default function AdminProductDetailPage({ params }) {
                   </div>
                   <div className="bg-zinc-950/50 p-8 lg:p-10 rounded-[2rem] lg:rounded-[3rem] border border-zinc-800/50 shadow-inner overflow-hidden">
                     <div className="text-base text-zinc-400 leading-relaxed description-content font-medium break-words whitespace-pre-wrap" dangerouslySetInnerHTML={{ __html: listing.shipping_description || "Tidak ada informasi pengiriman." }}></div>
-                  </div>
-                </div>
-
-                {/* Admin Action Bar */}
-                <div className="pt-10 border-t border-zinc-800 space-y-8">
-                  <div className="flex items-center justify-between">
-                    <h3 className="text-sm font-black text-white uppercase tracking-[0.2em]">Panel Moderasi Produk</h3>
-                    <button onClick={() => handleActionClick("delete")} className="flex items-center gap-2 text-xs font-black text-red-500 hover:text-red-400 transition-colors uppercase tracking-widest">
-                      <Trash2 size={16} /> Hapus Produk Selamanya
-                    </button>
-                  </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    {listing.status?.toLowerCase() === "pending" && (
-                      <>
-                        <button onClick={() => handleActionClick("verify")} className="flex items-center justify-center gap-3 py-6 bg-emerald-500 text-zinc-950 rounded-[2rem] font-black text-sm hover:bg-emerald-400 transition-all shadow-2xl shadow-emerald-500/20 active:scale-95">
-                          <CheckCircle2 size={20} /> Setujui & Verifikasi Produk
-                        </button>
-                        <button onClick={() => handleActionClick("reject")} className="flex items-center justify-center gap-3 py-6 bg-zinc-800 text-zinc-400 rounded-[2rem] font-black text-sm hover:bg-red-500 hover:text-white transition-all border border-zinc-700 active:scale-95">
-                          <XCircle size={20} /> Tolak Pemasangan Produk
-                        </button>
-                      </>
-                    )}
-
-                    {listing.status?.toLowerCase() === "active" && (
-                      <button onClick={() => handleActionClick("reject")} className="md:col-span-2 flex items-center justify-center gap-3 py-6 bg-zinc-950 border border-zinc-800 text-zinc-500 rounded-[2rem] font-black text-sm hover:bg-red-500 hover:text-white hover:border-red-500 transition-all active:scale-95 shadow-xl">
-                        <XCircle size={20} /> Turunkan Produk dari Marketplace
-                      </button>
-                    )}
-
-                    {listing.status?.toLowerCase() === "rejected" && (
-                      <button onClick={() => handleActionClick("verify")} className="md:col-span-2 flex items-center justify-center gap-3 py-6 bg-zinc-950 border border-zinc-800 text-zinc-400 rounded-[2rem] font-black text-sm hover:bg-emerald-500 hover:text-zinc-950 hover:border-emerald-500 transition-all active:scale-95 shadow-xl">
-                        <AlertCircle size={20} /> Pulihkan Status Menjadi Aktif
-                      </button>
-                    )}
                   </div>
                 </div>
               </div>

@@ -34,11 +34,12 @@ export default function AdminResetProfilDetailPage() {
     message: "",
   });
 
-  useEffect(() => {
-    if (userId) {
-      fetchUserDetail();
-    }
-  }, [userId]);
+  const showAlert = (message, type = "success") => {
+    setAlertInfo({ show: true, message, type });
+    setTimeout(() => {
+      setAlertInfo((prev) => ({ ...prev, show: false }));
+    }, 5000);
+  };
 
   const fetchUserDetail = async () => {
     try {
@@ -57,12 +58,13 @@ export default function AdminResetProfilDetailPage() {
     }
   };
 
-  const showAlert = (message, type = "success") => {
-    setAlertInfo({ show: true, message, type });
-    setTimeout(() => {
-      setAlertInfo((prev) => ({ ...prev, show: false }));
-    }, 5000);
-  };
+  useEffect(() => {
+    if (userId) {
+      setTimeout(() => {
+        fetchUserDetail();
+      }, 0);
+    }
+  }, [userId]);
 
   const isProfileComplete = (u) => {
     if (!u) return false;

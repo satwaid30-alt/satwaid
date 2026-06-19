@@ -92,10 +92,6 @@ export default function AdminTransactionDetailPage({ params }) {
     }
   };
 
-  useEffect(() => {
-    fetchOrderDetails();
-  }, [id]);
-
   const fetchOrderDetails = async () => {
     try {
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/orders/${id}`);
@@ -109,6 +105,12 @@ export default function AdminTransactionDetailPage({ params }) {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    setTimeout(() => {
+      fetchOrderDetails();
+    }, 0);
+  }, [id]);
 
   const formatPrice = (price) => {
     return new Intl.NumberFormat("id-ID", {
@@ -240,7 +242,7 @@ export default function AdminTransactionDetailPage({ params }) {
   return (
     <div className="w-full min-h-screen text-zinc-300 selection:bg-emerald-500 selection:text-zinc-950 pb-20">
       {/* COMPACT STICKY TOP BAR */}
-      <div className="sticky top-0 z-[50] bg-zinc-950/80 backdrop-blur-xl border-b border-zinc-900 px-4 py-4 mb-8 flex items-center justify-between">
+      <div className="bg-zinc-950/80 border-b border-zinc-900 px-4 py-4 mb-8 flex items-center justify-between">
         <div className="flex items-center gap-5">
           <Link href="/admin/transaksi-user" className="w-10 h-10 rounded-xl bg-zinc-900 flex items-center justify-center text-zinc-500 hover:text-emerald-500 transition-all group border border-zinc-800">
             <ChevronLeft size={18} className="group-hover:-translate-x-0.5 transition-transform" />

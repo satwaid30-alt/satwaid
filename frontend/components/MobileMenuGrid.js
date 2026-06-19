@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Home, MessageSquare, ShoppingBag, Gavel } from "lucide-react";
@@ -50,11 +50,13 @@ const MENU_ITEMS = [
 export default function MobileMenuGrid({ className = "" }) {
   const pathname = usePathname();
   const [clickedHref, setClickedHref] = useState(null);
+  const [prevPathname, setPrevPathname] = useState(pathname);
 
   // Reset local state when page transition completes (pathname changes)
-  useEffect(() => {
+  if (pathname !== prevPathname) {
+    setPrevPathname(pathname);
     setClickedHref(null);
-  }, [pathname]);
+  }
 
   const isActive = (href) => {
     if (clickedHref) return clickedHref === href;

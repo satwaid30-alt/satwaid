@@ -117,7 +117,9 @@ export default function AdminUpgradeTokoPage() {
   };
 
   useEffect(() => {
-    loadData();
+    const timer = setTimeout(() => {
+      loadData();
+    }, 0);
 
     // Setup Socket.IO connection for real-time updates
     const token = typeof window !== "undefined" ? localStorage.getItem("admin_token") : null;
@@ -153,6 +155,7 @@ export default function AdminUpgradeTokoPage() {
     }
 
     return () => {
+      clearTimeout(timer);
       if (socket) socket.disconnect();
     };
   }, []);

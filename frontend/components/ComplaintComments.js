@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import { Send, MessageSquare, ChevronDown } from "lucide-react";
 import { io } from "socket.io-client";
-import { getApiUrl, getSocketUrl } from "@/app/utils/api";
+import { getApiUrl, getSocketUrl, getImageUrl } from "@/app/utils/api";
 
 const MAX_VISIBLE = 8; // show this many before enabling scroll
 
@@ -192,7 +192,7 @@ export default function ComplaintComments({ complaintId, isAdminPage = false }) 
                   <div className="w-8 h-8 rounded-xl overflow-hidden bg-zinc-850 shrink-0 border border-zinc-700">
                     {comment.author?.avatar_url ? (
                       <img
-                        src={`${getApiUrl()}${comment.author.avatar_url}`}
+                        src={getImageUrl(comment.author.avatar_url)}
                         alt={comment.author.username}
                         className="w-full h-full object-cover"
                       />
@@ -272,7 +272,7 @@ export default function ComplaintComments({ complaintId, isAdminPage = false }) 
               <div className="w-8 h-8 rounded-lg overflow-hidden bg-zinc-850 shrink-0 border border-zinc-700 mt-1">
                 {user.avatar_url ? (
                   <img
-                    src={`${getApiUrl()}${user.avatar_url}`}
+                    src={getImageUrl(user.avatar_url)}
                     className="w-full h-full object-cover"
                   />
                 ) : (
