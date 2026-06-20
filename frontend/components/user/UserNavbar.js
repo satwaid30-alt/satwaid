@@ -24,6 +24,9 @@ export default function UserNavbar() {
 
   const [showNotifDropdown, setShowNotifDropdown] = useState(false);
   const [showProfileDropdown, setShowProfileDropdown] = useState(false);
+  const [showDeviceLoginPrompt, setShowDeviceLoginPrompt] = useState(false);
+  const [deviceAttemptId, setDeviceAttemptId] = useState("");
+  const [showForcedLogoutModal, setShowForcedLogoutModal] = useState(false);
 
   // Get current page title based on path
   const getPageTitle = () => {
@@ -119,7 +122,11 @@ export default function UserNavbar() {
       },
     });
     setSocket(newSocket);
-    newSocket.emit("join_user", user.id);
+
+    newSocket.on("connect", () => {
+      console.log("Socket connected, joining user room:", user.id);
+      newSocket.emit("join_user", user.id);
+    });
 
     const handleSyncNotifs = () => {
       fetchCounts();
@@ -136,6 +143,15 @@ export default function UserNavbar() {
         const event = new CustomEvent("admin_fee_updated", { detail: data.adminFee });
         window.dispatchEvent(event);
       }
+    });
+
+    newSocket.on("forced_logout", () => {
+      setShowForcedLogoutModal(true);
+    });
+
+    newSocket.on("other_device_login_attempt", ({ attemptId }) => {
+      setDeviceAttemptId(attemptId);
+      setShowDeviceLoginPrompt(true);
     });
 
     window.addEventListener("sync_notifications", handleSyncNotifs);
@@ -187,6 +203,21 @@ export default function UserNavbar() {
     localStorage.removeItem("token");
     localStorage.removeItem("user");
     window.location.href = "/";
+  };
+
+  const handleAllowDeviceLogin = () => {
+    if (socket && deviceAttemptId) {
+      socket.emit("respond_login_attempt", { attemptId: deviceAttemptId, action: "allow" });
+      handleLogout();
+    }
+    setShowDeviceLoginPrompt(false);
+  };
+
+  const handleDenyDeviceLogin = () => {
+    if (socket && deviceAttemptId) {
+      socket.emit("respond_login_attempt", { attemptId: deviceAttemptId, action: "deny" });
+    }
+    setShowDeviceLoginPrompt(false);
   };
 
   const isSellerPage = pathname.startsWith("/toko-saya") || pathname.startsWith("/user/toko");
@@ -422,6 +453,58 @@ export default function UserNavbar() {
           )}
         </div>
       </div>
+
+      {/* Sesi di Perangkat Lain Aktif Modal */}
+      {showDeviceLoginPrompt && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/80 backdrop-blur-md" onClick={handleDenyDeviceLogin} />
+          <div className="bg-zinc-900 border border-zinc-800 rounded-[2.5rem] p-10 max-w-sm w-full text-center relative z-10 animate-in zoom-in duration-300 shadow-2xl">
+            <div className="w-20 h-20 bg-amber-500/10 border border-amber-500/20 rounded-full flex items-center justify-center mx-auto mb-6 text-amber-500">
+              <AlertTriangle size={36} />
+            </div>
+            <h3 className="text-xl font-black text-white mb-3 leading-tight">Sesi Baru Mencoba Masuk</h3>
+            <p className="text-zinc-400 text-sm leading-relaxed mb-8">
+              Sesi baru terdeteksi mencoba masuk ke akun Anda dari perangkat lain. Apakah Anda ingin mengizinkan masuk? Sesi di perangkat ini akan berakhir jika Anda mengizinkan.
+            </p>
+            <div className="flex flex-col gap-3">
+              <button
+                onClick={handleAllowDeviceLogin}
+                className="w-full bg-red-600 hover:bg-red-500 text-white font-black py-3.5 rounded-2xl transition-all active:scale-95 cursor-pointer text-sm"
+              >
+                Izinkan & Keluar
+              </button>
+              <button
+                onClick={handleDenyDeviceLogin}
+                className="w-full border border-zinc-800 text-zinc-400 hover:text-white hover:bg-zinc-850 font-bold py-3.5 rounded-2xl transition-all active:scale-95 cursor-pointer text-sm"
+              >
+                Tetap Masuk
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Sesi Berakhir Modal */}
+      {showForcedLogoutModal && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 animate-in fade-in duration-300">
+          <div className="absolute inset-0 bg-black/85 backdrop-blur-md" />
+          <div className="bg-zinc-900 border border-zinc-800 rounded-[2.5rem] p-10 max-w-sm w-full text-center relative z-10 animate-in zoom-in duration-300 shadow-2xl">
+            <div className="w-20 h-20 bg-red-500/10 border border-red-500/20 rounded-full flex items-center justify-center mx-auto mb-6 text-red-500">
+              <XCircle size={36} />
+            </div>
+            <h3 className="text-xl font-black text-white mb-3 leading-tight">Sesi Berakhir</h3>
+            <p className="text-zinc-400 text-sm leading-relaxed mb-8">
+              Akun Anda telah masuk di perangkat lain. Sesi di perangkat ini berakhir.
+            </p>
+            <button
+              onClick={handleLogout}
+              className="w-full bg-red-600 hover:bg-red-500 text-white font-black py-3.5 rounded-2xl transition-all active:scale-95 cursor-pointer text-sm font-semibold"
+            >
+              Masuk Kembali
+            </button>
+          </div>
+        </div>
+      )}
     </header>
   );
 }

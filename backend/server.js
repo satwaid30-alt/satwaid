@@ -3,6 +3,7 @@ const http = require('http');
 const app = require('./app');
 const { Server } = require('socket.io');
 const jwt = require('jsonwebtoken');
+global.loginAttempts = new Map();
 
 const PORT = process.env.PORT || 4000;
 
@@ -941,6 +942,54 @@ io.on('connection', (socket) => {
             }
         } catch (error) {
             console.error("Error processing private message:", error);
+        }
+    });
+
+    // Duplicate Login / Single Active Session event handlers
+    socket.on('join_login_attempt', ({ attemptId }) => {
+        socket.join(`attempt_${attemptId}`);
+        console.log(`Socket ${socket.id} joined login attempt room attempt_${attemptId}`);
+        const attempt = global.loginAttempts.get(attemptId);
+        if (attempt) {
+            // Broadcast alert to existing active user sockets
+            io.to(`user_${attempt.userId}`).emit('other_device_login_attempt', { attemptId });
+        }
+    });
+
+    socket.on('respond_login_attempt', async ({ attemptId, action }) => {
+        console.log(`Received response for login attempt ${attemptId}: ${action}`);
+        const attempt = global.loginAttempts.get(attemptId);
+        if (!attempt) return;
+
+        if (action === 'allow') {
+            // Force logout existing sessions
+            io.to(`user_${attempt.userId}`).emit('forced_logout');
+            
+            // Notify new device of success
+            io.to(`attempt_${attemptId}`).emit('login_attempt_result', {
+                success: true,
+                token: attempt.token,
+                user: attempt.user
+            });
+        } else {
+            // Notify new device of failure
+            io.to(`attempt_${attemptId}`).emit('login_attempt_result', {
+                success: false,
+                message: "Sesi di perangkat sebelumnya menolak login Anda."
+            });
+        }
+
+        // Clear timeout and delete from global map
+        if (attempt.timeoutTimer) clearTimeout(attempt.timeoutTimer);
+        global.loginAttempts.delete(attemptId);
+    });
+
+    socket.on('cancel_login_attempt', ({ attemptId }) => {
+        console.log(`Login attempt cancelled by new device: ${attemptId}`);
+        const attempt = global.loginAttempts.get(attemptId);
+        if (attempt) {
+            if (attempt.timeoutTimer) clearTimeout(attempt.timeoutTimer);
+            global.loginAttempts.delete(attemptId);
         }
     });
 

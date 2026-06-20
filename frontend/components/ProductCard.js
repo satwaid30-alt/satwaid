@@ -12,8 +12,9 @@ import {
   Mars,
   Venus,
   HelpCircle,
+  Play,
 } from "lucide-react";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { getLogoUrl, getImageUrl } from "@/app/utils/api";
 
 const isVideoUrl = (url) => {
@@ -28,6 +29,49 @@ const isVideoUrl = (url) => {
     lower.endsWith(".3gp")
   );
 };
+
+function ProductCardVideo({ src }) {
+  const [isPlaying, setIsPlaying] = useState(false);
+  const videoRef = useRef(null);
+
+  const handlePlayClick = (e) => {
+    e.stopPropagation();
+    if (videoRef.current) {
+      if (isPlaying) {
+        videoRef.current.pause();
+      } else {
+        videoRef.current.play();
+      }
+    }
+  };
+
+  return (
+    <div className="relative w-full h-full">
+      <video
+        ref={videoRef}
+        src={src}
+        muted={!isPlaying}
+        playsInline
+        controls={isPlaying}
+        preload="metadata"
+        onPlay={() => setIsPlaying(true)}
+        onPause={() => setIsPlaying(false)}
+        onEnded={() => setIsPlaying(false)}
+        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+      />
+      {!isPlaying && (
+        <div
+          onClick={handlePlayClick}
+          className="absolute inset-0 flex items-center justify-center bg-black/25 hover:bg-black/35 transition-colors z-10"
+        >
+          <div className="w-12 h-12 rounded-full bg-white/90 backdrop-blur-sm flex items-center justify-center text-zinc-950 shadow-md transform hover:scale-110 active:scale-95 transition-all">
+            <Play size={20} fill="currentColor" className="ml-0.5" />
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
 
 export default function ProductCard({ product }) {
   const router = useRouter();
@@ -101,14 +145,7 @@ export default function ProductCard({ product }) {
       {/* Image Container - Square */}
       <div className="relative aspect-square overflow-hidden bg-zinc-50">
         {product.images && product.images[0] && isVideoUrl(product.images[0]) ? (
-          <video
-            src={getImageUrl(product.images[0])}
-            muted
-            playsInline
-            loop
-            autoPlay
-            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-          />
+          <ProductCardVideo src={getImageUrl(product.images[0])} />
         ) : (
           <img
             src={

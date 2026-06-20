@@ -1,11 +1,11 @@
 "use client";
 
 import Navbar from "../../../../components/Navbar";
-import { useState, useEffect, Suspense } from "react";
+import { useState, useEffect, useRef, Suspense } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { io } from "socket.io-client";
 import { getApiUrl, getSocketUrl, getLogoUrl, getImageUrl } from "@/app/utils/api";
-import { ChevronLeft, ChevronRight, AlertCircle, MapPin, XCircle, Info, Store, ShoppingBag, Star, Truck, Share2, Tag, Clock, Gavel, Calendar } from "lucide-react";
+import { ChevronLeft, ChevronRight, AlertCircle, MapPin, XCircle, Info, Store, ShoppingBag, Star, Truck, Share2, Tag, Clock, Gavel, Calendar, Play } from "lucide-react";
 import Link from "next/link";
 import ActionModal from "../../../../components/ActionModal";
 import { copyToClipboard } from "../../../utils/clipboard";
@@ -22,6 +22,47 @@ const isVideoUrl = (url) => {
     lower.endsWith(".3gp")
   );
 };
+
+function DetailVideoPlayer({ src }) {
+  const [isPlaying, setIsPlaying] = useState(false);
+  const videoRef = useRef(null);
+
+  const handlePlayClick = (e) => {
+    e.stopPropagation();
+    if (videoRef.current) {
+      if (isPlaying) {
+        videoRef.current.pause();
+      } else {
+        videoRef.current.play();
+      }
+    }
+  };
+
+  return (
+    <div className="relative w-full h-full flex items-center justify-center">
+      <video
+        ref={videoRef}
+        src={src}
+        controls={isPlaying}
+        preload="metadata"
+        onPlay={() => setIsPlaying(true)}
+        onPause={() => setIsPlaying(false)}
+        onEnded={() => setIsPlaying(false)}
+        className="w-full h-full object-contain p-6 lg:p-12"
+      />
+      {!isPlaying && (
+        <div
+          onClick={handlePlayClick}
+          className="absolute inset-0 flex items-center justify-center bg-black/10 hover:bg-black/20 cursor-pointer transition-colors z-10"
+        >
+          <div className="w-16 h-16 rounded-full bg-white/95 backdrop-blur-sm flex items-center justify-center text-zinc-900 shadow-lg transform hover:scale-110 active:scale-95 transition-all">
+            <Play size={28} fill="currentColor" className="ml-1" />
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
 
 function DetailContent() {
   const params = useParams();
@@ -776,11 +817,7 @@ function DetailContent() {
             <div className="bg-zinc-50 rounded-[1.5rem] relative group overflow-hidden border border-zinc-100 flex items-center justify-center aspect-square w-full">
               {parsedImages.length > 0 && parsedImages[activeImageIndex] ? (
                 isVideoUrl(parsedImages[activeImageIndex]) ? (
-                  <video
-                    src={parsedImages[activeImageIndex]}
-                    controls
-                    className="w-full h-full object-contain p-6 lg:p-12"
-                  />
+                  <DetailVideoPlayer key={parsedImages[activeImageIndex]} src={parsedImages[activeImageIndex]} />
                 ) : (
                   <img src={parsedImages[activeImageIndex]} className="w-full h-full object-contain p-6 lg:p-12 transition-transform duration-700 group-hover:scale-105 cursor-zoom-in" alt={selectedProduct.name} onClick={() => setIsImageZoomed(true)} />
                 )

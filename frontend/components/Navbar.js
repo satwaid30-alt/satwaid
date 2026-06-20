@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { MessageSquare, Bell, Package, CreditCard, Users, Trash2, CheckCircle2, ShieldCheck, AlertCircle, Store, Gavel, XCircle } from "lucide-react";
+import { MessageSquare, Bell, Package, CreditCard, Users, Trash2, CheckCircle2, ShieldCheck, AlertCircle, Store, Gavel, XCircle, AlertTriangle } from "lucide-react";
 
 import { io } from "socket.io-client";
 import { getApiUrl, getSocketUrl, getImageUrl } from "@/app/utils/api";
@@ -24,6 +24,9 @@ export default function Navbar({ theme = "dark", onNotification }) {
   const [localReadIds, setLocalReadIds] = useState([]);
   const [shopName, setShopName] = useState("");
   const [isMobile, setIsMobile] = useState(false);
+  const [showDeviceLoginPrompt, setShowDeviceLoginPrompt] = useState(false);
+  const [deviceAttemptId, setDeviceAttemptId] = useState("");
+  const [showForcedLogoutModal, setShowForcedLogoutModal] = useState(false);
 
   const mobileLightBgPages = ["/", "/toko", "/toko/", "/lelang", "/lelang/", "/komunitas", "/komunitas/"];
   const isMobileLightBg = isMobile && mobileLightBgPages.includes(pathname);
@@ -95,7 +98,11 @@ export default function Navbar({ theme = "dark", onNotification }) {
       },
     });
     setSocket(newSocket);
-    newSocket.emit("join_user", user.id);
+
+    newSocket.on("connect", () => {
+      console.log("Socket connected, joining user room:", user.id);
+      newSocket.emit("join_user", user.id);
+    });
 
     const handleSyncNotifs = () => {
       fetchCounts();
@@ -105,6 +112,15 @@ export default function Navbar({ theme = "dark", onNotification }) {
     newSocket.on("new_notification", (data) => {
       handleSyncNotifs();
       if (onNotification) onNotification(data);
+    });
+
+    newSocket.on("forced_logout", () => {
+      setShowForcedLogoutModal(true);
+    });
+
+    newSocket.on("other_device_login_attempt", ({ attemptId }) => {
+      setDeviceAttemptId(attemptId);
+      setShowDeviceLoginPrompt(true);
     });
 
     window.addEventListener("sync_notifications", handleSyncNotifs);
@@ -136,6 +152,21 @@ export default function Navbar({ theme = "dark", onNotification }) {
     setIsDropdownOpen(false);
     setIsMenuOpen(false);
     window.location.reload(); // Refresh to ensure clean state
+  };
+
+  const handleAllowDeviceLogin = () => {
+    if (socket && deviceAttemptId) {
+      socket.emit("respond_login_attempt", { attemptId: deviceAttemptId, action: "allow" });
+      handleLogout();
+    }
+    setShowDeviceLoginPrompt(false);
+  };
+
+  const handleDenyDeviceLogin = () => {
+    if (socket && deviceAttemptId) {
+      socket.emit("respond_login_attempt", { attemptId: deviceAttemptId, action: "deny" });
+    }
+    setShowDeviceLoginPrompt(false);
   };
 
   return (
@@ -460,6 +491,58 @@ export default function Navbar({ theme = "dark", onNotification }) {
           )}
         </div>
       </div>
+
+      {/* Sesi di Perangkat Lain Aktif Modal */}
+      {showDeviceLoginPrompt && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/80 backdrop-blur-md" onClick={handleDenyDeviceLogin} />
+          <div className="bg-white border border-zinc-200 rounded-[2.5rem] p-10 max-w-sm w-full text-center relative z-10 animate-in zoom-in duration-300 shadow-2xl">
+            <div className="w-20 h-20 bg-amber-100 rounded-full flex items-center justify-center mx-auto mb-6 text-amber-600">
+              <AlertTriangle size={36} />
+            </div>
+            <h3 className="text-xl font-black text-zinc-900 mb-3 leading-tight">Sesi Baru Mencoba Masuk</h3>
+            <p className="text-zinc-500 text-sm leading-relaxed mb-8">
+              Sesi baru terdeteksi mencoba masuk ke akun Anda dari perangkat lain. Apakah Anda ingin mengizinkan masuk? Sesi di perangkat ini akan berakhir jika Anda mengizinkan.
+            </p>
+            <div className="flex flex-col gap-3">
+              <button
+                onClick={handleAllowDeviceLogin}
+                className="w-full bg-red-600 hover:bg-red-500 text-white font-black py-3.5 rounded-2xl transition-all active:scale-95 cursor-pointer text-sm"
+              >
+                Izinkan & Keluar
+              </button>
+              <button
+                onClick={handleDenyDeviceLogin}
+                className="w-full border border-zinc-200 text-zinc-700 font-bold py-3.5 rounded-2xl hover:bg-zinc-50 transition-all active:scale-95 cursor-pointer text-sm"
+              >
+                Tetap Masuk
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Sesi Berakhir Modal */}
+      {showForcedLogoutModal && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 animate-in fade-in duration-300">
+          <div className="absolute inset-0 bg-black/80 backdrop-blur-md" />
+          <div className="bg-white border border-zinc-200 rounded-[2.5rem] p-10 max-w-sm w-full text-center relative z-10 animate-in zoom-in duration-300 shadow-2xl">
+            <div className="w-20 h-20 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-6 text-red-600">
+              <XCircle size={36} />
+            </div>
+            <h3 className="text-xl font-black text-zinc-900 mb-3 leading-tight">Sesi Berakhir</h3>
+            <p className="text-zinc-500 text-sm leading-relaxed mb-8">
+              Akun Anda telah masuk di perangkat lain. Sesi di perangkat ini berakhir.
+            </p>
+            <button
+              onClick={handleLogout}
+              className="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-black py-3.5 rounded-2xl transition-all active:scale-95 cursor-pointer text-sm font-semibold"
+            >
+              Masuk Kembali
+            </button>
+          </div>
+        </div>
+      )}
     </nav>
   );
 }

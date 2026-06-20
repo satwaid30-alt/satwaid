@@ -6,7 +6,8 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { Mail, KeyRound, Eye, EyeOff, Copy, Check, ArrowLeft, X, ShieldCheck, User, Sparkles } from "lucide-react";
 import { copyToClipboard } from "../utils/clipboard";
-import { getApiUrl } from "@/app/utils/api";
+import { getApiUrl, getSocketUrl } from "@/app/utils/api";
+import { io } from "socket.io-client";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -27,6 +28,22 @@ export default function LoginPage() {
   const [forgotResult, setForgotResult] = useState(null); // { temp_password, username }
   const [copied, setCopied] = useState(false);
 
+  // Duplicate Login / Single Active Session State
+  const [showDuplicateModal, setShowDuplicateModal] = useState(false);
+  const [countdown, setCountdown] = useState(12);
+  const [attemptId, setAttemptId] = useState("");
+  const [loginSocket, setLoginSocket] = useState(null);
+
+  useEffect(() => {
+    let timer;
+    if (showDuplicateModal && countdown > 0) {
+      timer = setInterval(() => {
+        setCountdown((prev) => prev - 1);
+      }, 1000);
+    }
+    return () => clearInterval(timer);
+  }, [showDuplicateModal, countdown]);
+
   useEffect(() => {
     setMounted(true);
   }, []);
@@ -39,6 +56,7 @@ export default function LoginPage() {
     e.preventDefault();
     setIsLoading(true);
     setError("");
+    let isSessionActive = false;
 
     try {
       const response = await fetch(`${getApiUrl()}/login`, {
@@ -53,6 +71,39 @@ export default function LoginPage() {
         throw new Error(data.message || "Username atau password salah");
       }
 
+      if (data.status === "session_active") {
+        isSessionActive = true;
+        setAttemptId(data.attemptId);
+        setCountdown(data.timeout || 12);
+        setShowDuplicateModal(true);
+        
+        const socketInstance = io(getSocketUrl());
+        setLoginSocket(socketInstance);
+        
+        socketInstance.on("connect", () => {
+          console.log("Login attempt socket connected, joining room:", data.attemptId);
+          socketInstance.emit("join_login_attempt", { attemptId: data.attemptId });
+        });
+        
+        socketInstance.on("login_attempt_result", (result) => {
+          if (result.success) {
+            if (typeof window !== "undefined") {
+              localStorage.setItem("token", result.token);
+              localStorage.setItem("user", JSON.stringify(result.user));
+            }
+            setShowDuplicateModal(false);
+            setShowModal(true);
+            socketInstance.disconnect();
+          } else {
+            setError(result.message || "Login ditolak.");
+            setShowDuplicateModal(false);
+            setIsLoading(false);
+            socketInstance.disconnect();
+          }
+        });
+        return;
+      }
+
       if (typeof window !== "undefined") {
         localStorage.setItem("token", data.token);
         localStorage.setItem("user", JSON.stringify(data.user));
@@ -62,8 +113,19 @@ export default function LoginPage() {
     } catch (err) {
       setError(err.message);
     } finally {
-      setIsLoading(false);
+      if (!isSessionActive) {
+        setIsLoading(false);
+      }
     }
+  };
+
+  const handleCancelLogin = () => {
+    if (loginSocket) {
+      loginSocket.emit("cancel_login_attempt", { attemptId });
+      loginSocket.disconnect();
+    }
+    setShowDuplicateModal(false);
+    setIsLoading(false);
   };
 
   const handleCloseModal = () => {
@@ -295,6 +357,61 @@ export default function LoginPage() {
             <p className="text-zinc-400 mb-10 leading-relaxed">Selamat datang kembali di ekosistem reptil terbaik.</p>
             <button onClick={handleCloseModal} className="w-full bg-white text-zinc-950 font-black py-4 rounded-2xl hover:bg-emerald-500 transition-colors duration-300">
               Lanjutkan
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Duplicate Session / Single Active Session Modal */}
+      {showDuplicateModal && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/90 backdrop-blur-md" onClick={handleCancelLogin} />
+          <div className="bg-zinc-900 border border-emerald-500/20 rounded-[2rem] p-10 max-w-sm w-full text-center relative z-10 animate-in zoom-in duration-300 shadow-[0_0_50px_rgba(16,185,129,0.1)]">
+            {/* Circular Progress Countdown */}
+            <div className="relative w-24 h-24 mx-auto mb-6 flex items-center justify-center">
+              <svg className="w-full h-full transform -rotate-90">
+                <circle
+                  cx="48"
+                  cy="48"
+                  r="36"
+                  stroke="#18181b"
+                  strokeWidth="6"
+                  fill="transparent"
+                />
+                <circle
+                  cx="48"
+                  cy="48"
+                  r="36"
+                  stroke="#10b981"
+                  strokeWidth="6"
+                  fill="transparent"
+                  strokeDasharray="226"
+                  strokeDashoffset={226 - (226 * countdown) / 12}
+                  className="transition-all duration-1000 drop-shadow-[0_0_8px_rgba(16,185,129,0.5)]"
+                />
+              </svg>
+              <span className="absolute text-2xl font-black text-white">{countdown}</span>
+            </div>
+
+            <div className="flex justify-center gap-1.5 mb-5">
+              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-bounce" style={{ animationDelay: '0ms' }}></span>
+              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-bounce" style={{ animationDelay: '150ms' }}></span>
+              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-bounce" style={{ animationDelay: '300ms' }}></span>
+            </div>
+
+            <h3 className="text-xl font-black text-white mb-3 leading-tight tracking-wide">Sesi Perangkat Lain Aktif</h3>
+            <p className="text-zinc-400 text-sm leading-relaxed mb-1">
+              Mohon tunggu respon di perangkat sebelumnya.
+            </p>
+            <p className="text-zinc-500 text-xs leading-relaxed mb-8">
+              Jika tidak ada respon dalam <span className="font-bold text-emerald-400">{countdown} detik</span>, Anda akan otomatis masuk.
+            </p>
+
+            <button
+              onClick={handleCancelLogin}
+              className="w-full bg-zinc-950 hover:bg-zinc-800 border border-white/5 text-zinc-400 hover:text-white font-bold py-4 rounded-2xl transition-all duration-300 active:scale-95 cursor-pointer"
+            >
+              Batal Login
             </button>
           </div>
         </div>

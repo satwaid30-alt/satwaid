@@ -41,6 +41,60 @@ module.exports.login = async (req, res, next) => {
             level: 0 // Default for admin login if level not in model
         }, process.env.JWT_CONF_TOKEN, { expiresIn: '7d' });
 
+        // Check if user is already logged in (active socket exists in room user_${user.id})
+        const io = req.app.get('socketio');
+        let userHasActiveSocket = false;
+        if (io) {
+            const userRoomSockets = await io.in(`user_${user.id}`).fetchSockets();
+            userHasActiveSocket = userRoomSockets.length > 0;
+        }
+
+        if (userHasActiveSocket && global.loginAttempts) {
+            const attemptId = crypto.randomBytes(16).toString('hex');
+            
+            // Set up 12 seconds timeout timer
+            const timeoutTimer = setTimeout(() => {
+                console.log(`Login attempt ${attemptId} timed out. Automatically logging in.`);
+                const attempt = global.loginAttempts.get(attemptId);
+                if (attempt) {
+                    if (io) {
+                        io.to(`user_${attempt.userId}`).emit('forced_logout');
+                        io.to(`attempt_${attemptId}`).emit('login_attempt_result', {
+                            success: true,
+                            token: attempt.token,
+                            user: attempt.user
+                        });
+                    }
+                    global.loginAttempts.delete(attemptId);
+                }
+            }, 12000);
+
+            global.loginAttempts.set(attemptId, {
+                userId: user.id,
+                user: {
+                    id: user.id,
+                    username: user.username,
+                    email: user.email,
+                    name: user.name,
+                    role: user.role,
+                    phone: user.phone || "",
+                    address: user.address || "",
+                    city: user.city || "",
+                    province: user.province || "",
+                    bank_accounts: user.bank_accounts || [],
+                    avatar_url: user.avatar_url || ""
+                },
+                token: token,
+                timeoutTimer
+            });
+
+            return res.status(200).json({
+                status: "session_active",
+                attemptId: attemptId,
+                timeout: 12
+            });
+        }
+
         // Set HttpOnly cookie for JWT
         res.cookie('token', token, {
             httpOnly: true,
