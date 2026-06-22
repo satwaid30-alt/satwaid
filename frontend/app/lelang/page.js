@@ -6,7 +6,7 @@ import ProductCard from "../../components/ProductCard";
 import Link from "next/link";
 import { useState, useEffect, useMemo, useRef } from "react";
 import { io } from "socket.io-client";
-import { getApiUrl, getSocketUrl } from "@/app/utils/api";
+import { getApiUrl, getSocketUrl, getImageUrl } from "@/app/utils/api";
 import { Gavel, Search, ChevronRight, ChevronLeft, Flame, TrendingUp, Zap, ArrowUpRight, MessageSquare, ShoppingBag, Home } from "lucide-react";
 
 export default function LelangPage() {
@@ -162,8 +162,8 @@ export default function LelangPage() {
   const slides = useMemo(() => {
     return advertisements.map((ad, idx) => ({
       id: ad.id || `ad-${idx}`,
-      image_url: ad.image_url.startsWith("http") ? ad.image_url : `${getApiUrl()}${ad.image_url}`,
-      mobile_image_url: ad.mobile_image_url ? (ad.mobile_image_url.startsWith("http") ? ad.mobile_image_url : `${getApiUrl()}${ad.mobile_image_url}`) : null,
+      image_url: getImageUrl(ad.image_url),
+      mobile_image_url: getImageUrl(ad.mobile_image_url),
       link_url: ad.link_url || "#",
       badge: ad.badge || "",
       title: ad.title || "",

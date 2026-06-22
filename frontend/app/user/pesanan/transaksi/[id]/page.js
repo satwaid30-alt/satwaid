@@ -329,7 +329,7 @@ export default function TransactionProcessPage({ params }) {
                         setShowShippingModal(true);
                       }
                     }}
-                    className="w-full md:w-auto px-10 py-5 bg-[#2563EB] hover:bg-[#1D4ED8] text-[#FFFFFF] font-black rounded-2xl transition-all active:scale-95 flex items-center justify-center gap-3"
+                    className="w-full md:w-auto px-10 py-5 bg-[#228B22] hover:bg-[#4CBB17] text-[#FFFFFF] font-black rounded-2xl transition-all active:scale-95 flex items-center justify-center gap-3"
                   >
                     Lengkapi Sekarang <MapPin size={20} />
                   </button>
@@ -373,7 +373,7 @@ export default function TransactionProcessPage({ params }) {
 
               {order.shop?.whatsapp ? (
                 <div className="space-y-3 pt-3 border-t border-zinc-800/50">
-                  <a href={getWhatsAppLink()} target="_blank" rel="noopener noreferrer" className="w-full py-3 bg-[#25D366] hover:bg-[#1DA851] text-[#FFFFFF] text-xs font-black rounded-2xl transition-all flex items-center justify-center gap-2 active:scale-95 shadow-[0_0_15px_rgba(16,185,129,0.2)] border border-emerald-400/20">
+                  <a href={getWhatsAppLink()} target="_blank" rel="noopener noreferrer" className="w-full py-3 text-white bg-[#25D366] hover:bg-[#4CBB17] text-xs font-black rounded-2xl transition-all flex items-center justify-center gap-2 active:scale-95 shadow-[0_0_15px_rgba(16,185,129,0.2)] border border-emerald-400/20">
                     <MessageCircle size={14} /> Hubungi Penjual
                   </a>
                 </div>
@@ -477,9 +477,6 @@ export default function TransactionProcessPage({ params }) {
           <div className="bg-zinc-900 border border-zinc-800 w-full max-w-lg rounded-[2rem] lg:rounded-[2.5rem] relative z-10 overflow-hidden animate-in zoom-in-95 duration-300 my-auto max-h-[90vh] flex flex-col">
             <div className="p-6 lg:p-8 space-y-6 lg:space-y-8 overflow-y-auto custom-scrollbar">
               <div className="text-center space-y-2">
-                <div className="w-12 h-12 lg:w-16 lg:h-16 bg-emerald-500/10 text-emerald-500 rounded-2xl flex items-center justify-center mx-auto mb-2 lg:mb-4">
-                  <MapPin size={32} />
-                </div>
                 <h3 className="text-xl lg:text-2xl font-black text-white uppercase tracking-tight">Data Pengiriman</h3>
                 <p className="text-zinc-500 text-[11px] lg:text-sm font-medium">Lengkapi detail tujuan pengiriman Anda</p>
               </div>
@@ -567,7 +564,7 @@ export default function TransactionProcessPage({ params }) {
                   <button type="button" disabled={isUpdatingShipping} onClick={() => setShowShippingModal(false)} className="flex-1 py-4 bg-zinc-800 hover:bg-zinc-700 text-white font-black rounded-2xl transition-all disabled:opacity-50">
                     Batal
                   </button>
-                  <button type="submit" disabled={isUpdatingShipping} className="flex-1 py-4 bg-emerald-500 hover:bg-emerald-400 text-zinc-950 font-black rounded-2xl transition-all disabled:opacity-50 flex items-center justify-center gap-2">
+                  <button type="submit" disabled={isUpdatingShipping} className="flex-1 py-4 bg-[#228B22] hover:bg-[#4CBB17] text-white font-black rounded-2xl transition-all disabled:opacity-50 flex items-center justify-center gap-2">
                     {isUpdatingShipping ? (
                       <>
                         <div className="w-4 h-4 border-2 border-zinc-950 border-t-transparent rounded-full animate-spin"></div>
@@ -625,7 +622,7 @@ export default function TransactionProcessPage({ params }) {
                 <h3 className="text-2xl font-black text-white uppercase tracking-tight">Data Tersimpan!</h3>
                 <p className="text-zinc-500 text-sm font-medium leading-relaxed">Informasi pengiriman berhasil diperbarui. Silakan tunggu penjual menentukan biaya pengiriman.</p>
               </div>
-              <button onClick={() => setShowSuccessModal(false)} className="w-full py-4 bg-[#2563EB] hover:bg-[#1D4ED8] text-[#FFFFFF] font-black rounded-2xl transition-all active:scale-95">
+              <button onClick={() => setShowSuccessModal(false)} className="w-full py-4 bg-[#228B22] hover:bg-[#4CBB17] text-white font-black rounded-2xl transition-all active:scale-95">
                 Oke, Mengerti
               </button>
             </div>

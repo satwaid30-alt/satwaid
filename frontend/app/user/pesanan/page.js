@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { ShoppingBag, Search, Filter, ChevronRight, Clock, Truck, CheckCircle2, XCircle, MoreVertical, MessageSquare, Store, CreditCard, Package, ArrowRight, MapPin, AlertCircle, Info, ScrollText, Trash2, ShoppingCart, Eye, Save, Edit3, Star } from "lucide-react";
+import { ShoppingBag, Search, Filter, ChevronRight, Clock, Truck, CheckCircle2, XCircle, MoreVertical, MessageSquare, Store, CreditCard, Package, ArrowRight, MapPin, AlertCircle, AlertTriangle, Info, ScrollText, Trash2, ShoppingCart, Eye, Save, Edit3, Star } from "lucide-react";
 import Image from "next/image";
 import ActionModal from "@/components/ActionModal";
 import { io } from "socket.io-client";
@@ -21,6 +21,7 @@ export default function PesananPage() {
   const [orders, setOrders] = useState([]);
   const [cartItems, setCartItems] = useState([]);
   const [isProcessingCart, setIsProcessingCart] = useState(false);
+  const [selectedCartIds, setSelectedCartIds] = useState([]);
   const [activeAdminFee, setActiveAdminFee] = useState(5000);
 
   useEffect(() => {
@@ -129,10 +130,33 @@ export default function PesananPage() {
       const response = await fetch(url);
       const result = await response.json();
       if (response.ok) {
-        setCartItems(result.data || []);
+        const items = result.data || [];
+        setCartItems(items);
+        // Do not pre-select items by default
+        setSelectedCartIds([]);
       }
     } catch (err) {
       console.error("Error fetching cart from", getApiUrl(), err);
+    }
+  };
+
+  const handleToggleCartItem = (itemId) => {
+    setSelectedCartIds((prev) => (prev.includes(itemId) ? prev.filter((id) => id !== itemId) : [...prev, itemId]));
+  };
+
+  const handleToggleGroup = (group) => {
+    const groupItemIds = group.items.map((item) => item.id);
+    const allSelected = groupItemIds.every((id) => selectedCartIds.includes(id));
+    if (allSelected) {
+      setSelectedCartIds((prev) => prev.filter((id) => !groupItemIds.includes(id)));
+    } else {
+      setSelectedCartIds((prev) => {
+        const newSelection = [...prev];
+        groupItemIds.forEach((id) => {
+          if (!newSelection.includes(id)) newSelection.push(id);
+        });
+        return newSelection;
+      });
     }
   };
 
@@ -441,7 +465,7 @@ export default function PesananPage() {
     }
   };
 
-  const handleCheckoutCartGroup = async (group) => {
+  const handleCheckoutCartGroup = async (group, itemsToCheckout) => {
     const userStr = localStorage.getItem("user");
     if (!userStr) return;
     const userObj = JSON.parse(userStr);
@@ -484,14 +508,14 @@ export default function PesananPage() {
       isOpen: true,
       type: "checkout",
       title: "Konfirmasi Pembelian Toko",
-      message: `Apakah Anda yakin ingin membeli semua produk (${group.items.length} item) dari toko "${group.shopName}"? (Pilih YA berarti Anda setuju untuk membelinya)`,
-      confirmText: "Ya, Beli Semua",
+      message: `Apakah Anda yakin ingin membeli produk terpilih (${itemsToCheckout.length} item) dari toko "${group.shopName}"? (Pilih YA berarti Anda setuju untuk membelinya)`,
+      confirmText: "Ya, Beli",
       cancelText: "Batal",
-      onConfirm: () => executeCheckoutGroup(group),
+      onConfirm: () => executeCheckoutGroup(group, itemsToCheckout),
     });
   };
 
-  const executeCheckoutGroup = async (group) => {
+  const executeCheckoutGroup = async (group, itemsToCheckout) => {
     const userStr = localStorage.getItem("user");
     if (!userStr) return;
     const user = JSON.parse(userStr);
@@ -500,7 +524,7 @@ export default function PesananPage() {
     try {
       const token = localStorage.getItem("token");
 
-      const payloadItems = group.items.map((item) => ({
+      const payloadItems = itemsToCheckout.map((item) => ({
         listing_id: item.listing_id,
         quantity: item.quantity,
       }));
@@ -519,8 +543,8 @@ export default function PesananPage() {
       });
 
       if (response.ok) {
-        // Remove all items in group from cart after successful order
-        for (const item of group.items) {
+        // Remove all selected items in group from cart after successful order
+        for (const item of itemsToCheckout) {
           await fetch(`${getApiUrl()}/cart/${item.id}`, {
             method: "DELETE",
             headers: token ? { Authorization: `Bearer ${token}` } : {},
@@ -610,19 +634,19 @@ export default function PesananPage() {
   const getStatusStyle = (status) => {
     switch (status) {
       case "pending_shipping_info":
-        return "bg-amber-500/10 text-amber-500 border-amber-500/20";
+        return "bg-yellow-500/10 text-yellow-500 border-yellow-500/20";
       case "waiting_shipping_cost":
-        return "bg-amber-500/10 text-amber-500 border-amber-500/20";
+        return "bg-yellow-500/10 text-yellow-500 border-yellow-500/20";
       case "waiting_payment":
-        return "bg-amber-500/10 text-amber-500 border-amber-500/20";
+        return "bg-yellow-500/10 text-yellow-500 border-yellow-500/20";
       case "processing":
-        return "bg-blue-500/10 text-blue-500 border-blue-500/20";
+        return "bg-yellow-500/10 text-yellow-500 border-yellow-500/20";
       case "waiting_shipment":
-        return "bg-blue-500/10 text-blue-500 border-blue-500/20";
+        return "bg-yellow-500/10 text-yellow-500 border-yellow-500/20";
       case "payment_verified":
-        return "bg-blue-500/10 text-blue-500 border-blue-500/20";
+        return "bg-yellow-500/10 text-yellow-500 border-yellow-500/20";
       case "shipped":
-        return "bg-purple-500/10 text-purple-500 border-purple-500/20";
+        return "bg-yellow-500/10 text-yellow-500 border-yellow-500/20";
       case "complained":
         return "bg-red-500/10 text-red-500 border-red-500/20";
       case "completed":
@@ -777,28 +801,27 @@ export default function PesananPage() {
           </div>
         </div>
 
-        {/* Tabs Row - Optimized for Mobile Grid */}
-        <div className="grid grid-cols-2 sm:flex sm:flex-wrap items-center gap-2">
+        {/* Tabs Row - Styled exactly like the screenshot */}
+        <div className="flex items-center gap-6 md:gap-8 border-b border-zinc-800/80 overflow-x-auto overflow-y-hidden pb-2 md:pb-px w-full custom-tab-scrollbar">
           {[
-            { id: "semua", label: "Semua", icon: <ShoppingBag size={16} /> },
-            { id: "keranjang", label: `Keranjang (${cartItems.length})`, icon: <ShoppingCart size={16} /> },
-            { id: "proses_transaksi", label: "Proses Transaksi", icon: <Clock size={16} /> },
-            { id: "cancelled", label: "Dibatalkan", icon: <XCircle size={16} /> },
-          ].map((tab) => (
-            <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
-              className={`flex items-center justify-center gap-3 px-4 md:px-6 py-3.5 md:py-3 rounded-2xl text-[10px] md:text-[11px] font-black uppercase tracking-wider transition-all border ${
-                activeTab === tab.id ? "bg-emerald-500 border-emerald-400 text-zinc-950" : "bg-zinc-900/50 border-zinc-800 text-zinc-500 hover:text-zinc-200 hover:border-zinc-700"
-              } ${tab.id === "cancelled" ? "col-span-2 sm:col-span-1" : ""}`}
-            >
-              <span className="shrink-0">{tab.icon}</span>
-              <span className="truncate">{tab.label}</span>
-              {tab.id === "proses_transaksi" && activeOrders.filter((o) => !["cancelled"].includes(o.status)).length > 0 && (
-                <span className={`flex items-center justify-center w-5 h-5 rounded-full text-[9px] font-black ${activeTab === tab.id ? "bg-zinc-950/20 text-zinc-900" : "bg-emerald-500 text-zinc-950"}`}>{activeOrders.filter((o) => !["cancelled"].includes(o.status)).length}</span>
-              )}
-            </button>
-          ))}
+            { id: "semua", label: "Semua" },
+            { id: "keranjang", label: "Keranjang", count: cartItems.length },
+            { id: "proses_transaksi", label: "Proses Transaksi", count: activeOrders.filter((o) => !["cancelled"].includes(o.status)).length },
+            { id: "cancelled", label: "Dibatalkan", count: orders.filter((o) => ["cancelled", "cancelled_dismissed"].includes(o.status)).length },
+          ].map((tab) => {
+            const isActive = activeTab === tab.id;
+            const hasBadge = tab.count !== undefined && tab.count > 0;
+            return (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={`group flex items-center gap-2.5 pb-4 text-xs md:text-sm font-black uppercase tracking-wider transition-all relative border-b-2 -mb-[2px] whitespace-nowrap ${isActive ? "border-emerald-500 text-emerald-500" : "border-transparent text-zinc-500 hover:text-zinc-200"}`}
+              >
+                <span>{tab.label}</span>
+                {hasBadge && <span className={`flex items-center justify-center min-w-[20px] h-5 px-1.5 rounded-full text-[9px] font-black tracking-normal transition-all shrink-0 ${isActive ? "bg-amber-500 text-zinc-950" : "bg-zinc-800 text-zinc-400 group-hover:bg-amber-500 group-hover:text-zinc-950"}`}>{tab.count}</span>}
+              </button>
+            );
+          })}
         </div>
       </div>
 
@@ -819,58 +842,83 @@ export default function PesananPage() {
                     <div className="flex-1 h-px bg-zinc-800/50"></div>
                   </div>
                 )}
-                {groupedCart.map((group) => (
-                  <div key={group.shopId} className="bg-zinc-900/10 border border-zinc-800/80 p-6 rounded-3xl space-y-4">
-                    {/* Group Header */}
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-zinc-800/50">
-                      <div className="flex items-center gap-2">
-                        <Store size={18} className="text-emerald-500" />
-                        <span className="text-sm font-black uppercase tracking-wider text-white">{group.shopName}</span>
-                      </div>
-                      <button onClick={() => handleCheckoutCartGroup(group)} disabled={isProcessingCart} className="px-6 py-2.5 bg-emerald-500 hover:bg-emerald-400 text-zinc-950 font-black text-xs uppercase tracking-wider rounded-xl transition-all flex items-center justify-center gap-2">
-                        <ShoppingBag size={14} /> Beli Semua dari Toko Ini
-                      </button>
-                    </div>
+                {groupedCart.map((group) => {
+                  const groupSelectedItems = group.items.filter((item) => selectedCartIds.includes(item.id));
+                  const isAllGroupSelected = group.items.every((item) => selectedCartIds.includes(item.id));
+                  const isSomeGroupSelected = group.items.some((item) => selectedCartIds.includes(item.id)) && !isAllGroupSelected;
 
-                    {/* Group Items */}
-                    <div className="space-y-4">
-                      {group.items.map((item) => (
-                        <div key={item.id} className="bg-zinc-900/20 border border-zinc-800/50 hover:border-emerald-500/20 rounded-2xl p-4 flex flex-col md:flex-row items-center gap-4 group transition-all">
-                          <div className="w-20 h-20 rounded-xl overflow-hidden bg-zinc-800 shrink-0 border border-zinc-700">
-                            {(() => {
-                              const mediaUrl = getImageUrl(item.product?.images);
-                              return isVideoUrl(mediaUrl) ? (
-                                <video src={mediaUrl} className="w-full h-full object-cover" preload="metadata" muted playsInline />
-                              ) : (
-                                <img src={mediaUrl || "https://placehold.co/400x400/f4f4f5/71717a?text=No+Image"} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
-                              );
-                            })()}
-                          </div>
-                          <div className="flex-1 min-w-0 text-center md:text-left">
-                            <h3 className="text-sm md:text-base font-black text-white mb-1 line-clamp-2">{item.product?.name}</h3>
-                            <div className="flex items-center justify-center md:justify-start gap-4">
-                              <p className="text-sm font-black text-emerald-500">{formatPrice(item.product?.price || 0)}</p>
-                              <div className="px-2.5 py-0.5 bg-zinc-900 border border-zinc-800 rounded-lg text-[10px] font-bold text-zinc-400">
-                                <span>Jumlah: {item.quantity}</span>
+                  return (
+                    <div key={group.shopId} className="bg-zinc-900/10 border border-zinc-800/80 p-6 rounded-3xl space-y-4">
+                      {/* Group Header */}
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-zinc-800/50">
+                        <div className="flex items-center gap-3">
+                          <input
+                            type="checkbox"
+                            checked={isAllGroupSelected}
+                            ref={(el) => {
+                              if (el) el.indeterminate = isSomeGroupSelected;
+                            }}
+                            onChange={() => handleToggleGroup(group)}
+                            className="w-5 h-5 rounded border-zinc-800 bg-zinc-950 text-emerald-500 focus:ring-emerald-500 focus:ring-offset-zinc-900 focus:ring-2 cursor-pointer transition-all"
+                          />
+                          <Store size={18} className="text-emerald-500" />
+                          <span className="text-sm font-black uppercase tracking-wider text-white">{group.shopName}</span>
+                        </div>
+                        <button
+                          onClick={() => handleCheckoutCartGroup(group, groupSelectedItems)}
+                          disabled={isProcessingCart || groupSelectedItems.length === 0}
+                          className="px-6 py-2.5 bg-emerald-500 hover:bg-emerald-400 disabled:bg-zinc-800 disabled:text-zinc-600 disabled:cursor-not-allowed text-zinc-950 font-black text-xs uppercase tracking-wider rounded-xl transition-all flex items-center justify-center gap-2"
+                        >
+                          <ShoppingBag size={14} /> Checkout Terpilih ({groupSelectedItems.length})
+                        </button>
+                      </div>
+
+                      {/* Group Items */}
+                      <div className="space-y-4">
+                        {group.items.map((item) => (
+                          <div key={item.id} className="bg-zinc-900/20 border border-zinc-800/50 hover:border-emerald-500/20 rounded-2xl p-4 flex flex-col md:flex-row items-center gap-4 group transition-all">
+                            <input
+                              type="checkbox"
+                              checked={selectedCartIds.includes(item.id)}
+                              onChange={() => handleToggleCartItem(item.id)}
+                              className="w-5 h-5 rounded border-zinc-800 bg-zinc-950 text-emerald-500 focus:ring-emerald-500 focus:ring-offset-zinc-900 focus:ring-2 cursor-pointer transition-all md:self-center self-start shrink-0"
+                            />
+                            <div className="w-20 h-20 rounded-xl overflow-hidden bg-zinc-800 shrink-0 border border-zinc-700">
+                              {(() => {
+                                const mediaUrl = getImageUrl(item.product?.images);
+                                return isVideoUrl(mediaUrl) ? (
+                                  <video src={mediaUrl} className="w-full h-full object-cover" preload="metadata" muted playsInline />
+                                ) : (
+                                  <img src={mediaUrl || "https://placehold.co/400x400/f4f4f5/71717a?text=No+Image"} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                                );
+                              })()}
+                            </div>
+                            <div className="flex-1 min-w-0 text-center md:text-left">
+                              <h3 className="text-sm md:text-base font-black text-white mb-1 line-clamp-2">{item.product?.name}</h3>
+                              <div className="flex items-center justify-center md:justify-start gap-4">
+                                <p className="text-sm font-black text-emerald-500">{formatPrice(item.product?.price || 0)}</p>
+                                <div className="px-2.5 py-0.5 bg-zinc-900 border border-zinc-800 rounded-lg text-[10px] font-bold text-zinc-400">
+                                  <span>Jumlah: {item.quantity}</span>
+                                </div>
                               </div>
                             </div>
+                            <div className="flex items-center gap-2 w-full md:w-auto shrink-0 justify-center">
+                              <Link href={`/user/pesanan/detail-pesanan/${item.id}?source=cart`} className="p-3 bg-zinc-950 text-zinc-400 hover:text-white hover:bg-zinc-800 rounded-xl border border-zinc-800 transition-all" title="Lihat Detail Produk">
+                                <Eye size={16} />
+                              </Link>
+                              <button onClick={() => handleRemoveFromCart(item.id)} className="p-3 bg-zinc-950 text-zinc-600 hover:text-red-500 hover:bg-red-500/10 rounded-xl border border-zinc-800 transition-all" title="Hapus dari Keranjang">
+                                <Trash2 size={16} />
+                              </button>
+                              <button onClick={() => handleCheckoutCart(item)} disabled={isProcessingCart} className="px-4 py-3 bg-zinc-800 hover:bg-zinc-700 text-white font-black text-xs rounded-xl transition-all flex items-center gap-2">
+                                Beli Satuan
+                              </button>
+                            </div>
                           </div>
-                          <div className="flex items-center gap-2 w-full md:w-auto shrink-0 justify-center">
-                            <Link href={`/user/pesanan/detail-pesanan/${item.id}?source=cart`} className="p-3 bg-zinc-950 text-zinc-400 hover:text-white hover:bg-zinc-800 rounded-xl border border-zinc-800 transition-all" title="Lihat Detail Produk">
-                              <Eye size={16} />
-                            </Link>
-                            <button onClick={() => handleRemoveFromCart(item.id)} className="p-3 bg-zinc-950 text-zinc-600 hover:text-red-500 hover:bg-red-500/10 rounded-xl border border-zinc-800 transition-all" title="Hapus dari Keranjang">
-                              <Trash2 size={16} />
-                            </button>
-                            <button onClick={() => handleCheckoutCart(item)} disabled={isProcessingCart} className="px-4 py-3 bg-zinc-800 hover:bg-zinc-700 text-white font-black text-xs rounded-xl transition-all flex items-center gap-2">
-                              Beli Satuan
-                            </button>
-                          </div>
-                        </div>
-                      ))}
+                        ))}
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             )}
 
@@ -1026,9 +1074,7 @@ export default function PesananPage() {
                                 <span className="text-[9px] font-black text-zinc-500 uppercase tracking-wider">Total Tagihan</span>
                                 <div className="flex flex-col items-end gap-1">
                                   <p className="text-xl font-black text-white whitespace-nowrap">{formatPrice(order.total_price)}</p>
-                                  <span className="text-[9px] text-zinc-400 font-bold leading-normal bg-zinc-950/40 py-1 rounded-xl border border-zinc-800/20 whitespace-nowrap">
-                                    (termasuk biaya admin {formatPrice(order.admin_fee !== undefined && order.admin_fee !== null ? order.admin_fee : activeAdminFee)})
-                                  </span>
+                                  <span className="text-[9px] text-zinc-400 font-bold leading-normal bg-zinc-950/40 py-1 rounded-xl border border-zinc-800/20 whitespace-nowrap">(termasuk biaya admin {formatPrice(order.admin_fee !== undefined && order.admin_fee !== null ? order.admin_fee : activeAdminFee)})</span>
                                 </div>
                                 <div className="flex items-center justify-end gap-1.5 text-zinc-500 text-[10px] font-bold pt-1">
                                   <span>{order.items && order.items.length > 0 ? order.items.reduce((sum, i) => sum + (i.quantity || 1), 0) : order.quantity} Item</span>
@@ -1041,11 +1087,26 @@ export default function PesananPage() {
                               <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto self-stretch sm:self-auto">
                                 {!["completed", "cancelled"].includes(order.status) && (
                                   <>
-                                    <Link href={`/user/pesanan/transaksi/${order.id}`} className="w-full sm:w-auto px-6 py-3 bg-[#F59E0B] hover:bg-[#D97706] text-[#FFFFFF] rounded-2xl transition-all text-xs font-black flex items-center justify-center gap-2">
-                                      <ShoppingBag size={14} /> Proses Transaksi
-                                    </Link>
+                                    {order.status === "waiting_payment" ? (
+                                      <Link href={`/user/pesanan/bayar/${order.id}`} className="w-full sm:w-auto px-6 py-3 bg-[#228B22] hover:bg-[#4CBB17] text-white rounded-2xl transition-all text-xs font-black flex items-center justify-center gap-2">
+                                        <CreditCard size={14} /> Bayar Sekarang
+                                      </Link>
+                                    ) : order.status === "shipped" ? (
+                                      <>
+                                        <Link href={`/user/pesanan/transaksi-selesai/${order.id}?tab=complete`} className="w-full sm:w-auto px-6 py-3 bg-[#228B22] hover:bg-[#4CBB17] text-white rounded-2xl transition-all text-xs font-black flex items-center justify-center gap-2">
+                                          <CheckCircle2 size={14} /> Pesanan Diterima
+                                        </Link>
+                                        <Link href={`/user/pesanan/transaksi-selesai/${order.id}?tab=complain`} className="w-full sm:w-auto px-6 py-3 bg-red-500/10 hover:bg-red-500 text-white hover:text-white border border-red-500/20 rounded-2xl transition-all text-xs font-black flex items-center justify-center gap-2">
+                                          <AlertTriangle size={14} /> Komplain
+                                        </Link>
+                                      </>
+                                    ) : (
+                                      <Link href={`/user/pesanan/transaksi/${order.id}`} className="w-full sm:w-auto px-6 py-3 bg-[#228B22] hover:bg-[#4CBB17] text-[#FFFFFF] rounded-2xl transition-all text-xs font-black flex items-center justify-center gap-2">
+                                        <ShoppingBag size={14} /> Proses Transaksi
+                                      </Link>
+                                    )}
                                     {!["completed", "cancelled", "shipped"].includes(order.status) && (
-                                      <button onClick={() => handleCancelOrder(order.id)} className="w-full sm:w-auto px-6 py-3 bg-red-500/10 hover:bg-red-500 text-red-500 hover:text-white border border-red-500/20 rounded-2xl transition-all text-xs font-black flex items-center justify-center gap-2">
+                                      <button onClick={() => handleCancelOrder(order.id)} className="w-full sm:w-auto px-6 py-3 bg-red-500/10 hover:bg-red-500 text-white hover:text-white border border-red-500/20 rounded-2xl transition-all text-xs font-black flex items-center justify-center gap-2">
                                         <XCircle size={14} /> Batal
                                       </button>
                                     )}
@@ -1231,6 +1292,41 @@ export default function PesananPage() {
 
       {/* Global Action Modal Rendering */}
       <ActionModal isOpen={actionModal.isOpen} onClose={() => setActionModal((prev) => ({ ...prev, isOpen: false }))} onConfirm={actionModal.onConfirm} type={actionModal.type} title={actionModal.title} message={actionModal.message} confirmText={actionModal.confirmText} isLoading={actionModal.isLoading} />
+
+      <style jsx global>{`
+        .custom-scrollbar::-webkit-scrollbar {
+          width: 6px;
+          height: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+          background: #09090b;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+          background: #27272a;
+          border-radius: 3px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+          background: #3f3f46;
+        }
+        .no-scrollbar::-webkit-scrollbar {
+          display: none;
+        }
+        .custom-tab-scrollbar {
+          scrollbar-width: thin;
+          scrollbar-color: #52525b #09090b;
+        }
+        .custom-tab-scrollbar::-webkit-scrollbar {
+          height: 4px !important;
+          display: block !important;
+        }
+        .custom-tab-scrollbar::-webkit-scrollbar-track {
+          background: #09090b !important;
+        }
+        .custom-tab-scrollbar::-webkit-scrollbar-thumb {
+          background: #52525b !important;
+          border-radius: 9999px !important;
+        }
+      `}</style>
     </div>
   );
 }

@@ -235,7 +235,7 @@ export default function ListingDetailPage({ params }) {
               <div className="space-y-4">
                 <div className="flex flex-wrap items-center gap-3">
                   <span className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-[0.2em] border ${listing.status?.toLowerCase() === "sold" || listing.type === "sell" ? "bg-emerald-500/10 text-emerald-500 border-emerald-500/20" : "bg-amber-500/10 text-amber-500 border-amber-500/20"}`}>
-                    {listing.status?.toLowerCase() === "sold" ? "Terjual" : listing.type === "sell" ? "Ready Stock" : "Auction / Lelang"}
+                    {listing.status?.toLowerCase() === "sold" ? "Terjual" : listing.type === "sell" ? "Stok Tersedia" : "Auction / Lelang"}
                   </span>
                   <span className="px-4 py-1.5 rounded-full text-[10px] font-black text-zinc-500 uppercase tracking-[0.2em] border border-zinc-800 bg-zinc-950/50">ID Produk: {listing.product_id || "PENDING"}</span>
                 </div>

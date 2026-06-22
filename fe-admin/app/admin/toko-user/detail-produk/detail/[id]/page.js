@@ -1,6 +1,6 @@
 "use client";
 
-import { Package, ShoppingBag, CheckCircle2, XCircle, AlertCircle, X, Store, Calendar, Tag, ChevronLeft, ChevronRight, Info, Truck, Trash2, MessageSquare, ArrowLeft, ScrollText, Clock, Gavel } from "lucide-react";
+import { Package, ShoppingBag, CheckCircle2, XCircle, AlertCircle, X, Store, Calendar, Tag, ChevronLeft, ChevronRight, Info, Truck, Trash2, MessageSquare, ArrowLeft, ScrollText, Clock, Gavel, MapPin } from "lucide-react";
 import { useState, useEffect, use } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -407,49 +407,56 @@ export default function AdminProductDetailPage({ params }) {
                   </div>
                 </div>
 
-                {/* Toko & Harga Row */}
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 w-full items-stretch">
-                  {/* Shop Logo Card */}
-                  <div className="bg-zinc-950/50 border border-zinc-800 rounded-[2rem] shadow-inner flex items-center justify-center overflow-hidden w-full h-full min-h-[120px]">
-                    {listing.shop?.logo_url ? (
-                      <img src={getLogoUrl(listing.shop.logo_url)} className="w-full h-full object-cover" alt={listing.shop.name} />
-                    ) : (
-                      <Store size={40} className="text-zinc-500" />
-                    )}
-                  </div>
+                {/* Unified Toko & Harga Card */}
+                <div className={`w-full bg-zinc-950/40 border border-zinc-800 rounded-[2.5rem] p-6 lg:p-8 shadow-inner relative overflow-hidden ${listing.type === "auction" ? "border-amber-500/10 bg-amber-500/[0.01]" : ""}`}>
+                  <div className="relative z-10 space-y-6">
+                    {/* Top: Shop Info Row */}
+                    <div className="flex flex-col sm:flex-row items-center gap-5">
+                      <div className="w-16 h-16 rounded-2xl overflow-hidden border border-zinc-800 bg-zinc-900 shrink-0 flex items-center justify-center shadow-md">
+                        {listing.shop?.logo_url ? (
+                          <img src={getLogoUrl(listing.shop.logo_url)} className="w-full h-full object-cover" alt={listing.shop.name} />
+                        ) : (
+                          <Store size={28} className="text-zinc-500" />
+                        )}
+                      </div>
+                      <div className="min-w-0 flex-1 space-y-1 text-center sm:text-left">
+                        <p className="text-[9px] font-black text-zinc-500 uppercase tracking-[0.2em]">Toko Penjual</p>
+                        <h4 className="text-base font-black text-white leading-tight break-words">{listing.shop?.name || "Toko Penjual"}</h4>
+                        <p className="text-xs text-zinc-400 font-bold flex items-center justify-center sm:justify-start gap-1">
+                          <MapPin size={12} className="text-zinc-500 flex-shrink-0" /> <span>{listing.shop?.city || "Kota Toko"}</span>
+                        </p>
+                      </div>
+                    </div>
 
-                  {/* Shop Name & Info Card */}
-                  <div className="p-6 lg:p-6 xl:p-8 bg-zinc-950/50 border border-zinc-800 rounded-[2rem] shadow-inner flex flex-col justify-center w-full h-full min-w-0">
-                    <p className="text-[10px] font-black text-zinc-500 uppercase tracking-[0.2em] mb-1.5">Toko Penjual</p>
-                    <p className="text-base lg:text-lg font-black text-white leading-snug break-words">{listing.shop?.name || "Toko Penjual"}</p>
-                    <p className="text-xs lg:text-sm text-zinc-400 font-bold mt-1.5">{listing.shop?.city || "Kota Toko"}</p>
-                  </div>
+                    {/* Divider */}
+                    <div className="h-px bg-zinc-800/85 w-full"></div>
 
-                  {/* Price Card */}
-                  <div className={`rounded-[2rem] p-6 lg:p-6 xl:p-8 border flex flex-col justify-center shadow-inner relative overflow-hidden w-full h-full ${listing.type === "auction" ? "bg-amber-500/5 border-amber-500/20" : "bg-zinc-950/50 border-zinc-800"}`}>
-                    <div className="relative z-10 w-full">
-                      <p className="text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-2">{listing.type === "sell" ? "Harga Jual Produk" : "Open Bid (OB)"}</p>
-                      <div className="flex flex-wrap items-baseline gap-2">
-                        <p className="text-2xl font-black text-white">Rp {new Number(listing.type === "sell" ? listing.price : listing.current_bid || listing.start_bid).toLocaleString("id-ID")}</p>
-                        {listing.type === "auction" && <p className="text-amber-500 font-black text-sm mb-2">(Kelipatan +Rp {new Number(listing.multiple).toLocaleString("id-ID")})</p>}
+                    {/* Bottom: Price & Auction details */}
+                    <div className="space-y-6">
+                      <div>
+                        <p className="text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-2">{listing.type === "sell" ? "Harga Jual Produk" : "Open Bid (OB)"}</p>
+                        <div className="flex flex-wrap items-baseline gap-2">
+                          <p className="text-2xl font-black text-white">Rp {new Number(listing.type === "sell" ? listing.price : listing.current_bid || listing.start_bid).toLocaleString("id-ID")}</p>
+                          {listing.type === "auction" && <p className="text-amber-500 font-black text-sm mb-1">(Kelipatan +Rp {new Number(listing.multiple).toLocaleString("id-ID")})</p>}
+                        </div>
                       </div>
 
                       {listing.type === "auction" && listing.bin_price && (
-                        <div className="mt-4 pt-4 border-t border-amber-500/10 w-full">
+                        <div className="pt-4 border-t border-zinc-800/60">
                           <p className="text-[10px] font-black text-zinc-500 uppercase tracking-[0.3em] mb-2">Beli Sekarang (BIN)</p>
                           <p className="text-xl font-black text-white">Rp {new Number(listing.bin_price).toLocaleString("id-ID")}</p>
                         </div>
                       )}
 
                       {listing.type === "auction" && (
-                        <div className="mt-6 pt-6 border-t border-amber-500/10 grid grid-cols-1 gap-4 w-full">
-                          <div className="bg-zinc-950/50 p-4 rounded-2xl border border-zinc-800/50">
+                        <div className="pt-6 border-t border-zinc-800/60 grid grid-cols-1 sm:grid-cols-2 gap-4 w-full">
+                          <div className="bg-zinc-900/60 p-4 rounded-2xl border border-zinc-800/50">
                             <p className="text-[9px] font-black text-zinc-500 uppercase tracking-widest mb-1.5 flex items-center gap-1.5">
                               <Calendar size={12} className="text-amber-500" /> Mulai Lelang
                             </p>
                             <p className="text-sm font-bold text-zinc-300">{new Date(listing.start_date).toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" }).replace(".", ":").replace(" pukul ", " • ")} WIB</p>
                           </div>
-                          <div className="bg-amber-500/10 p-4 rounded-2xl border border-amber-500/20">
+                          <div className="bg-amber-500/5 p-4 rounded-2xl border border-amber-500/10">
                             <p className="text-[9px] font-black text-amber-500/80 uppercase tracking-widest mb-1.5 flex items-center gap-1.5">
                               <Clock size={12} className="text-amber-500" /> Berakhir Pada
                             </p>
@@ -458,8 +465,9 @@ export default function AdminProductDetailPage({ params }) {
                         </div>
                       )}
                     </div>
-                    <div className={`absolute top-0 right-0 p-8 transition-colors hidden sm:block ${listing.type === "auction" ? "text-amber-500/5" : "text-emerald-500/5"}`}>{listing.type === "auction" ? <Gavel size={120} strokeWidth={1.5} /> : <Tag size={120} strokeWidth={1.5} />}</div>
                   </div>
+                  {/* Faint Background Watermark Icon */}
+                  <div className={`absolute bottom-0 right-0 p-6 transition-colors hidden sm:block pointer-events-none ${listing.type === "auction" ? "text-amber-500/[0.02]" : "text-emerald-500/[0.02]"}`}>{listing.type === "auction" ? <Gavel size={140} strokeWidth={1.5} /> : <Tag size={140} strokeWidth={1.5} />}</div>
                 </div>
 
                 {/* Badges */}

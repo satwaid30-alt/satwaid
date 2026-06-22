@@ -105,9 +105,9 @@ export default function KomunitasPage() {
     try {
       const res = await fetch(`${getApiUrl()}/topics/${topicId}/like`, {
         method: "POST",
-        headers: { 
+        headers: {
           "Content-Type": "application/json",
-          ...(token ? { "Authorization": `Bearer ${token}` } : {})
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
         },
         body: JSON.stringify({ user_id: currentUser.id }),
       });
@@ -170,7 +170,7 @@ export default function KomunitasPage() {
           </h1>
           <p className="text-lg md:text-xl text-zinc-400 max-w-2xl mx-auto mb-10">Bergabung dengan ribuan pecinta satwa. Diskusikan perawatan, pamerkan koleksi, dan temukan teman se-hobi dalam satu platform.</p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link href="/user/komunitas" className="px-8 py-4 bg-emerald-500 hover:bg-emerald-400 text-zinc-900 font-black rounded-2xl transition-all flex items-center justify-center gap-2 hover:scale-105">
+            <Link href="/user/komunitas" className="px-8 py-4 bg-[#228B22] hover:bg-[#4CBB17] text-white font-black rounded-2xl transition-all flex items-center justify-center gap-2 hover:scale-105">
               <MessageSquare size={20} />
               Buat Diskusi Baru
             </Link>
@@ -431,20 +431,12 @@ export default function KomunitasPage() {
               ) : currentTopics.length > 0 ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
                   {currentTopics.map((topic) => (
-                    <Link
-                      href={`/komunitas/${topic.id}`}
-                      key={topic.id}
-                      className="flex flex-col justify-between bg-white border border-zinc-200/70 hover:border-emerald-400/50 rounded-2xl p-5 transition-all duration-200 group hover:-translate-y-1 hover:shadow-lg hover:shadow-zinc-200/50 h-full"
-                    >
+                    <Link href={`/komunitas/${topic.id}`} key={topic.id} className="flex flex-col justify-between bg-white border border-zinc-200/70 hover:border-emerald-400/50 rounded-2xl p-5 transition-all duration-200 group hover:-translate-y-1 hover:shadow-lg hover:shadow-zinc-200/50 h-full">
                       <div className="flex-1 flex flex-col">
                         {/* Author Row */}
                         <div className="flex items-center gap-3 mb-3">
                           <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-emerald-100 to-teal-100 border border-emerald-200/50 overflow-hidden flex items-center justify-center text-emerald-700 font-black text-sm shrink-0">
-                            {topic.author?.avatar_url ? (
-                              <img src={getImageUrl(topic.author.avatar_url)} alt={topic.author.username} className="w-full h-full object-cover" />
-                            ) : (
-                              topic.author?.username ? topic.author.username.charAt(0).toUpperCase() : "U"
-                            )}
+                            {topic.author?.avatar_url ? <img src={getImageUrl(topic.author.avatar_url)} alt={topic.author.username} className="w-full h-full object-cover" /> : topic.author?.username ? topic.author.username.charAt(0).toUpperCase() : "U"}
                           </div>
                           <div className="flex items-center gap-2 flex-1 min-w-0 flex-wrap">
                             <span className="text-sm font-bold text-zinc-700 truncate max-w-[120px]">@{topic.author?.username || "Unknown"}</span>
@@ -480,7 +472,9 @@ export default function KomunitasPage() {
 
                       {/* Bottom Row */}
                       <div className="flex items-center justify-between pt-3 border-t border-zinc-100 mt-3">
-                        <span className="px-2.5 py-1 bg-zinc-50 text-zinc-500 text-[8px] font-black rounded-full uppercase tracking-[0.1em] border border-zinc-100 group-hover:bg-emerald-50 group-hover:text-emerald-600 group-hover:border-emerald-100 transition-all truncate min-w-0 max-w-[150px] md:max-w-none">{topic.category || "Diskusi Umum"}</span>
+                        <span className="px-2.5 py-1 bg-zinc-50 text-zinc-500 text-[8px] font-black rounded-full uppercase tracking-[0.1em] border border-zinc-100 group-hover:bg-emerald-50 group-hover:text-emerald-600 group-hover:border-emerald-100 transition-all truncate min-w-0 max-w-[150px] md:max-w-none">
+                          {topic.category || "Diskusi Umum"}
+                        </span>
 
                         <div className="flex items-center gap-2.5">
                           <div className="flex items-center gap-1 text-zinc-400 text-xs font-semibold">

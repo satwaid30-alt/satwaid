@@ -151,16 +151,19 @@ export default function DetailPembayaranPage({ params: paramsPromise }) {
           onConfirm: () => setActionModal((prev) => ({ ...prev, isOpen: false })),
         });
         e.target.value = ""; // Reset input file
+        if (previewUrl && previewUrl.startsWith("blob:")) {
+          URL.revokeObjectURL(previewUrl);
+        }
         setSelectedFile(null);
         setPreviewUrl(null);
         return;
       }
+      if (previewUrl && previewUrl.startsWith("blob:")) {
+        URL.revokeObjectURL(previewUrl);
+      }
       setSelectedFile(file);
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setPreviewUrl(reader.result);
-      };
-      reader.readAsDataURL(file);
+      const url = URL.createObjectURL(file);
+      setPreviewUrl(url);
     }
   };
 
@@ -206,6 +209,9 @@ export default function DetailPembayaranPage({ params: paramsPromise }) {
       if (disburseRes.ok) {
         setIsBulkModalOpen(false);
         setSelectedOrders([]);
+        if (previewUrl && previewUrl.startsWith("blob:")) {
+          URL.revokeObjectURL(previewUrl);
+        }
         setSelectedFile(null);
         setPreviewUrl(null);
         setNotes("");
@@ -464,33 +470,33 @@ export default function DetailPembayaranPage({ params: paramsPromise }) {
                 </tr>
               </thead>
               <tbody>
-                \${inv.items && inv.items.length > 0 ? (
+                ${inv.items && inv.items.length > 0 ? (
                   inv.items.map((item) => {
                     const itemSubtotal = Number(item.price || 0) * Number(item.quantity || 1);
-                    return \`
+                    return `
                     <tr style="border-bottom:1px solid #e5e7eb;">
                       <td style="padding:16px 20px;">
-                        <div style="font-weight:700;color:#111827;font-size:14px;">\${item.product?.name || "Produk"}</div>
-                        <div style="font-size:11px;color:#9ca3af;margin-top:2px;font-weight:600;">ID: \${item.product?.product_id || "-"} • Kategori: \${item.product?.species || "-"}</div>
+                        <div style="font-weight:700;color:#111827;font-size:14px;">${item.product?.name || "Produk"}</div>
+                        <div style="font-size:11px;color:#9ca3af;margin-top:2px;font-weight:600;">ID: ${item.product?.product_id || "-"} • Kategori: ${item.product?.species || "-"}</div>
                       </td>
-                      <td style="padding:16px 20px;text-align:center;font-weight:700;color:#374151;">\${item.quantity || 1}</td>
-                      <td style="padding:16px 20px;text-align:right;font-weight:700;color:#374151;">\${priceStr(item.price || 0)}</td>
-                      <td style="padding:16px 20px;text-align:right;font-weight:800;color:#111827;">\${priceStr(itemSubtotal)}</td>
+                      <td style="padding:16px 20px;text-align:center;font-weight:700;color:#374151;">${item.quantity || 1}</td>
+                      <td style="padding:16px 20px;text-align:right;font-weight:700;color:#374151;">${priceStr(item.price || 0)}</td>
+                      <td style="padding:16px 20px;text-align:right;font-weight:800;color:#111827;">${priceStr(itemSubtotal)}</td>
                     </tr>
-                    \`;
+                    `;
                   }).join('')
                 ) : (
-                  \`
+                  `
                   <tr style="border-bottom:1px solid #e5e7eb;">
                     <td style="padding:16px 20px;">
-                      <div style="font-weight:700;color:#111827;font-size:14px;">\${productName}</div>
-                      <div style="font-size:11px;color:#9ca3af;margin-top:2px;font-weight:600;">ID: \${productId} • Kategori: \${productSpecies}</div>
+                      <div style="font-weight:700;color:#111827;font-size:14px;">${productName}</div>
+                      <div style="font-size:11px;color:#9ca3af;margin-top:2px;font-weight:600;">ID: ${productId} • Kategori: ${productSpecies}</div>
                     </td>
-                    <td style="padding:16px 20px;text-align:center;font-weight:700;color:#374151;">\${qty}</td>
-                    <td style="padding:16px 20px;text-align:right;font-weight:700;color:#374151;">\${priceStr(unitPrice)}</td>
-                    <td style="padding:16px 20px;text-align:right;font-weight:800;color:#111827;">\${priceStr(subtotal)}</td>
+                    <td style="padding:16px 20px;text-align:center;font-weight:700;color:#374151;">${qty}</td>
+                    <td style="padding:16px 20px;text-align:right;font-weight:700;color:#374151;">${priceStr(unitPrice)}</td>
+                    <td style="padding:16px 20px;text-align:right;font-weight:800;color:#111827;">${priceStr(subtotal)}</td>
                   </tr>
-                  \`
+                  `
                 )}
               </tbody>
             </table>
@@ -741,7 +747,7 @@ export default function DetailPembayaranPage({ params: paramsPromise }) {
                 </tr>
               </thead>
               <tbody>
-                \${bulkInvoiceOrders
+                ${bulkInvoiceOrders
                   .map((o, idx) => {
                     const sub = o.items && o.items.length > 0
                       ? o.items.reduce((sum, item) => sum + (Number(item.price || 0) * Number(item.quantity || 1)), 0)
@@ -749,31 +755,31 @@ export default function DetailPembayaranPage({ params: paramsPromise }) {
                     const ship = Number(o.shipping_cost || 0);
                     const pack = Number(o.packing_cost || 0);
                     const singleTotal = sub + ship + pack;
-                    return \`
+                    return `
                     <tr style="border-bottom:1px solid #e5e7eb;">
-                      <td style="padding:12px 14px;text-align:center;font-weight:700;color:#374151;">\${idx + 1}</td>
-                      <td style="padding:12px 14px;font-family:monospace;font-size:11px;font-weight:700;color:#111827;">\${o.order_id}</td>
+                      <td style="padding:12px 14px;text-align:center;font-weight:700;color:#374151;">${idx + 1}</td>
+                      <td style="padding:12px 14px;font-family:monospace;font-size:11px;font-weight:700;color:#111827;">${o.order_id}</td>
                       <td style="padding:12px 14px;">
-                        \${o.items && o.items.length > 0 ? (
-                          o.items.map((item, itemIdx) => \`
-                            <div style="margin-bottom:4px;border-bottom:\${itemIdx < o.items.length - 1 ? '1px dashed #e5e7eb' : 'none'};padding-bottom:4px;">
-                              <div style="font-weight:700;color:#111827;">\${item.product?.name || "Produk"}</div>
-                              <div style="font-size:10px;color:#9ca3af;font-weight:600;">Qty: \${item.quantity} • ID: \${item.product?.product_id || "-"}</div>
+                        ${o.items && o.items.length > 0 ? (
+                          o.items.map((item, itemIdx) => `
+                            <div style="margin-bottom:4px;border-bottom:${itemIdx < o.items.length - 1 ? '1px dashed #e5e7eb' : 'none'};padding-bottom:4px;">
+                              <div style="font-weight:700;color:#111827;">${item.product?.name || "Produk"}</div>
+                              <div style="font-size:10px;color:#9ca3af;font-weight:600;">Qty: ${item.quantity} • ID: ${item.product?.product_id || "-"}</div>
                             </div>
-                          \`).join('')
+                          `).join('')
                         ) : (
-                          \`<div>
-                            <div style="font-weight:700;color:#111827;">\${o.product?.name || "Produk"}</div>
-                            <div style="font-size:10px;color:#9ca3af;font-weight:600;">Qty: \${o.quantity} • Kategori: \${o.product?.species || "-"}</div>
-                          </div>\`
+                          `<div>
+                            <div style="font-weight:700;color:#111827;">${o.product?.name || "Produk"}</div>
+                            <div style="font-size:10px;color:#9ca3af;font-weight:600;">Qty: ${o.quantity} • Kategori: ${o.product?.species || "-"}</div>
+                          </div>`
                         )}
                       </td>
-                      <td style="padding:12px 14px;text-align:right;color:#374151;font-weight:600;">\${priceStr(sub)}</td>
-                      <td style="padding:12px 14px;text-align:right;color:#374151;font-weight:600;">\${priceStr(ship)}</td>
-                      <td style="padding:12px 14px;text-align:right;color:#374151;font-weight:600;">\${priceStr(pack)}</td>
-                      <td style="padding:12px 14px;text-align:right;font-weight:800;color:#111827;">\${priceStr(singleTotal)}</td>
+                      <td style="padding:12px 14px;text-align:right;color:#374151;font-weight:600;">${priceStr(sub)}</td>
+                      <td style="padding:12px 14px;text-align:right;color:#374151;font-weight:600;">${priceStr(ship)}</td>
+                      <td style="padding:12px 14px;text-align:right;color:#374151;font-weight:600;">${priceStr(pack)}</td>
+                      <td style="padding:12px 14px;text-align:right;font-weight:800;color:#111827;">${priceStr(singleTotal)}</td>
                     </tr>
-                  \`;
+                  `;
                   })
                   .join("")}
               </tbody>
@@ -1287,6 +1293,9 @@ export default function DetailPembayaranPage({ params: paramsPromise }) {
               <button
                 onClick={() => {
                   setIsBulkModalOpen(false);
+                  if (previewUrl && previewUrl.startsWith("blob:")) {
+                    URL.revokeObjectURL(previewUrl);
+                  }
                   setSelectedFile(null);
                   setPreviewUrl(null);
                 }}
@@ -1329,16 +1338,37 @@ export default function DetailPembayaranPage({ params: paramsPromise }) {
             <div className="space-y-2">
               <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest block">Unggah Bukti Transfer (PNG, JPG, PDF)</label>
               {previewUrl ? (
-                <div className="relative border border-zinc-800 rounded-2xl overflow-hidden bg-zinc-950 aspect-video flex items-center justify-center group">
-                  <img src={previewUrl} className="w-full h-full object-contain" alt="Bukti Transfer" />
-                  <div className="absolute inset-0 bg-zinc-950/70 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-all duration-300">
+                <div className="relative border border-zinc-800 rounded-2xl overflow-hidden bg-zinc-950 aspect-video flex items-center justify-center group p-4">
+                  {selectedFile && selectedFile.type.includes("pdf") ? (
+                    <div className="flex flex-col items-center justify-center text-zinc-400 gap-2">
+                      <FileText size={48} className="text-emerald-500" />
+                      <span className="text-[10px] font-bold tracking-wider truncate max-w-[250px]">{selectedFile.name}</span>
+                    </div>
+                  ) : (
+                    <img src={previewUrl} className="w-full h-full object-contain rounded-xl" alt="Bukti Transfer" />
+                  )}
+                  <div className="absolute inset-0 bg-zinc-950/70 opacity-0 group-hover:opacity-100 flex items-center justify-center gap-3 transition-all duration-300">
                     <button
                       type="button"
                       onClick={() => {
+                        if (previewUrl) {
+                          window.open(previewUrl, "_blank");
+                        }
+                      }}
+                      className="px-4 py-2 bg-emerald-500 hover:bg-emerald-400 text-zinc-950 text-xs font-black uppercase tracking-widest rounded-xl transition-all active:scale-95 flex items-center gap-1.5"
+                    >
+                      <Eye size={12} /> Lihat Bukti
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (previewUrl && previewUrl.startsWith("blob:")) {
+                          URL.revokeObjectURL(previewUrl);
+                        }
                         setSelectedFile(null);
                         setPreviewUrl(null);
                       }}
-                      className="px-4 py-2 bg-rose-600 hover:bg-rose-500 text-white text-xs font-black uppercase tracking-widest rounded-xl transition-all"
+                      className="px-4 py-2 bg-rose-600 hover:bg-rose-500 text-white text-xs font-black uppercase tracking-widest rounded-xl transition-all active:scale-95"
                     >
                       Hapus Bukti
                     </button>

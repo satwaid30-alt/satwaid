@@ -5,7 +5,7 @@ import { useState, useEffect, useRef, Suspense } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { io } from "socket.io-client";
 import { getApiUrl, getSocketUrl, getLogoUrl, getImageUrl } from "@/app/utils/api";
-import { ChevronLeft, ChevronRight, AlertCircle, MapPin, XCircle, Info, Store, ShoppingBag, Star, Truck, Share2, Tag, Clock, Gavel, Calendar, Play } from "lucide-react";
+import { ChevronLeft, ChevronRight, AlertCircle, MapPin, XCircle, Info, Store, ShoppingBag, Star, Truck, MessageCircle, Share2, Tag, Clock, Gavel, Calendar, Play } from "lucide-react";
 import Link from "next/link";
 import ActionModal from "../../../../components/ActionModal";
 import { copyToClipboard } from "../../../utils/clipboard";
@@ -922,9 +922,7 @@ function DetailContent() {
                       rel="noopener noreferrer"
                       className="flex-1 sm:flex-initial flex items-center justify-center gap-2 text-[11px] font-black text-white bg-[#25D366] hover:bg-[#128C7E] transition-all py-2.5 px-4 rounded-xl text-center"
                     >
-                      <svg className="w-3.5 h-3.5 fill-current flex-shrink-0" viewBox="0 0 24 24">
-                        <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.246 2.248 3.484 5.232 3.484 8.412-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.309 1.656zm6.224-3.82l.448.265c1.485.881 3.192 1.347 4.933 1.348 5.456 0 9.897-4.44 9.899-9.898.001-2.646-1.03-5.133-2.903-7.006-1.874-1.874-4.359-2.907-7.004-2.907-5.457 0-9.898 4.44-9.9 9.898-.001 2.107.549 4.159 1.59 5.968l.301.517-1.103 4.029 4.125-1.082zM17.472 14.382c-.301-.15-1.78-.879-2.056-.979-.276-.1-.477-.15-.677.15-.2.299-.777.979-.951 1.178-.174.2-.349.226-.65.075-.301-.15-1.272-.469-2.422-1.494-.894-.797-1.498-1.783-1.674-2.083-.176-.3-.019-.462.132-.611.135-.134.301-.35.451-.525.15-.175.2-.299.301-.499.1-.2.05-.375-.025-.525-.075-.15-.677-1.633-.927-2.235-.243-.587-.491-.507-.677-.517-.175-.008-.376-.01-.577-.01s-.526.075-.802.375c-.276.3-1.052 1.026-1.052 2.503s1.077 2.903 1.227 3.103c.15.2 2.119 3.235 5.132 4.532.716.308 1.276.492 1.711.631.719.228 1.373.196 1.89.119.576-.086 1.78-.727 2.031-1.428.25-.701.25-1.302.175-1.428-.075-.126-.276-.226-.577-.376z" />
-                      </svg>
+                      <MessageCircle size={14} className="flex-shrink-0" />
                       Hubungi
                     </a>
                   )}

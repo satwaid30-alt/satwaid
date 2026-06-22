@@ -221,7 +221,6 @@ export default function UserTokoDetailPage() {
   return (
     <div className="min-h-screen bg-zinc-950 text-zinc-300 py-6 sm:py-12 px-3 sm:px-6 lg:px-8">
       <div className="max-w-7xl mx-auto space-y-6 sm:space-y-10 animate-in fade-in duration-500">
-        
         {/* Active Pending Request Banner */}
         {pendingRequest && (
           <div className="p-6 bg-amber-500/10 border border-amber-500/20 rounded-[2rem] flex flex-col md:flex-row items-start md:items-center justify-between gap-6 hover:bg-amber-500/15 transition-all">
@@ -235,7 +234,8 @@ export default function UserTokoDetailPage() {
                   Pengajuan Upgrade Toko: <span className="text-amber-400">{pendingRequest.plan_name || pendingRequest.planName}</span>
                 </h3>
                 <p className="text-xs text-zinc-400 leading-relaxed font-medium">
-                  Diajukan pada {pendingRequest.created_at || pendingRequest.submitted_at || pendingRequest.submittedAt ? new Date(pendingRequest.created_at || pendingRequest.submitted_at || pendingRequest.submittedAt).toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" }) : "-"} pukul {pendingRequest.created_at || pendingRequest.submitted_at || pendingRequest.submittedAt ? new Date(pendingRequest.created_at || pendingRequest.submitted_at || pendingRequest.submittedAt).toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" }).replace(".", ":") : "-"} WIB. Atas nama rekening:{" "}
+                  Diajukan pada {pendingRequest.created_at || pendingRequest.submitted_at || pendingRequest.submittedAt ? new Date(pendingRequest.created_at || pendingRequest.submitted_at || pendingRequest.submittedAt).toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" }) : "-"} pukul{" "}
+                  {pendingRequest.created_at || pendingRequest.submitted_at || pendingRequest.submittedAt ? new Date(pendingRequest.created_at || pendingRequest.submitted_at || pendingRequest.submittedAt).toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" }).replace(".", ":") : "-"} WIB. Atas nama rekening:{" "}
                   <span className="font-bold text-zinc-200">{pendingRequest.account_name || pendingRequest.accountName}</span> ({(pendingRequest.bank_origin || pendingRequest.bankOrigin || "").toUpperCase()}) dengan <span className="font-mono font-bold text-amber-500">Kode Transaksi #UPG-{pendingRequest.unique_code}</span>.
                 </p>
               </div>
@@ -298,38 +298,24 @@ export default function UserTokoDetailPage() {
                 )}
 
                 {/* Quota Badge (Button-like) */}
-                <Link
-                  href="/user/toko/daftar-produk"
-                  className="group/quota flex items-center gap-3 bg-zinc-950/50 border border-zinc-800/80 hover:border-emerald-500/40 px-4 py-2 rounded-2xl transition-all duration-500 backdrop-blur-md hover:no-underline"
-                >
+                <Link href="/user/toko/daftar-produk" className="group/quota flex items-center gap-3 bg-zinc-950/50 border border-zinc-800/80 hover:border-emerald-500/40 px-4 py-2 rounded-2xl transition-all duration-500 backdrop-blur-md hover:no-underline">
                   <div className="flex items-center gap-1.5 border-r border-zinc-800/80 pr-2.5">
                     <i className="fa-solid fa-layer-group text-[10px] text-emerald-500/70"></i>
                     <span className="text-[10px] font-black text-zinc-500 uppercase tracking-tighter">Kuota</span>
                   </div>
-                  <span className={`text-[11px] sm:text-xs font-black ${quotaLoading ? "text-zinc-600 animate-pulse" : quota?.remaining === 0 ? "text-red-400" : quota?.remaining <= 50 ? "text-amber-400" : "text-emerald-400"}`}>
-                    {quotaLoading ? "..." : `${quota?.remaining?.toLocaleString("id-ID")} Sisa`}
-                  </span>
+                  <span className={`text-[11px] sm:text-xs font-black ${quotaLoading ? "text-zinc-600 animate-pulse" : quota?.remaining === 0 ? "text-red-400" : quota?.remaining <= 50 ? "text-amber-400" : "text-emerald-400"}`}>{quotaLoading ? "..." : `${quota?.remaining?.toLocaleString("id-ID")} Sisa`}</span>
                   <div className="text-zinc-600 group-hover/quota:text-white transition-all transform group-hover/quota:translate-x-0.5" title="Kelola Produk">
                     <i className="fa-solid fa-chevron-right text-[11px]"></i>
                   </div>
                 </Link>
 
                 {/* Level Keanggotaan Badge */}
-                <Link
-                  href="/user/toko/upgrade-toko"
-                  className="group/membership flex items-center gap-3 bg-zinc-950/50 border border-zinc-800/80 hover:border-emerald-500/40 px-4 py-2 rounded-2xl transition-all duration-500 backdrop-blur-md hover:no-underline"
-                >
+                <Link href="/user/toko/upgrade-toko" className="group/membership flex items-center gap-3 bg-zinc-950/50 border border-zinc-800/80 hover:border-emerald-500/40 px-4 py-2 rounded-2xl transition-all duration-500 backdrop-blur-md hover:no-underline">
                   <div className="flex items-center gap-1.5 border-r border-zinc-800/80 pr-2.5">
                     <ShieldCheck size={12} className="text-emerald-500/70" />
                     <span className="text-[10px] font-black text-zinc-500 uppercase tracking-tighter">Level</span>
                   </div>
-                  <span className={`text-[11px] sm:text-xs font-black ${
-                    shopData.membership_level === 'Pro Seller' ? 'text-emerald-400' :
-                    shopData.membership_level === 'Enterprise Seller' ? 'text-purple-400' :
-                    'text-zinc-400'
-                  }`}>
-                    {shopData.membership_level || 'Standard Seller'}
-                  </span>
+                  <span className={`text-[11px] sm:text-xs font-black ${shopData.membership_level === "Pro Seller" ? "text-emerald-400" : shopData.membership_level === "Enterprise Seller" ? "text-purple-400" : "text-zinc-400"}`}>{shopData.membership_level || "Standard Seller"}</span>
                   <div className="text-zinc-600 group-hover/membership:text-white transition-all transform group-hover/membership:translate-x-0.5" title="Upgrade Toko">
                     <i className="fa-solid fa-chevron-right text-[11px]"></i>
                   </div>
@@ -367,27 +353,26 @@ export default function UserTokoDetailPage() {
               </div>
             </div>
             <div className="flex flex-col sm:flex-row gap-2.5 sm:gap-3 w-full sm:w-auto shrink-0 justify-center">
-              {currentUser && currentUser.id === shopData.user_id && (
-                isUpgradeLocked ? (
-                  <button
-                    disabled
-                    className="w-full sm:w-auto px-5 py-3 sm:py-2.5 bg-zinc-800 text-zinc-500 text-xs sm:text-sm font-bold rounded-xl transition-all flex items-center justify-center gap-2 cursor-not-allowed opacity-50 text-center"
-                    title="Fitur Upgrade Toko dinonaktifkan sementara oleh Admin"
-                  >
+              {currentUser &&
+                currentUser.id === shopData.user_id &&
+                (isUpgradeLocked ? (
+                  <button disabled className="w-full sm:w-auto px-5 py-3 sm:py-2.5 bg-zinc-800 text-zinc-500 text-xs sm:text-sm font-bold rounded-xl transition-all flex items-center justify-center gap-2 cursor-not-allowed opacity-50 text-center" title="Fitur Upgrade Toko dinonaktifkan sementara oleh Admin">
                     <Lock size={14} className="shrink-0" />
                     Upgrade Toko (Terkunci)
                   </button>
                 ) : (
-                  <Link href="/toko-saya/upgrade" className="w-full sm:w-auto px-5 py-3 sm:py-2.5 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-zinc-950 text-xs sm:text-sm font-black rounded-xl transition-all flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/10 hover:no-underline text-center">
+                  <Link
+                    href="/toko-saya/upgrade"
+                    className="w-full sm:w-auto px-5 py-3 sm:py-2.5 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-zinc-950 text-xs sm:text-sm font-black rounded-xl transition-all flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/10 hover:no-underline text-center"
+                  >
                     <ShieldCheck size={14} className="shrink-0" />
                     Upgrade Toko
                   </Link>
-                )
-              )}
+                ))}
               <Link href="/user/toko/edit-toko" className="w-full sm:w-auto px-5 py-3 sm:py-2.5 bg-zinc-800 hover:bg-zinc-700 text-white text-xs sm:text-sm font-bold rounded-xl transition-all flex items-center justify-center gap-2 text-center">
                 Edit Toko
               </Link>
-              <Link href="/user/toko/dashboard" className="w-full sm:w-auto px-5 py-3 sm:py-2.5 bg-emerald-500 hover:bg-emerald-400 text-zinc-950 text-xs sm:text-sm font-black rounded-xl transition-all flex items-center justify-center gap-2 text-center">
+              <Link href="/user/toko/dashboard" className="w-full sm:w-auto px-5 py-3 sm:py-2.5 bg-emerald-500 hover:bg-emerald-600 text-white text-xs sm:text-sm font-black rounded-xl transition-all flex items-center justify-center gap-2 text-center">
                 Dashboard
               </Link>
             </div>
@@ -630,8 +615,6 @@ export default function UserTokoDetailPage() {
             </div>
           )}
         </div>
-
-
 
         {/* Ulasan & Komentar Penjualan */}
         <div className="bg-zinc-900 border border-zinc-800 rounded-3xl p-6 sm:p-10 space-y-6 sm:space-y-8">

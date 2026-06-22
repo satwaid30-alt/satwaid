@@ -35,21 +35,9 @@ function DetailVideoPlayer({ src }) {
 
   return (
     <div className="relative w-full h-full flex items-center justify-center">
-      <video
-        ref={videoRef}
-        src={src}
-        controls={isPlaying}
-        preload="metadata"
-        onPlay={() => setIsPlaying(true)}
-        onPause={() => setIsPlaying(false)}
-        onEnded={() => setIsPlaying(false)}
-        className="w-full h-full object-contain p-6 lg:p-12"
-      />
+      <video ref={videoRef} src={src} controls={isPlaying} preload="metadata" onPlay={() => setIsPlaying(true)} onPause={() => setIsPlaying(false)} onEnded={() => setIsPlaying(false)} className="w-full h-full object-contain p-6 lg:p-12" />
       {!isPlaying && (
-        <div
-          onClick={handlePlayClick}
-          className="absolute inset-0 flex items-center justify-center bg-black/10 hover:bg-black/20 cursor-pointer transition-colors z-10"
-        >
+        <div onClick={handlePlayClick} className="absolute inset-0 flex items-center justify-center bg-black/10 hover:bg-black/20 cursor-pointer transition-colors z-10">
           <div className="w-16 h-16 rounded-full bg-white/95 backdrop-blur-sm flex items-center justify-center text-zinc-900 shadow-lg transform hover:scale-110 active:scale-95 transition-all">
             <Play size={28} fill="currentColor" className="ml-1" />
           </div>
@@ -85,9 +73,7 @@ function DetailContent() {
     }
 
     const arr = Array.isArray(rawImages) ? rawImages : [rawImages];
-    return arr
-      .filter((img) => img && typeof img === "string")
-      .map((img) => getImageUrl(img));
+    return arr.filter((img) => img && typeof img === "string").map((img) => getImageUrl(img));
   };
 
   const [selectedProduct, setSelectedProduct] = useState(null);
@@ -576,7 +562,7 @@ function DetailContent() {
                     </div>
                     <div className="min-w-0">
                       <div className="flex items-center gap-2 mb-0.5">
-                        <p className="text-sm font-black text-blue-600 hover:underline cursor-pointer truncate">{selectedProduct.shop?.name || "Seller"}</p>
+                        <p className="text-sm font-black text-zinc-900 hover:underline cursor-pointer truncate">{selectedProduct.shop?.name || "Seller"}</p>
                         <div className="flex items-center gap-1 bg-amber-50 px-1.5 py-0.5 rounded-md border border-amber-100 flex-shrink-0">
                           <Star size={10} className="text-amber-500 fill-amber-500" />
                           <span className="text-[10px] font-black text-zinc-900">{selectedProduct.shop?.avgRating || "5.0"}</span>
@@ -594,11 +580,9 @@ function DetailContent() {
                         href={`https://wa.me/${selectedProduct.shop.whatsapp.replace(/\D/g, "")}?text=Halo ${selectedProduct.shop.name}, saya tertarik dengan produk ${selectedProduct.name} di REPTILEHAVEN.`}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="flex items-center justify-center gap-2 text-[11px] font-black text-white bg-[#25D366] hover:bg-[#128C7E] transition-all py-2.5 px-4 rounded-xl"
+                        className="flex items-center justify-center gap-2 text-[11px] font-black text-white bg-[#25D366] hover:bg-[#4CBB17] transition-all py-2.5 px-4 rounded-xl"
                       >
-                        <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24">
-                          <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.246 2.248 3.484 5.232 3.484 8.412-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.309 1.656zm6.224-3.82l.448.265c1.485.881 3.192 1.347 4.933 1.348 5.456 0 9.897-4.44 9.899-9.898.001-2.646-1.03-5.133-2.903-7.006-1.874-1.874-4.359-2.907-7.004-2.907-5.457 0-9.898 4.44-9.9 9.898-.001 2.107.549 4.159 1.59 5.968l.301.517-1.103 4.029 4.125-1.082zM17.472 14.382c-.301-.15-1.78-.879-2.056-.979-.276-.1-.477-.15-.677.15-.2.299-.777.979-.951 1.178-.174.2-.349.226-.65.075-.301-.15-1.272-.469-2.422-1.494-.894-.797-1.498-1.783-1.674-2.083-.176-.3-.019-.462.132-.611.135-.134.301-.35.451-.525.15-.175.2-.299.301-.499.1-.2.05-.375-.025-.525-.075-.15-.677-1.633-.927-2.235-.243-.587-.491-.507-.677-.517-.175-.008-.376-.01-.577-.01s-.526.075-.802.375c-.276.3-1.052 1.026-1.052 2.503s1.077 2.903 1.227 3.103c.15.2 2.119 3.235 5.132 4.532.716.308 1.276.492 1.711.631.719.228 1.373.196 1.89.119.576-.086 1.78-.727 2.031-1.428.25-.701.25-1.302.175-1.428-.075-.126-.276-.226-.577-.376z" />
-                        </svg>
+                        <MessageCircle size={16} />
                         Hubungi
                       </a>
                     )}
@@ -612,7 +596,7 @@ function DetailContent() {
 
                 <div className="flex flex-wrap items-center justify-between gap-8">
                   <div>
-                    <p className="text-3xl lg:text-3xl font-black text-emerald-600">{formatPrice((selectedProduct.type === "sell" ? selectedProduct.price : selectedProduct.current_bid || selectedProduct.start_bid) * buyQuantity)}</p>
+                    <p className="text-3xl lg:text-3xl font-black text-zinc-900">{formatPrice((selectedProduct.type === "sell" ? selectedProduct.price : selectedProduct.current_bid || selectedProduct.start_bid) * buyQuantity)}</p>
                   </div>
 
                   {!(currentUser && selectedProduct.user_id === currentUser.id) && selectedProduct.stock > 0 && selectedProduct.status !== "sold" && (
@@ -632,10 +616,10 @@ function DetailContent() {
 
                       {/* Action Buttons */}
                       <div className="flex items-center gap-2 h-12 w-full">
-                        <button onClick={handleAddToCart} disabled={isAddingToCart} className="flex-1 bg-white hover:bg-zinc-50 border-2 border-emerald-500 text-emerald-600 font-black px-4 rounded-xl text-xs transition-all active:scale-95 disabled:opacity-50 h-full flex items-center justify-center">
+                        <button onClick={handleAddToCart} disabled={isAddingToCart} className="flex-1 bg-white hover:bg-zinc-50 border-2 border-[#4CBB17] text-[#228B22] font-black px-4 rounded-xl text-xs transition-all active:scale-95 disabled:opacity-50 h-full flex items-center justify-center">
                           {isAddingToCart ? "..." : `+ Keranjang`}
                         </button>
-                        <button onClick={handleBuyNow} disabled={isBuying} className="flex-1 bg-emerald-500 hover:bg-emerald-600 text-white font-black px-6 rounded-xl text-xs transition-all active:scale-95 disabled:opacity-50 h-full flex items-center justify-center">
+                        <button onClick={handleBuyNow} disabled={isBuying} className="flex-1 bg-[#228B22] hover:bg-[#4CBB17] text-white font-black px-6 rounded-xl text-xs transition-all active:scale-95 disabled:opacity-50 h-full flex items-center justify-center">
                           {isBuying ? "..." : "Beli Sekarang"}
                         </button>
                       </div>

@@ -24,20 +24,7 @@ const CartController = {
         return res.status(400).json({ message: "You cannot add your own product to cart" });
       }
 
-      // Check if user already has an active order for this listing
-      const activeOrder = await models.orders.findOne({
-        where: {
-          user_id,
-          listing_id,
-          status: {
-            [Op.notIn]: ["completed", "cancelled", "complained"],
-          },
-        },
-      });
 
-      if (activeOrder) {
-        return res.status(400).json({ message: "Anda sudah memiliki transaksi aktif untuk produk ini. Harap selesaikan terlebih dahulu." });
-      }
 
       // Check if stock is enough
       const requestedQty = parseInt(quantity) || 1;

@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
-import { User, Settings, ShoppingBag, Store, Heart, LogOut, MapPin, Home, Menu, X, ChevronLeft, ChevronRight, MessageSquare, Users, Lock, Bell, Trash2, Package, CreditCard, Gavel, Wrench, Code, AlertTriangle } from "lucide-react";
+import { User, Settings, ShoppingBag, Store, Heart, LogOut, MapPin, Home, Menu, X, ChevronLeft, XCircle, ChevronRight, MessageSquare, Users, Lock, Bell, Trash2, Package, CreditCard, Gavel, Wrench, Code, AlertTriangle } from "lucide-react";
 import { io } from "socket.io-client";
 import { getApiUrl, getSocketUrl, getImageUrl, getLogoUrl } from "@/app/utils/api";
 
@@ -130,6 +130,9 @@ export default function UserSidebar() {
   const [localReadIds, setLocalReadIds] = useState([]);
   const [showNotifDropdown, setShowNotifDropdown] = useState(false);
   const [activeAuctionCount, setActiveAuctionCount] = useState(0);
+  const [showDeviceLoginPrompt, setShowDeviceLoginPrompt] = useState(false);
+  const [deviceAttemptId, setDeviceAttemptId] = useState("");
+  const [showForcedLogoutModal, setShowForcedLogoutModal] = useState(false);
 
   // Load user data on mount
   useEffect(() => {
@@ -224,7 +227,7 @@ export default function UserSidebar() {
           }
         }
       } else if (item.href) {
-        const isActive = item.href === "/akun/pengaturan" ? (currentPath === "/akun/pengaturan" || currentPath.startsWith("/akun/pengaturan/edit")) : item.href === "/" ? currentPath === "/" : currentPath.startsWith(item.href);
+        const isActive = item.href === "/akun/pengaturan" ? currentPath === "/akun/pengaturan" || currentPath.startsWith("/akun/pengaturan/edit") : item.href === "/" ? currentPath === "/" : currentPath.startsWith(item.href);
         if (isActive) {
           return { key: item.key, name: item.name };
         }
@@ -410,6 +413,15 @@ export default function UserSidebar() {
       fetchShopStatus(user.id);
     });
 
+    newSocket.on("forced_logout", () => {
+      setShowForcedLogoutModal(true);
+    });
+
+    newSocket.on("other_device_login_attempt", ({ attemptId }) => {
+      setDeviceAttemptId(attemptId);
+      setShowDeviceLoginPrompt(true);
+    });
+
     return () => newSocket.disconnect();
   }, [user?.id]);
 
@@ -438,6 +450,21 @@ export default function UserSidebar() {
     localStorage.removeItem("token");
     localStorage.removeItem("user");
     window.location.href = "/";
+  };
+
+  const handleAllowDeviceLogin = () => {
+    if (socket && deviceAttemptId) {
+      socket.emit("respond_login_attempt", { attemptId: deviceAttemptId, action: "allow" });
+      handleLogout();
+    }
+    setShowDeviceLoginPrompt(false);
+  };
+
+  const handleDenyDeviceLogin = () => {
+    if (socket && deviceAttemptId) {
+      socket.emit("respond_login_attempt", { attemptId: deviceAttemptId, action: "deny" });
+    }
+    setShowDeviceLoginPrompt(false);
   };
 
   const toggleSubmenu = (name) => {
@@ -489,7 +516,7 @@ export default function UserSidebar() {
   }
 
   const isSellerPage = pathname.startsWith("/toko-saya") || pathname.startsWith("/user/toko");
-  const displayLogo = isSellerPage && shopLogo ? getLogoUrl(shopLogo) : (user?.avatar_url ? getImageUrl(user.avatar_url) : null);
+  const displayLogo = isSellerPage && shopLogo ? getLogoUrl(shopLogo) : user?.avatar_url ? getImageUrl(user.avatar_url) : null;
 
   return (
     <>
@@ -515,13 +542,7 @@ export default function UserSidebar() {
               </>
             ) : (
               <>
-                <div className="w-14 h-14 bg-emerald-500 rounded-2xl flex items-center justify-center text-white font-bold text-xl shrink-0 overflow-hidden">
-                  {displayLogo ? (
-                    <img src={displayLogo} alt={user?.username || "User"} className="w-full h-full object-cover" />
-                  ) : (
-                    user?.username ? user.username.charAt(0).toUpperCase() : "U"
-                  )}
-                </div>
+                <div className="w-14 h-14 bg-emerald-500 rounded-2xl flex items-center justify-center text-white font-bold text-xl shrink-0 overflow-hidden">{displayLogo ? <img src={displayLogo} alt={user?.username || "User"} className="w-full h-full object-cover" /> : user?.username ? user.username.charAt(0).toUpperCase() : "U"}</div>
                 {!isCollapsed && (
                   <div className="flex-1 min-w-0">
                     <p className="text-lg font-bold text-white truncate">{user?.name || user?.username || "Pengguna"}</p>
@@ -543,7 +564,7 @@ export default function UserSidebar() {
             const Icon = item.icon;
             const hasSubmenu = item.submenu && item.submenu.length > 0;
             const isSubmenuOpen = openSubmenus[item.name];
-            const isActive = item.submenu ? item.submenu.some((sub) => isSubmenuActive(sub.href, pathname)) : item.href === "/akun/pengaturan" ? (pathname === "/akun/pengaturan" || pathname.startsWith("/akun/pengaturan/edit")) : item.href === "/" ? pathname === "/" : pathname.startsWith(item.href);
+            const isActive = item.submenu ? item.submenu.some((sub) => isSubmenuActive(sub.href, pathname)) : item.href === "/akun/pengaturan" ? pathname === "/akun/pengaturan" || pathname.startsWith("/akun/pengaturan/edit") : item.href === "/" ? pathname === "/" : pathname.startsWith(item.href);
 
             return (
               <div key={item.name} className="space-y-1">
@@ -553,9 +574,9 @@ export default function UserSidebar() {
                     {!isCollapsed && (
                       <>
                         <span className="flex-1 text-left truncate flex items-center">
-                           {item.name}
-                           {parentStatus === "maintenance" && <span className="ml-2 px-1.5 py-0.5 rounded text-[8px] font-black uppercase bg-amber-500/10 text-amber-500 border border-amber-500/20 shrink-0">Maint</span>}
-                           {parentStatus === "development" && <span className="ml-2 px-1.5 py-0.5 rounded text-[8px] font-black uppercase bg-blue-500/10 text-blue-500 border border-blue-500/20 shrink-0">Dev</span>}
+                          {item.name}
+                          {parentStatus === "maintenance" && <span className="ml-2 px-1.5 py-0.5 rounded text-[8px] font-black uppercase bg-amber-500/10 text-amber-500 border border-amber-500/20 shrink-0">Maint</span>}
+                          {parentStatus === "development" && <span className="ml-2 px-1.5 py-0.5 rounded text-[8px] font-black uppercase bg-blue-500/10 text-blue-500 border border-blue-500/20 shrink-0">Dev</span>}
                         </span>
                         {item.name === "Pesanan Saya" && notifications.my_orders > 0 && <span className="mr-2 bg-red-500 text-white text-[10px] font-black px-2 py-0.5 rounded-full animate-pulse">{notifications.my_orders}</span>}
                         {item.name === "Dashboard Seller" && notifications.incoming_orders > 0 && <span className="mr-2 bg-emerald-500 text-zinc-950 text-[10px] font-black px-2 py-0.5 rounded-full animate-pulse">{notifications.incoming_orders}</span>}
@@ -658,13 +679,7 @@ export default function UserSidebar() {
               </>
             ) : (
               <>
-                <div className="w-10 h-10 bg-emerald-500 rounded-xl flex items-center justify-center text-white font-bold text-lg overflow-hidden shrink-0">
-                  {displayLogo ? (
-                    <img src={displayLogo} alt={user?.username || "User"} className="w-full h-full object-cover" />
-                  ) : (
-                    user?.username ? user.username.charAt(0).toUpperCase() : "U"
-                  )}
-                </div>
+                <div className="w-10 h-10 bg-emerald-500 rounded-xl flex items-center justify-center text-white font-bold text-lg overflow-hidden shrink-0">{displayLogo ? <img src={displayLogo} alt={user?.username || "User"} className="w-full h-full object-cover" /> : user?.username ? user.username.charAt(0).toUpperCase() : "U"}</div>
                 <div>
                   <p className="text-sm font-bold text-white leading-tight">{user?.name || user?.username || "Pengguna"}</p>
                 </div>
@@ -853,7 +868,7 @@ export default function UserSidebar() {
                 const Icon = item.icon;
                 const hasSubmenu = item.submenu && item.submenu.length > 0;
                 const isSubmenuOpen = openSubmenus[`mobile_${item.name}`];
-                const isActive = item.submenu ? item.submenu.some((sub) => isSubmenuActive(sub.href, pathname)) : item.href === "/akun/pengaturan" ? (pathname === "/akun/pengaturan" || pathname.startsWith("/akun/pengaturan/edit")) : item.href === "/" ? pathname === "/" : pathname.startsWith(item.href);
+                const isActive = item.submenu ? item.submenu.some((sub) => isSubmenuActive(sub.href, pathname)) : item.href === "/akun/pengaturan" ? pathname === "/akun/pengaturan" || pathname.startsWith("/akun/pengaturan/edit") : item.href === "/" ? pathname === "/" : pathname.startsWith(item.href);
 
                 return (
                   <div key={item.name} className="space-y-1">
@@ -992,6 +1007,45 @@ export default function UserSidebar() {
                 Tutup Peringatan
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Sesi di Perangkat Lain Aktif Modal */}
+      {showDeviceLoginPrompt && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/80 backdrop-blur-md" onClick={handleDenyDeviceLogin} />
+          <div className="bg-zinc-900 border border-zinc-800 rounded-[2.5rem] p-10 max-w-sm w-full text-center relative z-10 animate-in zoom-in duration-300 shadow-2xl">
+            <div className="w-20 h-20 bg-amber-500/10 border border-amber-500/20 rounded-full flex items-center justify-center mx-auto mb-6 text-amber-500">
+              <AlertTriangle size={36} />
+            </div>
+            <h3 className="text-xl font-black text-white mb-3 leading-tight">Sesi Baru Mencoba Masuk</h3>
+            <p className="text-zinc-400 text-sm leading-relaxed mb-8">Sesi baru terdeteksi mencoba masuk ke akun Anda dari perangkat lain. Apakah Anda ingin mengizinkan masuk? Sesi di perangkat ini akan berakhir jika Anda mengizinkan.</p>
+            <div className="flex flex-col gap-3">
+              <button onClick={handleAllowDeviceLogin} className="w-full bg-red-600 hover:bg-red-500 text-white font-black py-3.5 rounded-2xl transition-all active:scale-95 cursor-pointer text-sm">
+                Izinkan & Keluar
+              </button>
+              <button onClick={handleDenyDeviceLogin} className="w-full border border-zinc-800 text-zinc-400 hover:text-white hover:bg-zinc-850 font-bold py-3.5 rounded-2xl transition-all active:scale-95 cursor-pointer text-sm">
+                Tetap Masuk
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Sesi Berakhir Modal */}
+      {showForcedLogoutModal && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 animate-in fade-in duration-300">
+          <div className="absolute inset-0 bg-black/85 backdrop-blur-md" />
+          <div className="bg-zinc-900 border border-zinc-800 rounded-[2.5rem] p-10 max-w-sm w-full text-center relative z-10 animate-in zoom-in duration-300 shadow-2xl">
+            <div className="w-20 h-20 bg-red-500/10 border border-red-500/20 rounded-full flex items-center justify-center mx-auto mb-6 text-red-500">
+              <XCircle size={36} />
+            </div>
+            <h3 className="text-xl font-black text-white mb-3 leading-tight">Sesi Berakhir</h3>
+            <p className="text-zinc-400 text-sm leading-relaxed mb-8">Akun Anda telah masuk di perangkat lain. Sesi di perangkat ini berakhir.</p>
+            <button onClick={handleLogout} className="w-full bg-red-600 hover:bg-red-500 text-white font-black py-3.5 rounded-2xl transition-all active:scale-95 cursor-pointer text-sm font-semibold">
+              Masuk Kembali
+            </button>
           </div>
         </div>
       )}

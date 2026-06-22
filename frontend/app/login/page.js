@@ -76,15 +76,15 @@ export default function LoginPage() {
         setAttemptId(data.attemptId);
         setCountdown(data.timeout || 12);
         setShowDuplicateModal(true);
-        
+
         const socketInstance = io(getSocketUrl());
         setLoginSocket(socketInstance);
-        
+
         socketInstance.on("connect", () => {
           console.log("Login attempt socket connected, joining room:", data.attemptId);
           socketInstance.emit("join_login_attempt", { attemptId: data.attemptId });
         });
-        
+
         socketInstance.on("login_attempt_result", (result) => {
           if (result.success) {
             if (typeof window !== "undefined") {
@@ -314,7 +314,7 @@ export default function LoginPage() {
               </div>
             </div>
 
-            <button type="submit" disabled={isLoading} className="w-full relative group overflow-hidden bg-emerald-500 hover:bg-emerald-400 text-zinc-950 font-black py-4 rounded-2xl transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed">
+            <button type="submit" disabled={isLoading} className="w-full relative group overflow-hidden bg-[#228B22] hover:bg-[#4CBB17] text-white font-black py-4 rounded-2xl transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed">
               <div className="absolute inset-0 w-1/2 h-full bg-gradient-to-r from-transparent via-white/20 to-transparent -skew-x-[45deg] -translate-x-[150%] group-hover:translate-x-[250%] transition-transform duration-1000" />
               <span className="flex items-center justify-center gap-2">
                 {isLoading ? (
@@ -345,17 +345,17 @@ export default function LoginPage() {
       {/* Success Modal */}
       {showModal && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-black/80 backdrop-blur-md" onClick={handleCloseModal} />
-          <div className="bg-zinc-900 border border-emerald-500/30 rounded-[2rem] p-10 max-w-sm w-full text-center relative z-10 animate-in zoom-in duration-300">
-            <div className="w-24 h-24 bg-emerald-500/20 rounded-full flex items-center justify-center mx-auto mb-8 relative">
+          <div className="absolute inset-0 bg-black/80 backdrop-blur-md animate-backdrop-fade" onClick={handleCloseModal} />
+          <div className="bg-zinc-900 border border-emerald-500/30 rounded-[1.75rem] sm:rounded-[2rem] p-6 sm:p-10 max-w-sm w-full text-center relative z-10 animate-modal-zoom">
+            <div className="w-20 h-20 sm:w-24 sm:h-24 bg-emerald-500/20 rounded-full flex items-center justify-center mx-auto mb-6 sm:mb-8 relative">
               <div className="absolute inset-0 rounded-full animate-ping bg-emerald-500/10" />
-              <div className="w-16 h-16 bg-emerald-500 rounded-full flex items-center justify-center text-zinc-950">
-                <Check size={32} strokeWidth={4} />
+              <div className="w-14 h-14 sm:w-16 sm:h-16 bg-emerald-500 rounded-full flex items-center justify-center text-zinc-950">
+                <Check size={28} strokeWidth={4} className="sm:w-8 sm:h-8" />
               </div>
             </div>
-            <h3 className="text-3xl font-bold text-white mb-3">Login Berhasil!</h3>
-            <p className="text-zinc-400 mb-10 leading-relaxed">Selamat datang kembali di ekosistem reptil terbaik.</p>
-            <button onClick={handleCloseModal} className="w-full bg-white text-zinc-950 font-black py-4 rounded-2xl hover:bg-emerald-500 transition-colors duration-300">
+            <h3 className="text-2xl sm:text-3xl font-bold text-white mb-2.5">Login Berhasil!</h3>
+            <p className="text-zinc-400 text-sm sm:text-base mb-8 sm:mb-10 leading-relaxed">Selamat datang kembali di SatwaiD.</p>
+            <button onClick={handleCloseModal} className="w-full bg-white text-zinc-950 font-black py-3.5 sm:py-4 rounded-xl sm:rounded-2xl hover:bg-emerald-500 transition-colors duration-300 text-sm sm:text-base">
               Lanjutkan
             </button>
           </div>
@@ -365,52 +365,30 @@ export default function LoginPage() {
       {/* Duplicate Session / Single Active Session Modal */}
       {showDuplicateModal && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-black/90 backdrop-blur-md" onClick={handleCancelLogin} />
-          <div className="bg-zinc-900 border border-emerald-500/20 rounded-[2rem] p-10 max-w-sm w-full text-center relative z-10 animate-in zoom-in duration-300 shadow-[0_0_50px_rgba(16,185,129,0.1)]">
+          <div className="absolute inset-0 bg-black/90 backdrop-blur-md animate-backdrop-fade" onClick={handleCancelLogin} />
+          <div className="bg-zinc-900 border border-emerald-500/20 rounded-[1.75rem] sm:rounded-[2rem] p-6 sm:p-10 max-w-sm w-full text-center relative z-10 animate-modal-zoom shadow-[0_0_50px_rgba(16,185,129,0.1)]">
             {/* Circular Progress Countdown */}
-            <div className="relative w-24 h-24 mx-auto mb-6 flex items-center justify-center">
-              <svg className="w-full h-full transform -rotate-90">
-                <circle
-                  cx="48"
-                  cy="48"
-                  r="36"
-                  stroke="#18181b"
-                  strokeWidth="6"
-                  fill="transparent"
-                />
-                <circle
-                  cx="48"
-                  cy="48"
-                  r="36"
-                  stroke="#10b981"
-                  strokeWidth="6"
-                  fill="transparent"
-                  strokeDasharray="226"
-                  strokeDashoffset={226 - (226 * countdown) / 12}
-                  className="transition-all duration-1000 drop-shadow-[0_0_8px_rgba(16,185,129,0.5)]"
-                />
+            <div className="relative w-20 h-20 sm:w-24 sm:h-24 mx-auto mb-6 flex items-center justify-center">
+              <svg className="w-full h-full transform -rotate-90" viewBox="0 0 96 96">
+                <circle cx="48" cy="48" r="36" stroke="#18181b" strokeWidth="6" fill="transparent" />
+                <circle cx="48" cy="48" r="36" stroke="#10b981" strokeWidth="6" fill="transparent" strokeDasharray="226" strokeDashoffset={226 - (226 * countdown) / 12} className="transition-all duration-1000 drop-shadow-[0_0_8px_rgba(16,185,129,0.5)]" />
               </svg>
-              <span className="absolute text-2xl font-black text-white">{countdown}</span>
+              <span className="absolute text-xl sm:text-2xl font-black text-white">{countdown}</span>
             </div>
 
             <div className="flex justify-center gap-1.5 mb-5">
-              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-bounce" style={{ animationDelay: '0ms' }}></span>
-              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-bounce" style={{ animationDelay: '150ms' }}></span>
-              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-bounce" style={{ animationDelay: '300ms' }}></span>
+              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-bounce" style={{ animationDelay: "0ms" }}></span>
+              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-bounce" style={{ animationDelay: "150ms" }}></span>
+              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-bounce" style={{ animationDelay: "300ms" }}></span>
             </div>
 
-            <h3 className="text-xl font-black text-white mb-3 leading-tight tracking-wide">Sesi Perangkat Lain Aktif</h3>
-            <p className="text-zinc-400 text-sm leading-relaxed mb-1">
-              Mohon tunggu respon di perangkat sebelumnya.
-            </p>
-            <p className="text-zinc-500 text-xs leading-relaxed mb-8">
+            <h3 className="text-lg sm:text-xl font-black text-white mb-2.5 leading-tight tracking-wide">Sesi Perangkat Lain Aktif</h3>
+            <p className="text-zinc-400 text-xs sm:text-sm leading-relaxed mb-1">Mohon tunggu respon di perangkat sebelumnya.</p>
+            <p className="text-zinc-500 text-[10px] sm:text-xs leading-relaxed mb-8">
               Jika tidak ada respon dalam <span className="font-bold text-emerald-400">{countdown} detik</span>, Anda akan otomatis masuk.
             </p>
 
-            <button
-              onClick={handleCancelLogin}
-              className="w-full bg-zinc-950 hover:bg-zinc-800 border border-white/5 text-zinc-400 hover:text-white font-bold py-4 rounded-2xl transition-all duration-300 active:scale-95 cursor-pointer"
-            >
+            <button onClick={handleCancelLogin} className="w-full bg-zinc-950 hover:bg-zinc-800 border border-white/5 text-zinc-400 hover:text-white font-bold py-3.5 sm:py-4 rounded-xl sm:rounded-2xl transition-all duration-300 active:scale-95 cursor-pointer text-xs sm:text-sm">
               Batal Login
             </button>
           </div>
@@ -420,8 +398,8 @@ export default function LoginPage() {
       {/* Forgot Password Modal */}
       {showForgotModal && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-black/90 backdrop-blur-md" onClick={closeForgotModal} />
-          <div className="bg-zinc-900 border border-white/5 rounded-[2.5rem] w-full max-w-md relative z-10 overflow-hidden animate-in zoom-in duration-300">
+          <div className="absolute inset-0 bg-black/90 backdrop-blur-md animate-backdrop-fade" onClick={closeForgotModal} />
+          <div className="bg-zinc-900 border border-white/5 rounded-[1.75rem] sm:rounded-[2.5rem] w-full max-w-md relative z-10 overflow-hidden animate-modal-zoom">
             <div className="p-8 border-b border-white/5 flex items-center justify-between">
               <div className="flex items-center gap-4">
                 <div className="w-12 h-12 bg-amber-500/10 border border-amber-500/20 rounded-2xl flex items-center justify-center text-amber-500">
@@ -504,6 +482,34 @@ export default function LoginPage() {
           </div>
         </div>
       )}
+
+      {/* Global CSS Keyframes for Modals to support Safari mobile & standard transitions */}
+      <style>{`
+        @keyframes modalZoomIn {
+          from {
+            opacity: 0;
+            transform: scale(0.95) translateY(10px);
+          }
+          to {
+            opacity: 1;
+            transform: scale(1) translateY(0);
+          }
+        }
+        @keyframes backdropFadeIn {
+          from {
+            opacity: 0;
+          }
+          to {
+            opacity: 0.9;
+          }
+        }
+        .animate-modal-zoom {
+          animation: modalZoomIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+        }
+        .animate-backdrop-fade {
+          animation: backdropFadeIn 0.2s ease-out forwards;
+        }
+      `}</style>
     </div>
   );
 }

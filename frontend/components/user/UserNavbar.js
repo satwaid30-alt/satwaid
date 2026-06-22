@@ -224,7 +224,8 @@ export default function UserNavbar() {
   const displayLogo = isSellerPage && shopLogo ? getLogoUrl(shopLogo) : (user?.avatar_url ? getImageUrl(user.avatar_url) : null);
 
   return (
-    <header className="hidden md:flex sticky top-0 z-30 w-full bg-zinc-950/80 backdrop-blur-md border-b border-zinc-800/80 px-6 py-4 items-center justify-between">
+    <header className="hidden md:flex sticky top-0 z-30 w-full px-6 py-4 items-center justify-between">
+      <div className="absolute inset-0 bg-zinc-950/80 backdrop-blur-md border-b border-zinc-800/80 -z-10" />
       {/* Left: Breadcrumbs & Current Page Title */}
       <div className="flex flex-col">
         <div className="flex items-center gap-2 text-xs font-semibold text-zinc-500 uppercase tracking-wider">

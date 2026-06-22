@@ -16,6 +16,19 @@ exports.checkAuth = (req, res, next) => {
     if (token) {
         jwt.verify(token, process.env.JWT_CONF_TOKEN, (err, decoded) => {
             if (!err) {
+                // Verify active session_id
+                if (decoded && decoded.id && decoded.session_id) {
+                    if (!global.activeSessions) {
+                        global.activeSessions = new Map();
+                    }
+                    const activeSessionId = global.activeSessions.get(decoded.id);
+                    if (activeSessionId && activeSessionId !== decoded.session_id) {
+                        return res.status(401).send({ message: 'Session expired' });
+                    }
+                    if (!activeSessionId) {
+                        global.activeSessions.set(decoded.id, decoded.session_id);
+                    }
+                }
                 req.user_data = decoded;
                 return next();
             } else {
@@ -59,6 +72,19 @@ exports.checkAuthAdmin = (req, res, next) => {
             jwt.verify(headers['authorization'].split(";")[0].replace("Bearer ", ""), process.env.JWT_CONF_TOKEN, (err, decoded) => {
                 if (!err) {
                     if (decoded?.level != 8) {
+                        // Verify active session_id
+                        if (decoded && decoded.id && decoded.session_id) {
+                            if (!global.activeSessions) {
+                                global.activeSessions = new Map();
+                            }
+                            const activeSessionId = global.activeSessions.get(decoded.id);
+                            if (activeSessionId && activeSessionId !== decoded.session_id) {
+                                return res.status(401).send({ message: 'Session expired' });
+                            }
+                            if (!activeSessionId) {
+                                global.activeSessions.set(decoded.id, decoded.session_id);
+                            }
+                        }
                         req.user_data = decoded;
                         return next();
                     } else {

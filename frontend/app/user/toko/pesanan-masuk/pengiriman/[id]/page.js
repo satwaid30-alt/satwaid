@@ -434,7 +434,7 @@ export default function ShippingConfirmationPage({ params }) {
                   <Link href={`/user/toko/pesanan-masuk/detail/${id}`} className="flex-1 py-5 bg-zinc-800 hover:bg-zinc-700 text-white font-black rounded-2xl transition-all text-center text-sm uppercase tracking-widest">
                     Batal
                   </Link>
-                  <button type="submit" disabled={isSubmitting || uploading} className="flex-[2] py-5 bg-[#2563EB] hover:bg-[#1D4ED8] text-[#FFFFFF] font-black rounded-2xl transition-all disabled:opacity-50 flex items-center justify-center gap-3 active:scale-95 text-sm uppercase tracking-widest">
+                  <button type="submit" disabled={isSubmitting || uploading} className="flex-[2] py-5 bg-[#228B22] hover:bg-[#4CBB17] text-white font-black rounded-2xl transition-all disabled:opacity-50 flex items-center justify-center gap-3 active:scale-95 text-sm uppercase tracking-widest">
                     {isSubmitting ? (
                       <>
                         <div className="w-5 h-5 border-2 border-zinc-950 border-t-transparent rounded-full animate-spin"></div>

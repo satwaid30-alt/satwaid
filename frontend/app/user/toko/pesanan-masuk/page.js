@@ -356,92 +356,48 @@ export default function PesananMasukPage() {
         </div>
       </div>
 
-      {/* Filter Tabs - Optimized for Mobile & Desktop */}
-      <div className="flex flex-col gap-4">
-        {/* Mobile Select Dropdown */}
-        <div className="sm:hidden relative">
-          <div className="absolute left-4 top-1/2 -translate-y-1/2 text-emerald-500 pointer-events-none">
-            <Filter size={18} />
-          </div>
-          <select value={activeTab} onChange={(e) => setActiveTab(e.target.value)} className="w-full bg-zinc-900 border border-zinc-800 rounded-2xl py-3 pl-12 pr-10 text-white focus:outline-none focus:border-emerald-500 transition-all text-xs font-black uppercase appearance-none cursor-pointer">
-            {[
-              { id: "all", label: "Semua", count: activeOrders.length },
-              {
-                id: "pending",
-                label: "Tindakan",
-                count: activeOrders.filter((o) => ["pending_shipping_info", "waiting_shipping_cost", "waiting_shipment"].includes(o.status)).length,
-              },
-              {
-                id: "payment",
-                label: "Belum Bayar",
-                count: activeOrders.filter((o) => o.status === "waiting_payment").length,
-              },
-              {
-                id: "process",
-                label: "Diproses",
-                count: activeOrders.filter((o) => ["processing", "waiting_shipment", "shipped"].includes(o.status)).length,
-              },
-              {
-                id: "complained",
-                label: "Komplain",
-                count: activeOrders.filter((o) => o.status === "complained").length,
-              },
-            ].map((tab) => (
-              <option key={tab.id} value={tab.id} className="bg-zinc-900 text-white py-2">
-                {tab.label} ({tab.count})
-              </option>
-            ))}
-          </select>
-          <div className="absolute right-4 top-1/2 -translate-y-1/2 text-zinc-500 pointer-events-none">
-            <ChevronRight size={18} className="rotate-90" />
-          </div>
-        </div>
-
-        {/* Desktop/Tablet Button Tabs */}
-        <div className="hidden sm:flex sm:flex-wrap items-center gap-2">
-          {[
-            {
-              id: "all",
-              label: "Semua",
-              count: activeOrders.length,
-              icon: <ShoppingBag size={16} />,
-            },
-            {
-              id: "pending",
-              label: "Tindakan",
-              count: activeOrders.filter((o) => ["pending_shipping_info", "waiting_shipping_cost", "waiting_shipment"].includes(o.status)).length,
-              icon: <AlertCircle size={16} />,
-            },
-            {
-              id: "payment",
-              label: "Belum Bayar",
-              count: activeOrders.filter((o) => o.status === "waiting_payment").length,
-              icon: <CreditCard size={16} />,
-            },
-            {
-              id: "process",
-              label: "Diproses",
-              count: activeOrders.filter((o) => ["processing", "waiting_shipment", "shipped"].includes(o.status)).length,
-              icon: <Clock size={16} />,
-            },
-            {
-              id: "complained",
-              label: "Komplain",
-              count: activeOrders.filter((o) => o.status === "complained").length,
-              icon: <AlertCircle size={16} />,
-            },
-          ].map((tab) => (
+      {/* Filter Tabs - Styled exactly like /user/pesanan */}
+      <div className="flex items-center gap-6 md:gap-8 border-b border-zinc-800/80 overflow-x-auto overflow-y-hidden pb-2 md:pb-px w-full custom-tab-scrollbar">
+        {[
+          {
+            id: "all",
+            label: "Semua",
+            count: activeOrders.length,
+          },
+          {
+            id: "pending",
+            label: "Tindakan",
+            count: activeOrders.filter((o) => ["pending_shipping_info", "waiting_shipping_cost", "waiting_shipment"].includes(o.status)).length,
+          },
+          {
+            id: "payment",
+            label: "Belum Bayar",
+            count: activeOrders.filter((o) => o.status === "waiting_payment").length,
+          },
+          {
+            id: "process",
+            label: "Diproses",
+            count: activeOrders.filter((o) => ["processing", "waiting_shipment", "shipped"].includes(o.status)).length,
+          },
+          {
+            id: "complained",
+            label: "Komplain",
+            count: activeOrders.filter((o) => o.status === "complained").length,
+          },
+        ].map((tab) => {
+          const isActive = activeTab === tab.id;
+          const hasBadge = tab.count !== undefined && tab.count > 0;
+          return (
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`flex items-center justify-center gap-2 px-6 py-3 rounded-2xl text-[11px] font-black uppercase tracking-wider transition-all border ${activeTab === tab.id ? "bg-emerald-500 border-emerald-400 text-zinc-950" : "bg-zinc-900/50 border-zinc-800 text-zinc-500 hover:text-zinc-200 hover:border-zinc-700"}`}
+              className={`group flex items-center gap-2.5 pb-4 text-xs md:text-sm font-black uppercase tracking-wider transition-all relative border-b-2 -mb-[2px] whitespace-nowrap ${isActive ? "border-emerald-500 text-emerald-500" : "border-transparent text-zinc-500 hover:text-zinc-200"}`}
             >
-              <span className="shrink-0">{tab.icon}</span>
-              <span className="truncate">{tab.label}</span>
-              {tab.count > 0 && <span className={`flex items-center justify-center min-w-[20px] h-5 px-1.5 rounded-full text-[9px] font-black ml-1 ${activeTab === tab.id ? "bg-zinc-950/20 text-zinc-900" : "bg-emerald-500 text-zinc-950"}`}>{tab.count}</span>}
+              <span>{tab.label}</span>
+              {hasBadge && <span className={`flex items-center justify-center min-w-[20px] h-5 px-1.5 rounded-full text-[9px] font-black tracking-normal transition-all shrink-0 ${isActive ? "bg-amber-500 text-zinc-950" : "bg-zinc-800 text-zinc-400 group-hover:bg-amber-500 group-hover:text-zinc-950"}`}>{tab.count}</span>}
             </button>
-          ))}
-        </div>
+          );
+        })}
       </div>
 
       {/* Success Message */}
@@ -659,31 +615,22 @@ export default function PesananMasukPage() {
 
                   {/* Actions and CTAs */}
                   <div className="space-y-2 pt-1">
-                    {order.status === "waiting_shipping_cost" && (
-                      <Link href={`/user/toko/pesanan-masuk/biaya-kirim/${order.id}`} className="w-full py-2 bg-[#2563EB] hover:bg-[#1D4ED8] text-[#FFFFFF] rounded-xl transition-all font-black text-[9px] uppercase tracking-widest text-center active:scale-95 block">
-                        Input Ongkir
+                    <div className={`grid gap-2 ${["waiting_shipping_cost", "waiting_shipment", "payment_verified"].includes(order.status) ? "grid-cols-2" : "grid-cols-1"}`}>
+                      {order.status === "waiting_shipping_cost" ? (
+                        <Link href={`/user/toko/pesanan-masuk/biaya-kirim/${order.id}`} className="py-2 bg-[#228B22] hover:bg-[#4CBB17] text-white rounded-xl transition-all font-black text-[8px] uppercase tracking-widest text-center border border-[#228B22] hover:border-[#4CBB17] flex items-center justify-center gap-1">
+                          <Truck size={10} /> Input Resi
+                        </Link>
+                      ) : ["waiting_shipment", "payment_verified"].includes(order.status) ? (
+                        <Link href={`/user/toko/pesanan-masuk/pengiriman/${order.id}`} className="py-2 bg-[#228B22] hover:bg-[#4CBB17] text-white rounded-xl transition-all font-black text-[8px] uppercase tracking-widest text-center border border-[#228B22] hover:border-[#4CBB17] flex items-center justify-center gap-1">
+                          <Truck size={10} /> Input Resi
+                        </Link>
+                      ) : null}
+                      <Link href={`/user/toko/pesanan-masuk/detail/${order.id}`} className="py-2 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 hover:text-white rounded-xl transition-all font-black text-[8px] uppercase tracking-widest text-center border border-zinc-700 hover:border-zinc-600 flex items-center justify-center gap-1">
+                        <Info size={10} /> Detail
                       </Link>
-                    )}
-                    {["waiting_shipment", "payment_verified"].includes(order.status) && (
-                      <Link href={`/user/toko/pesanan-masuk/pengiriman/${order.id}`} className="w-full py-2.5 bg-[#2563EB] hover:bg-[#1D4ED8] text-[#FFFFFF] rounded-xl transition-all font-black text-[9px] uppercase tracking-widest text-center active:scale-95 block">
-                        Input Resi
-                      </Link>
-                    )}
-                    <div className="grid grid-cols-2 gap-2">
-                      <Link href={`/user/toko/pesanan-masuk/detail/${order.id}`} className="py-2 bg-[#F59E0B] hover:bg-[#D97706] text-[#FFFFFF] rounded-xl transition-all font-black text-[8px] uppercase tracking-widest text-center border border-[#F59E0B] hover:border-[#D97706] flex items-center justify-center gap-1">
-                        <CheckCircle2 size={10} /> Proses
-                      </Link>
-                      <a
-                        href={`https://wa.me/${order.phone_number?.replace(/^0/, "62")}?text=Halo ${order.user?.username}, saya penjual dari toko ${shop?.name}. Terkait pesanan ${order.order_id}, ...`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="py-2 bg-[#25D366] hover:bg-[#1DA851] text-[#FFFFFF] rounded-xl transition-all font-black text-[8px] uppercase tracking-widest text-center border border-[#25D366] hover:border-[#1DA851] flex items-center justify-center gap-1"
-                      >
-                        <MessageCircle size={10} className="text-white" /> Hubungi Pembeli
-                      </a>
                     </div>
                     {!["cancelled", "completed", "shipped", "complained"].includes(order.status) && (
-                      <button onClick={() => setCancellingOrder(order)} className="w-full py-2 bg-red-500/5 hover:bg-red-500 hover:text-white text-red-500 rounded-xl transition-all font-black text-[8px] uppercase tracking-widest text-center border border-red-500/10 hover:border-red-500/20 flex items-center justify-center gap-1">
+                      <button onClick={() => setCancellingOrder(order)} className="w-full py-2 bg-red-500/5 hover:bg-red-500 hover:text-white text-text-white rounded-xl transition-all font-black text-[8px] uppercase tracking-widest text-center border border-red-500/10 hover:border-red-500/20 flex items-center justify-center gap-1">
                         <XCircle size={10} /> Batalkan Transaksi
                       </button>
                     )}
@@ -895,6 +842,41 @@ export default function PesananMasukPage() {
           </div>
         </div>
       )}
+
+      <style jsx global>{`
+        .custom-scrollbar::-webkit-scrollbar {
+          width: 6px;
+          height: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+          background: #09090b;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+          background: #27272a;
+          border-radius: 3px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+          background: #3f3f46;
+        }
+        .no-scrollbar::-webkit-scrollbar {
+          display: none;
+        }
+        .custom-tab-scrollbar {
+          scrollbar-width: thin;
+          scrollbar-color: #52525b #09090b;
+        }
+        .custom-tab-scrollbar::-webkit-scrollbar {
+          height: 4px !important;
+          display: block !important;
+        }
+        .custom-tab-scrollbar::-webkit-scrollbar-track {
+          background: #09090b !important;
+        }
+        .custom-tab-scrollbar::-webkit-scrollbar-thumb {
+          background: #52525b !important;
+          border-radius: 9999px !important;
+        }
+      `}</style>
     </div>
   );
 }

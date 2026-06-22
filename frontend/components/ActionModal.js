@@ -27,7 +27,7 @@ const ActionModal = ({
       bg: "bg-emerald-500/10",
       text: "text-emerald-500",
       border: "border-emerald-500/20",
-      button: "bg-emerald-500 hover:bg-emerald-400 text-zinc-950 shadow-emerald-500/20",
+      button: "bg-[#228B22] hover:bg-[#4CBB17] text-white",
     },
     danger: {
       icon: <Trash2 size={40} />,
@@ -35,7 +35,7 @@ const ActionModal = ({
       bg: "bg-red-500/10",
       text: "text-red-500",
       border: "border-red-500/20",
-      button: "bg-red-500 hover:bg-red-400 text-white shadow-red-500/20",
+      button: "bg-red-500 hover:bg-red-400 text-white",
     },
     warning: {
       icon: <AlertCircle size={40} />,
@@ -43,7 +43,7 @@ const ActionModal = ({
       bg: "bg-amber-500/10",
       text: "text-amber-500",
       border: "border-amber-500/20",
-      button: "bg-amber-500 hover:bg-amber-400 text-zinc-950 shadow-amber-500/20",
+      button: "bg-amber-500 hover:bg-amber-400 text-zinc-950",
     },
     info: {
       icon: <Info size={40} />,
@@ -51,11 +51,11 @@ const ActionModal = ({
       bg: "bg-blue-500/10",
       text: "text-blue-500",
       border: "border-blue-500/20",
-      button: "bg-blue-500 hover:bg-blue-400 text-white shadow-blue-500/20",
+      button: "bg-[#228B22] hover:bg-[#4CBB17] text-white",
     },
     save: {
       text: "text-emerald-500",
-      button: "bg-[#2563EB] hover:bg-[#1D4ED8] text-[#FFFFFF]",
+      button: "bg-[#228B22] hover:bg-[#4CBB17] text-white",
     },
     edit: {
       icon: <Edit3 size={40} />,
@@ -63,7 +63,7 @@ const ActionModal = ({
       bg: "bg-blue-500/10",
       text: "text-blue-500",
       border: "border-blue-500/20",
-      button: "bg-blue-500 hover:bg-blue-400 text-white shadow-blue-500/20",
+      button: "bg-blue-500 hover:bg-blue-400 text-white",
     },
     checkout: {
       icon: <ShoppingBag size={40} />,
@@ -71,7 +71,7 @@ const ActionModal = ({
       bg: "bg-emerald-500/10",
       text: "text-emerald-500",
       border: "border-emerald-500/20",
-      button: "bg-emerald-500 hover:bg-emerald-400 text-zinc-950 shadow-emerald-500/20",
+      button: "bg-[#228B22] hover:bg-[#4CBB17] text-white",
     },
   };
 

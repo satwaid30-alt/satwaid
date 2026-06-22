@@ -3,7 +3,7 @@
 import { useState, useEffect, use } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ChevronLeft, Upload, FileText, CheckCircle2, AlertCircle, ShoppingBag, User, Calendar, CreditCard, DollarSign, Info, Receipt, Mail, Printer, Download, X } from "lucide-react";
+import { ChevronLeft, Upload, FileText, CheckCircle2, AlertCircle, ShoppingBag, User, Calendar, CreditCard, DollarSign, Info, Receipt, Mail, Printer, Download, X, Eye } from "lucide-react";
 import ActionModal from "@/components/ActionModal";
 import { getImageUrl } from "@/app/utils/api";
 import { uploadImageToS3 } from "@/components/HandleUpload";
@@ -71,9 +71,7 @@ export default function UploadFinanceDocPage({ params }) {
   const sellerBank = getSellerBankInfo();
 
   // Calculate total disbursement
-  const subtotalAmt = order?.items && order.items.length > 0
-    ? order.items.reduce((sum, item) => sum + (Number(item.price || 0) * Number(item.quantity || 1)), 0)
-    : (Number(order?.price || 0) * Number(order?.quantity || 1));
+  const subtotalAmt = order?.items && order.items.length > 0 ? order.items.reduce((sum, item) => sum + Number(item.price || 0) * Number(item.quantity || 1), 0) : Number(order?.price || 0) * Number(order?.quantity || 1);
   const totalDisbursement = subtotalAmt + Number(order?.shipping_cost || 0) + Number(order?.packing_cost || 0);
 
   useEffect(() => {
@@ -136,16 +134,19 @@ export default function UploadFinanceDocPage({ params }) {
           onConfirm: () => setActionModal((prev) => ({ ...prev, isOpen: false })),
         });
         e.target.value = ""; // Reset input file
+        if (previewUrl && previewUrl.startsWith("blob:")) {
+          URL.revokeObjectURL(previewUrl);
+        }
         setSelectedFile(null);
         setPreviewUrl(null);
         return;
       }
+      if (previewUrl && previewUrl.startsWith("blob:")) {
+        URL.revokeObjectURL(previewUrl);
+      }
       setSelectedFile(file);
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setPreviewUrl(reader.result);
-      };
-      reader.readAsDataURL(file);
+      const url = URL.createObjectURL(file);
+      setPreviewUrl(url);
     }
   };
 
@@ -254,9 +255,7 @@ export default function UploadFinanceDocPage({ params }) {
       const INVOICE_WIDTH = 794;
 
       const inv = invoiceOrder;
-      const subtotal = inv.items && inv.items.length > 0
-        ? inv.items.reduce((sum, item) => sum + (Number(item.price || 0) * Number(item.quantity || 1)), 0)
-        : (Number(inv.price || 0) * Number(inv.quantity || 1));
+      const subtotal = inv.items && inv.items.length > 0 ? inv.items.reduce((sum, item) => sum + Number(item.price || 0) * Number(item.quantity || 1), 0) : Number(inv.price || 0) * Number(inv.quantity || 1);
       const shipping = Number(inv.shipping_cost || 0);
       const packing = Number(inv.packing_cost || 0);
       const adminFee = Number(inv.admin_fee || 0);
@@ -395,10 +394,12 @@ export default function UploadFinanceDocPage({ params }) {
                 </tr>
               </thead>
               <tbody>
-                ${inv.items && inv.items.length > 0 ? (
-                  inv.items.map((item) => {
-                    const itemSubtotal = Number(item.price || 0) * Number(item.quantity || 1);
-                    return `
+                ${
+                  inv.items && inv.items.length > 0
+                    ? inv.items
+                        .map((item) => {
+                          const itemSubtotal = Number(item.price || 0) * Number(item.quantity || 1);
+                          return `
                     <tr style="border-bottom:1px solid #e5e7eb;">
                       <td style="padding:16px 20px;">
                         <div style="font-weight:700;color:#111827;font-size:14px;">${item.product?.name || "Produk"}</div>
@@ -409,9 +410,9 @@ export default function UploadFinanceDocPage({ params }) {
                       <td style="padding:16px 20px;text-align:right;font-weight:800;color:#111827;">${priceStr(itemSubtotal)}</td>
                     </tr>
                     `;
-                  }).join('')
-                ) : (
-                  `
+                        })
+                        .join("")
+                    : `
                   <tr style="border-bottom:1px solid #e5e7eb;">
                     <td style="padding:16px 20px;">
                       <div style="font-weight:700;color:#111827;font-size:14px;">${productName}</div>
@@ -422,7 +423,7 @@ export default function UploadFinanceDocPage({ params }) {
                     <td style="padding:16px 20px;text-align:right;font-weight:800;color:#111827;">${priceStr(subtotal)}</td>
                   </tr>
                   `
-                )}
+                }
               </tbody>
             </table>
           </div>
@@ -614,8 +615,8 @@ export default function UploadFinanceDocPage({ params }) {
                   <div className="space-y-4">
                     <div className="relative group">
                       <input type="file" onChange={handleFileChange} className="hidden" id="file-upload" accept="image/*,.pdf" />
-                      <label htmlFor="file-upload" className="block bg-zinc-950/50 border-2 border-dashed border-zinc-800 rounded-[2.5rem] p-12 text-center hover:border-emerald-500/50 transition-all cursor-pointer group-hover:bg-zinc-950">
-                        {previewUrl ? (
+                      {previewUrl ? (
+                        <div className="block bg-zinc-950/50 border-2 border-dashed border-zinc-800 rounded-[2.5rem] p-12 text-center">
                           <div className="space-y-4">
                             {selectedFile?.type.includes("image") ? (
                               <img src={previewUrl} className="max-h-48 mx-auto rounded-2xl shadow-2xl border border-zinc-800" alt="Preview" />
@@ -625,19 +626,37 @@ export default function UploadFinanceDocPage({ params }) {
                               </div>
                             )}
                             <p className="text-sm font-bold text-white">{selectedFile?.name}</p>
-                            <button
-                              type="button"
-                              onClick={(e) => {
-                                e.preventDefault();
-                                setPreviewUrl(null);
-                                setSelectedFile(null);
-                              }}
-                              className="text-red-500 text-[10px] font-black uppercase tracking-widest hover:underline"
-                            >
-                              Hapus File
-                            </button>
+                            <div className="flex items-center justify-center gap-4">
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  if (previewUrl) {
+                                    window.open(previewUrl, "_blank");
+                                  }
+                                }}
+                                className="px-4 py-2 bg-emerald-500 hover:bg-emerald-400 text-zinc-950 text-xs font-black uppercase tracking-widest rounded-xl transition-all active:scale-95 flex items-center gap-1.5"
+                              >
+                                <Eye size={12} /> Lihat File
+                              </button>
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.preventDefault();
+                                  if (previewUrl && previewUrl.startsWith("blob:")) {
+                                    URL.revokeObjectURL(previewUrl);
+                                  }
+                                  setPreviewUrl(null);
+                                  setSelectedFile(null);
+                                }}
+                                className="px-4 py-2 bg-rose-600 hover:bg-rose-500 text-white text-xs font-black uppercase tracking-widest rounded-xl transition-all active:scale-95"
+                              >
+                                Hapus File
+                              </button>
+                            </div>
                           </div>
-                        ) : (
+                        </div>
+                      ) : (
+                        <label htmlFor="file-upload" className="block cursor-pointer bg-zinc-950/50 border-2 border-dashed border-zinc-800 hover:border-emerald-500/50 rounded-[2.5rem] p-12 text-center transition-all group-hover:bg-zinc-900/30">
                           <div className="space-y-4">
                             <div className="w-16 h-16 bg-zinc-900 rounded-2xl flex items-center justify-center mx-auto text-zinc-700 group-hover:text-emerald-500 group-hover:scale-110 transition-all">
                               <FileText size={32} />
@@ -647,8 +666,8 @@ export default function UploadFinanceDocPage({ params }) {
                               <p className="text-[10px] text-zinc-600 font-bold uppercase tracking-tighter">PNG, JPG, atau PDF (Max. 1MB)</p>
                             </div>
                           </div>
-                        )}
-                      </label>
+                        </label>
+                      )}
                     </div>
 
                     {/* Biaya Tambahan */}
@@ -714,11 +733,7 @@ export default function UploadFinanceDocPage({ params }) {
                 order.items.map((item, itemIdx) => (
                   <div key={item.id || itemIdx} className="flex items-center gap-3 pb-3 border-b border-zinc-800/30 last:border-b-0 last:pb-0">
                     <div className="w-12 h-12 rounded-xl overflow-hidden bg-zinc-950 border border-zinc-800 shrink-0 shadow-inner">
-                      {item.product?.images && isVideoUrl(item.product.images) ? (
-                        <video src={getImageUrl(item.product.images)} className="w-full h-full object-cover" preload="metadata" muted playsInline />
-                      ) : (
-                        <img src={getImageUrl(item.product?.images) || "/placeholder.png"} className="w-full h-full object-cover" alt="" />
-                      )}
+                      {item.product?.images && isVideoUrl(item.product.images) ? <video src={getImageUrl(item.product.images)} className="w-full h-full object-cover" preload="metadata" muted playsInline /> : <img src={getImageUrl(item.product?.images) || "/placeholder.png"} className="w-full h-full object-cover" alt="" />}
                     </div>
                     <div className="min-w-0 flex-1">
                       <h3 className="text-sm font-black text-white line-clamp-1">{item.product?.name}</h3>
@@ -826,9 +841,7 @@ export default function UploadFinanceDocPage({ params }) {
       {invoiceOrder &&
         (() => {
           const inv = invoiceOrder;
-          const subtotal = inv.items && inv.items.length > 0
-            ? inv.items.reduce((sum, item) => sum + (Number(item.price || 0) * Number(item.quantity || 1)), 0)
-            : (Number(inv.price || 0) * Number(inv.quantity || 1));
+          const subtotal = inv.items && inv.items.length > 0 ? inv.items.reduce((sum, item) => sum + Number(item.price || 0) * Number(item.quantity || 1), 0) : Number(inv.price || 0) * Number(inv.quantity || 1);
           const shipping = Number(inv.shipping_cost || 0);
           const packing = Number(inv.packing_cost || 0);
           const adminFee = Number(inv.admin_fee || 0);

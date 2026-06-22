@@ -119,6 +119,31 @@ export default function RiwayatPembelianPage() {
     }
   };
 
+  const getPrimaryProductInfo = (order) => {
+    const hasItems = order.items && order.items.length > 0;
+    const firstItem = hasItems ? order.items[0] : null;
+    const product = firstItem?.product || order.product || {};
+    const totalQuantity = hasItems ? order.items.reduce((sum, item) => sum + (item.quantity || 1), 0) : (order.quantity || 1);
+    const isMultiItem = hasItems && order.items.length > 1;
+
+    let displayName = product.name || "-";
+    if (isMultiItem) {
+      displayName = `${product.name} (+${order.items.length - 1} produk)`;
+    }
+
+    const tooltipNames = hasItems ? order.items.map(item => item.product?.name).filter(Boolean).join(", ") : (order.product?.name || "");
+
+    const images = getImagesArray(product.images);
+    const mediaPath = images[0] || null;
+
+    return {
+      product,
+      mediaPath,
+      displayName,
+      totalQuantity,
+      tooltipNames
+    };
+  };
 
   const filteredOrders = orders.filter((order) => {
     const isCompleted = ["completed", "disbursement_requested", "disbursed"].includes(order.status);
@@ -126,9 +151,22 @@ export default function RiwayatPembelianPage() {
     const matchesTab = activeTab === "completed" ? isCompleted : isCancelled;
     if (!matchesTab) return false;
 
-    const productName = order.product?.name || "";
     const orderId = order.order_id || "";
-    return productName.toLowerCase().includes(searchQuery.toLowerCase()) || orderId.toLowerCase().includes(searchQuery.toLowerCase());
+    const query = searchQuery.toLowerCase();
+
+    // Check if order ID matches query
+    if (orderId.toLowerCase().includes(query)) return true;
+
+    // Check if main product matches query
+    if (order.product?.name?.toLowerCase().includes(query)) return true;
+
+    // Check if any of the items match query
+    if (order.items && order.items.length > 0) {
+      const matchItem = order.items.some(item => item.product?.name?.toLowerCase().includes(query));
+      if (matchItem) return true;
+    }
+
+    return false;
   });
 
   // Pagination logic
@@ -251,23 +289,52 @@ export default function RiwayatPembelianPage() {
                             </div>
                           </td>
                           <td className="px-6 py-6">
-                            <div className="flex items-center gap-4">
-                              <div className="w-12 h-12 rounded-xl overflow-hidden bg-zinc-800 shrink-0 border border-zinc-700">
-                                {(() => {
-                                  const mediaPath = getImagesArray(order.product?.images)[0];
-                                  return isVideoUrl(mediaPath) ? (
-                                    <video src={getImageUrl(mediaPath)} className="w-full h-full object-cover" preload="metadata" muted playsInline />
-                                  ) : (
-                                    <img src={getImageUrl(mediaPath) || "/placeholder.png"} alt={order.product?.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
+                            <div className="space-y-3">
+                              {order.items && order.items.length > 0 ? (
+                                order.items.map((item, idx) => {
+                                  const itemProduct = item.product || {};
+                                  const itemImages = getImagesArray(itemProduct.images);
+                                  const itemMediaPath = itemImages[0] || null;
+                                  return (
+                                    <div key={item.id || idx} className="flex items-center gap-4">
+                                      <div className="w-12 h-12 rounded-xl overflow-hidden bg-zinc-800 shrink-0 border border-zinc-700">
+                                        {isVideoUrl(itemMediaPath) ? (
+                                          <video src={getImageUrl(itemMediaPath)} className="w-full h-full object-cover" preload="metadata" muted playsInline />
+                                        ) : (
+                                          <img src={getImageUrl(itemMediaPath) || "/placeholder.png"} alt={itemProduct.name || "Produk"} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
+                                        )}
+                                      </div>
+                                      <div className="min-w-0">
+                                        <p className="text-xs font-black text-white truncate max-w-[200px]" title={itemProduct.name}>{itemProduct.name}</p>
+                                        <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-tighter">
+                                          {item.quantity || 1} Item • {itemProduct.type === "sell" ? "Beli" : "Lelang"}
+                                        </p>
+                                      </div>
+                                    </div>
                                   );
-                                })()}
-                              </div>
-                              <div className="min-w-0">
-                                <p className="text-sm font-black text-white truncate max-w-[200px]">{order.product?.name}</p>
-                                <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-tighter">
-                                  {order.quantity} Item • {order.product?.type === "sell" ? "Beli" : "Lelang"}
-                                </p>
-                              </div>
+                                })
+                              ) : (
+                                (() => {
+                                  const { product, mediaPath, displayName, totalQuantity } = getPrimaryProductInfo(order);
+                                  return (
+                                    <div className="flex items-center gap-4">
+                                      <div className="w-12 h-12 rounded-xl overflow-hidden bg-zinc-800 shrink-0 border border-zinc-700">
+                                        {isVideoUrl(mediaPath) ? (
+                                          <video src={getImageUrl(mediaPath)} className="w-full h-full object-cover" preload="metadata" muted playsInline />
+                                        ) : (
+                                          <img src={getImageUrl(mediaPath) || "/placeholder.png"} alt={product.name || displayName} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
+                                        )}
+                                      </div>
+                                      <div className="min-w-0">
+                                        <p className="text-sm font-black text-white truncate max-w-[200px]">{displayName}</p>
+                                        <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-tighter">
+                                          {totalQuantity} Item • {product.type === "sell" ? "Beli" : "Lelang"}
+                                        </p>
+                                      </div>
+                                    </div>
+                                  );
+                                })()
+                              )}
                             </div>
                           </td>
                           <td className="px-6 py-6">
@@ -340,30 +407,66 @@ export default function RiwayatPembelianPage() {
                     </div>
 
                     {/* Card Body */}
-                    <div className="p-5 flex gap-4">
-                      <div className="w-20 h-20 rounded-2xl overflow-hidden bg-zinc-800 shrink-0 border border-zinc-700">
-                        {(() => {
-                          const mediaPath = getImagesArray(order.product?.images)[0];
-                          return isVideoUrl(mediaPath) ? (
-                            <video src={getImageUrl(mediaPath)} className="w-full h-full object-cover" preload="metadata" muted playsInline />
-                          ) : (
-                            <img src={getImageUrl(mediaPath) || "/placeholder.png"} alt={order.product?.name} className="w-full h-full object-cover" />
+                    <div className="p-5 space-y-3">
+                      {order.items && order.items.length > 0 ? (
+                        order.items.map((item, idx) => {
+                          const itemProduct = item.product || {};
+                          const itemImages = getImagesArray(itemProduct.images);
+                          const itemMediaPath = itemImages[0] || null;
+                          return (
+                            <div key={item.id || idx} className="flex gap-4 bg-zinc-950/20 p-3 rounded-2xl border border-zinc-800/40">
+                              <div className="w-16 h-16 rounded-xl overflow-hidden bg-zinc-800 shrink-0 border border-zinc-700">
+                                {isVideoUrl(itemMediaPath) ? (
+                                  <video src={getImageUrl(itemMediaPath)} className="w-full h-full object-cover" preload="metadata" muted playsInline />
+                                ) : (
+                                  <img src={getImageUrl(itemMediaPath) || "/placeholder.png"} alt={itemProduct.name || "Produk"} className="w-full h-full object-cover" />
+                                )}
+                              </div>
+                              <div className="flex-1 min-w-0 flex flex-col justify-between">
+                                <div>
+                                  <div className="flex items-center gap-1.5 text-zinc-500 mb-0.5">
+                                    <Store size={12} />
+                                    <span className="text-[9px] font-black uppercase tracking-tight truncate">{order.shop?.name}</span>
+                                  </div>
+                                  <h3 className="text-xs font-black text-white truncate">{itemProduct.name}</h3>
+                                </div>
+                                <div className="flex items-center justify-between mt-2">
+                                  <p className="text-xs font-black text-emerald-500">{formatPrice(item.price)}</p>
+                                  <span className="text-[9px] font-bold text-zinc-600 uppercase tracking-tighter">{item.quantity || 1} Qty</span>
+                                </div>
+                              </div>
+                            </div>
                           );
-                        })()}
-                      </div>
-                      <div className="flex-1 min-w-0 flex flex-col justify-between">
-                        <div>
-                          <div className="flex items-center gap-1.5 text-zinc-500 mb-0.5">
-                            <Store size={12} />
-                            <span className="text-[9px] font-black uppercase tracking-tight truncate">{order.shop?.name}</span>
-                          </div>
-                          <h3 className="text-sm font-black text-white truncate">{order.product?.name}</h3>
-                        </div>
-                        <div className="flex items-center justify-between mt-2">
-                          <p className="text-sm font-black text-emerald-500">{formatPrice(order.total_price)}</p>
-                          <span className="text-[9px] font-bold text-zinc-600 uppercase tracking-tighter">{order.quantity} Item</span>
-                        </div>
-                      </div>
+                        })
+                      ) : (
+                        (() => {
+                          const { product, mediaPath, displayName, totalQuantity } = getPrimaryProductInfo(order);
+                          return (
+                            <div className="flex gap-4">
+                              <div className="w-20 h-20 rounded-2xl overflow-hidden bg-zinc-800 shrink-0 border border-zinc-700">
+                                {isVideoUrl(mediaPath) ? (
+                                  <video src={getImageUrl(mediaPath)} className="w-full h-full object-cover" preload="metadata" muted playsInline />
+                                ) : (
+                                  <img src={getImageUrl(mediaPath) || "/placeholder.png"} alt={product.name || displayName} className="w-full h-full object-cover" />
+                                )}
+                              </div>
+                              <div className="flex-1 min-w-0 flex flex-col justify-between">
+                                <div>
+                                  <div className="flex items-center gap-1.5 text-zinc-500 mb-0.5">
+                                    <Store size={12} />
+                                    <span className="text-[9px] font-black uppercase tracking-tight truncate">{order.shop?.name}</span>
+                                  </div>
+                                  <h3 className="text-sm font-black text-white truncate">{displayName}</h3>
+                                </div>
+                                <div className="flex items-center justify-between mt-2">
+                                  <p className="text-sm font-black text-emerald-500">{formatPrice(order.total_price)}</p>
+                                  <span className="text-[9px] font-bold text-zinc-600 uppercase tracking-tighter">{totalQuantity} Item</span>
+                                </div>
+                              </div>
+                            </div>
+                          );
+                        })()
+                      )}
                     </div>
 
                     {/* Card Footer Actions */}

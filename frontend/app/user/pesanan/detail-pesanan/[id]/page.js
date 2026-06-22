@@ -320,13 +320,9 @@ export default function OrderDetailPage({ params }) {
 
   if (!order) return null;
 
-  const subtotal = order
-    ? (order.items && order.items.length > 0
-        ? order.items.reduce((sum, item) => sum + Number(item.price) * (item.quantity || 1), 0)
-        : Number(order.price) * Number(order.quantity))
-    : 0;
-  const displayAdminFee = order && (order.admin_fee !== undefined && order.admin_fee !== null) ? Number(order.admin_fee) : activeAdminFee;
-  const displayTotalPrice = source === "cart" ? (subtotal + (Number(order?.shipping_cost) || 0) + (Number(order?.packing_cost) || 0) + displayAdminFee) : (order ? Number(order.total_price) : 0);
+  const subtotal = order ? (order.items && order.items.length > 0 ? order.items.reduce((sum, item) => sum + Number(item.price) * (item.quantity || 1), 0) : Number(order.price) * Number(order.quantity)) : 0;
+  const displayAdminFee = order && order.admin_fee !== undefined && order.admin_fee !== null ? Number(order.admin_fee) : activeAdminFee;
+  const displayTotalPrice = source === "cart" ? subtotal + (Number(order?.shipping_cost) || 0) + (Number(order?.packing_cost) || 0) + displayAdminFee : order ? Number(order.total_price) : 0;
 
   return (
     <div className="max-w-7xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700 pb-20">
@@ -584,7 +580,7 @@ export default function OrderDetailPage({ params }) {
                 <p className="text-sm font-black text-white truncate">{order.shop?.name}</p>
               </div>
             </div>
-            <button onClick={handleWhatsAppChat} className="w-full py-3 bg-[#25D366] hover:bg-[#1DA851] text-[#FFFFFF] text-xs font-black rounded-xl transition-all border border-emerald-500/20 flex items-center justify-center gap-2">
+            <button onClick={handleWhatsAppChat} className="w-full py-3 text-white bg-[#25D366] hover:bg-[#4CBB17] text-xs font-black rounded-xl transition-all border border-emerald-500/20 flex items-center justify-center gap-2">
               <MessageCircle size={14} /> Hubungi Penjual
             </button>
           </div>

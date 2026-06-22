@@ -324,7 +324,7 @@ export default function Home() {
           </h1>
           <p className="text-lg md:text-xl text-zinc-400 max-w-2xl mx-auto mb-10">Marketplace terpercaya untuk jual beli satwa, perlengkapan, dan komunitas pecinta fauna.</p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link href="/toko" className="px-8 py-4 bg-emerald-500 hover:bg-emerald-400 text-emerald-950 font-black rounded-2xl transition-all flex items-center justify-center gap-2 hover:scale-105">
+            <Link href="/toko" className="px-8 py-4 bg-[#228B22] hover:bg-[#4CBB17] text-white font-black rounded-2xl transition-all flex items-center justify-center gap-2 hover:scale-105">
               Mulai Belanja <ArrowRight size={20} />
             </Link>
             <Link href="/komunitas" className="px-8 py-4 bg-white/10 border border-white/10 hover:bg-white/20 text-white font-bold rounded-2xl transition-all flex items-center justify-center gap-2 backdrop-blur-md">

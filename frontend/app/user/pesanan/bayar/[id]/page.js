@@ -155,9 +155,7 @@ export default function PaymentPage({ params }) {
 
     // --- Keamanan 5: Rename file secara acak sebelum dikirim ---
     const extension = fileName.split(".").pop();
-    const uniqueId = typeof crypto !== "undefined" && typeof crypto.randomUUID === "function"
-      ? crypto.randomUUID()
-      : Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+    const uniqueId = typeof crypto !== "undefined" && typeof crypto.randomUUID === "function" ? crypto.randomUUID() : Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
     const randomName = `${uniqueId}.${extension}`;
     const renamedFile = new File([file], randomName, { type: file.type });
 
@@ -601,10 +599,14 @@ export default function PaymentPage({ params }) {
                           <button type="button" onClick={() => setPreviewImage(uploadPreview || getImageUrl(paymentProof) || "/placeholder.png")} className="px-3 py-1.5 bg-emerald-500 hover:bg-emerald-400 text-zinc-950 rounded-lg text-[9px] font-black uppercase tracking-wider flex items-center gap-1.5 active:scale-95 transition-all">
                             <Eye size={12} /> Lihat
                           </button>
-                          <button type="button" onClick={() => {
-                            setPaymentProof("");
-                            setUploadPreview(null);
-                          }} className="px-3 py-1.5 bg-red-500 hover:bg-red-400 text-white rounded-lg text-[9px] font-black uppercase tracking-wider flex items-center gap-1.5 active:scale-95 transition-all">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setPaymentProof("");
+                              setUploadPreview(null);
+                            }}
+                            className="px-3 py-1.5 bg-red-500 hover:bg-red-400 text-white rounded-lg text-[9px] font-black uppercase tracking-wider flex items-center gap-1.5 active:scale-95 transition-all"
+                          >
                             <X size={12} /> Hapus
                           </button>
                         </div>
@@ -627,7 +629,7 @@ export default function PaymentPage({ params }) {
                     onClick={handleConfirmPayment}
                     disabled={confirming || showSuccess || uploading || !paymentProof}
                     className={`w-full py-4 rounded-xl font-black text-xs uppercase tracking-[0.2em] transition-all flex items-center justify-center gap-3 active:scale-[0.98] ${
-                      confirming || showSuccess || uploading || !paymentProof ? "bg-zinc-800/50 text-zinc-600 border border-zinc-800/40 cursor-not-allowed" : "bg-[#2563EB] hover:bg-[#1D4ED8] text-[#FFFFFF]"
+                      confirming || showSuccess || uploading || !paymentProof ? "bg-zinc-800/50 text-zinc-600 border border-zinc-800/40 cursor-not-allowed" : "bg-[#228B22] hover:bg-[#4CBB17] text-white"
                     }`}
                   >
                     {confirming ? (

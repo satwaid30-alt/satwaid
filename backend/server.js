@@ -4,6 +4,7 @@ const app = require('./app');
 const { Server } = require('socket.io');
 const jwt = require('jsonwebtoken');
 global.loginAttempts = new Map();
+global.activeSessions = new Map();
 
 const PORT = process.env.PORT || 4000;
 
@@ -28,6 +29,29 @@ io.use((socket, next) => {
                 socket.user = null;
                 return next();
             }
+            
+            // Check if user session has been invalidated/superseded by another login
+            if (decoded && decoded.id && decoded.session_id) {
+                if (!global.activeSessions) {
+                    global.activeSessions = new Map();
+                }
+                const activeSessionId = global.activeSessions.get(decoded.id);
+                if (activeSessionId && activeSessionId !== decoded.session_id) {
+                    console.log(`[Socket Auth] Mismatched/Expired session for user ${decoded.username} on socket ${socket.id}`);
+                    socket.user = null;
+                    // Emit forced_logout to client to force them out immediately
+                    setTimeout(() => {
+                        socket.emit('forced_logout');
+                    }, 500);
+                    return next();
+                }
+                
+                // If there's no active session (e.g. server restart), register this session
+                if (!activeSessionId) {
+                    global.activeSessions.set(decoded.id, decoded.session_id);
+                }
+            }
+
             socket.user = decoded;
             console.log(`[Socket Auth] Authenticated user ${decoded.username} (ID: ${decoded.id}, Role: ${decoded.role}) on socket ${socket.id}`);
             return next();
@@ -560,7 +584,7 @@ io.on('connection', (socket) => {
 
     // Join room berdasarkan user_id untuk notifikasi global
     socket.on('join_user', (userId) => {
-        if (!socket.user || String(socket.user.id) !== String(userId)) {
+        if (!socket.user || String(socket.user.id).toLowerCase() !== String(userId).toLowerCase()) {
             console.warn(`[Socket Auth Warning] Unauthorized join_user attempt by socket ${socket.id} (user: ${socket.user?.username || 'Guest'}) for room user_${userId}`);
             return;
         }
@@ -965,6 +989,12 @@ io.on('connection', (socket) => {
             // Force logout existing sessions
             io.to(`user_${attempt.userId}`).emit('forced_logout');
             
+            // Update active session map
+            if (!global.activeSessions) {
+                global.activeSessions = new Map();
+            }
+            global.activeSessions.set(attempt.userId, attempt.sessionId);
+
             // Notify new device of success
             io.to(`attempt_${attemptId}`).emit('login_attempt_result', {
                 success: true,

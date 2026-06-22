@@ -227,7 +227,7 @@ export default function RegisterPage() {
               </div>
             </div>
 
-            <button type="submit" disabled={isLoading} className="w-full py-4 bg-emerald-500 hover:bg-emerald-400 text-zinc-950 font-black rounded-2xl transition-all active:scale-[0.98] flex items-center justify-center gap-2 mt-4">
+            <button type="submit" disabled={isLoading} className="w-full py-4 bg-[#228B22] hover:bg-[#4CBB17] text-white font-black rounded-2xl transition-all active:scale-[0.98] flex items-center justify-center gap-2 mt-4">
               {isLoading ? <div className="w-6 h-6 border-2 border-zinc-950 border-t-transparent rounded-full animate-spin" /> : "Daftar Sekarang"}
             </button>
           </form>

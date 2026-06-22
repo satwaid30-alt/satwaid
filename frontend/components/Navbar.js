@@ -170,7 +170,8 @@ export default function Navbar({ theme = "dark", onNotification }) {
   };
 
   return (
-    <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 border-b ${scrolled || isMenuOpen || isMobileLightBg ? "bg-white/90 backdrop-blur-md py-3 border-zinc-200" : "bg-transparent py-5 border-transparent"}`}>
+    <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${scrolled || isMenuOpen || isMobileLightBg ? "py-3" : "py-5"}`}>
+      <div className={`absolute inset-0 -z-10 transition-all duration-300 border-b ${scrolled || isMenuOpen || isMobileLightBg ? "bg-white/90 backdrop-blur-md border-zinc-200" : "bg-transparent border-transparent"}`} />
       <div className="max-w-7xl mx-auto px-6 flex items-center justify-between">
         <Link href="/" className="flex items-center group cursor-pointer">
           <div className="relative w-40 h-11 sm:w-48 sm:h-13 lg:w-56 lg:h-15 group-hover:scale-105 transition-transform duration-300">
