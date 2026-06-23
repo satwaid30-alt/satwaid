@@ -87,7 +87,7 @@ export default function Footer() {
       </div>
 
       <div className="max-w-7xl mx-auto px-6 pt-12 border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-6 text-zinc-500 font-medium text-sm">
-        <p>© 2026 SatwaiD. Hak cipta dilindungi undang-undang.</p>
+        <p>© 2026 SatwaiD</p>
         {/* <div className="flex gap-8">
           <a href="#" className="hover:text-white transition-colors">
             Instagram

@@ -245,7 +245,7 @@ export default function EditProfilPage() {
         <p className="text-zinc-400">Perbarui informasi data diri, kontak, dan detail toko Anda.</p>
       </div>
 
-      <div className="bg-zinc-900 border border-zinc-800 rounded-3xl p-6 md:p-8 ">
+      <div className="bg-zinc-900 border border-zinc-800 rounded-[10px] p-6 md:p-8 ">
         {/* Profile Picture Upload Section */}
         <div className="flex flex-col md:flex-row items-center gap-6 mb-10 pb-10 border-b border-zinc-800">
           <div className="relative group cursor-pointer w-24 h-24">
@@ -263,12 +263,12 @@ export default function EditProfilPage() {
             <h3 className="text-xl font-bold text-white mb-1">Foto Profil</h3>
             <p className="text-zinc-400 text-sm mb-4">Format disarankan: JPG, PNG. Maksimal 500 KB.</p>
             <div className="flex justify-center md:justify-start gap-3">
-              <label className="px-4 py-2 bg-zinc-800 hover:bg-zinc-700 text-white text-sm font-semibold rounded-lg transition-colors cursor-pointer">
+              <label className="px-4 py-2 bg-zinc-800 hover:bg-zinc-700 text-white text-sm font-semibold rounded-[10px] transition-colors cursor-pointer">
                 Ganti Foto
                 <input type="file" className="hidden" accept="image/*" onChange={handleFileUpload} />
               </label>
               {user.avatar_url && (
-                <button type="button" onClick={() => setUser({ ...user, avatar_url: "" })} className="px-4 py-2 text-red-500 hover:bg-red-500/10 text-sm font-semibold rounded-lg transition-colors">
+                <button type="button" onClick={() => setUser({ ...user, avatar_url: "" })} className="px-4 py-2 text-red-500 hover:bg-red-500/10 text-sm font-semibold rounded-[10px] transition-colors">
                   Hapus
                 </button>
               )}
@@ -286,11 +286,11 @@ export default function EditProfilPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-1.5">
                 <label className="text-sm font-semibold text-zinc-300">Nama Lengkap</label>
-                <input type="text" name="name" value={user.name} onChange={handleChange} className="w-full bg-zinc-950 border border-zinc-800 text-white rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all" />
+                <input type="text" name="name" value={user.name} onChange={handleChange} className="w-full bg-zinc-950 border border-zinc-800 text-white rounded-[10px] px-4 py-3 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all" />
               </div>
               <div className="space-y-1.5">
                 <label className="text-sm font-semibold text-zinc-300">Username</label>
-                <input type="text" name="username" value={user.username} disabled className="w-full bg-zinc-950/50 border border-zinc-800 text-zinc-500 rounded-xl px-4 py-3 cursor-not-allowed" />
+                <input type="text" name="username" value={user.username} disabled className="w-full bg-zinc-950/50 border border-zinc-800 text-zinc-500 rounded-[10px] px-4 py-3 cursor-not-allowed" />
                 <p className="text-xs text-zinc-500 mt-1">Username tidak dapat diubah.</p>
               </div>
             </div>
@@ -304,13 +304,13 @@ export default function EditProfilPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-1.5">
                 <label className="text-sm font-semibold text-zinc-300">Email Address</label>
-                <input type="email" name="email" value={user.email} onChange={handleChange} className="w-full bg-zinc-950 border border-zinc-800 text-white rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all" />
+                <input type="email" name="email" value={user.email} onChange={handleChange} className="w-full bg-zinc-950 border border-zinc-800 text-white rounded-[10px] px-4 py-3 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all" />
               </div>
               <div className="space-y-1.5">
                 <label className="text-sm font-semibold text-zinc-300">Nomor Telepon / WhatsApp</label>
                 <div className="relative">
                   <Phone className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500" size={18} />
-                  <input type="tel" name="phone" value={user.phone} onChange={handleChange} className="w-full bg-zinc-950 border border-zinc-800 text-white rounded-xl pl-12 pr-4 py-3 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all" />
+                  <input type="tel" name="phone" value={user.phone} onChange={handleChange} className="w-full bg-zinc-950 border border-zinc-800 text-white rounded-[10px] pl-12 pr-4 py-3 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all" />
                 </div>
               </div>
             </div>
@@ -330,17 +330,17 @@ export default function EditProfilPage() {
                   onChange={handleChange}
                   placeholder="Nama Jalan, Gedung, No. Rumah, RT/RW, Patokan"
                   rows={3}
-                  className="w-full bg-zinc-950 border border-zinc-800 text-white rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all resize-none"
+                  className="w-full bg-zinc-950 border border-zinc-800 text-white rounded-[10px] px-4 py-3 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all resize-none"
                 ></textarea>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-1.5">
                   <label className="text-sm font-semibold text-zinc-300">Provinsi</label>
-                  <input type="text" name="province" value={user.province} onChange={handleChange} placeholder="Contoh: DKI Jakarta" className="w-full bg-zinc-950 border border-zinc-800 text-white rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all" />
+                  <input type="text" name="province" value={user.province} onChange={handleChange} placeholder="Contoh: DKI Jakarta" className="w-full bg-zinc-950 border border-zinc-800 text-white rounded-[10px] px-4 py-3 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all" />
                 </div>
                 <div className="space-y-1.5">
                   <label className="text-sm font-semibold text-zinc-300">Kota / Kabupaten</label>
-                  <input type="text" name="city" value={user.city} onChange={handleChange} placeholder="Contoh: Jakarta Selatan" className="w-full bg-zinc-950 border border-zinc-800 text-white rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all" />
+                  <input type="text" name="city" value={user.city} onChange={handleChange} placeholder="Contoh: Jakarta Selatan" className="w-full bg-zinc-950 border border-zinc-800 text-white rounded-[10px] px-4 py-3 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all" />
                 </div>
               </div>
             </div>
@@ -352,7 +352,7 @@ export default function EditProfilPage() {
                 <CreditCard size={20} className="text-emerald-500" />
                 Rekening Bank
               </h3>
-              <button type="button" onClick={addBankAccount} className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-500/10 hover:bg-emerald-500 text-emerald-500 hover:text-zinc-950 text-sm font-bold rounded-lg transition-colors">
+              <button type="button" onClick={addBankAccount} className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-500/10 hover:bg-emerald-500 text-emerald-500 hover:text-zinc-950 text-sm font-bold rounded-[10px] transition-colors">
                 <Plus size={16} />
                 Tambah Rekening
               </button>
@@ -360,7 +360,7 @@ export default function EditProfilPage() {
 
             <div className="space-y-4">
               {user.bankAccounts.map((account, index) => (
-                <div key={index} className="bg-zinc-950/50 border border-zinc-800 rounded-xl p-4 relative group">
+                <div key={index} className="bg-zinc-950/50 border border-zinc-800 rounded-[10px] p-4 relative group">
                   {user.bankAccounts.length > 1 && (
                     <button type="button" onClick={() => removeBankAccount(index)} className="absolute top-4 right-4 text-zinc-500 hover:text-red-500 transition-colors">
                       <Trash2 size={18} />
@@ -370,7 +370,7 @@ export default function EditProfilPage() {
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div className="space-y-1.5">
                       <label className="text-xs font-semibold text-zinc-400">Nama Bank</label>
-                      <input type="text" value={account.bankName} onChange={(e) => handleBankAccountChange(index, "bankName", e.target.value)} placeholder="Contoh: BCA / Mandiri" className="w-full bg-zinc-900 border border-zinc-800 text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-emerald-500 transition-colors" />
+                      <input type="text" value={account.bankName} onChange={(e) => handleBankAccountChange(index, "bankName", e.target.value)} placeholder="Contoh: BCA / Mandiri" className="w-full bg-zinc-900 border border-zinc-800 text-white rounded-[10px] px-3 py-2 text-sm focus:outline-none focus:border-emerald-500 transition-colors" />
                     </div>
                     <div className="space-y-1.5">
                       <label className="text-xs font-semibold text-zinc-400">Nomor Rekening</label>
@@ -379,7 +379,7 @@ export default function EditProfilPage() {
                         value={account.accountNumber}
                         onChange={(e) => handleBankAccountChange(index, "accountNumber", e.target.value)}
                         placeholder="Contoh: 1234567890"
-                        className="w-full bg-zinc-900 border border-zinc-800 text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-emerald-500 transition-colors"
+                        className="w-full bg-zinc-900 border border-zinc-800 text-white rounded-[10px] px-3 py-2 text-sm focus:outline-none focus:border-emerald-500 transition-colors"
                       />
                     </div>
                     <div className="space-y-1.5">
@@ -389,7 +389,7 @@ export default function EditProfilPage() {
                         value={account.accountName}
                         onChange={(e) => handleBankAccountChange(index, "accountName", e.target.value)}
                         placeholder="Sesuai buku tabungan"
-                        className="w-full bg-zinc-900 border border-zinc-800 text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-emerald-500 transition-colors"
+                        className="w-full bg-zinc-900 border border-zinc-800 text-white rounded-[10px] px-3 py-2 text-sm focus:outline-none focus:border-emerald-500 transition-colors"
                       />
                     </div>
                   </div>
@@ -398,11 +398,11 @@ export default function EditProfilPage() {
             </div>
           </div>{" "}
           <div className="pt-6 mt-6 border-t border-zinc-800 flex justify-end gap-3">
-            <Link href="/user/pengaturan" className="flex items-center gap-2 px-6 py-3.5 bg-zinc-800 hover:bg-zinc-700 text-white font-bold rounded-xl transition-all">
+            <Link href="/user/pengaturan" className="flex items-center gap-2 px-6 py-3.5 bg-zinc-800 hover:bg-zinc-700 text-white font-bold rounded-[10px] transition-all">
               <X size={20} />
               Batal
             </Link>
-            <button type="submit" disabled={isLoading} className={`flex items-center gap-2 px-8 py-3.5 bg-emerald-500 hover:bg-emerald-400 text-zinc-950 font-bold rounded-xl transition-all ${isLoading ? "opacity-70 cursor-not-allowed" : ""}`}>
+            <button type="submit" disabled={isLoading} className={`flex items-center gap-2 px-8 py-3.5 bg-emerald-500 hover:bg-emerald-400 text-zinc-950 font-bold rounded-[10px] transition-all ${isLoading ? "opacity-70 cursor-not-allowed" : ""}`}>
               {isLoading ? (
                 <svg className="animate-spin h-5 w-5 text-current" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                   <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>

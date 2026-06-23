@@ -19,27 +19,20 @@ const isVideoUrl = (url) => {
   } catch (e) {}
   if (!finalPath || typeof finalPath !== "string") return false;
   const lower = finalPath.toLowerCase();
-  return (
-    lower.endsWith(".mp4") ||
-    lower.endsWith(".mov") ||
-    lower.endsWith(".avi") ||
-    lower.endsWith(".webm") ||
-    lower.endsWith(".mkv") ||
-    lower.endsWith(".3gp")
-  );
+  return lower.endsWith(".mp4") || lower.endsWith(".mov") || lower.endsWith(".avi") || lower.endsWith(".webm") || lower.endsWith(".mkv") || lower.endsWith(".3gp");
 };
 
 const getPaginationRange = (currentPage, totalPages) => {
-  if (totalPages <= 5) {
+  if (totalPages <= 4) {
     return Array.from({ length: totalPages }, (_, i) => i + 1);
   }
-  if (currentPage <= 3) {
-    return [1, 2, 3, "...", totalPages];
+  if (currentPage <= 2) {
+    return [1, 2, "...", totalPages];
   }
-  if (currentPage >= totalPages - 2) {
-    return [1, "...", totalPages - 2, totalPages - 1, totalPages];
+  if (currentPage >= totalPages - 1) {
+    return [1, "...", totalPages - 1, totalPages];
   }
-  return [1, "...", currentPage - 1, currentPage, currentPage + 1, "...", totalPages];
+  return [1, "...", currentPage, "...", totalPages];
 };
 
 export default function RiwayatPembelianPage() {
@@ -77,9 +70,7 @@ export default function RiwayatPembelianPage() {
 
       if (response.ok) {
         // Fetch all history orders (completed and cancelled)
-        const historyOrders = (result.data || []).filter((o) =>
-          ["completed", "disbursement_requested", "disbursed", "cancelled", "cancelled_dismissed"].includes(o.status)
-        );
+        const historyOrders = (result.data || []).filter((o) => ["completed", "disbursement_requested", "disbursed", "cancelled", "cancelled_dismissed"].includes(o.status));
         setOrders(historyOrders);
       } else {
         console.error("Failed to fetch orders:", result.message);
@@ -123,7 +114,7 @@ export default function RiwayatPembelianPage() {
     const hasItems = order.items && order.items.length > 0;
     const firstItem = hasItems ? order.items[0] : null;
     const product = firstItem?.product || order.product || {};
-    const totalQuantity = hasItems ? order.items.reduce((sum, item) => sum + (item.quantity || 1), 0) : (order.quantity || 1);
+    const totalQuantity = hasItems ? order.items.reduce((sum, item) => sum + (item.quantity || 1), 0) : order.quantity || 1;
     const isMultiItem = hasItems && order.items.length > 1;
 
     let displayName = product.name || "-";
@@ -131,7 +122,12 @@ export default function RiwayatPembelianPage() {
       displayName = `${product.name} (+${order.items.length - 1} produk)`;
     }
 
-    const tooltipNames = hasItems ? order.items.map(item => item.product?.name).filter(Boolean).join(", ") : (order.product?.name || "");
+    const tooltipNames = hasItems
+      ? order.items
+          .map((item) => item.product?.name)
+          .filter(Boolean)
+          .join(", ")
+      : order.product?.name || "";
 
     const images = getImagesArray(product.images);
     const mediaPath = images[0] || null;
@@ -141,7 +137,7 @@ export default function RiwayatPembelianPage() {
       mediaPath,
       displayName,
       totalQuantity,
-      tooltipNames
+      tooltipNames,
     };
   };
 
@@ -162,7 +158,7 @@ export default function RiwayatPembelianPage() {
 
     // Check if any of the items match query
     if (order.items && order.items.length > 0) {
-      const matchItem = order.items.some(item => item.product?.name?.toLowerCase().includes(query));
+      const matchItem = order.items.some((item) => item.product?.name?.toLowerCase().includes(query));
       if (matchItem) return true;
     }
 
@@ -192,13 +188,9 @@ export default function RiwayatPembelianPage() {
             </div>
           )}
           <h1 className="text-3xl font-black text-white tracking-tight">Riwayat Pembelian</h1>
-          <p className="text-zinc-400 font-medium">
-            {activeTab === "completed"
-              ? "Daftar semua produk yang telah berhasil Anda beli"
-              : "Daftar semua produk pembelian yang batal transaksi"}
-          </p>
+          <p className="text-zinc-400 font-medium">{activeTab === "completed" ? "Daftar semua produk yang telah berhasil Anda beli" : "Daftar semua produk pembelian yang batal transaksi"}</p>
         </div>
-        <Link href="/user/pesanan" className="flex items-center gap-2 px-6 py-3 bg-zinc-900 border border-zinc-800 text-zinc-400 hover:text-white rounded-2xl transition-all text-xs font-black uppercase tracking-widest group">
+        <Link href="/user/pesanan" className="flex items-center gap-2 px-6 py-3 bg-zinc-900 border border-zinc-800 text-zinc-400 hover:text-white rounded-[10px] transition-all text-xs font-black uppercase tracking-widest group">
           <ArrowLeft size={16} className="group-hover:-translate-x-1 transition-transform" />
           Kembali ke Pesanan
         </Link>
@@ -206,36 +198,16 @@ export default function RiwayatPembelianPage() {
 
       {/* Tabs */}
       <div className="flex gap-6 border-b border-zinc-800 pb-1">
-        <button
-          onClick={() => setActiveTab("completed")}
-          className={`pb-4 px-2 text-sm font-black uppercase tracking-wider relative transition-all ${
-            activeTab === "completed"
-              ? "text-emerald-500 font-black"
-              : "text-zinc-500 hover:text-zinc-300 font-bold"
-          }`}
-        >
-          Selesai ({orders.filter(o => ["completed", "disbursement_requested", "disbursed"].includes(o.status)).length})
-          {activeTab === "completed" && (
-            <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-emerald-500 rounded-full"></div>
-          )}
+        <button onClick={() => setActiveTab("completed")} className={`pb-4 px-2 text-sm font-black uppercase tracking-wider relative transition-all ${activeTab === "completed" ? "text-emerald-500 font-black" : "text-zinc-500 hover:text-zinc-300 font-bold"}`}>
+          Selesai ({orders.filter((o) => ["completed", "disbursement_requested", "disbursed"].includes(o.status)).length}){activeTab === "completed" && <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-emerald-500 rounded-full"></div>}
         </button>
-        <button
-          onClick={() => setActiveTab("cancelled")}
-          className={`pb-4 px-2 text-sm font-black uppercase tracking-wider relative transition-all ${
-            activeTab === "cancelled"
-              ? "text-red-500 font-black"
-              : "text-zinc-500 hover:text-zinc-300 font-bold"
-          }`}
-        >
-          Batal ({orders.filter(o => ["cancelled", "cancelled_dismissed"].includes(o.status)).length})
-          {activeTab === "cancelled" && (
-            <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-red-500 rounded-full"></div>
-          )}
+        <button onClick={() => setActiveTab("cancelled")} className={`pb-4 px-2 text-sm font-black uppercase tracking-wider relative transition-all ${activeTab === "cancelled" ? "text-red-500 font-black" : "text-zinc-500 hover:text-zinc-300 font-bold"}`}>
+          Batal ({orders.filter((o) => ["cancelled", "cancelled_dismissed"].includes(o.status)).length}){activeTab === "cancelled" && <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-red-500 rounded-full"></div>}
         </button>
       </div>
 
       {/* Search Bar */}
-      <div className="bg-zinc-900/30 border border-zinc-800 rounded-[2rem] p-3">
+      <div className="bg-zinc-900/30 border border-zinc-800 rounded-[10px] p-3">
         <div className="relative flex-1 w-full">
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500" size={18} />
           <input
@@ -243,7 +215,7 @@ export default function RiwayatPembelianPage() {
             placeholder={activeTab === "completed" ? "Cari item di riwayat selesai..." : "Cari item di riwayat batal..."}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full bg-zinc-950/50 border border-zinc-800 rounded-2xl py-3.5 pl-12 pr-4 text-white placeholder:text-zinc-600 focus:outline-none focus:border-emerald-500/50 focus:ring-4 focus:ring-emerald-500/10 transition-all text-sm font-medium"
+            className="w-full bg-zinc-950/50 border border-zinc-800 rounded-[10px] py-3.5 pl-12 pr-4 text-white placeholder:text-zinc-600 focus:outline-none focus:border-emerald-500/50 focus:ring-4 focus:ring-emerald-500/10 transition-all text-sm font-medium"
           />
         </div>
       </div>
@@ -251,11 +223,11 @@ export default function RiwayatPembelianPage() {
       {/* Orders List */}
       <div className="space-y-4">
         {isLoading ? (
-          [1, 2, 3].map((i) => <div key={i} className="h-48 bg-zinc-900/50 border border-zinc-800 rounded-3xl animate-pulse" />)
+          [1, 2, 3].map((i) => <div key={i} className="h-48 bg-zinc-900/50 border border-zinc-800 rounded-[10px] animate-pulse" />)
         ) : currentItems.length > 0 ? (
           <>
             {/* DESKTOP TABLE VIEW */}
-            <div className="hidden md:block bg-zinc-900/30 border border-zinc-800 rounded-[2.5rem] overflow-hidden relative">
+            <div className="hidden md:block bg-zinc-900/30 border border-zinc-800 rounded-[10px] overflow-hidden relative">
               <div className="overflow-x-auto">
                 <table className="w-full text-left border-collapse">
                   <thead>
@@ -290,51 +262,51 @@ export default function RiwayatPembelianPage() {
                           </td>
                           <td className="px-6 py-6">
                             <div className="space-y-3">
-                              {order.items && order.items.length > 0 ? (
-                                order.items.map((item, idx) => {
-                                  const itemProduct = item.product || {};
-                                  const itemImages = getImagesArray(itemProduct.images);
-                                  const itemMediaPath = itemImages[0] || null;
-                                  return (
-                                    <div key={item.id || idx} className="flex items-center gap-4">
-                                      <div className="w-12 h-12 rounded-xl overflow-hidden bg-zinc-800 shrink-0 border border-zinc-700">
-                                        {isVideoUrl(itemMediaPath) ? (
-                                          <video src={getImageUrl(itemMediaPath)} className="w-full h-full object-cover" preload="metadata" muted playsInline />
-                                        ) : (
-                                          <img src={getImageUrl(itemMediaPath) || "/placeholder.png"} alt={itemProduct.name || "Produk"} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
-                                        )}
+                              {order.items && order.items.length > 0
+                                ? order.items.map((item, idx) => {
+                                    const itemProduct = item.product || {};
+                                    const itemImages = getImagesArray(itemProduct.images);
+                                    const itemMediaPath = itemImages[0] || null;
+                                    return (
+                                      <div key={item.id || idx} className="flex items-center gap-4">
+                                        <div className="w-12 h-12 rounded-[10px] overflow-hidden bg-zinc-800 shrink-0 border border-zinc-700">
+                                          {isVideoUrl(itemMediaPath) ? (
+                                            <video src={getImageUrl(itemMediaPath)} className="w-full h-full object-cover" preload="metadata" muted playsInline />
+                                          ) : (
+                                            <img src={getImageUrl(itemMediaPath) || "/placeholder.png"} alt={itemProduct.name || "Produk"} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
+                                          )}
+                                        </div>
+                                        <div className="min-w-0">
+                                          <p className="text-xs font-black text-white truncate max-w-[200px]" title={itemProduct.name}>
+                                            {itemProduct.name}
+                                          </p>
+                                          <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-tighter">
+                                            {item.quantity || 1} Item • {itemProduct.type === "sell" ? "Beli" : "Lelang"}
+                                          </p>
+                                        </div>
                                       </div>
-                                      <div className="min-w-0">
-                                        <p className="text-xs font-black text-white truncate max-w-[200px]" title={itemProduct.name}>{itemProduct.name}</p>
-                                        <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-tighter">
-                                          {item.quantity || 1} Item • {itemProduct.type === "sell" ? "Beli" : "Lelang"}
-                                        </p>
+                                    );
+                                  })
+                                : (() => {
+                                    const { product, mediaPath, displayName, totalQuantity } = getPrimaryProductInfo(order);
+                                    return (
+                                      <div className="flex items-center gap-4">
+                                        <div className="w-12 h-12 rounded-[10px] overflow-hidden bg-zinc-800 shrink-0 border border-zinc-700">
+                                          {isVideoUrl(mediaPath) ? (
+                                            <video src={getImageUrl(mediaPath)} className="w-full h-full object-cover" preload="metadata" muted playsInline />
+                                          ) : (
+                                            <img src={getImageUrl(mediaPath) || "/placeholder.png"} alt={product.name || displayName} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
+                                          )}
+                                        </div>
+                                        <div className="min-w-0">
+                                          <p className="text-sm font-black text-white truncate max-w-[200px]">{displayName}</p>
+                                          <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-tighter">
+                                            {totalQuantity} Item • {product.type === "sell" ? "Beli" : "Lelang"}
+                                          </p>
+                                        </div>
                                       </div>
-                                    </div>
-                                  );
-                                })
-                              ) : (
-                                (() => {
-                                  const { product, mediaPath, displayName, totalQuantity } = getPrimaryProductInfo(order);
-                                  return (
-                                    <div className="flex items-center gap-4">
-                                      <div className="w-12 h-12 rounded-xl overflow-hidden bg-zinc-800 shrink-0 border border-zinc-700">
-                                        {isVideoUrl(mediaPath) ? (
-                                          <video src={getImageUrl(mediaPath)} className="w-full h-full object-cover" preload="metadata" muted playsInline />
-                                        ) : (
-                                          <img src={getImageUrl(mediaPath) || "/placeholder.png"} alt={product.name || displayName} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
-                                        )}
-                                      </div>
-                                      <div className="min-w-0">
-                                        <p className="text-sm font-black text-white truncate max-w-[200px]">{displayName}</p>
-                                        <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-tighter">
-                                          {totalQuantity} Item • {product.type === "sell" ? "Beli" : "Lelang"}
-                                        </p>
-                                      </div>
-                                    </div>
-                                  );
-                                })()
-                              )}
+                                    );
+                                  })()}
                             </div>
                           </td>
                           <td className="px-6 py-6">
@@ -349,30 +321,34 @@ export default function RiwayatPembelianPage() {
                           <td className="px-6 py-6">
                             <div className="flex justify-center">
                               {isCancelled ? (
-                                <span className="px-3 py-1 rounded-full bg-red-500/10 text-red-500 border border-red-500/20 text-[9px] font-black uppercase tracking-widest whitespace-nowrap">Batal</span>
+                                <span className="px-3 py-1 rounded-[10px] bg-red-500/10 text-red-500 border border-red-500/20 text-[9px] font-black uppercase tracking-widest whitespace-nowrap">Batal</span>
                               ) : (
-                                <span className="px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 text-[9px] font-black uppercase tracking-widest whitespace-nowrap">Selesai</span>
+                                <span className="px-3 py-1 rounded-[10px] bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 text-[9px] font-black uppercase tracking-widest whitespace-nowrap">Selesai</span>
                               )}
                             </div>
                           </td>
                           <td className="px-6 py-6">
                             <div className="flex flex-col justify-center items-center gap-2">
-                              {isCancelled && isPaid && (
-                                order.refund_status === "refunded" ? (
-                                  <Link href="/user/pesanan/pengembalian-dana" className="w-28 py-2.5 bg-emerald-500/10 border border-emerald-500/20 text-emerald-500 rounded-xl text-[9px] font-black uppercase tracking-wider transition-all flex items-center justify-center font-bold" title="Refund Selesai">
+                              {isCancelled &&
+                                isPaid &&
+                                (order.refund_status === "refunded" ? (
+                                  <Link href="/user/pesanan/pengembalian-dana" className="w-28 py-2.5 bg-emerald-500/10 border border-emerald-500/20 text-emerald-500 rounded-[10px] text-[9px] font-black uppercase tracking-wider transition-all flex items-center justify-center font-bold" title="Refund Selesai">
                                     Refund Selesai
                                   </Link>
                                 ) : order.refund_status === "pending" ? (
-                                  <Link href="/user/pesanan/pengembalian-dana" className="w-28 py-2.5 bg-amber-500/10 border border-amber-500/20 text-amber-500 rounded-xl text-[9px] font-black uppercase tracking-wider transition-all flex items-center justify-center font-bold" title="Refund Diproses">
+                                  <Link href="/user/pesanan/pengembalian-dana" className="w-28 py-2.5 bg-amber-500/10 border border-amber-500/20 text-amber-500 rounded-[10px] text-[9px] font-black uppercase tracking-wider transition-all flex items-center justify-center font-bold" title="Refund Diproses">
                                     Refund Diproses
                                   </Link>
                                 ) : (
-                                  <Link href="/user/pesanan/pengembalian-dana" className="w-28 py-2.5 bg-amber-500 hover:bg-amber-400 text-zinc-950 rounded-xl text-[9px] font-black uppercase tracking-wider transition-all active:scale-95 shadow-md shadow-amber-500/15 flex items-center justify-center" title="Refund Dana">
+                                  <Link href="/user/pesanan/pengembalian-dana" className="w-28 py-2.5 bg-amber-500 hover:bg-amber-400 text-zinc-950 rounded-[10px] text-[9px] font-black uppercase tracking-wider transition-all active:scale-95 shadow-md shadow-amber-500/15 flex items-center justify-center" title="Refund Dana">
                                     Refund Dana
                                   </Link>
-                                )
-                              )}
-                              <Link href={`/user/pesanan/detail-pesanan/${order.id}`} className="w-28 py-2.5 bg-zinc-800 hover:bg-emerald-500 text-zinc-400 hover:text-zinc-950 rounded-xl text-[9px] font-black uppercase tracking-wider transition-all active:scale-95 border border-zinc-700 hover:border-emerald-400 flex items-center justify-center" title="Lihat Detail">
+                                ))}
+                              <Link
+                                href={`/user/pesanan/detail-pesanan/${order.id}`}
+                                className="w-28 py-2.5 bg-zinc-800 hover:bg-emerald-500 text-zinc-400 hover:text-zinc-950 rounded-[10px] text-[9px] font-black uppercase tracking-wider transition-all active:scale-95 border border-zinc-700 hover:border-emerald-400 flex items-center justify-center"
+                                title="Lihat Detail"
+                              >
                                 Detail
                               </Link>
                             </div>
@@ -392,7 +368,7 @@ export default function RiwayatPembelianPage() {
                 const isPaid = order.payment_uploaded_at || order.payment_proof;
 
                 return (
-                  <div key={order.id} className="bg-zinc-900/20 border border-zinc-800 hover:border-zinc-700 rounded-3xl overflow-hidden transition-all group">
+                  <div key={order.id} className="bg-zinc-900/20 border border-zinc-800 hover:border-zinc-700 rounded-[10px] overflow-hidden transition-all group">
                     {/* Card Header */}
                     <div className="px-6 py-4 border-b border-zinc-800 flex items-center justify-between gap-4 bg-zinc-900/40">
                       <div className="flex flex-col gap-0.5">
@@ -400,93 +376,83 @@ export default function RiwayatPembelianPage() {
                         <span className="text-[9px] font-bold text-zinc-500 uppercase tracking-tighter">{new Date(order.created_at).toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" })}</span>
                       </div>
                       {isCancelled ? (
-                        <div className="px-3 py-1 rounded-full bg-red-500/10 text-red-500 border border-red-500/20 text-[8px] font-black uppercase tracking-widest">Batal</div>
+                        <div className="px-3 py-1 rounded-[10px] bg-red-500/10 text-red-500 border border-red-500/20 text-[8px] font-black uppercase tracking-widest">Batal</div>
                       ) : (
-                        <div className="px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 text-[8px] font-black uppercase tracking-widest">Selesai</div>
+                        <div className="px-3 py-1 rounded-[10px] bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 text-[8px] font-black uppercase tracking-widest">Selesai</div>
                       )}
                     </div>
 
                     {/* Card Body */}
                     <div className="p-5 space-y-3">
-                      {order.items && order.items.length > 0 ? (
-                        order.items.map((item, idx) => {
-                          const itemProduct = item.product || {};
-                          const itemImages = getImagesArray(itemProduct.images);
-                          const itemMediaPath = itemImages[0] || null;
-                          return (
-                            <div key={item.id || idx} className="flex gap-4 bg-zinc-950/20 p-3 rounded-2xl border border-zinc-800/40">
-                              <div className="w-16 h-16 rounded-xl overflow-hidden bg-zinc-800 shrink-0 border border-zinc-700">
-                                {isVideoUrl(itemMediaPath) ? (
-                                  <video src={getImageUrl(itemMediaPath)} className="w-full h-full object-cover" preload="metadata" muted playsInline />
-                                ) : (
-                                  <img src={getImageUrl(itemMediaPath) || "/placeholder.png"} alt={itemProduct.name || "Produk"} className="w-full h-full object-cover" />
-                                )}
-                              </div>
-                              <div className="flex-1 min-w-0 flex flex-col justify-between">
-                                <div>
-                                  <div className="flex items-center gap-1.5 text-zinc-500 mb-0.5">
-                                    <Store size={12} />
-                                    <span className="text-[9px] font-black uppercase tracking-tight truncate">{order.shop?.name}</span>
+                      {order.items && order.items.length > 0
+                        ? order.items.map((item, idx) => {
+                            const itemProduct = item.product || {};
+                            const itemImages = getImagesArray(itemProduct.images);
+                            const itemMediaPath = itemImages[0] || null;
+                            return (
+                              <div key={item.id || idx} className="flex gap-4 bg-zinc-950/20 p-3 rounded-[10px] border border-zinc-800/40">
+                                <div className="w-16 h-16 rounded-[10px] overflow-hidden bg-zinc-800 shrink-0 border border-zinc-700">
+                                  {isVideoUrl(itemMediaPath) ? <video src={getImageUrl(itemMediaPath)} className="w-full h-full object-cover" preload="metadata" muted playsInline /> : <img src={getImageUrl(itemMediaPath) || "/placeholder.png"} alt={itemProduct.name || "Produk"} className="w-full h-full object-cover" />}
+                                </div>
+                                <div className="flex-1 min-w-0 flex flex-col justify-between">
+                                  <div>
+                                    <div className="flex items-center gap-1.5 text-zinc-500 mb-0.5">
+                                      <Store size={12} />
+                                      <span className="text-[9px] font-black uppercase tracking-tight truncate">{order.shop?.name}</span>
+                                    </div>
+                                    <h3 className="text-xs font-black text-white truncate">{itemProduct.name}</h3>
                                   </div>
-                                  <h3 className="text-xs font-black text-white truncate">{itemProduct.name}</h3>
-                                </div>
-                                <div className="flex items-center justify-between mt-2">
-                                  <p className="text-xs font-black text-emerald-500">{formatPrice(item.price)}</p>
-                                  <span className="text-[9px] font-bold text-zinc-600 uppercase tracking-tighter">{item.quantity || 1} Qty</span>
-                                </div>
-                              </div>
-                            </div>
-                          );
-                        })
-                      ) : (
-                        (() => {
-                          const { product, mediaPath, displayName, totalQuantity } = getPrimaryProductInfo(order);
-                          return (
-                            <div className="flex gap-4">
-                              <div className="w-20 h-20 rounded-2xl overflow-hidden bg-zinc-800 shrink-0 border border-zinc-700">
-                                {isVideoUrl(mediaPath) ? (
-                                  <video src={getImageUrl(mediaPath)} className="w-full h-full object-cover" preload="metadata" muted playsInline />
-                                ) : (
-                                  <img src={getImageUrl(mediaPath) || "/placeholder.png"} alt={product.name || displayName} className="w-full h-full object-cover" />
-                                )}
-                              </div>
-                              <div className="flex-1 min-w-0 flex flex-col justify-between">
-                                <div>
-                                  <div className="flex items-center gap-1.5 text-zinc-500 mb-0.5">
-                                    <Store size={12} />
-                                    <span className="text-[9px] font-black uppercase tracking-tight truncate">{order.shop?.name}</span>
+                                  <div className="flex items-center justify-between mt-2">
+                                    <p className="text-xs font-black text-emerald-500">{formatPrice(item.price)}</p>
+                                    <span className="text-[9px] font-bold text-zinc-600 uppercase tracking-tighter">{item.quantity || 1} Qty</span>
                                   </div>
-                                  <h3 className="text-sm font-black text-white truncate">{displayName}</h3>
-                                </div>
-                                <div className="flex items-center justify-between mt-2">
-                                  <p className="text-sm font-black text-emerald-500">{formatPrice(order.total_price)}</p>
-                                  <span className="text-[9px] font-bold text-zinc-600 uppercase tracking-tighter">{totalQuantity} Item</span>
                                 </div>
                               </div>
-                            </div>
-                          );
-                        })()
-                      )}
+                            );
+                          })
+                        : (() => {
+                            const { product, mediaPath, displayName, totalQuantity } = getPrimaryProductInfo(order);
+                            return (
+                              <div className="flex gap-4">
+                                <div className="w-20 h-20 rounded-[10px] overflow-hidden bg-zinc-800 shrink-0 border border-zinc-700">
+                                  {isVideoUrl(mediaPath) ? <video src={getImageUrl(mediaPath)} className="w-full h-full object-cover" preload="metadata" muted playsInline /> : <img src={getImageUrl(mediaPath) || "/placeholder.png"} alt={product.name || displayName} className="w-full h-full object-cover" />}
+                                </div>
+                                <div className="flex-1 min-w-0 flex flex-col justify-between">
+                                  <div>
+                                    <div className="flex items-center gap-1.5 text-zinc-500 mb-0.5">
+                                      <Store size={12} />
+                                      <span className="text-[9px] font-black uppercase tracking-tight truncate">{order.shop?.name}</span>
+                                    </div>
+                                    <h3 className="text-sm font-black text-white truncate">{displayName}</h3>
+                                  </div>
+                                  <div className="flex items-center justify-between mt-2">
+                                    <p className="text-sm font-black text-emerald-500">{formatPrice(order.total_price)}</p>
+                                    <span className="text-[9px] font-bold text-zinc-600 uppercase tracking-tighter">{totalQuantity} Item</span>
+                                  </div>
+                                </div>
+                              </div>
+                            );
+                          })()}
                     </div>
 
                     {/* Card Footer Actions */}
                     <div className="px-5 py-4 bg-zinc-900/40 border-t border-zinc-800 flex items-center gap-3">
-                      {isCancelled && isPaid && (
-                        order.refund_status === "refunded" ? (
-                          <Link href="/user/pesanan/pengembalian-dana" className="flex-1 flex items-center justify-center gap-2 py-2.5 bg-emerald-500/10 border border-emerald-500/20 text-emerald-500 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all">
+                      {isCancelled &&
+                        isPaid &&
+                        (order.refund_status === "refunded" ? (
+                          <Link href="/user/pesanan/pengembalian-dana" className="flex-1 flex items-center justify-center gap-2 py-2.5 bg-emerald-500/10 border border-emerald-500/20 text-emerald-500 rounded-[10px] text-[10px] font-black uppercase tracking-widest transition-all">
                             Refund Selesai
                           </Link>
                         ) : order.refund_status === "pending" ? (
-                          <Link href="/user/pesanan/pengembalian-dana" className="flex-1 flex items-center justify-center gap-2 py-2.5 bg-amber-500/10 border border-amber-500/20 text-amber-500 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all">
+                          <Link href="/user/pesanan/pengembalian-dana" className="flex-1 flex items-center justify-center gap-2 py-2.5 bg-amber-500/10 border border-amber-500/20 text-amber-500 rounded-[10px] text-[10px] font-black uppercase tracking-widest transition-all">
                             Refund Diproses
                           </Link>
                         ) : (
-                          <Link href="/user/pesanan/pengembalian-dana" className="flex-1 flex items-center justify-center gap-2 py-2.5 bg-amber-500 hover:bg-amber-400 text-zinc-950 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all">
+                          <Link href="/user/pesanan/pengembalian-dana" className="flex-1 flex items-center justify-center gap-2 py-2.5 bg-amber-500 hover:bg-amber-400 text-zinc-950 rounded-[10px] text-[10px] font-black uppercase tracking-widest transition-all">
                             Refund Dana
                           </Link>
-                        )
-                      )}
-                      <Link href={`/user/pesanan/detail-pesanan/${order.id}`} className="flex-1 flex items-center justify-center gap-2 py-2.5 bg-zinc-800 hover:bg-zinc-700 text-white rounded-xl border border-zinc-700 text-[10px] font-black uppercase tracking-widest transition-all">
+                        ))}
+                      <Link href={`/user/pesanan/detail-pesanan/${order.id}`} className="flex-1 flex items-center justify-center gap-2 py-2.5 bg-zinc-800 hover:bg-zinc-700 text-white rounded-[10px] border border-zinc-700 text-[10px] font-black uppercase tracking-widest transition-all">
                         <Eye size={14} /> Detail
                       </Link>
                     </div>
@@ -496,22 +462,16 @@ export default function RiwayatPembelianPage() {
             </div>
           </>
         ) : (
-          <div className="py-20 flex flex-col items-center text-center space-y-6 bg-zinc-900/20 border border-zinc-800 rounded-[3rem] border-dashed">
+          <div className="py-20 flex flex-col items-center text-center space-y-6 bg-zinc-900/20 border border-zinc-800 rounded-[10px] border-dashed">
             <div className="w-24 h-24 bg-zinc-900 rounded-full flex items-center justify-center text-zinc-700">
               <ShoppingBag size={48} />
             </div>
             <div className="space-y-2">
-              <h3 className="text-xl font-bold text-white">
-                {activeTab === "completed" ? "Belum Ada Riwayat Selesai" : "Belum Ada Riwayat Batal"}
-              </h3>
-              <p className="text-zinc-500 max-w-xs mx-auto text-sm">
-                {activeTab === "completed"
-                  ? "Transaksi pembelian Anda yang sudah selesai akan muncul di sini secara otomatis."
-                  : "Transaksi pembelian Anda yang dibatalkan akan muncul di sini secara otomatis."}
-              </p>
+              <h3 className="text-xl font-bold text-white">{activeTab === "completed" ? "Belum Ada Riwayat Selesai" : "Belum Ada Riwayat Batal"}</h3>
+              <p className="text-zinc-500 max-w-xs mx-auto text-sm">{activeTab === "completed" ? "Transaksi pembelian Anda yang sudah selesai akan muncul di sini secara otomatis." : "Transaksi pembelian Anda yang dibatalkan akan muncul di sini secara otomatis."}</p>
             </div>
             {activeTab === "completed" && (
-              <Link href="/toko" className="bg-emerald-500 hover:bg-emerald-400 text-zinc-950 font-black px-8 py-3 rounded-2xl transition-all active:scale-95">
+              <Link href="/toko" className="bg-emerald-500 hover:bg-emerald-400 text-zinc-950 font-black px-8 py-3 rounded-[10px] transition-all active:scale-95">
                 Mulai Belanja
               </Link>
             )}
@@ -521,12 +481,12 @@ export default function RiwayatPembelianPage() {
 
       {/* Pagination Controls */}
       {totalPages > 1 && (
-        <div className="flex flex-col md:flex-row items-center justify-between gap-4 bg-zinc-900/50 border border-zinc-800 p-6 rounded-[2rem]">
+        <div className="flex flex-col md:flex-row items-center justify-between gap-4 bg-zinc-900/50 border border-zinc-800 p-6 rounded-[10px]">
           <p className="text-[10px] md:text-xs font-black text-zinc-500 uppercase tracking-widest">
             Menampilkan {indexOfFirstItem + 1} - {Math.min(indexOfLastItem, filteredOrders.length)} dari {filteredOrders.length} Riwayat
           </p>
           <div className="flex items-center">
-            <div className="inline-flex rounded-xl border border-zinc-800 bg-zinc-950 divide-x divide-zinc-800 overflow-hidden">
+            <div className="inline-flex rounded-[10px] border border-zinc-800 bg-zinc-950 divide-x divide-zinc-800 overflow-hidden">
               <button onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))} disabled={currentPage === 1} className="w-10 h-10 flex items-center justify-center text-zinc-400 hover:text-white hover:bg-zinc-900/50 disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-transparent transition-all">
                 <ChevronLeft size={16} />
               </button>

@@ -222,7 +222,7 @@ export default function UserKomunitasPage() {
                 </div>
                 <button
                     onClick={() => setIsModalOpen(true)}
-                    className="flex items-center gap-2 px-4 py-2 bg-emerald-500 hover:bg-emerald-400 text-zinc-950 font-bold rounded-xl transition-all"
+                    className="flex items-center gap-2 px-4 py-2 bg-emerald-500 hover:bg-emerald-400 text-zinc-950 font-bold rounded-[10px] transition-all"
                 >
                     <Plus size={18} />
                     Buat Topik Baru
@@ -231,8 +231,8 @@ export default function UserKomunitasPage() {
 
             {/* Quick Stats */}
             <div className="grid grid-cols-3 gap-2 sm:gap-4">
-                <div className="bg-zinc-900 border border-zinc-800 rounded-xl sm:rounded-2xl p-2 sm:p-5 flex flex-col sm:flex-row items-center sm:items-start gap-1.5 sm:gap-4 text-center sm:text-left">
-                    <div className="w-8 h-8 sm:w-12 sm:h-12 rounded-lg sm:rounded-xl bg-blue-500/10 text-blue-500 flex items-center justify-center shrink-0">
+                <div className="bg-zinc-900 border border-zinc-800 rounded-[10px] p-2 sm:p-5 flex flex-col sm:flex-row items-center sm:items-start gap-1.5 sm:gap-4 text-center sm:text-left">
+                    <div className="w-8 h-8 sm:w-12 sm:h-12 rounded-[10px] bg-blue-500/10 text-blue-500 flex items-center justify-center shrink-0">
                         <MessageSquare size={14} className="sm:w-[24px] sm:h-[24px]" />
                     </div>
                     <div className="min-w-0 w-full">
@@ -240,8 +240,8 @@ export default function UserKomunitasPage() {
                         <p className="text-sm sm:text-2xl font-black text-white truncate">{topicsCount.toLocaleString('id-ID')}</p>
                     </div>
                 </div>
-                <div className="bg-zinc-900 border border-zinc-800 rounded-xl sm:rounded-2xl p-2 sm:p-5 flex flex-col sm:flex-row items-center sm:items-start gap-1.5 sm:gap-4 text-center sm:text-left">
-                    <div className="w-8 h-8 sm:w-12 sm:h-12 rounded-lg sm:rounded-xl bg-emerald-500/10 text-emerald-500 flex items-center justify-center shrink-0">
+                <div className="bg-zinc-900 border border-zinc-800 rounded-[10px] p-2 sm:p-5 flex flex-col sm:flex-row items-center sm:items-start gap-1.5 sm:gap-4 text-center sm:text-left">
+                    <div className="w-8 h-8 sm:w-12 sm:h-12 rounded-[10px] bg-emerald-500/10 text-emerald-500 flex items-center justify-center shrink-0">
                         <Heart size={14} className="sm:w-[24px] sm:h-[24px]" />
                     </div>
                     <div className="min-w-0 w-full">
@@ -249,8 +249,8 @@ export default function UserKomunitasPage() {
                         <p className="text-sm sm:text-2xl font-black text-white truncate">{likesReceived.toLocaleString('id-ID')}</p>
                     </div>
                 </div>
-                <div className="bg-zinc-900 border border-zinc-800 rounded-xl sm:rounded-2xl p-2 sm:p-5 flex flex-col sm:flex-row items-center sm:items-start gap-1.5 sm:gap-4 text-center sm:text-left">
-                    <div className="w-8 h-8 sm:w-12 sm:h-12 rounded-lg sm:rounded-xl bg-amber-500/10 text-amber-500 flex items-center justify-center shrink-0">
+                <div className="bg-zinc-900 border border-zinc-800 rounded-[10px] p-2 sm:p-5 flex flex-col sm:flex-row items-center sm:items-start gap-1.5 sm:gap-4 text-center sm:text-left">
+                    <div className="w-8 h-8 sm:w-12 sm:h-12 rounded-[10px] bg-amber-500/10 text-amber-500 flex items-center justify-center shrink-0">
                         <Flame size={14} className="sm:w-[24px] sm:h-[24px]" />
                     </div>
                     <div className="min-w-0 w-full">
@@ -270,18 +270,18 @@ export default function UserKomunitasPage() {
             </div>
 
             {/* Content Tabs */}
-            <div className="bg-zinc-900 border border-zinc-800 rounded-2xl overflow-hidden flex flex-col ">
+            <div className="bg-zinc-900 border border-zinc-800 rounded-[10px] overflow-hidden flex flex-col ">
                 <div className="flex flex-col sm:flex-row justify-between items-center gap-4 p-4 border-b border-zinc-800">
                     <div className="flex gap-2 w-full sm:w-auto overflow-x-auto custom-scrollbar">
                         <button
                             onClick={() => setActiveTab("diskusi_saya")}
-                            className={`px-4 py-2 rounded-lg font-bold text-sm whitespace-nowrap transition-colors flex items-center gap-2 ${activeTab === 'diskusi_saya' ? 'bg-zinc-800 text-white' : 'text-zinc-500 hover:text-zinc-300 hover:bg-zinc-800/50'}`}
+                            className={`px-4 py-2 rounded-[10px] font-bold text-sm whitespace-nowrap transition-colors flex items-center gap-2 ${activeTab === 'diskusi_saya' ? 'bg-zinc-800 text-white' : 'text-zinc-500 hover:text-zinc-300 hover:bg-zinc-800/50'}`}
                         >
                             <MessageSquare size={16} /> Diskusi Saya
                         </button>
                         <button
                             onClick={() => setActiveTab("disimpan")}
-                            className={`px-4 py-2 rounded-lg font-bold text-sm whitespace-nowrap transition-colors flex items-center gap-2 ${activeTab === 'disimpan' ? 'bg-zinc-800 text-white' : 'text-zinc-500 hover:text-zinc-300 hover:bg-zinc-800/50'}`}
+                            className={`px-4 py-2 rounded-[10px] font-bold text-sm whitespace-nowrap transition-colors flex items-center gap-2 ${activeTab === 'disimpan' ? 'bg-zinc-800 text-white' : 'text-zinc-500 hover:text-zinc-300 hover:bg-zinc-800/50'}`}
                         >
                             <Heart size={16} /> Disimpan
                         </button>
@@ -292,7 +292,7 @@ export default function UserKomunitasPage() {
                         <input
                             type="text"
                             placeholder="Cari topik..."
-                            className="w-full bg-zinc-950 border border-zinc-800 text-white text-sm rounded-xl pl-9 pr-4 py-2 focus:outline-none focus:border-emerald-500 transition-colors"
+                            className="w-full bg-zinc-950 border border-zinc-800 text-white text-sm rounded-[10px] pl-9 pr-4 py-2 focus:outline-none focus:border-emerald-500 transition-colors"
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
                         />
@@ -305,23 +305,23 @@ export default function UserKomunitasPage() {
                             {isLoading ? (
                                 <div className="text-center py-10 text-zinc-500">Memuat topik...</div>
                             ) : topics.length === 0 ? (
-                                <div className="text-center py-10 text-zinc-500 bg-zinc-950/50 rounded-xl border border-zinc-800 border-dashed">
+                                <div className="text-center py-10 text-zinc-500 bg-zinc-950/50 rounded-[10px] border border-zinc-800 border-dashed">
                                     Belum ada topik yang Anda buat.
                                 </div>
                             ) : (
                                 topics.filter(t => t.title.toLowerCase().includes(searchQuery.toLowerCase())).map(topic => (
-                                    <div key={topic.id} className="flex flex-col md:flex-row justify-between gap-4 p-4 rounded-xl border border-zinc-800 hover:border-zinc-700 bg-zinc-950/50 hover:bg-zinc-800/30 transition-all group">
+                                    <div key={topic.id} className="flex flex-col md:flex-row justify-between gap-4 p-4 rounded-[10px] border border-zinc-800 hover:border-zinc-700 bg-zinc-950/50 hover:bg-zinc-800/30 transition-all group">
                                         {topic.image && (
-                                            <div className="w-full md:w-32 h-24 rounded-lg overflow-hidden shrink-0 border border-zinc-800">
+                                            <div className="w-full md:w-32 h-24 rounded-[10px] overflow-hidden shrink-0 border border-zinc-800">
                                                 <img src={getImageUrl(topic.image)} alt={topic.title} className="w-full h-full object-cover" />
                                             </div>
                                         )}
                                         <div className="flex-1 space-y-2">
                                             <div className="flex flex-wrap items-center gap-2">
-                                                <span className="px-2 py-0.5 bg-emerald-500/10 text-emerald-500 text-[10px] font-bold rounded uppercase tracking-wider">
+                                                <span className="px-2 py-0.5 bg-emerald-500/10 text-emerald-500 text-[10px] font-bold rounded-[10px] uppercase tracking-wider">
                                                     {topic.category}
                                                 </span>
-                                                <span className={`px-2 py-0.5 text-[10px] font-bold rounded uppercase tracking-wider ${topic.status === 'Aktif' ? 'bg-blue-500/10 text-blue-500' : topic.status === 'Ditolak' ? 'bg-red-500/10 text-red-500' : 'bg-amber-500/10 text-amber-500'}`}>
+                                                <span className={`px-2 py-0.5 text-[10px] font-bold rounded-[10px] uppercase tracking-wider ${topic.status === 'Aktif' ? 'bg-blue-500/10 text-blue-500' : topic.status === 'Ditolak' ? 'bg-red-500/10 text-red-500' : 'bg-amber-500/10 text-amber-500'}`}>
                                                     {topic.status === 'Pending' ? 'Menunggu Verifikasi' : topic.status}
                                                 </span>
                                                 <span className="text-xs text-zinc-500 flex items-center gap-1">
@@ -332,7 +332,7 @@ export default function UserKomunitasPage() {
                                                 {topic.title}
                                             </h3>
                                             {topic.status === 'Ditolak' && topic.rejection_reason && (
-                                                <div className="mt-2 p-3 rounded-lg bg-red-500/5 border border-red-500/20">
+                                                <div className="mt-2 p-3 rounded-[10px] bg-red-500/5 border border-red-500/20">
                                                     <p className="text-xs font-bold text-red-400 mb-1">Alasan Penolakan:</p>
                                                     <p className="text-xs text-red-200">{topic.rejection_reason}</p>
                                                 </div>
@@ -345,7 +345,7 @@ export default function UserKomunitasPage() {
                                         <div className="flex flex-wrap items-center gap-2 md:border-l md:border-zinc-800 md:pl-4 shrink-0">
                                             <Link
                                                 href={'/user/komunitas/edit/' + topic.id}
-                                                className="px-3 py-1.5 text-zinc-400 hover:text-amber-500 bg-zinc-900 hover:bg-zinc-800 rounded-lg transition-colors border border-zinc-800 flex items-center gap-2"
+                                                className="px-3 py-1.5 text-zinc-400 hover:text-amber-500 bg-zinc-900 hover:bg-zinc-800 rounded-[10px] transition-colors border border-zinc-800 flex items-center gap-2"
                                                 title="Edit Topik"
                                             >
                                                 <Edit size={14} />
@@ -353,7 +353,7 @@ export default function UserKomunitasPage() {
                                             </Link>
                                             <Link
                                                 href={'/komunitas/' + topic.id}
-                                                className="px-3 py-1.5 text-zinc-400 hover:text-white bg-zinc-900 hover:bg-zinc-800 rounded-lg transition-colors border border-zinc-800 flex items-center gap-2"
+                                                className="px-3 py-1.5 text-zinc-400 hover:text-white bg-zinc-900 hover:bg-zinc-800 rounded-[10px] transition-colors border border-zinc-800 flex items-center gap-2"
                                                 title="Lihat Diskusi"
                                             >
                                                 <Search size={14} />
@@ -361,7 +361,7 @@ export default function UserKomunitasPage() {
                                             </Link>
                                             <button
                                                 onClick={() => handleDelete(topic.id)}
-                                                className="px-3 py-1.5 text-zinc-400 hover:text-red-500 bg-zinc-900 hover:bg-zinc-800 rounded-lg transition-colors border border-zinc-800 flex items-center gap-2"
+                                                className="px-3 py-1.5 text-zinc-400 hover:text-red-500 bg-zinc-900 hover:bg-zinc-800 rounded-[10px] transition-colors border border-zinc-800 flex items-center gap-2"
                                                 title="Hapus"
                                             >
                                                 <Trash2 size={14} />
@@ -377,7 +377,7 @@ export default function UserKomunitasPage() {
                     {activeTab === "disimpan" && (
                         <div className="space-y-3">
                             {savedTopics.map(topic => (
-                                <div key={topic.id} className="flex flex-col md:flex-row justify-between gap-4 p-4 rounded-xl border border-zinc-800 hover:border-zinc-700 bg-zinc-950/50 hover:bg-zinc-800/30 transition-all group">
+                                <div key={topic.id} className="flex flex-col md:flex-row justify-between gap-4 p-4 rounded-[10px] border border-zinc-800 hover:border-zinc-700 bg-zinc-950/50 hover:bg-zinc-800/30 transition-all group">
                                     <div className="flex-1 space-y-2">
                                         <div className="flex items-center gap-2 text-xs text-zinc-500 mb-1">
                                             <span className="font-bold text-zinc-400">@{topic.author}</span>
@@ -388,7 +388,7 @@ export default function UserKomunitasPage() {
                                             {topic.title}
                                         </h3>
                                         <div className="flex items-center gap-4 text-xs font-medium text-zinc-400 pt-1">
-                                            <span className="px-2 py-0.5 bg-zinc-800 text-zinc-300 text-[10px] font-bold rounded uppercase tracking-wider">
+                                            <span className="px-2 py-0.5 bg-zinc-800 text-zinc-300 text-[10px] font-bold rounded-[10px] uppercase tracking-wider">
                                                 {topic.category}
                                             </span>
                                             <span className="flex items-center gap-1"><MessageSquare size={14} /> {topic.replies}</span>
@@ -396,10 +396,10 @@ export default function UserKomunitasPage() {
                                         </div>
                                     </div>
                                     <div className="flex items-center gap-2 md:border-l md:border-zinc-800 md:pl-4">
-                                        <Link href={'/komunitas/' + topic.id} className="px-3 py-1.5 text-xs font-bold text-zinc-900 hover:text-white bg-emerald-500 hover:bg-zinc-800 rounded-lg transition-colors border border-transparent hover:border-zinc-700">
+                                        <Link href={'/komunitas/' + topic.id} className="px-3 py-1.5 text-xs font-bold text-zinc-900 hover:text-white bg-emerald-500 hover:bg-zinc-800 rounded-[10px] transition-colors border border-transparent hover:border-zinc-700">
                                             Baca Topik
                                         </Link>
-                                        <button className="p-2 text-red-500 hover:text-white bg-red-500/10 hover:bg-red-500 rounded-lg transition-colors border border-transparent" title="Hapus dari Disimpan">
+                                        <button className="p-2 text-red-500 hover:text-white bg-red-500/10 hover:bg-red-500 rounded-[10px] transition-colors border border-transparent" title="Hapus dari Disimpan">
                                             <Heart size={16} fill="currentColor" />
                                         </button>
                                     </div>
@@ -413,7 +413,7 @@ export default function UserKomunitasPage() {
             {/* Modal Buat Topik */}
             {isModalOpen && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-zinc-950/80 backdrop-blur-sm overflow-y-auto">
-                    <div className="bg-zinc-900 border border-zinc-800 rounded-3xl w-full max-w-2xl my-auto">
+                    <div className="bg-zinc-900 border border-zinc-800 rounded-[10px] w-full max-w-2xl my-auto">
                         <div className="flex justify-between items-center p-6 border-b border-zinc-800">
                             <h3 className="text-xl font-bold text-white">Buat Topik Baru</h3>
                             <button onClick={() => setIsModalOpen(false)} className="p-2 text-zinc-400 hover:text-white bg-zinc-800 hover:bg-zinc-700 rounded-full transition-colors">
@@ -430,7 +430,7 @@ export default function UserKomunitasPage() {
                                         required
                                         value={formData.title}
                                         onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                                        className="w-full bg-zinc-950 border border-zinc-800 text-white rounded-xl px-4 py-3 focus:outline-none focus:border-emerald-500 transition-colors"
+                                        className="w-full bg-zinc-950 border border-zinc-800 text-white rounded-[10px] px-4 py-3 focus:outline-none focus:border-emerald-500 transition-colors"
                                         placeholder="Masukkan judul diskusi..."
                                     />
                                 </div>
@@ -439,7 +439,7 @@ export default function UserKomunitasPage() {
                                     <select
                                         value={formData.category}
                                         onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                                        className="w-full bg-zinc-950 border border-zinc-800 text-white rounded-xl px-4 py-3 focus:outline-none focus:border-emerald-500 transition-colors appearance-none"
+                                        className="w-full bg-zinc-950 border border-zinc-800 text-white rounded-[10px] px-4 py-3 focus:outline-none focus:border-emerald-500 transition-colors appearance-none"
                                     >
                                         <option value="Diskusi Umum">Diskusi Umum</option>
                                         <option value="Kesehatan/Penyakit">Kesehatan/Penyakit</option>
@@ -454,7 +454,7 @@ export default function UserKomunitasPage() {
                                     rows="5"
                                     value={formData.description}
                                     onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                                    className="w-full bg-zinc-950 border border-zinc-800 text-white rounded-xl px-4 py-3 focus:outline-none focus:border-emerald-500 transition-colors resize-none"
+                                    className="w-full bg-zinc-950 border border-zinc-800 text-white rounded-[10px] px-4 py-3 focus:outline-none focus:border-emerald-500 transition-colors resize-none"
                                     placeholder="Tuliskan isi diskusi Anda secara detail..."
                                 ></textarea>
                             </div>
@@ -467,7 +467,7 @@ export default function UserKomunitasPage() {
                                         required
                                         value={formData.date}
                                         onChange={(e) => setFormData({ ...formData, date: e.target.value })}
-                                        className="w-full bg-zinc-950 border border-zinc-800 text-white rounded-xl px-4 py-3 focus:outline-none focus:border-emerald-500 transition-colors"
+                                        className="w-full bg-zinc-950 border border-zinc-800 text-white rounded-[10px] px-4 py-3 focus:outline-none focus:border-emerald-500 transition-colors"
                                         style={{ colorScheme: 'dark' }}
                                     />
                                 </div>
@@ -481,7 +481,7 @@ export default function UserKomunitasPage() {
                                             className="hidden"
                                             id="topicImage"
                                         />
-                                        <label htmlFor="topicImage" className="flex items-center gap-3 w-full bg-zinc-950 border border-zinc-800 hover:border-emerald-500 text-zinc-400 rounded-xl px-4 py-3 cursor-pointer transition-colors group">
+                                        <label htmlFor="topicImage" className="flex items-center gap-3 w-full bg-zinc-950 border border-zinc-800 hover:border-emerald-500 text-zinc-400 rounded-[10px] px-4 py-3 cursor-pointer transition-colors group">
                                             <ImageIcon size={20} className="group-hover:text-emerald-500 transition-colors" />
                                             <span className="truncate flex-1">{selectedImage ? "Gambar Dipilih" : "Pilih Gambar..."}</span>
                                         </label>
@@ -489,7 +489,7 @@ export default function UserKomunitasPage() {
                                             <span className="text-amber-500 text-sm">⚠️</span> Maksimal ukuran file: 1MB
                                         </p>
                                         {selectedImage && (
-                                            <div className="mt-3 relative w-full h-32 rounded-xl overflow-hidden border border-zinc-800">
+                                            <div className="mt-3 relative w-full h-32 rounded-[10px] overflow-hidden border border-zinc-800">
                                                 <img src={selectedImage} alt="Preview" className="w-full h-full object-cover" />
                                             </div>
                                         )}
@@ -498,10 +498,10 @@ export default function UserKomunitasPage() {
                             </div>
 
                             <div className="pt-4 flex gap-3 justify-end border-t border-zinc-800 mt-6">
-                                <button type="button" onClick={() => setIsModalOpen(false)} className="px-6 py-2.5 bg-zinc-800 hover:bg-zinc-700 text-white font-bold rounded-xl transition-colors">
+                                <button type="button" onClick={() => setIsModalOpen(false)} className="px-6 py-2.5 bg-zinc-800 hover:bg-zinc-700 text-white font-bold rounded-[10px] transition-colors">
                                     Batal
                                 </button>
-                                <button type="submit" disabled={isSubmitting} className={'px-6 py-2.5 bg-emerald-500 hover:bg-emerald-400 text-zinc-950 font-bold rounded-xl transition-colors flex items-center gap-2 ' + (isSubmitting ? 'opacity-70 cursor-not-allowed' : '')}>
+                                <button type="submit" disabled={isSubmitting} className={'px-6 py-2.5 bg-emerald-500 hover:bg-emerald-400 text-zinc-950 font-bold rounded-[10px] transition-colors flex items-center gap-2 ' + (isSubmitting ? 'opacity-70 cursor-not-allowed' : '')}>
                                     {isSubmitting ? "Menyimpan..." : "Posting Topik"}
                                 </button>
                             </div>
@@ -513,7 +513,7 @@ export default function UserKomunitasPage() {
             {/* Modal Error */}
             {errorModal.isOpen && (
                 <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-zinc-950/80 backdrop-blur-sm animate-in fade-in zoom-in-95 duration-200">
-                    <div className="bg-zinc-900 border border-red-500/30 rounded-3xl w-full max-w-sm overflow-hidden">
+                    <div className="bg-zinc-900 border border-red-500/30 rounded-[10px] w-full max-w-sm overflow-hidden">
                         <div className="p-6 flex flex-col items-center text-center space-y-4">
                             <div className="w-16 h-16 bg-red-500/10 text-red-500 rounded-full flex items-center justify-center shrink-0">
                                 <span className="text-3xl">⚠️</span>
@@ -528,7 +528,7 @@ export default function UserKomunitasPage() {
                         <div className="p-4 bg-zinc-950/50 border-t border-zinc-800 flex justify-center">
                             <button
                                 onClick={() => setErrorModal({ isOpen: false, title: "Gagal", message: "" })}
-                                className="w-full px-6 py-3 bg-zinc-800 hover:bg-zinc-700 text-white font-bold rounded-xl transition-all"
+                                className="w-full px-6 py-3 bg-zinc-800 hover:bg-zinc-700 text-white font-bold rounded-[10px] transition-all"
                             >
                                 Mengerti
                             </button>

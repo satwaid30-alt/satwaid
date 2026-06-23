@@ -752,7 +752,7 @@ function DetailContent() {
           </div>
           <h2 className="text-2xl font-black text-zinc-900 mb-2">Lelang Tidak Ditemukan</h2>
           <p className="text-zinc-500 mb-8">Maaf, produk lelang yang Anda cari tidak tersedia, sudah dihapus, atau bertipe jualan biasa.</p>
-          <Link href="/lelang" className="bg-amber-500 hover:bg-amber-600 text-zinc-950 font-black px-8 py-3 rounded-2xl transition-all">
+          <Link href="/lelang" className="bg-amber-500 hover:bg-amber-600 text-zinc-950 font-black px-8 py-3 rounded-[10px] transition-all">
             Kembali ke Toko
           </Link>
         </div>
@@ -813,8 +813,8 @@ function DetailContent() {
 
         <div className="flex flex-col lg:flex-row gap-6 mb-4 items-start">
           {/* Left Side: Image Gallery Card */}
-          <div className="w-full lg:w-[45%] sticky-image-card bg-white border border-zinc-200 rounded-[2rem] p-4 lg:p-6 shadow-sm flex flex-col gap-4">
-            <div className="bg-zinc-50 rounded-[1.5rem] relative group overflow-hidden border border-zinc-100 flex items-center justify-center aspect-square w-full">
+          <div className="w-full lg:w-[45%] sticky-image-card bg-white border border-zinc-200 rounded-[10px] p-4 lg:p-6 shadow-sm flex flex-col gap-4">
+            <div className="bg-zinc-50 rounded-[10px] relative group overflow-hidden border border-zinc-100 flex items-center justify-center aspect-square w-full">
               {parsedImages.length > 0 && parsedImages[activeImageIndex] ? (
                 isVideoUrl(parsedImages[activeImageIndex]) ? (
                   <DetailVideoPlayer key={parsedImages[activeImageIndex]} src={parsedImages[activeImageIndex]} />
@@ -833,13 +833,13 @@ function DetailContent() {
                 <div className="absolute inset-x-4 top-1/2 -translate-y-1/2 flex justify-between pointer-events-none z-10">
                   <button
                     onClick={() => setActiveImageIndex((prev) => (prev === 0 ? parsedImages.length - 1 : prev - 1))}
-                    className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-white/90 backdrop-blur-md border border-zinc-200/50 flex items-center justify-center text-zinc-800 hover:bg-amber-500 hover:text-white transition-all pointer-events-auto active:scale-90"
+                    className="w-9 h-9 sm:w-10 sm:h-10 rounded-[10px] bg-white/90 backdrop-blur-md border border-zinc-200/50 flex items-center justify-center text-zinc-800 hover:bg-amber-500 hover:text-white transition-all pointer-events-auto active:scale-90"
                   >
                     <ChevronLeft size={18} />
                   </button>
                   <button
                     onClick={() => setActiveImageIndex((prev) => (prev === parsedImages.length - 1 ? 0 : prev + 1))}
-                    className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-white/90 backdrop-blur-md border border-zinc-200/50 flex items-center justify-center text-zinc-800 hover:bg-amber-500 hover:text-white transition-all pointer-events-auto active:scale-90"
+                    className="w-9 h-9 sm:w-10 sm:h-10 rounded-[10px] bg-white/90 backdrop-blur-md border border-zinc-200/50 flex items-center justify-center text-zinc-800 hover:bg-amber-500 hover:text-white transition-all pointer-events-auto active:scale-90"
                   >
                     <ChevronRight size={18} />
                   </button>
@@ -851,7 +851,7 @@ function DetailContent() {
             {parsedImages.length > 1 && (
               <div className="flex justify-center gap-2 overflow-x-auto no-scrollbar py-1">
                 {parsedImages.map((img, idx) => (
-                  <button key={idx} onClick={() => setActiveImageIndex(idx)} className={`w-14 h-14 rounded-xl border-2 overflow-hidden transition-all flex-shrink-0 bg-white ${activeImageIndex === idx ? "border-amber-500 scale-105" : "border-zinc-200 opacity-60 hover:opacity-100"}`}>
+                  <button key={idx} onClick={() => setActiveImageIndex(idx)} className={`w-14 h-14 rounded-[10px] border-2 overflow-hidden transition-all flex-shrink-0 bg-white ${activeImageIndex === idx ? "border-amber-500 scale-105" : "border-zinc-200 opacity-60 hover:opacity-100"}`}>
                     {isVideoUrl(img) ? (
                       <video src={img} className="w-full h-full object-cover" preload="metadata" />
                     ) : (
@@ -864,16 +864,16 @@ function DetailContent() {
           </div>
 
           {/* Right Side: Auction Details Card */}
-          <div className="w-full lg:w-[55%] bg-white border border-zinc-200 rounded-[2rem] p-6 lg:p-10 xl:p-12 shadow-sm">
+          <div className="w-full lg:w-[55%] bg-white border border-zinc-200 rounded-[10px] p-6 lg:p-10 xl:p-12 shadow-sm">
             <div className="space-y-6 lg:space-y-8">
               <div>
                 <div className="flex flex-wrap items-center gap-2 mb-3">
-                  <span className="bg-zinc-100 text-zinc-700 text-[9px] font-black uppercase tracking-widest px-2 py-1 rounded-md border border-zinc-200">{selectedProduct.species || "Reptil"}</span>
-                  <span className="bg-amber-500 text-zinc-950 text-[9px] font-black uppercase tracking-widest px-2 py-1 rounded-md border border-amber-600 flex items-center gap-1">
+                  <span className="bg-zinc-100 text-zinc-700 text-[9px] font-black uppercase tracking-widest px-2 py-1 rounded-[10px] border border-zinc-200">{selectedProduct.species || "Reptil"}</span>
+                  <span className="bg-amber-500 text-zinc-950 text-[9px] font-black uppercase tracking-widest px-2 py-1 rounded-[10px] border border-amber-600 flex items-center gap-1">
                     <Gavel size={11} />
                     Lelang Reptil
                   </span>
-                  <span className="bg-zinc-100 text-zinc-700 text-[9px] font-black uppercase tracking-widest px-2 py-1 rounded-md border border-zinc-200">Dibuat: {new Date(selectedProduct.created_at).toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" })}</span>
+                  <span className="bg-zinc-100 text-zinc-700 text-[9px] font-black uppercase tracking-widest px-2 py-1 rounded-[10px] border border-zinc-200">Dibuat: {new Date(selectedProduct.created_at).toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" })}</span>
                   {/* <span
                     className="bg-zinc-800 text-zinc-300 text-[9px] font-black uppercase tracking-widest px-2 py-1 rounded-md border border-zinc-700 cursor-pointer hover:bg-zinc-700 transition-colors select-all"
                     title="Klik untuk menyalin Product ID"
@@ -889,9 +889,9 @@ function DetailContent() {
                 <h2 className="text-2xl lg:text-3xl xl:text-3xl font-black text-zinc-900 leading-tight">{selectedProduct.name}</h2>
               </div>
               {/* Seller Info Row */}
-              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-white border border-zinc-200 rounded-2xl p-4 sm:p-5">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-white border border-zinc-200 rounded-[10px] p-4 sm:p-5">
                 <div className="flex items-center gap-4 w-full sm:w-auto">
-                  <div className="w-11 h-11 rounded-xl bg-zinc-100 overflow-hidden border border-zinc-200 flex-shrink-0">
+                  <div className="w-11 h-11 rounded-[10px] bg-zinc-100 overflow-hidden border border-zinc-200 flex-shrink-0">
                     {selectedProduct.shop?.logo_url ? (
                       <img src={getLogoUrl(selectedProduct.shop.logo_url)} className="w-full h-full object-cover" alt={selectedProduct.shop.name} />
                     ) : (
@@ -903,7 +903,7 @@ function DetailContent() {
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-2 mb-0.5">
                       <p className="text-sm font-black text-amber-600 hover:underline cursor-pointer truncate">{selectedProduct.shop?.name || "Penjual"}</p>
-                      <div className="flex items-center gap-1 bg-amber-50 px-1.5 py-0.5 rounded-md border border-amber-100 flex-shrink-0">
+                      <div className="flex items-center gap-1 bg-amber-50 px-1.5 py-0.5 rounded-[10px] border border-amber-100 flex-shrink-0">
                         <Star size={10} className="text-amber-500 fill-amber-500" />
                         <span className="text-[10px] font-black text-zinc-900">{selectedProduct.shop?.avgRating || "5.0"}</span>
                       </div>
@@ -920,24 +920,24 @@ function DetailContent() {
                       href={`https://wa.me/${selectedProduct.shop.whatsapp.replace(/\D/g, "")}?text=Halo ${selectedProduct.shop.name}, saya tertarik dengan lelang "${selectedProduct.name}" di REPTILEHAVEN.`}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="flex-1 sm:flex-initial flex items-center justify-center gap-2 text-[11px] font-black text-white bg-[#25D366] hover:bg-[#128C7E] transition-all py-2.5 px-4 rounded-xl text-center"
+                      className="flex-1 sm:flex-initial flex items-center justify-center gap-2 text-[11px] font-black text-white bg-[#25D366] hover:bg-[#128C7E] transition-all py-2.5 px-4 rounded-[10px] text-center"
                     >
                       <MessageCircle size={14} className="flex-shrink-0" />
                       Hubungi
                     </a>
                   )}
 
-                  <button onClick={handleShare} className="flex-1 sm:flex-initial flex items-center justify-center gap-2 text-[11px] font-black text-zinc-600 hover:text-emerald-600 transition-colors py-2.5 px-4 rounded-xl bg-white border border-zinc-200 hover:border-zinc-300 text-center">
+                  <button onClick={handleShare} className="flex-1 sm:flex-initial flex items-center justify-center gap-2 text-[11px] font-black text-zinc-600 hover:text-emerald-600 transition-colors py-2.5 px-4 rounded-[10px] bg-white border border-zinc-200 hover:border-zinc-300 text-center">
                     <Share2 size={14} className="flex-shrink-0" /> Bagikan
                   </button>
                 </div>
               </div>
               {/* Main Auction Info Card */}
-              <div className="bg-transparent lg:bg-white rounded-none lg:rounded-[2rem] p-0 sm:p-0 lg:p-8 space-y-6 relative overflow-hidden">
+              <div className="bg-transparent lg:bg-white rounded-none lg:rounded-[10px] p-0 sm:p-0 lg:p-8 space-y-6 relative overflow-hidden">
                 <div className="absolute top-0 right-0 w-32 h-32 bg-amber-500/5 rounded-full blur-3xl pointer-events-none"></div>
 
                 {/* Live Countdown Header */}
-                <div className="flex flex-col items-center justify-center text-center py-4 bg-amber-50/50 border border-amber-200/60 rounded-2xl">
+                <div className="flex flex-col items-center justify-center text-center py-4 bg-amber-50/50 border border-amber-200/60 rounded-[10px]">
                   {auctionStatus === "scheduled" && (
                     <>
                       <p className="text-[10px] font-black text-amber-700 uppercase tracking-widest mb-2.5 flex items-center gap-1.5">
@@ -947,24 +947,24 @@ function DetailContent() {
                         <div className="flex items-center justify-center gap-1.5 sm:gap-2.5">
                           {timeLeft.d !== "0" && (
                             <>
-                              <div className="bg-white text-amber-700 px-2 py-1.5 sm:px-3 sm:py-2 rounded-xl border border-amber-200 flex flex-col items-center justify-center min-w-[48px] sm:min-w-[64px]">
+                              <div className="bg-white text-amber-700 px-2 py-1.5 sm:px-3 sm:py-2 rounded-[10px] border border-amber-200 flex flex-col items-center justify-center min-w-[48px] sm:min-w-[64px]">
                                 <span className="text-sm sm:text-xl font-black leading-none">{timeLeft.d}</span>
                                 <span className="text-[8px] sm:text-[9px] text-amber-500 uppercase font-black tracking-widest mt-1">Hari</span>
                               </div>
                               <span className="text-amber-400 font-black text-base sm:text-xl animate-pulse">:</span>
                             </>
                           )}
-                          <div className="bg-white text-amber-700 px-2 py-1.5 sm:px-3 sm:py-2 rounded-xl border border-amber-200 flex flex-col items-center justify-center min-w-[48px] sm:min-w-[64px]">
+                          <div className="bg-white text-amber-700 px-2 py-1.5 sm:px-3 sm:py-2 rounded-[10px] border border-amber-200 flex flex-col items-center justify-center min-w-[48px] sm:min-w-[64px]">
                             <span className="text-sm sm:text-xl font-black leading-none">{timeLeft.h}</span>
                             <span className="text-[8px] sm:text-[9px] text-amber-500 uppercase font-black tracking-widest mt-1">Jam</span>
                           </div>
                           <span className="text-amber-400 font-black text-base sm:text-xl animate-pulse">:</span>
-                          <div className="bg-white text-amber-700 px-2 py-1.5 sm:px-3 sm:py-2 rounded-xl border border-amber-200 flex flex-col items-center justify-center min-w-[48px] sm:min-w-[64px]">
+                          <div className="bg-white text-amber-700 px-2 py-1.5 sm:px-3 sm:py-2 rounded-[10px] border border-amber-200 flex flex-col items-center justify-center min-w-[48px] sm:min-w-[64px]">
                             <span className="text-sm sm:text-xl font-black leading-none">{timeLeft.m}</span>
                             <span className="text-[8px] sm:text-[9px] text-amber-500 uppercase font-black tracking-widest mt-1">Menit</span>
                           </div>
                           <span className="text-amber-400 font-black text-base sm:text-xl animate-pulse">:</span>
-                          <div className="bg-white text-amber-700 px-2 py-1.5 sm:px-3 sm:py-2 rounded-xl border border-amber-200 flex flex-col items-center justify-center min-w-[48px] sm:min-w-[64px] ">
+                          <div className="bg-white text-amber-700 px-2 py-1.5 sm:px-3 sm:py-2 rounded-[10px] border border-amber-200 flex flex-col items-center justify-center min-w-[48px] sm:min-w-[64px] ">
                             <span className="text-sm sm:text-xl font-black leading-none">{timeLeft.s}</span>
                             <span className="text-[8px] sm:text-[9px] text-amber-500 uppercase font-black tracking-widest mt-1">Detik</span>
                           </div>
@@ -982,24 +982,24 @@ function DetailContent() {
                         <div className="flex items-center justify-center gap-1.5 sm:gap-2.5">
                           {timeLeft.d !== "0" && (
                             <>
-                              <div className="bg-white text-amber-700 px-2 py-1.5 sm:px-3 sm:py-2 rounded-xl border border-amber-200 flex flex-col items-center justify-center min-w-[48px] sm:min-w-[64px]">
+                              <div className="bg-white text-amber-700 px-2 py-1.5 sm:px-3 sm:py-2 rounded-[10px] border border-amber-200 flex flex-col items-center justify-center min-w-[48px] sm:min-w-[64px]">
                                 <span className="text-sm sm:text-xl font-black leading-none">{timeLeft.d}</span>
                                 <span className="text-[8px] sm:text-[9px] text-amber-500 uppercase font-black tracking-widest mt-1">Hari</span>
                               </div>
                               <span className="text-amber-400 font-black text-base sm:text-xl animate-pulse">:</span>
                             </>
                           )}
-                          <div className="bg-white text-amber-700 px-2 py-1.5 sm:px-3 sm:py-2 rounded-xl border border-amber-200 flex flex-col items-center justify-center min-w-[48px] sm:min-w-[64px]">
+                          <div className="bg-white text-amber-700 px-2 py-1.5 sm:px-3 sm:py-2 rounded-[10px] border border-amber-200 flex flex-col items-center justify-center min-w-[48px] sm:min-w-[64px]">
                             <span className="text-sm sm:text-xl font-black leading-none">{timeLeft.h}</span>
                             <span className="text-[8px] sm:text-[9px] text-amber-500 uppercase font-black tracking-widest mt-1">Jam</span>
                           </div>
                           <span className="text-amber-400 font-black text-base sm:text-xl animate-pulse">:</span>
-                          <div className="bg-white text-amber-700 px-2 py-1.5 sm:px-3 sm:py-2 rounded-xl border border-amber-200 flex flex-col items-center justify-center min-w-[48px] sm:min-w-[64px]">
+                          <div className="bg-white text-amber-700 px-2 py-1.5 sm:px-3 sm:py-2 rounded-[10px] border border-amber-200 flex flex-col items-center justify-center min-w-[48px] sm:min-w-[64px]">
                             <span className="text-sm sm:text-xl font-black leading-none">{timeLeft.m}</span>
                             <span className="text-[8px] sm:text-[9px] text-amber-500 uppercase font-black tracking-widest mt-1">Menit</span>
                           </div>
                           <span className="text-amber-400 font-black text-base sm:text-xl animate-pulse">:</span>
-                          <div className="bg-white text-amber-700 px-2 py-1.5 sm:px-3 sm:py-2 rounded-xl border border-amber-200 flex flex-col items-center justify-center min-w-[48px] sm:min-w-[64px]">
+                          <div className="bg-white text-amber-700 px-2 py-1.5 sm:px-3 sm:py-2 rounded-[10px] border border-amber-200 flex flex-col items-center justify-center min-w-[48px] sm:min-w-[64px]">
                             <span className="text-sm sm:text-xl font-black leading-none">{timeLeft.s}</span>
                             <span className="text-[8px] sm:text-[9px] text-amber-500 uppercase font-black tracking-widest mt-1">Detik</span>
                           </div>
@@ -1012,7 +1012,7 @@ function DetailContent() {
 
                   {auctionStatus === "ended" && (
                     <div className="flex flex-col items-center gap-1 py-1">
-                      <span className="bg-zinc-150 text-zinc-600 border border-zinc-200 px-4 py-1 rounded-xl text-xs font-black uppercase tracking-widest">Lelang Telah Berakhir</span>
+                      <span className="bg-zinc-150 text-zinc-600 border border-zinc-200 px-4 py-1 rounded-[10px] text-xs font-black uppercase tracking-widest">Lelang Telah Berakhir</span>
                       <p className="text-[10px] text-zinc-500 font-bold mt-1">Penutupan resmi: {selectedProduct.end_date ? new Date(selectedProduct.end_date).toLocaleString("id-ID", { dateStyle: "medium", timeStyle: "short" }) : "-"}</p>
                     </div>
                   )}
@@ -1040,13 +1040,13 @@ function DetailContent() {
 
                 {/* BIN Instantly Buy Section (Moved to prevent accidental clicks) */}
                 {selectedProduct.bin_price && auctionStatus === "active" && (
-                  <div className="bg-emerald-50/70 border border-emerald-200/50 p-4 rounded-2xl flex flex-col xs:flex-row items-center justify-between gap-3">
+                  <div className="bg-emerald-50/70 border border-emerald-200/50 p-4 rounded-[10px] flex flex-col xs:flex-row items-center justify-between gap-3">
                     <div className="text-center xs:text-left">
                       <p className="text-[9px] font-black text-emerald-700 uppercase tracking-widest leading-none mb-1.5">Beli Langsung (BIN)</p>
                       <p className="text-base font-black text-emerald-600 leading-none">{formatPrice(selectedProduct.bin_price)}</p>
                     </div>
                     {!(currentUser && selectedProduct.user_id === currentUser.id) && selectedProduct.stock > 0 && (
-                      <button onClick={handleBuyNow} className="w-full xs:w-auto bg-emerald-500 hover:bg-emerald-600 text-white font-black px-5 py-2.5 rounded-xl text-xs transition-all active:scale-95 flex items-center justify-center gap-1.5">
+                      <button onClick={handleBuyNow} className="w-full xs:w-auto bg-emerald-500 hover:bg-emerald-600 text-white font-black px-5 py-2.5 rounded-[10px] text-xs transition-all active:scale-95 flex items-center justify-center gap-1.5">
                         <ShoppingBag size={13} /> Beli Sekarang
                       </button>
                     )}
@@ -1054,7 +1054,7 @@ function DetailContent() {
                 )}
 
                 <div className="pt-2">
-                  <div className="bg-gradient-to-b from-amber-50/20 to-amber-50/10 border border-amber-200/60 p-3.5 xs:p-5 sm:p-6 rounded-2xl text-center space-y-1">
+                  <div className="bg-gradient-to-b from-amber-50/20 to-amber-50/10 border border-amber-200/60 p-3.5 xs:p-5 sm:p-6 rounded-[10px] text-center space-y-1">
                     <p className="text-[9px] sm:text-[10px] font-black text-amber-800 uppercase tracking-widest">BID SAAT INI</p>
                     <p className="text-xl xs:text-2xl sm:text-3xl md:text-4xl font-black text-amber-600 tracking-tight">{formatPrice(bids.length > 0 ? Number(bids[0].bid_amount) : Number(selectedProduct.start_bid))}</p>
                     <p className="text-[10px] sm:text-xs font-bold text-zinc-500 tracking-tight">
@@ -1069,7 +1069,7 @@ function DetailContent() {
                   <div className="space-y-3">
                     <div className="flex items-center justify-between">
                       <h4 className="text-xs font-black text-zinc-900 uppercase tracking-wider flex items-center gap-2">
-                        <div className="w-6 h-6 rounded-lg bg-[#2b4c7e]/10 flex items-center justify-center text-[#2b4c7e]">
+                        <div className="w-6 h-6 rounded-[10px] bg-[#2b4c7e]/10 flex items-center justify-center text-[#2b4c7e]">
                           <Gavel size={13} />
                         </div>
                         Daftar Penawar ({bids.length})
@@ -1082,14 +1082,14 @@ function DetailContent() {
                     </div>
 
                     {bids.length > 0 ? (
-                      <div className="max-h-[220px] overflow-y-auto pr-1 border border-zinc-100 rounded-2xl divide-y divide-zinc-100/60 bg-zinc-50/20">
+                      <div className="max-h-[220px] overflow-y-auto pr-1 border border-zinc-100 rounded-[10px] divide-y divide-zinc-100/60 bg-zinc-50/20">
                         {bids.map((bid, index) => {
                           const isHighest = index === 0;
                           const bidderName = bid.bidder?.name || bid.bidder?.username || "Penawar";
                           return (
                             <div key={bid.id} className={`flex items-center justify-between p-3.5 transition-colors ${isHighest ? "bg-[#2b4c7e]/5 hover:bg-[#2b4c7e]/10" : "hover:bg-zinc-50/50"}`}>
                               <div className="flex items-center gap-3 min-w-0">
-                                <div className={`w-8 h-8 rounded-xl overflow-hidden flex items-center justify-center text-xs font-black shrink-0 border ${isHighest ? "bg-[#2b4c7e] text-white border-transparent" : "bg-white text-zinc-600 border-zinc-200"}`}>
+                                <div className={`w-8 h-8 rounded-[10px] overflow-hidden flex items-center justify-center text-xs font-black shrink-0 border ${isHighest ? "bg-[#2b4c7e] text-white border-transparent" : "bg-white text-zinc-600 border-zinc-200"}`}>
                                   {bid.bidder?.avatar_url ? (
                                     <img
                                       src={getImageUrl(bid.bidder.avatar_url)}
@@ -1112,9 +1112,9 @@ function DetailContent() {
                               {/* Bid Capsule */}
                               <div>
                                 {isHighest ? (
-                                  <div className="bg-[#2b4c7e] text-white px-3.5 py-1.5 rounded-full font-black text-xs sm:text-sm tracking-tight text-center min-w-[110px] sm:min-w-[130px] flex items-center justify-center">Rp {formatJlfPrice(Number(bid.bid_amount))}</div>
+                                  <div className="bg-[#2b4c7e] text-white px-3.5 py-1.5 rounded-[10px] font-black text-xs sm:text-sm tracking-tight text-center min-w-[110px] sm:min-w-[130px] flex items-center justify-center">Rp {formatJlfPrice(Number(bid.bid_amount))}</div>
                                 ) : (
-                                  <div className="border border-zinc-200 text-zinc-700 bg-white px-3.5 py-1.5 rounded-full font-black text-xs sm:text-sm tracking-tight text-center min-w-[110px] sm:min-w-[130px]">Rp {formatJlfPrice(Number(bid.bid_amount))}</div>
+                                  <div className="border border-zinc-200 text-zinc-700 bg-white px-3.5 py-1.5 rounded-[10px] font-black text-xs sm:text-sm tracking-tight text-center min-w-[110px] sm:min-w-[130px]">Rp {formatJlfPrice(Number(bid.bid_amount))}</div>
                                 )}
                               </div>
                             </div>
@@ -1122,7 +1122,7 @@ function DetailContent() {
                         })}
                       </div>
                     ) : (
-                      <div className="py-8 text-center border border-dashed border-zinc-200 rounded-2xl bg-zinc-50/20">
+                      <div className="py-8 text-center border border-dashed border-zinc-200 rounded-[10px] bg-zinc-50/20">
                         <p className="text-zinc-500 text-xs font-bold leading-none mb-1">Belum Ada Penawaran</p>
                         <p className="text-[10px] text-zinc-400">Jadilah penawar pertama untuk lelang ini!</p>
                       </div>
@@ -1131,11 +1131,11 @@ function DetailContent() {
 
                   {/* Pasang Bid Form */}
                   {auctionStatus === "active" && !(currentUser && selectedProduct.user_id === currentUser.id) && selectedProduct.stock > 0 && (
-                    <div className="bg-zinc-50 border border-zinc-200 p-5 rounded-3xl space-y-4">
+                    <div className="bg-zinc-50 border border-zinc-200 p-5 rounded-[10px] space-y-4">
                       {/* Header */}
                       <div className="flex items-center justify-between border-b border-zinc-200 pb-3">
                         <div className="flex items-center gap-2">
-                          <div className="w-8 h-8 rounded-lg bg-amber-500/10 text-amber-700 flex items-center justify-center flex-shrink-0">
+                          <div className="w-8 h-8 rounded-[10px] bg-amber-500/10 text-amber-700 flex items-center justify-center flex-shrink-0">
                             <Gavel size={16} />
                           </div>
                           <div>
@@ -1143,14 +1143,14 @@ function DetailContent() {
                             <p className="text-[10px] text-zinc-500 font-bold">Form input harga bid lelang resmi</p>
                           </div>
                         </div>
-                        {!currentUser && <span className="text-[10px] text-amber-600 font-bold bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-md">Belum Login</span>}
+                        {!currentUser && <span className="text-[10px] text-amber-600 font-bold bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-[10px]">Belum Login</span>}
                       </div>
 
                       {/* Guest mode quick hint */}
                       {!currentUser && <p className="text-[10px] text-amber-600 font-bold leading-relaxed">*Anda belum masuk. Anda dapat memasukkan nominal bid di bawah, namun akan diminta login saat mengirim penawaran.</p>}
 
                       {/* Manual Bid Form */}
-                      <form onSubmit={handleSubmitBid} className="flex flex-col sm:flex-row items-stretch sm:items-center bg-white border border-zinc-200 rounded-2xl p-1.5 focus-within:border-[#2b4c7e] transition-all gap-1.5 shadow-sm">
+                      <form onSubmit={handleSubmitBid} className="flex flex-col sm:flex-row items-stretch sm:items-center bg-white border border-zinc-200 rounded-[10px] p-1.5 focus-within:border-[#2b4c7e] transition-all gap-1.5 shadow-sm">
                         <div className="flex items-center flex-1 min-w-0 px-3 py-2 sm:py-0">
                           <span className="font-black text-[#2b4c7e] text-sm mr-2 shrink-0 select-none">Rp</span>
                           <input
@@ -1166,7 +1166,7 @@ function DetailContent() {
                         <button
                           type="submit"
                           disabled={isSubmittingBid || !bidInputAmount}
-                          className="bg-[#2b4c7e] hover:bg-[#1a355c] disabled:bg-zinc-200 disabled:text-zinc-400 text-white font-black px-5 py-3 sm:py-2.5 rounded-xl text-xs transition-all flex items-center justify-center gap-1.5 shrink-0 tracking-wider uppercase active:scale-95 cursor-pointer"
+                          className="bg-[#2b4c7e] hover:bg-[#1a355c] disabled:bg-zinc-200 disabled:text-zinc-400 text-white font-black px-5 py-3 sm:py-2.5 rounded-[10px] text-xs transition-all flex items-center justify-center gap-1.5 shrink-0 tracking-wider uppercase active:scale-95 cursor-pointer"
                         >
                           {isSubmittingBid ? (
                             <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
@@ -1194,7 +1194,7 @@ function DetailContent() {
 
                   {/* Scheduled Message */}
                   {auctionStatus === "scheduled" && (
-                    <div className="p-4 bg-amber-50/50 border border-amber-200 rounded-2xl text-center">
+                    <div className="p-4 bg-amber-50/50 border border-amber-200 rounded-[10px] text-center">
                       <p className="text-xs text-amber-800 font-bold leading-relaxed flex items-center justify-center gap-2">
                         <Calendar size={14} className="text-amber-500" /> Lelang ini baru akan dibuka pada tanggal {selectedProduct.start_date ? new Date(selectedProduct.start_date).toLocaleString("id-ID", { dateStyle: "medium", timeStyle: "short" }) : "-"}. Harap menunggu untuk melakukan penawaran.
                       </p>
@@ -1204,7 +1204,7 @@ function DetailContent() {
                   {/* Locked/Ended Message / Transaction Process */}
                   {auctionStatus === "ended" && (
                     <div className="space-y-4">
-                      <div className="p-5 bg-zinc-50 border border-zinc-200 rounded-3xl text-center space-y-4">
+                      <div className="p-5 bg-zinc-50 border border-zinc-200 rounded-[10px] text-center space-y-4">
                         <p className="text-xs text-zinc-500 font-bold leading-relaxed flex items-center justify-center gap-2 mb-0">
                           <XCircle size={14} className="text-zinc-400" /> Lelang ini sudah berakhir. Seluruh penawaran tawar-menawar dalam forum lelang telah ditutup secara permanen.
                         </p>
@@ -1227,7 +1227,7 @@ function DetailContent() {
                                 {/* Winner Action */}
                                 {currentUser && String(winnerUserId) === String(currentUser.id) && (
                                   <div className="pt-2">
-                                    <Link href={`/user/pesanan/transaksi/${selectedProduct.latestOrderUuid}`} className="inline-flex w-full h-12 bg-emerald-500 hover:bg-emerald-600 text-white font-black rounded-2xl text-xs transition-all items-center justify-center gap-2 active:scale-95 cursor-pointer">
+                                    <Link href={`/user/pesanan/transaksi/${selectedProduct.latestOrderUuid}`} className="inline-flex w-full h-12 bg-emerald-500 hover:bg-emerald-600 text-white font-black rounded-[10px] text-xs transition-all items-center justify-center gap-2 active:scale-95 cursor-pointer">
                                       Lengkapi Alamat Pengiriman & Bayar
                                     </Link>
                                   </div>
@@ -1236,7 +1236,7 @@ function DetailContent() {
                                 {/* Seller Action */}
                                 {currentUser && String(selectedProduct.user_id) === String(currentUser.id) && (
                                   <div className="pt-2">
-                                    <Link href={`/user/toko/pesanan-masuk/detail/${selectedProduct.latestOrderUuid}`} className="inline-flex w-full h-12 bg-zinc-900 hover:bg-zinc-800 text-white border border-zinc-700 font-black rounded-2xl text-xs transition-all items-center justify-center gap-2 active:scale-95 cursor-pointer">
+                                    <Link href={`/user/toko/pesanan-masuk/detail/${selectedProduct.latestOrderUuid}`} className="inline-flex w-full h-12 bg-zinc-900 hover:bg-zinc-800 text-white border border-zinc-700 font-black rounded-[10px] text-xs transition-all items-center justify-center gap-2 active:scale-95 cursor-pointer">
                                       Lihat Detail Pesanan Masuk
                                     </Link>
                                   </div>
@@ -1260,7 +1260,7 @@ function DetailContent() {
                                 {/* Winner Action */}
                                 {currentUser && String(winnerUserId) === String(currentUser.id) && (
                                   <div className="pt-2">
-                                    <button onClick={handleClaimVictory} disabled={isBuying} className="w-full h-12 bg-[#2b4c7e] hover:bg-[#1a355c] disabled:bg-zinc-300 disabled:text-zinc-400 text-white font-black rounded-2xl text-xs transition-all active:scale-95 flex items-center justify-center gap-2 cursor-pointer">
+                                    <button onClick={handleClaimVictory} disabled={isBuying} className="w-full h-12 bg-[#2b4c7e] hover:bg-[#1a355c] disabled:bg-zinc-300 disabled:text-zinc-400 text-white font-black rounded-[10px] text-xs transition-all active:scale-95 flex items-center justify-center gap-2 cursor-pointer">
                                       {isBuying ? <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div> : "Proses Transaksi Kemenangan Lelang"}
                                     </button>
                                   </div>
@@ -1269,7 +1269,7 @@ function DetailContent() {
                                 {/* Seller Action */}
                                 {currentUser && String(selectedProduct.user_id) === String(currentUser.id) && (
                                   <div className="pt-2">
-                                    <p className="text-[10px] text-amber-600 font-bold uppercase tracking-wider bg-amber-50 border border-amber-200 py-2.5 px-4 rounded-xl mb-0">Menunggu Pemenang Memulai Transaksi</p>
+                                    <p className="text-[10px] text-amber-600 font-bold uppercase tracking-wider bg-amber-50 border border-amber-200 py-2.5 px-4 rounded-[10px] mb-0">Menunggu Pemenang Memulai Transaksi</p>
                                   </div>
                                 )}
 
@@ -1296,8 +1296,8 @@ function DetailContent() {
                 {(selectedProduct.is_free_shipping || selectedProduct.is_free_packing) && (
                   <div className="flex flex-wrap gap-3">
                     {selectedProduct.is_free_shipping && (
-                      <div className="flex-1 min-w-[130px] p-3.5 sm:p-4 bg-emerald-50 text-emerald-700 border border-emerald-100 rounded-2xl flex items-center gap-3">
-                        <div className="w-8 h-8 bg-emerald-500/10 rounded-lg flex items-center justify-center flex-shrink-0">
+                      <div className="flex-1 min-w-[130px] p-3.5 sm:p-4 bg-emerald-50 text-emerald-700 border border-emerald-100 rounded-[10px] flex items-center gap-3">
+                        <div className="w-8 h-8 bg-emerald-500/10 rounded-[10px] flex items-center justify-center flex-shrink-0">
                           <Truck size={16} />
                         </div>
                         <div>
@@ -1307,8 +1307,8 @@ function DetailContent() {
                       </div>
                     )}
                     {selectedProduct.is_free_packing && (
-                      <div className="flex-1 min-w-[130px] p-3.5 sm:p-4 bg-blue-50 text-blue-700 border border-blue-100 rounded-2xl flex items-center gap-3">
-                        <div className="w-8 h-8 bg-blue-500/10 rounded-lg flex items-center justify-center flex-shrink-0">
+                      <div className="flex-1 min-w-[130px] p-3.5 sm:p-4 bg-blue-50 text-blue-700 border border-blue-100 rounded-[10px] flex items-center gap-3">
+                        <div className="w-8 h-8 bg-blue-500/10 rounded-[10px] flex items-center justify-center flex-shrink-0">
                           <Info size={16} />
                         </div>
                         <div>
@@ -1322,17 +1322,17 @@ function DetailContent() {
 
                 {/* Specifications Grid - Minimalist Cards */}
                 <div className="grid grid-cols-3 gap-2 sm:gap-4">
-                  <div className="bg-zinc-50 lg:bg-white border border-zinc-150 lg:border-zinc-200 rounded-2xl p-3.5 sm:p-5 hover:border-amber-500/30 transition-all text-center flex flex-col justify-center">
+                  <div className="bg-zinc-50 lg:bg-white border border-zinc-150 lg:border-zinc-200 rounded-[10px] p-3.5 sm:p-5 hover:border-amber-500/30 transition-all text-center flex flex-col justify-center">
                     <p className="text-[9px] font-black text-zinc-400 uppercase tracking-widest leading-none mb-2 sm:mb-3">Jenis Kelamin</p>
                     <p className="text-[12px] font-black text-zinc-900 truncate">{selectedProduct.sex === "Male" || selectedProduct.sex?.toLowerCase() === "jantan" ? "Jantan" : selectedProduct.sex === "Female" || selectedProduct.sex?.toLowerCase() === "betina" ? "Betina" : selectedProduct.sex || "Unsex"}</p>
                   </div>
 
-                  <div className="bg-zinc-50 lg:bg-white border border-zinc-150 lg:border-zinc-200 rounded-2xl p-3.5 sm:p-5 hover:border-amber-500/30 transition-all text-center flex flex-col justify-center">
+                  <div className="bg-zinc-50 lg:bg-white border border-zinc-150 lg:border-zinc-200 rounded-[10px] p-3.5 sm:p-5 hover:border-amber-500/30 transition-all text-center flex flex-col justify-center">
                     <p className="text-[9px] font-black text-zinc-400 uppercase tracking-widest leading-none mb-2 sm:mb-3">Pengiriman</p>
                     <p className="text-[11px] sm:text-[12px] font-black text-zinc-900 leading-tight">{selectedProduct.shipping_type || "-"}</p>
                   </div>
 
-                  <div className="bg-zinc-50 lg:bg-white border border-zinc-150 lg:border-zinc-200 rounded-2xl p-3.5 sm:p-5 hover:border-amber-500/30 transition-all text-center flex flex-col justify-center">
+                  <div className="bg-zinc-50 lg:bg-white border border-zinc-150 lg:border-zinc-200 rounded-[10px] p-3.5 sm:p-5 hover:border-amber-500/30 transition-all text-center flex flex-col justify-center">
                     <p className="text-[9px] font-black text-zinc-400 uppercase tracking-widest leading-none mb-2 sm:mb-3">Stok Barang</p>
                     <p className="text-[11px] sm:text-[12px] font-black text-zinc-900 leading-tight">{selectedProduct.stock !== undefined && selectedProduct.stock !== null ? `${selectedProduct.stock} Ekor` : "-"}</p>
                   </div>
@@ -1341,13 +1341,13 @@ function DetailContent() {
                 {/* Description */}
                 <div className="space-y-4">
                   <h4 className="text-[10px] font-black text-zinc-900 uppercase tracking-widest flex items-center gap-2">
-                    <div className="w-7 h-7 rounded-lg bg-amber-500/10 flex items-center justify-center text-amber-600">
+                    <div className="w-7 h-7 rounded-[10px] bg-amber-500/10 flex items-center justify-center text-amber-600">
                       <Info size={16} />
                     </div>
                     Deskripsi Produk
                   </h4>
                   <div
-                    className="text-sm text-zinc-600 leading-relaxed description-content bg-transparent lg:bg-white p-0 lg:p-6 rounded-none lg:rounded-2xl border-0 lg:border lg:border-zinc-200"
+                    className="text-sm text-zinc-600 leading-relaxed description-content bg-transparent lg:bg-white p-0 lg:p-6 rounded-none lg:rounded-[10px] border-0 lg:border lg:border-zinc-200"
                     dangerouslySetInnerHTML={{
                       __html: selectedProduct.description || "Tidak ada deskripsi.",
                     }}
@@ -1357,13 +1357,13 @@ function DetailContent() {
                 {/* Shipping */}
                 <div className="space-y-4">
                   <h4 className="text-[10px] font-black text-zinc-900 uppercase tracking-widest flex items-center gap-2">
-                    <div className="w-7 h-7 rounded-lg bg-amber-500/10 flex items-center justify-center text-amber-600">
+                    <div className="w-7 h-7 rounded-[10px] bg-amber-500/10 flex items-center justify-center text-amber-600">
                       <MapPin size={16} />
                     </div>
                     Info Pengiriman & Garansi
                   </h4>
                   <div
-                    className="text-sm text-zinc-600 leading-relaxed description-content bg-transparent lg:bg-white p-0 lg:p-6 rounded-none lg:rounded-2xl border-0 lg:border lg:border-zinc-200"
+                    className="text-sm text-zinc-600 leading-relaxed description-content bg-transparent lg:bg-white p-0 lg:p-6 rounded-none lg:rounded-[10px] border-0 lg:border lg:border-zinc-200"
                     dangerouslySetInnerHTML={{
                       __html: selectedProduct.shipping_description || "Tidak ada informasi pengiriman.",
                     }}
@@ -1373,11 +1373,11 @@ function DetailContent() {
                 {/* Final Status Indicator */}
                 <div className="pt-8 border-t border-zinc-150">
                   {currentUser && selectedProduct.user_id === currentUser.id ? (
-                    <div className="w-full bg-zinc-50 text-zinc-400 font-black py-5 rounded-2xl border border-zinc-200 flex items-center justify-center gap-3 cursor-not-allowed uppercase tracking-widest text-xs">
+                    <div className="w-full bg-zinc-50 text-zinc-400 font-black py-5 rounded-[10px] border border-zinc-200 flex items-center justify-center gap-3 cursor-not-allowed uppercase tracking-widest text-xs">
                       <XCircle size={20} /> Ini Adalah Produk Lelang Anda
                     </div>
                   ) : selectedProduct.stock <= 0 ? (
-                    <div className="w-full bg-red-50/50 text-red-500 font-black py-5 rounded-2xl border border-red-100 flex items-center justify-center gap-3 cursor-not-allowed uppercase tracking-widest text-xs">
+                    <div className="w-full bg-red-50/50 text-red-500 font-black py-5 rounded-[10px] border border-red-100 flex items-center justify-center gap-3 cursor-not-allowed uppercase tracking-widest text-xs">
                       <AlertCircle size={20} /> Stok Habis / Terjual
                     </div>
                   ) : null}
@@ -1404,9 +1404,9 @@ function DetailContent() {
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-md cursor-zoom-out select-none" onClick={() => setIsImageZoomed(false)}>
             <div className="relative max-w-[90vw] max-h-[90vh]">
               {isVideoUrl(parsedImages[activeImageIndex]) ? (
-                <video src={parsedImages[activeImageIndex]} controls className="max-w-full max-h-[90vh] object-contain rounded-xl" onClick={(e) => e.stopPropagation()} />
+                <video src={parsedImages[activeImageIndex]} controls className="max-w-full max-h-[90vh] object-contain rounded-[10px]" onClick={(e) => e.stopPropagation()} />
               ) : (
-                <img src={parsedImages[activeImageIndex]} className="max-w-full max-h-[90vh] object-contain rounded-xl" alt={selectedProduct.name} />
+                <img src={parsedImages[activeImageIndex]} className="max-w-full max-h-[90vh] object-contain rounded-[10px]" alt={selectedProduct.name} />
               )}
               <button className="absolute top-4 right-4 text-white hover:text-zinc-300 transition-colors bg-white/10 hover:bg-white/20 p-2 rounded-full" onClick={() => setIsImageZoomed(false)}>
                 <XCircle size={24} />

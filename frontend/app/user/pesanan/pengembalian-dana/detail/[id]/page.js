@@ -274,7 +274,7 @@ export default function UserRefundDetailPage({ params }) {
       {/* Navigation Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <Link href="/user/pesanan/pengembalian-dana" className="flex items-center gap-2 text-zinc-400 hover:text-white transition-colors group text-xs font-bold uppercase tracking-wider">
-          <div className="w-8 h-8 rounded-lg bg-zinc-900 border border-zinc-800 flex items-center justify-center group-hover:bg-zinc-800 transition-all">
+          <div className="w-8 h-8 rounded-[10px] bg-zinc-900 border border-zinc-800 flex items-center justify-center group-hover:bg-zinc-800 transition-all">
             <ChevronLeft size={16} />
           </div>
           Kembali ke Pengembalian Dana
@@ -282,7 +282,7 @@ export default function UserRefundDetailPage({ params }) {
 
         <div className="flex items-center gap-3">
           <span className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">ID Invoice</span>
-          <div className="flex items-center gap-2 bg-zinc-900 border border-zinc-800 px-4 py-2 rounded-xl">
+          <div className="flex items-center gap-2 bg-zinc-900 border border-zinc-800 px-4 py-2 rounded-[10px]">
             <span className="text-xs font-black text-white font-mono uppercase">{order.order_id}</span>
             <button onClick={() => handleCopy(order.order_id, "invoice")} className="text-zinc-500 hover:text-emerald-500 transition-colors" title="Copy Invoice ID">
               {copySuccess === "invoice" ? <Check size={14} className="text-emerald-500" /> : <Copy size={14} />}
@@ -292,11 +292,11 @@ export default function UserRefundDetailPage({ params }) {
       </div>
 
       {/* Custom Stepper Tracker */}
-      <div className="bg-[#0b0c0e]/80 border border-zinc-800/60 rounded-[2.5rem] p-8 md:p-10">
+      <div className="bg-[#0b0c0e]/80 border border-zinc-800/60 rounded-[10px] p-8 md:p-10">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 md:gap-4">
           {/* Step 1: Cancelled */}
           <div className="flex-1 flex items-start gap-4">
-            <div className="w-14 h-14 bg-red-500/5 border border-red-500/20 text-red-500 rounded-2xl flex items-center justify-center shrink-0">
+            <div className="w-14 h-14 bg-red-500/5 border border-red-500/20 text-red-500 rounded-[10px] flex items-center justify-center shrink-0">
               <XCircle size={24} />
             </div>
             <div className="space-y-0.5">
@@ -313,16 +313,16 @@ export default function UserRefundDetailPage({ params }) {
 
           {/* Step 2: Rekening Submission */}
           <div className="flex-1 flex items-start gap-4">
-            <div className={`w-14 h-14 rounded-2xl flex items-center justify-center shrink-0 border ${isBankSubmitted ? "bg-emerald-500/5 border-emerald-500/20 text-emerald-500 shadow-[0_0_15px_rgba(16,185,129,0.15)]" : "bg-amber-500/5 border-amber-500/40 text-amber-500 shadow-[0_0_20px_rgba(245,158,11,0.25)]"}`}>
+            <div className={`w-14 h-14 rounded-[10px] flex items-center justify-center shrink-0 border ${isBankSubmitted ? "bg-emerald-500/5 border-emerald-500/20 text-emerald-500 shadow-[0_0_15px_rgba(16,185,129,0.15)]" : "bg-amber-500/5 border-amber-500/40 text-amber-500 shadow-[0_0_20px_rgba(245,158,11,0.25)]"}`}>
               {isBankSubmitted ? <CheckCircle2 size={24} /> : <Clock size={24} />}
             </div>
             <div className="space-y-1">
               <div className="flex items-center gap-2">
                 <p className={`text-[10px] font-black uppercase tracking-widest ${isBankSubmitted ? "text-emerald-500" : "text-amber-500"}`}>Tahap 2</p>
                 {isBankSubmitted ? (
-                  <span className="px-2 py-0.5 rounded-full text-[8px] font-black uppercase tracking-wider bg-emerald-500/10 text-emerald-500 border border-emerald-500/20">Selesai</span>
+                  <span className="px-2 py-0.5 rounded-[10px] text-[8px] font-black uppercase tracking-wider bg-emerald-500/10 text-emerald-500 border border-emerald-500/20">Selesai</span>
                 ) : (
-                  <span className="px-2 py-0.5 rounded-full text-[8px] font-black uppercase tracking-wider bg-amber-500/15 text-amber-400 border border-amber-500/30">Sedang Proses</span>
+                  <span className="px-2 py-0.5 rounded-[10px] text-[8px] font-black uppercase tracking-wider bg-amber-500/15 text-amber-400 border border-amber-500/30">Sedang Proses</span>
                 )}
               </div>
               <h4 className="text-sm font-black text-white uppercase tracking-tight">Pengajuan Rekening</h4>
@@ -338,7 +338,7 @@ export default function UserRefundDetailPage({ params }) {
           {/* Step 3: Admin Review and Process */}
           <div className={`flex-1 flex items-start gap-4 ${isNotSubmitted ? "opacity-40" : ""}`}>
             <div
-              className={`w-14 h-14 rounded-2xl flex items-center justify-center shrink-0 border ${
+              className={`w-14 h-14 rounded-[10px] flex items-center justify-center shrink-0 border ${
                 isRefunded
                   ? "bg-emerald-500/5 border-emerald-500/20 text-emerald-500 shadow-[0_0_15px_rgba(16,185,129,0.15)]"
                   : isRejected
@@ -354,13 +354,13 @@ export default function UserRefundDetailPage({ params }) {
               <div className="flex items-center gap-2">
                 <p className={`text-[10px] font-black uppercase tracking-widest ${isRefunded ? "text-emerald-500" : isRejected ? "text-red-500" : isPending ? "text-amber-500" : "text-zinc-500"}`}>Tahap 3</p>
                 {isRefunded ? (
-                  <span className="px-2 py-0.5 rounded-full text-[8px] font-black uppercase tracking-wider bg-emerald-500/10 text-emerald-500 border border-emerald-500/20">Selesai</span>
+                  <span className="px-2 py-0.5 rounded-[10px] text-[8px] font-black uppercase tracking-wider bg-emerald-500/10 text-emerald-500 border border-emerald-500/20">Selesai</span>
                 ) : isRejected ? (
-                  <span className="px-2 py-0.5 rounded-full text-[8px] font-black uppercase tracking-wider bg-red-500/10 text-red-500 border border-red-500/20">Ditolak</span>
+                  <span className="px-2 py-0.5 rounded-[10px] text-[8px] font-black uppercase tracking-wider bg-red-500/10 text-red-500 border border-red-500/20">Ditolak</span>
                 ) : isPending ? (
-                  <span className="px-2 py-0.5 rounded-full text-[8px] font-black uppercase tracking-wider bg-amber-500/15 text-amber-400 border border-amber-500/30">Sedang Proses</span>
+                  <span className="px-2 py-0.5 rounded-[10px] text-[8px] font-black uppercase tracking-wider bg-amber-500/15 text-amber-400 border border-amber-500/30">Sedang Proses</span>
                 ) : (
-                  <span className="px-2 py-0.5 rounded-full text-[8px] font-black uppercase tracking-wider bg-zinc-850 text-zinc-500 border border-zinc-800">Belum Mulai</span>
+                  <span className="px-2 py-0.5 rounded-[10px] text-[8px] font-black uppercase tracking-wider bg-zinc-850 text-zinc-500 border border-zinc-800">Belum Mulai</span>
                 )}
               </div>
               <h4 className="text-sm font-black text-white uppercase tracking-tight">Proses Transfer Dana</h4>
@@ -375,12 +375,12 @@ export default function UserRefundDetailPage({ params }) {
         {/* Left Side: Refund Details and submission form */}
         <div className="lg:col-span-8 space-y-8">
           {/* Card 1: Cancellation Details */}
-          <div className="bg-zinc-900 border border-zinc-800 rounded-[2.5rem] p-8 lg:p-10 space-y-6">
+          <div className="bg-zinc-900 border border-zinc-800 rounded-[10px] p-8 lg:p-10 space-y-6">
             <h3 className="text-xs font-black text-zinc-400 uppercase tracking-widest flex items-center gap-2.5">
               <AlertCircle size={16} className="text-red-500" /> Keterangan Pembatalan
             </h3>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 bg-zinc-950/40 p-6 rounded-3xl border border-zinc-800/60">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 bg-zinc-950/40 p-6 rounded-[10px] border border-zinc-800/60">
               <div className="space-y-1">
                 <p className="text-[10px] font-black text-zinc-500 uppercase tracking-wider">Tanggal Pembatalan</p>
                 <p className="text-sm font-bold text-white">{formatDate(order.cancelled_at || order.updated_at)}</p>
@@ -389,22 +389,22 @@ export default function UserRefundDetailPage({ params }) {
                 <p className="text-[10px] font-black text-zinc-500 uppercase tracking-wider">Status Pemrosesan</p>
                 <div>
                   {isRefunded && (
-                    <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-500/10 border border-emerald-500/20 text-emerald-500 rounded-full text-[10px] font-black uppercase tracking-wider">
+                    <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-500/10 border border-emerald-500/20 text-emerald-500 rounded-[10px] text-[10px] font-black uppercase tracking-wider">
                       <CheckCircle2 size={10} /> Selesai ditransfer
                     </span>
                   )}
                   {isRejected && (
-                    <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-red-500/10 border border-red-500/20 text-red-500 rounded-full text-[10px] font-black uppercase tracking-wider">
+                    <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-red-500/10 border border-red-500/20 text-red-500 rounded-[10px] text-[10px] font-black uppercase tracking-wider">
                       <XCircle size={10} /> Refund Ditolak
                     </span>
                   )}
                   {isPending && (
-                    <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-amber-500/10 border border-amber-500/20 text-amber-500 rounded-full text-[10px] font-black uppercase tracking-wider">
+                    <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-amber-500/10 border border-amber-500/20 text-amber-500 rounded-[10px] text-[10px] font-black uppercase tracking-wider">
                       <Clock size={10} /> Menunggu Review Admin
                     </span>
                   )}
                   {isNotSubmitted && (
-                    <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-zinc-800 border border-zinc-700 text-zinc-400 rounded-full text-[10px] font-black uppercase tracking-wider">
+                    <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-zinc-800 border border-zinc-700 text-zinc-400 rounded-[10px] text-[10px] font-black uppercase tracking-wider">
                       <AlertCircle size={10} /> Belum Diajukan
                     </span>
                   )}
@@ -414,7 +414,7 @@ export default function UserRefundDetailPage({ params }) {
 
             <div className="space-y-2">
               <p className="text-[10px] font-black text-zinc-500 uppercase tracking-wider">Alasan Pembatalan</p>
-              <div className="bg-zinc-950/40 p-6 rounded-3xl border border-zinc-800/60">
+              <div className="bg-zinc-950/40 p-6 rounded-[10px] border border-zinc-800/60">
                 <p className="text-sm text-zinc-300 leading-relaxed font-semibold">{order.rejection_reason || order.cancellation_reason || "Tidak ada alasan pembatalan yang dicantumkan."}</p>
               </div>
             </div>
@@ -427,13 +427,13 @@ export default function UserRefundDetailPage({ params }) {
                 <Building size={16} className="text-emerald-500" /> Rekening Tujuan Refund
               </h3>
 
-              {isBankSubmitted && <span className="text-[9px] font-black px-2.5 py-1 bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 rounded-full uppercase tracking-wider">Terkunci</span>}
+              {isBankSubmitted && <span className="text-[9px] font-black px-2.5 py-1 bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 rounded-[10px] uppercase tracking-wider">Terkunci</span>}
             </div>
 
             {isBankSubmitted ? (
               // Submitted View (Read-Only)
               <div className="space-y-6">
-                <div className="bg-zinc-950/50 border border-zinc-800 rounded-3xl p-6 space-y-4">
+                <div className="bg-zinc-950/50 border border-zinc-800 rounded-[10px] p-6 space-y-4">
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                     <div className="space-y-1">
                       <p className="text-[10px] font-black text-zinc-500 uppercase tracking-wider">Nama Bank</p>
@@ -455,7 +455,7 @@ export default function UserRefundDetailPage({ params }) {
                   </div>
                 </div>
 
-                <div className="flex items-center gap-3 p-5 bg-emerald-500/5 border border-dashed border-emerald-500/20 rounded-2xl text-xs font-semibold text-emerald-400">
+                <div className="flex items-center gap-3 p-5 bg-emerald-500/5 border border-dashed border-emerald-500/20 rounded-[10px] text-xs font-semibold text-emerald-400">
                   <ShieldCheck size={18} className="shrink-0" />
                   <span>Data rekening telah dikirim ke Admin. Kami akan mengembalikan dana ke rekening di atas.</span>
                 </div>
@@ -463,7 +463,7 @@ export default function UserRefundDetailPage({ params }) {
             ) : (
               // Form View (Submission)
               <form onSubmit={handleOpenConfirmSubmit} className="space-y-6">
-                <div className="p-5 bg-amber-500/5 border border-dashed border-amber-500/20 rounded-2xl text-xs font-semibold text-amber-500 flex items-center gap-3">
+                <div className="p-5 bg-amber-500/5 border border-dashed border-amber-500/20 rounded-[10px] text-xs font-semibold text-amber-500 flex items-center gap-3">
                   <AlertCircle size={18} className="shrink-0" />
                   <span>Silakan masukkan detail rekening Anda untuk memproses pengembalian dana.</span>
                 </div>
@@ -472,7 +472,7 @@ export default function UserRefundDetailPage({ params }) {
                   {/* Select Bank */}
                   <div className="space-y-2">
                     <label className="text-[10px] font-black text-zinc-400 uppercase tracking-wider ml-1">Nama Bank</label>
-                    <select required value={bankForm.bank_name} onChange={(e) => setBankForm({ ...bankForm, bank_name: e.target.value })} className="w-full bg-zinc-950 border border-zinc-800 hover:border-zinc-700 text-white rounded-2xl px-5 py-4 focus:outline-none focus:border-emerald-500 transition-all text-sm font-medium">
+                    <select required value={bankForm.bank_name} onChange={(e) => setBankForm({ ...bankForm, bank_name: e.target.value })} className="w-full bg-zinc-950 border border-zinc-800 hover:border-zinc-700 text-white rounded-[10px] px-5 py-4 focus:outline-none focus:border-emerald-500 transition-all text-sm font-medium">
                       <option value="" disabled>
                         Pilih Bank
                       </option>
@@ -492,7 +492,7 @@ export default function UserRefundDetailPage({ params }) {
                       placeholder="Contoh: 1234567890"
                       value={bankForm.bank_account}
                       onChange={(e) => setBankForm({ ...bankForm, bank_account: e.target.value.replace(/[^0-9-]/g, "") })}
-                      className="w-full bg-zinc-950 border border-zinc-800 hover:border-zinc-700 text-white rounded-2xl px-5 py-4 focus:outline-none focus:border-emerald-500 transition-all text-sm font-medium font-mono"
+                      className="w-full bg-zinc-950 border border-zinc-800 hover:border-zinc-700 text-white rounded-[10px] px-5 py-4 focus:outline-none focus:border-emerald-500 transition-all text-sm font-medium font-mono"
                     />
                   </div>
 
@@ -505,12 +505,12 @@ export default function UserRefundDetailPage({ params }) {
                       placeholder="Sesuai buku tabungan"
                       value={bankForm.bank_holder}
                       onChange={(e) => setBankForm({ ...bankForm, bank_holder: e.target.value })}
-                      className="w-full bg-zinc-950 border border-zinc-800 hover:border-zinc-700 text-white rounded-2xl px-5 py-4 focus:outline-none focus:border-emerald-500 transition-all text-sm font-medium uppercase"
+                      className="w-full bg-zinc-950 border border-zinc-800 hover:border-zinc-700 text-white rounded-[10px] px-5 py-4 focus:outline-none focus:border-emerald-500 transition-all text-sm font-medium uppercase"
                     />
                   </div>
                 </div>
 
-                <button type="submit" disabled={isSubmitting} className="w-full py-4.5 bg-emerald-500 hover:bg-emerald-400 disabled:opacity-50 text-zinc-950 font-black rounded-2xl text-xs uppercase tracking-widest transition-all active:scale-[0.98] flex items-center justify-center gap-2">
+                <button type="submit" disabled={isSubmitting} className="w-full py-4.5 bg-emerald-500 hover:bg-emerald-400 disabled:opacity-50 text-zinc-950 font-black rounded-[10px] text-xs uppercase tracking-widest transition-all active:scale-[0.98] flex items-center justify-center gap-2">
                   {isSubmitting ? "Mengirim data..." : "Kirim Pengajuan Refund"}
                 </button>
               </form>
@@ -519,21 +519,21 @@ export default function UserRefundDetailPage({ params }) {
 
           {/* Card 3: Admin Review / Proof of Transfer */}
           {(isRefunded || isRejected || isPending) && (
-            <div className="bg-zinc-900 border border-zinc-800 rounded-[2.5rem] p-8 lg:p-10 space-y-6">
+            <div className="bg-zinc-900 border border-zinc-800 rounded-[10px] p-8 lg:p-10 space-y-6">
               <h3 className="text-xs font-black text-zinc-400 uppercase tracking-widest flex items-center gap-2.5">
                 <ShieldCheck size={16} className="text-emerald-500" /> Hasil Peninjauan Admin
               </h3>
 
               {isRefunded && (
                 <div className="space-y-6">
-                  <div className="p-6 bg-emerald-500/5 border border-emerald-500/20 rounded-3xl space-y-4">
+                  <div className="p-6 bg-emerald-500/5 border border-emerald-500/20 rounded-[10px] space-y-4">
                     <div className="flex items-center gap-3 text-emerald-500 font-bold text-sm">
                       <CheckCircle2 size={20} />
                       <span>DANA BERHASIL DITRANSFER</span>
                     </div>
                     {order.refunded_at && <p className="text-xs text-zinc-400 font-medium">Diproses pada: {formatDate(order.refunded_at)}</p>}
                     {order.refund_notes && (
-                      <div className="bg-zinc-950/40 p-4 rounded-xl border border-zinc-800">
+                      <div className="bg-zinc-950/40 p-4 rounded-[10px] border border-zinc-800">
                         <p className="text-xs text-zinc-500 font-black uppercase tracking-wider mb-1">Catatan Admin</p>
                         <p className="text-xs text-zinc-300 font-semibold">{order.refund_notes}</p>
                       </div>
@@ -546,19 +546,19 @@ export default function UserRefundDetailPage({ params }) {
                       <p className="text-[10px] font-black text-zinc-500 uppercase tracking-wider ml-1">Bukti Transfer Refund</p>
 
                       {order.refund_proof.match(/\.(jpeg|jpg|gif|png|webp)/i) || order.refund_proof.startsWith("data:") ? (
-                        <div className="bg-zinc-950 border border-zinc-800 p-3 rounded-3xl max-w-sm overflow-hidden relative group">
-                          <img src={getImageUrl(order.refund_proof)} alt="Bukti Transfer Refund" className="w-full h-auto object-contain rounded-2xl max-h-60 cursor-zoom-in hover:opacity-90 transition-opacity" onClick={() => setZoomImage(getImageUrl(order.refund_proof))} />
+                        <div className="bg-zinc-950 border border-zinc-800 p-3 rounded-[10px] max-w-sm overflow-hidden relative group">
+                          <img src={getImageUrl(order.refund_proof)} alt="Bukti Transfer Refund" className="w-full h-auto object-contain rounded-[10px] max-h-60 cursor-zoom-in hover:opacity-90 transition-opacity" onClick={() => setZoomImage(getImageUrl(order.refund_proof))} />
                           <div className="absolute inset-0 bg-zinc-950/60 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity pointer-events-none">
-                            <span className="text-white text-xs font-black uppercase tracking-widest bg-zinc-900 border border-zinc-800 px-3.5 py-2 rounded-xl">Zoom Gambar</span>
+                            <span className="text-white text-xs font-black uppercase tracking-widest bg-zinc-900 border border-zinc-800 px-3.5 py-2 rounded-[10px]">Zoom Gambar</span>
                           </div>
                         </div>
                       ) : (
-                        <div className="p-4 bg-zinc-950 border border-zinc-800 rounded-2xl flex items-center justify-between gap-4">
+                        <div className="p-4 bg-zinc-950 border border-zinc-800 rounded-[10px] flex items-center justify-between gap-4">
                           <div className="flex items-center gap-2.5 text-zinc-400">
                             <ImageIcon size={18} className="text-emerald-500" />
                             <span className="text-xs font-semibold truncate max-w-xs">{order.refund_proof}</span>
                           </div>
-                          <a href={order.refund_proof} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-zinc-800 hover:bg-zinc-700 text-[10px] font-black text-white uppercase tracking-wider rounded-lg transition-all">
+                          <a href={order.refund_proof} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-zinc-800 hover:bg-zinc-700 text-[10px] font-black text-white uppercase tracking-wider rounded-[10px] transition-all">
                             Buka Tautan <ExternalLink size={10} />
                           </a>
                         </div>
@@ -570,13 +570,13 @@ export default function UserRefundDetailPage({ params }) {
 
               {isRejected && (
                 <div className="space-y-6">
-                  <div className="p-6 bg-red-500/5 border border-red-500/20 rounded-3xl space-y-4">
+                  <div className="p-6 bg-red-500/5 border border-red-500/20 rounded-[10px] space-y-4">
                     <div className="flex items-center gap-3 text-red-500 font-bold text-sm">
                       <XCircle size={20} />
                       <span>PENGAJUAN REFUND DITOLAK</span>
                     </div>
                     {order.refund_notes && (
-                      <div className="bg-zinc-950/40 p-4 rounded-xl border border-zinc-800">
+                      <div className="bg-zinc-950/40 p-4 rounded-[10px] border border-zinc-800">
                         <p className="text-xs text-zinc-500 font-black uppercase tracking-wider mb-1">Alasan Penolakan</p>
                         <p className="text-xs text-zinc-300 font-semibold">{order.refund_notes}</p>
                       </div>
@@ -584,7 +584,7 @@ export default function UserRefundDetailPage({ params }) {
                   </div>
 
                   <div className="flex flex-col sm:flex-row gap-4">
-                    <button onClick={handleWhatsAppCS} className="flex-1 py-4 bg-zinc-800 hover:bg-zinc-700 text-white font-black text-xs uppercase tracking-widest rounded-2xl border border-zinc-700 flex items-center justify-center gap-2 transition-all active:scale-[0.98]">
+                    <button onClick={handleWhatsAppCS} className="flex-1 py-4 bg-zinc-800 hover:bg-zinc-700 text-white font-black text-xs uppercase tracking-widest rounded-[10px] border border-zinc-700 flex items-center justify-center gap-2 transition-all active:scale-[0.98]">
                       <MessageCircle size={14} /> Hubungi CS SatwaiD
                     </button>
                   </div>
@@ -592,7 +592,7 @@ export default function UserRefundDetailPage({ params }) {
               )}
 
               {isPending && (
-                <div className="p-6 bg-amber-500/5 border border-amber-500/20 rounded-3xl space-y-3">
+                <div className="p-6 bg-amber-500/5 border border-amber-500/20 rounded-[10px] space-y-3">
                   <div className="flex items-center gap-3 text-amber-500 font-bold text-sm animate-pulse">
                     <Clock size={20} />
                     <span>MENUNGGU TRANSFER ADMIN</span>
@@ -607,7 +607,7 @@ export default function UserRefundDetailPage({ params }) {
         {/* Right Side: Cost Breakdown & Product Info */}
         <div className="lg:col-span-4 space-y-8">
           {/* Card 1: Cost breakdown */}
-          <div className="bg-zinc-900 border border-zinc-800 rounded-[2.5rem] p-8 lg:p-10 space-y-6">
+          <div className="bg-zinc-900 border border-zinc-800 rounded-[10px] p-8 lg:p-10 space-y-6">
             <h3 className="text-xs font-black text-zinc-400 uppercase tracking-widest flex items-center gap-2.5">
               <CreditCard size={16} className="text-emerald-500" /> Rincian Pengembalian
             </h3>
@@ -643,14 +643,14 @@ export default function UserRefundDetailPage({ params }) {
           </div>
 
           {/* Card 2: Product & Shop Information */}
-          <div className="bg-zinc-900 border border-zinc-800 rounded-[2.5rem] p-8 lg:p-10 space-y-6">
+          <div className="bg-zinc-900 border border-zinc-800 rounded-[10px] p-8 lg:p-10 space-y-6">
             <h3 className="text-xs font-black text-zinc-400 uppercase tracking-widest flex items-center gap-2.5">
               <Package size={16} className="text-emerald-500" /> detail produk
             </h3>
 
             {/* Product details */}
             <div className="flex gap-4">
-              <div className="w-20 h-20 bg-zinc-950 border border-zinc-800 rounded-2xl overflow-hidden shrink-0 relative">
+              <div className="w-20 h-20 bg-zinc-950 border border-zinc-800 rounded-[10px] overflow-hidden shrink-0 relative">
                 {order.product?.images?.length > 0 ? (
                   <img src={getImageUrl(order.product.images[0])} className="w-full h-full object-cover" alt={order.product.name} />
                 ) : (
@@ -662,8 +662,8 @@ export default function UserRefundDetailPage({ params }) {
               <div className="min-w-0 flex-1 space-y-1">
                 <h4 className="text-sm font-black text-white truncate hover:text-emerald-400 transition-colors">{order.product?.name}</h4>
                 <div className="flex flex-wrap gap-1.5 pt-0.5">
-                  <span className="px-2 py-0.5 bg-zinc-800 border border-zinc-700 text-zinc-400 text-[8px] font-black uppercase tracking-wider rounded">{order.product?.species}</span>
-                  <span className={`px-2 py-0.5 border text-[8px] font-black uppercase tracking-wider rounded ${order.product?.sex === "Male" ? "bg-blue-500/10 text-blue-400 border-blue-500/20" : order.product?.sex === "Female" ? "bg-pink-500/10 text-pink-400 border-pink-500/20" : "bg-zinc-500/10 text-zinc-400 border-zinc-500/20"}`}>
+                  <span className="px-2 py-0.5 bg-zinc-800 border border-zinc-700 text-zinc-400 text-[8px] font-black uppercase tracking-wider rounded-[10px]">{order.product?.species}</span>
+                  <span className={`px-2 py-0.5 border text-[8px] font-black uppercase tracking-wider rounded-[10px] ${order.product?.sex === "Male" ? "bg-blue-500/10 text-blue-400 border-blue-500/20" : order.product?.sex === "Female" ? "bg-pink-500/10 text-pink-400 border-pink-500/20" : "bg-zinc-500/10 text-zinc-400 border-zinc-500/20"}`}>
                     {order.product?.sex || "Unsex"}
                   </span>
                 </div>
@@ -676,7 +676,7 @@ export default function UserRefundDetailPage({ params }) {
             {/* Shop info */}
             <div className="pt-6 border-t border-zinc-800/80 space-y-4">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-zinc-950 border border-zinc-800 rounded-xl overflow-hidden flex items-center justify-center text-zinc-500 shrink-0">{order.shop?.logo_url ? <img src={getLogoUrl(order.shop.logo_url)} className="w-full h-full object-cover" /> : <Store size={20} />}</div>
+                <div className="w-10 h-10 bg-zinc-950 border border-zinc-800 rounded-[10px] overflow-hidden flex items-center justify-center text-zinc-500 shrink-0">{order.shop?.logo_url ? <img src={getLogoUrl(order.shop.logo_url)} className="w-full h-full object-cover" /> : <Store size={20} />}</div>
                 <div className="min-w-0 flex-1">
                   <p className="text-[9px] font-black text-zinc-500 uppercase tracking-widest">Nama Toko</p>
                   <p className="text-xs font-black text-white truncate uppercase">{order.shop?.name}</p>
@@ -684,7 +684,7 @@ export default function UserRefundDetailPage({ params }) {
               </div>
 
               <div className="flex flex-col gap-2 pt-2">
-                <button onClick={handleWhatsAppCS} className="w-full py-3.5 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 hover:text-white border border-zinc-800 hover:border-zinc-700 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all active:scale-[0.98] flex items-center justify-center gap-2">
+                <button onClick={handleWhatsAppCS} className="w-full py-3.5 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 hover:text-white border border-zinc-800 hover:border-zinc-700 rounded-[10px] text-[10px] font-black uppercase tracking-widest transition-all active:scale-[0.98] flex items-center justify-center gap-2">
                   <HelpCircle size={12} className="text-emerald-500" /> Bantuan CS SatwaiD
                 </button>
               </div>
@@ -697,11 +697,11 @@ export default function UserRefundDetailPage({ params }) {
       {zoomImage && (
         <div className="fixed inset-0 z-[2000] flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-zinc-950/95 backdrop-blur-md cursor-zoom-out animate-in fade-in duration-300" onClick={() => setZoomImage(null)}></div>
-          <div className="relative z-10 max-w-4xl max-h-[85vh] overflow-hidden rounded-[2.5rem] border border-zinc-800 bg-zinc-900/60 p-4 ">
+          <div className="relative z-10 max-w-4xl max-h-[85vh] overflow-hidden rounded-[10px] border border-zinc-800 bg-zinc-900/60 p-4 ">
             <button onClick={() => setZoomImage(null)} className="absolute top-6 right-6 text-zinc-400 hover:text-white bg-zinc-950/80 border border-zinc-800 hover:bg-zinc-850 p-2.5 rounded-full transition-all z-20">
               <XCircle size={20} />
             </button>
-            <img src={zoomImage} alt="Zoomed Proof" className="max-w-full max-h-[80vh] object-contain rounded-2xl" />
+            <img src={zoomImage} alt="Zoomed Proof" className="max-w-full max-h-[80vh] object-contain rounded-[10px]" />
           </div>
         </div>
       )}

@@ -329,7 +329,7 @@ export default function OrderDetailPage({ params }) {
       {/* Header Navigation */}
       <div className="flex items-center justify-between">
         <Link href="/akun/pesanan" className="flex items-center gap-2 text-zinc-400 hover:text-white transition-colors group">
-          <div className="w-8 h-8 rounded-lg bg-zinc-900 border border-zinc-800 flex items-center justify-center group-hover:bg-zinc-800 transition-all">
+          <div className="w-8 h-8 rounded-[10px] bg-zinc-900 border border-zinc-800 flex items-center justify-center group-hover:bg-zinc-800 transition-all">
             <ChevronLeft size={18} />
           </div>
           <span className="text-sm font-bold">Kembali ke Pesanan</span>
@@ -346,12 +346,12 @@ export default function OrderDetailPage({ params }) {
           {/* Status Header */}
           {!["completed", "disbursement_requested", "disbursed"].includes(order.status) && <OrderStepper order={order} className="mb-8" />}
 
-          <div className={`p-4 md:p-8 rounded-2xl md:rounded-[2.5rem] border flex items-center justify-between ${source === "cart" ? "bg-zinc-800 text-zinc-400 border-zinc-700" : getStatusStyle(order.status)}`}>
+          <div className={`p-4 md:p-8 rounded-[10px] md:rounded-[10px] border flex items-center justify-between ${source === "cart" ? "bg-zinc-800 text-zinc-400 border-zinc-700" : getStatusStyle(order.status)}`}>
             <div className="space-y-1">
               <p className="text-[9px] md:text-[10px] font-black uppercase tracking-widest opacity-70">Status Terkini</p>
               <h2 className="text-base md:text-2xl font-black">{source === "cart" ? "Dalam Keranjang" : getStatusLabel(order.status)}</h2>
             </div>
-            <div className="w-10 h-10 md:w-16 md:h-16 bg-white/10 rounded-xl md:rounded-3xl flex items-center justify-center shrink-0">
+            <div className="w-10 h-10 md:w-16 md:h-16 bg-white/10 rounded-[10px] md:rounded-[10px] flex items-center justify-center shrink-0">
               {["completed", "disbursement_requested", "disbursed"].includes(order.status) ? (
                 <>
                   <CheckCircle2 size={20} className="md:hidden" />
@@ -369,7 +369,7 @@ export default function OrderDetailPage({ params }) {
           {source !== "cart" && <OrderTimeline order={order} formatPrice={formatPrice} />}
 
           {/* Product & Order Info */}
-          <div className="bg-zinc-900 border border-zinc-800 rounded-[2.5rem] overflow-hidden">
+          <div className="bg-zinc-900 border border-zinc-800 rounded-[10px] overflow-hidden">
             <div className="p-8 lg:p-10 space-y-10">
               {order.items && order.items.length > 1 ? (
                 // Multi-product checkout display
@@ -380,8 +380,8 @@ export default function OrderDetailPage({ params }) {
                     </h3>
                     <div className="space-y-4">
                       {order.items.map((item, idx) => (
-                        <div key={item.id || idx} className="bg-zinc-950/40 border border-zinc-800/80 rounded-3xl p-6 flex flex-col md:flex-row items-center gap-6 group hover:border-emerald-500/20 transition-all">
-                          <div className="w-24 h-24 rounded-2xl overflow-hidden bg-zinc-800 shrink-0 border border-zinc-700 relative aspect-square">
+                        <div key={item.id || idx} className="bg-zinc-950/40 border border-zinc-800/80 rounded-[10px] p-6 flex flex-col md:flex-row items-center gap-6 group hover:border-emerald-500/20 transition-all">
+                          <div className="w-24 h-24 rounded-[10px] overflow-hidden bg-zinc-800 shrink-0 border border-zinc-700 relative aspect-square">
                             {(() => {
                               const mediaUrl = getImageUrl(item.product?.images);
                               return isVideoUrl(mediaUrl) ? <video src={mediaUrl} className="w-full h-full object-cover" preload="metadata" muted playsInline /> : <img src={mediaUrl || "https://placehold.co/400x400/f4f4f5/71717a?text=No+Image"} className="w-full h-full object-cover" alt={item.product?.name} />;
@@ -391,9 +391,9 @@ export default function OrderDetailPage({ params }) {
                             <div>
                               <h4 className="text-lg font-black text-white">{item.product?.name}</h4>
                               <div className="flex flex-wrap gap-2 mt-1.5 justify-center md:justify-start">
-                                <span className="px-2 py-0.5 bg-zinc-900 text-[9px] text-zinc-400 rounded border border-zinc-800 font-bold uppercase tracking-wider">{item.product?.species}</span>
-                                <span className="px-2 py-0.5 bg-zinc-900 text-[9px] text-zinc-400 rounded border border-zinc-800 font-bold uppercase tracking-wider">{item.product?.sex || "Unsex"}</span>
-                                <span className="px-2 py-0.5 bg-zinc-900 text-[9px] text-zinc-400 rounded border border-zinc-800 font-bold uppercase tracking-wider">ID: {item.product?.product_id || "-"}</span>
+                                <span className="px-2 py-0.5 bg-zinc-900 text-[9px] text-zinc-400 rounded-[10px] border border-zinc-800 font-bold uppercase tracking-wider">{item.product?.species}</span>
+                                <span className="px-2 py-0.5 bg-zinc-900 text-[9px] text-zinc-400 rounded-[10px] border border-zinc-800 font-bold uppercase tracking-wider">{item.product?.sex || "Unsex"}</span>
+                                <span className="px-2 py-0.5 bg-zinc-900 text-[9px] text-zinc-400 rounded-[10px] border border-zinc-800 font-bold uppercase tracking-wider">ID: {item.product?.product_id || "-"}</span>
                               </div>
                             </div>
                             <div className="flex flex-wrap items-center justify-center md:justify-start gap-x-4 gap-y-1 text-xs text-zinc-500 font-medium">
@@ -415,9 +415,7 @@ export default function OrderDetailPage({ params }) {
                 // Single-product checkout display
                 <div className="space-y-6">
                   <button type="button" onClick={() => setIsProductOpen(!isProductOpen)} className="w-full flex items-center justify-between pb-4 border-b border-zinc-800/80 focus:outline-none group">
-                    <h3 className="text-xs font-black text-zinc-500 uppercase tracking-widest flex items-center gap-2 group-hover:text-zinc-300 transition-colors">
-                      <Package size={14} className="text-emerald-500" /> Detail Informasi Produk
-                    </h3>
+                    <h3 className="text-xs font-black text-zinc-500 uppercase tracking-widest flex items-center gap-2 group-hover:text-zinc-300 transition-colors">Detail Informasi Produk</h3>
                     <ChevronDown size={16} className={`text-zinc-500 transition-transform duration-300 ${isProductOpen ? "rotate-180" : ""}`} />
                   </button>
 
@@ -428,7 +426,7 @@ export default function OrderDetailPage({ params }) {
                         <h3 className="text-xs font-black text-zinc-500 uppercase tracking-widest flex items-center gap-2">
                           <Package size={14} className="text-emerald-500" /> Foto Produk
                         </h3>
-                        <div className="bg-zinc-950 border border-zinc-800 rounded-3xl overflow-hidden relative aspect-square group">
+                        <div className="bg-zinc-950 border border-zinc-800 rounded-[10px] overflow-hidden relative aspect-square group">
                           {order.product?.images?.length > 0 ? (
                             (() => {
                               const mediaUrl = getImageUrl(order.product.images[activeImageIndex]);
@@ -458,14 +456,14 @@ export default function OrderDetailPage({ params }) {
                           <div>
                             <h4 className="text-2xl font-black text-white mb-3">{order.product?.name}</h4>
                             <div className="flex flex-wrap gap-2">
-                              <span className="px-3 py-1 bg-zinc-800 text-[10px] text-zinc-300 rounded-lg border border-zinc-700 font-bold uppercase tracking-wider">{order.product?.species}</span>
+                              <span className="px-3 py-1 bg-zinc-800 text-[10px] text-zinc-300 rounded-[10px] border border-zinc-700 font-bold uppercase tracking-wider">{order.product?.species}</span>
                               <span
-                                className={`px-3 py-1 text-[10px] rounded-lg border font-bold uppercase tracking-wider ${order.product?.sex === "Male" ? "bg-blue-500/10 text-blue-400 border-blue-500/20" : order.product?.sex === "Female" ? "bg-pink-500/10 text-pink-400 border-pink-500/20" : "bg-zinc-500/10 text-zinc-400 border-zinc-500/20"}`}
+                                className={`px-3 py-1 text-[10px] rounded-[10px] border font-bold uppercase tracking-wider ${order.product?.sex === "Male" ? "bg-blue-500/10 text-blue-400 border-blue-500/20" : order.product?.sex === "Female" ? "bg-pink-500/10 text-pink-400 border-pink-500/20" : "bg-zinc-500/10 text-zinc-400 border-zinc-500/20"}`}
                               >
                                 {order.product?.sex || "Unsex"}
                               </span>
-                              <span className="px-3 py-1 bg-emerald-500/10 text-emerald-400 rounded-lg border border-emerald-500/20 text-[10px] font-bold uppercase tracking-wider">{order.product?.type === "sell" ? "Jual Langsung" : "Lelang"}</span>
-                              <span className="px-3 py-1 bg-zinc-800 text-[10px] text-zinc-400 rounded-lg border border-zinc-700 font-bold uppercase tracking-wider">ID Produk: {order.product?.product_id || "-"}</span>
+                              <span className="px-3 py-1 bg-emerald-500/10 text-emerald-400 rounded-[10px] border border-emerald-500/20 text-[10px] font-bold uppercase tracking-wider">{order.product?.type === "sell" ? "Jual Langsung" : "Lelang"}</span>
+                              <span className="px-3 py-1 bg-zinc-800 text-[10px] text-zinc-400 rounded-[10px] border border-zinc-700 font-bold uppercase tracking-wider">ID Produk: {order.product?.product_id || "-"}</span>
                             </div>
                           </div>
                         </div>
@@ -482,7 +480,7 @@ export default function OrderDetailPage({ params }) {
                         </div>
 
                         {/* Shipping Type Info */}
-                        <div className="p-4 bg-blue-500/5 border border-dashed border-blue-500/20 rounded-2xl mt-[-10px]">
+                        <div className="p-4 bg-blue-500/5 border border-dashed border-blue-500/20 rounded-[10px] mt-[-10px]">
                           <div>
                             <p className="text-[9px] font-black text-zinc-500 uppercase tracking-widest leading-none mb-1">Jangkauan Pengiriman</p>
                             <p className="text-sm font-black text-white">{order.product?.shipping_type || "Tidak ditentukan"}</p>
@@ -501,11 +499,10 @@ export default function OrderDetailPage({ params }) {
             </div>
           </div>
           {/* Accordion Card for Deskripsi, Pengiriman & Garansi */}
-          <div className="bg-zinc-900 border border-zinc-800 rounded-[2.5rem] overflow-hidden">
-            <button onClick={() => setIsDetailsOpen(!isDetailsOpen)} className="w-full flex items-center justify-between p-8 hover:bg-zinc-800/30 transition-colors focus:outline-none">
-              <div className="flex items-center gap-3">
-                <Info size={18} className="text-emerald-500" />
-                <span className="text-sm font-black text-white uppercase tracking-wider">Detail Produk, Pengiriman & Garansi</span>
+          <div className="bg-zinc-900 border border-zinc-800 rounded-[10px] overflow-hidden">
+            <button onClick={() => setIsDetailsOpen(!isDetailsOpen)} className="w-full flex items-center justify-between p-4 md:p-8 hover:bg-zinc-800/30 transition-colors focus:outline-none">
+              <div className="flex items-center gap-3 text-left">
+                <span className="text-xs md:text-sm font-black text-white uppercase tracking-wider">Detail Produk, Pengiriman & Garansi</span>
               </div>
               <ChevronDown size={20} className={`text-zinc-500 transition-transform duration-300 shrink-0 ${isDetailsOpen ? "rotate-180" : ""}`} />
             </button>
@@ -519,7 +516,7 @@ export default function OrderDetailPage({ params }) {
                     </p>
                     <div className="flex-1 h-px bg-zinc-800/50"></div>
                   </div>
-                  <div className="sm:bg-zinc-950/50 p-0 sm:p-6 rounded-none sm:rounded-[2rem] border-none sm:border border-zinc-800/50">
+                  <div className="sm:bg-zinc-950/50 p-0 sm:p-6 rounded-none sm:rounded-[10px] border-none sm:border border-zinc-800/50">
                     <div
                       className="text-sm text-zinc-400 leading-relaxed description-content font-medium prose prose-invert max-w-none"
                       dangerouslySetInnerHTML={{
@@ -537,7 +534,7 @@ export default function OrderDetailPage({ params }) {
                     </p>
                     <div className="flex-1 h-px bg-zinc-800/50"></div>
                   </div>
-                  <div className="sm:bg-zinc-950/50 p-0 sm:p-6 rounded-none sm:rounded-[2rem] border-none sm:border border-zinc-800/50">
+                  <div className="sm:bg-zinc-950/50 p-0 sm:p-6 rounded-none sm:rounded-[10px] border-none sm:border border-zinc-800/50">
                     <div
                       className="text-sm text-zinc-400 leading-relaxed description-content font-medium prose prose-invert max-w-none"
                       dangerouslySetInnerHTML={{
@@ -555,7 +552,7 @@ export default function OrderDetailPage({ params }) {
                     </p>
                     <div className="flex-1 h-px bg-zinc-800/50"></div>
                   </div>
-                  <div className="sm:bg-zinc-950/50 p-0 sm:p-6 rounded-none sm:rounded-[2rem] border-none sm:border border-zinc-800/50">
+                  <div className="sm:bg-zinc-950/50 p-0 sm:p-6 rounded-none sm:rounded-[10px] border-none sm:border border-zinc-800/50">
                     <div
                       className="text-sm text-zinc-400 leading-relaxed description-content font-medium prose prose-invert max-w-none"
                       dangerouslySetInnerHTML={{
@@ -572,21 +569,21 @@ export default function OrderDetailPage({ params }) {
         {/* Sidebar Info */}
         <div className="lg:col-span-4 space-y-8">
           {/* Store Details Card (Data Penjual) */}
-          <div className="bg-zinc-900 border border-zinc-800 rounded-[2.5rem] p-6 lg:p-8 space-y-4">
+          <div className="bg-zinc-900 border border-zinc-800 rounded-[10px] p-6 lg:p-8 space-y-4">
             <div className="flex items-center gap-4">
-              <div className="w-12 h-12 bg-zinc-800 rounded-xl flex items-center justify-center text-emerald-500 shrink-0 border border-zinc-700 overflow-hidden">{order.shop?.logo_url ? <img src={getLogoUrl(order.shop.logo_url)} className="w-full h-full object-cover" /> : <Store size={24} />}</div>
+              <div className="w-12 h-12 bg-zinc-800 rounded-[10px] flex items-center justify-center text-emerald-500 shrink-0 border border-zinc-700 overflow-hidden">{order.shop?.logo_url ? <img src={getLogoUrl(order.shop.logo_url)} className="w-full h-full object-cover" /> : <Store size={24} />}</div>
               <div className="flex-1 min-w-0">
                 <p className="text-xs font-black text-zinc-500 uppercase tracking-widest mb-0.5">Penjual</p>
                 <p className="text-sm font-black text-white truncate">{order.shop?.name}</p>
               </div>
             </div>
-            <button onClick={handleWhatsAppChat} className="w-full py-3 text-white bg-[#25D366] hover:bg-[#4CBB17] text-xs font-black rounded-xl transition-all border border-emerald-500/20 flex items-center justify-center gap-2">
+            <button onClick={handleWhatsAppChat} className="w-full py-3 text-white bg-[#25D366] hover:bg-[#4CBB17] text-xs font-black rounded-[10px] transition-all border border-emerald-500/20 flex items-center justify-center gap-2">
               <MessageCircle size={14} /> Hubungi Penjual
             </button>
           </div>
 
           {/* Cost Summary */}
-          <div className="bg-zinc-900 border border-zinc-800 rounded-[2.5rem] p-8 lg:p-10 space-y-8">
+          <div className="bg-zinc-900 border border-zinc-800 rounded-[10px] p-8 lg:p-10 space-y-8">
             <h3 className="text-xs font-black text-zinc-500 uppercase tracking-widest flex items-center gap-2">
               <CreditCard size={14} className="text-emerald-500" /> Ringkasan Biaya
             </h3>
@@ -610,13 +607,13 @@ export default function OrderDetailPage({ params }) {
               <div className="h-px bg-zinc-800 my-6"></div>
               <div className="flex justify-between items-center">
                 <span className="text-white font-black">Total Bayar</span>
-                <span className="text-3xl font-black text-emerald-500 tracking-tighter">{formatPrice(displayTotalPrice)}</span>
+                <span className="text-2xl font-black text-emerald-500 tracking-tighter">{formatPrice(displayTotalPrice)}</span>
               </div>
             </div>
 
             <div className=" space-y-3">
               {source === "cart" && (
-                <button onClick={() => handleCheckoutCart(order)} disabled={isProcessingCart} className="w-full py-4 bg-emerald-500 hover:bg-emerald-400 text-zinc-950 rounded-2xl text-sm font-black transition-all active:scale-[0.98] flex items-center justify-center gap-2 disabled:opacity-50">
+                <button onClick={() => handleCheckoutCart(order)} disabled={isProcessingCart} className="w-full py-4 bg-emerald-500 hover:bg-emerald-400 text-zinc-950 rounded-[10px] text-sm font-black transition-all active:scale-[0.98] flex items-center justify-center gap-2 disabled:opacity-50">
                   {isProcessingCart ? (
                     <div className="w-5 h-5 border-2 border-zinc-950 border-t-transparent rounded-full animate-spin"></div>
                   ) : (
@@ -631,24 +628,24 @@ export default function OrderDetailPage({ params }) {
 
           {/* Delivery Info */}
           {source !== "cart" && (
-            <div className="bg-zinc-900 border border-zinc-800 rounded-[2.5rem] p-8 lg:p-10 space-y-6">
+            <div className="bg-zinc-900 border border-zinc-800 rounded-[10px] p-8 lg:p-10 space-y-6">
               <h3 className="text-xs font-black text-zinc-500 uppercase tracking-widest flex items-center gap-2">
                 <MapPin size={14} className="text-emerald-500" /> Informasi Pengiriman
               </h3>
               {order.shipping_address ? (
                 <div className="space-y-4">
-                  <div className="p-5 bg-zinc-950/50 rounded-2xl border border-zinc-800">
+                  <div className="p-5 bg-zinc-950/50 rounded-[10px] border border-zinc-800">
                     <p className="text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-2">Penerima</p>
                     <p className="text-sm text-white font-bold">{order.receiver_name}</p>
                     <p className="text-xs text-zinc-500 mt-1">{order.phone_number}</p>
                   </div>
-                  <div className="p-5 bg-zinc-950/50 rounded-2xl border border-zinc-800">
+                  <div className="p-5 bg-zinc-950/50 rounded-[10px] border border-zinc-800">
                     <p className="text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-2">Alamat Lengkap</p>
                     <p className="text-sm text-zinc-300 leading-relaxed font-medium">{order.shipping_address}</p>
                   </div>
                 </div>
               ) : (
-                <div className="p-8 text-center bg-zinc-950/50 rounded-3xl border border-dashed border-zinc-800 space-y-4">
+                <div className="p-8 text-center bg-zinc-950/50 rounded-[10px] border border-dashed border-zinc-800 space-y-4">
                   <MapPin size={32} className="mx-auto text-zinc-700" />
                   <p className="text-xs text-zinc-500 font-medium">Alamat belum dilengkapi. Silakan lengkapi untuk memproses pesanan.</p>
                 </div>
@@ -662,10 +659,10 @@ export default function OrderDetailPage({ params }) {
       {showShippingModal && (
         <div className="fixed inset-0 z-[150] flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-zinc-950/80 backdrop-blur-md animate-in fade-in duration-300" onClick={() => setShowShippingModal(false)}></div>
-          <div className="bg-zinc-900 border border-zinc-800 w-full max-w-lg rounded-[2.5rem] relative z-10 overflow-hidden animate-in zoom-in-95 duration-300">
+          <div className="bg-zinc-900 border border-zinc-800 w-full max-w-lg rounded-[10px] relative z-10 overflow-hidden animate-in zoom-in-95 duration-300">
             <div className="p-8 space-y-8">
               <div className="text-center space-y-2">
-                <div className="w-16 h-16 bg-emerald-500/10 text-emerald-500 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                <div className="w-16 h-16 bg-emerald-500/10 text-emerald-500 rounded-[10px] flex items-center justify-center mx-auto mb-4">
                   <MapPin size={32} />
                 </div>
                 <h3 className="text-2xl font-black text-white">Data Pengiriman</h3>
@@ -685,7 +682,7 @@ export default function OrderDetailPage({ params }) {
                         receiver_name: e.target.value,
                       })
                     }
-                    className="w-full bg-zinc-950 border border-zinc-800 rounded-2xl py-4 px-6 text-white focus:outline-none focus:border-emerald-500 transition-all"
+                    className="w-full bg-zinc-950 border border-zinc-800 rounded-[10px] py-4 px-6 text-white focus:outline-none focus:border-emerald-500 transition-all"
                     placeholder="Contoh: John Doe"
                   />
                 </div>
@@ -701,7 +698,7 @@ export default function OrderDetailPage({ params }) {
                         phone_number: e.target.value,
                       })
                     }
-                    className="w-full bg-zinc-950 border border-zinc-800 rounded-2xl py-4 px-6 text-white focus:outline-none focus:border-emerald-500 transition-all"
+                    className="w-full bg-zinc-950 border border-zinc-800 rounded-[10px] py-4 px-6 text-white focus:outline-none focus:border-emerald-500 transition-all"
                     placeholder="Contoh: 08123456789"
                   />
                 </div>
@@ -717,16 +714,16 @@ export default function OrderDetailPage({ params }) {
                         shipping_address: e.target.value,
                       })
                     }
-                    className="w-full bg-zinc-950 border border-zinc-800 rounded-2xl py-4 px-6 text-white focus:outline-none focus:border-emerald-500 transition-all resize-none"
+                    className="w-full bg-zinc-950 border border-zinc-800 rounded-[10px] py-4 px-6 text-white focus:outline-none focus:border-emerald-500 transition-all resize-none"
                     placeholder="Jl. Nama Jalan No. XX, Kota, Provinsi, Kode Pos"
                   />
                 </div>
 
                 <div className="flex gap-4 pt-4">
-                  <button type="button" onClick={() => setShowShippingModal(false)} className="flex-1 py-4 bg-zinc-800 hover:bg-zinc-700 text-white font-black rounded-2xl transition-all">
+                  <button type="button" onClick={() => setShowShippingModal(false)} className="flex-1 py-4 bg-zinc-800 hover:bg-zinc-700 text-white font-black rounded-[10px] transition-all">
                     Batal
                   </button>
-                  <button type="submit" disabled={isUpdatingShipping} className="flex-1 py-4 bg-emerald-500 hover:bg-emerald-400 text-zinc-950 font-black rounded-2xl transition-all disabled:opacity-50">
+                  <button type="submit" disabled={isUpdatingShipping} className="flex-1 py-4 bg-emerald-500 hover:bg-emerald-400 text-zinc-950 font-black rounded-[10px] transition-all disabled:opacity-50">
                     {isUpdatingShipping ? "Menyimpan..." : "Simpan & Lanjut"}
                   </button>
                 </div>
@@ -740,10 +737,10 @@ export default function OrderDetailPage({ params }) {
       {cancelModal.isOpen && (
         <div className="fixed inset-0 z-[150] flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-zinc-950/80 backdrop-blur-md animate-in fade-in duration-300" onClick={() => !cancelModal.isLoading && setCancelModal((prev) => ({ ...prev, isOpen: false }))}></div>
-          <div className="bg-zinc-900 border border-zinc-800 w-full max-w-lg rounded-[2.5rem] relative z-10 overflow-hidden shadow-2xl animate-in zoom-in-95 duration-300">
+          <div className="bg-zinc-900 border border-zinc-800 w-full max-w-lg rounded-[10px] relative z-10 overflow-hidden shadow-2xl animate-in zoom-in-95 duration-300">
             <div className="p-8 md:p-10 space-y-6">
               <div className="text-center space-y-2">
-                <div className="w-16 h-16 bg-red-500/10 text-red-500 rounded-2xl flex items-center justify-center mx-auto mb-2 border border-red-500/20">
+                <div className="w-16 h-16 bg-red-500/10 text-red-500 rounded-[10px] flex items-center justify-center mx-auto mb-2 border border-red-500/20">
                   <XCircle size={32} />
                 </div>
                 <h3 className="text-2xl font-black text-white uppercase tracking-tight">Batalkan Pesanan?</h3>
@@ -755,7 +752,7 @@ export default function OrderDetailPage({ params }) {
                 <div className="space-y-2 max-h-48 overflow-y-auto pr-1 custom-scrollbar">
                   {["Seller belum memberikan respon setelah pembayaran", "Seller belum mengirim nomor resi pengiriman", "Status pengiriman tidak jelas / tidak ada update", "Waktu pengiriman terlalu lama", "Permintaan pembatalan oleh Seller", "Terjadi kesalahan transaksi / pembayaran", "Alamat atau data pengiriman salah", "Lainnya"].map(
                     (option, idx) => (
-                      <label key={idx} className={`flex items-center gap-3 px-4 py-3 rounded-xl border transition-all cursor-pointer text-xs font-bold ${cancelModal.reason === option ? "bg-red-500/5 border-red-500/40 text-white" : "bg-zinc-950/40 border-zinc-800 text-zinc-400 hover:text-zinc-200 hover:border-zinc-700"}`}>
+                      <label key={idx} className={`flex items-center gap-3 px-4 py-3 rounded-[10px] border transition-all cursor-pointer text-xs font-bold ${cancelModal.reason === option ? "bg-red-500/5 border-red-500/40 text-white" : "bg-zinc-950/40 border-zinc-800 text-zinc-400 hover:text-zinc-200 hover:border-zinc-700"}`}>
                         <input type="radio" name="cancelReason" value={option} checked={cancelModal.reason === option} onChange={(e) => setCancelModal((prev) => ({ ...prev, reason: e.target.value }))} className="accent-red-500 w-4 h-4 shrink-0" />
                         <span>{option}</span>
                       </label>
@@ -771,7 +768,7 @@ export default function OrderDetailPage({ params }) {
                     rows={3}
                     value={cancelModal.customReason}
                     onChange={(e) => setCancelModal((prev) => ({ ...prev, customReason: e.target.value }))}
-                    className="w-full bg-zinc-950 border border-zinc-800 rounded-2xl py-4 px-6 text-white text-xs focus:outline-none focus:border-red-500 transition-all resize-none font-medium placeholder:text-zinc-600"
+                    className="w-full bg-zinc-950 border border-zinc-800 rounded-[10px] py-4 px-6 text-white text-xs focus:outline-none focus:border-red-500 transition-all resize-none font-medium placeholder:text-zinc-600"
                     placeholder="Masukkan alasan pembatalan Anda di sini..."
                     required
                   />
@@ -779,14 +776,14 @@ export default function OrderDetailPage({ params }) {
               )}
 
               <div className="flex gap-4 pt-2">
-                <button type="button" onClick={() => setCancelModal((prev) => ({ ...prev, isOpen: false }))} disabled={cancelModal.isLoading} className="flex-1 py-4 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 font-black rounded-2xl text-xs uppercase tracking-wider transition-all">
+                <button type="button" onClick={() => setCancelModal((prev) => ({ ...prev, isOpen: false }))} disabled={cancelModal.isLoading} className="flex-1 py-4 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 font-black rounded-[10px] text-xs uppercase tracking-wider transition-all">
                   Kembali
                 </button>
                 <button
                   type="button"
                   onClick={submitCancelOrder}
                   disabled={cancelModal.isLoading || !cancelModal.reason || (cancelModal.reason === "Lainnya" && !cancelModal.customReason.trim())}
-                  className="flex-1 py-4 bg-red-500 hover:bg-red-400 disabled:opacity-40 disabled:cursor-not-allowed text-white font-black rounded-2xl text-xs uppercase tracking-wider transition-all shadow-lg shadow-red-500/15"
+                  className="flex-1 py-4 bg-red-50 hover:bg-red-400 disabled:opacity-40 disabled:cursor-not-allowed text-white font-black rounded-[10px] text-xs uppercase tracking-wider transition-all shadow-lg shadow-red-500/15"
                 >
                   {cancelModal.isLoading ? "Memproses..." : "Ya, Batalkan"}
                 </button>

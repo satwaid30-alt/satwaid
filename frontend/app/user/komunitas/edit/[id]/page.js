@@ -158,7 +158,7 @@ export default function EditKomunitasPage() {
         <div className="space-y-6 max-w-4xl mx-auto pb-10">
             {/* Header */}
             <div className="flex items-center gap-4">
-                <Link href="/user/komunitas" className="p-2 bg-zinc-900 hover:bg-zinc-800 text-zinc-400 hover:text-white rounded-xl transition-colors border border-zinc-800">
+                <Link href="/user/komunitas" className="p-2 bg-zinc-900 hover:bg-zinc-800 text-zinc-400 hover:text-white rounded-[10px] transition-colors border border-zinc-800">
                     <ArrowLeft size={20} />
                 </Link>
                 <div>
@@ -168,7 +168,7 @@ export default function EditKomunitasPage() {
             </div>
 
             {/* Form */}
-            <form onSubmit={handleSubmit} className="bg-zinc-900 border border-zinc-800 rounded-2xl p-6 sm:p-8 space-y-6">
+            <form onSubmit={handleSubmit} className="bg-zinc-900 border border-zinc-800 rounded-[10px] p-6 sm:p-8 space-y-6">
                 <div className="space-y-2">
                     <label className="text-sm font-semibold text-zinc-300">Judul Topik</label>
                     <input
@@ -176,7 +176,7 @@ export default function EditKomunitasPage() {
                         required
                         value={formData.title}
                         onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                        className="w-full bg-zinc-950 border border-zinc-800 text-white rounded-xl px-4 py-3 focus:outline-none focus:border-emerald-500 transition-colors"
+                        className="w-full bg-zinc-950 border border-zinc-800 text-white rounded-[10px] px-4 py-3 focus:outline-none focus:border-emerald-500 transition-colors"
                         placeholder="Contoh: Cara merawat Leopard Gecko yang mogok makan"
                     />
                 </div>
@@ -186,7 +186,7 @@ export default function EditKomunitasPage() {
                     <select
                         value={formData.category}
                         onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                        className="w-full bg-zinc-950 border border-zinc-800 text-white rounded-xl px-4 py-3 focus:outline-none focus:border-emerald-500 transition-colors appearance-none"
+                        className="w-full bg-zinc-950 border border-zinc-800 text-white rounded-[10px] px-4 py-3 focus:outline-none focus:border-emerald-500 transition-colors appearance-none"
                     >
                         <option value="Diskusi Umum">Diskusi Umum</option>
                         <option value="Kesehatan/Penyakit">Kesehatan/Penyakit</option>
@@ -200,7 +200,7 @@ export default function EditKomunitasPage() {
                         rows="8"
                         value={formData.description}
                         onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                        className="w-full bg-zinc-950 border border-zinc-800 text-white rounded-xl px-4 py-3 focus:outline-none focus:border-emerald-500 transition-colors resize-none"
+                        className="w-full bg-zinc-950 border border-zinc-800 text-white rounded-[10px] px-4 py-3 focus:outline-none focus:border-emerald-500 transition-colors resize-none"
                         placeholder="Tuliskan isi diskusi Anda secara detail..."
                     ></textarea>
                 </div>
@@ -213,7 +213,7 @@ export default function EditKomunitasPage() {
                             required
                             value={formData.date}
                             onChange={(e) => setFormData({ ...formData, date: e.target.value })}
-                            className="w-full bg-zinc-950 border border-zinc-800 text-white rounded-xl px-4 py-3 focus:outline-none focus:border-emerald-500 transition-colors"
+                            className="w-full bg-zinc-950 border border-zinc-800 text-white rounded-[10px] px-4 py-3 focus:outline-none focus:border-emerald-500 transition-colors"
                             style={{ colorScheme: 'dark' }}
                         />
                     </div>
@@ -227,7 +227,7 @@ export default function EditKomunitasPage() {
                                 className="hidden"
                                 id="topicImage"
                             />
-                            <label htmlFor="topicImage" className="flex items-center gap-3 w-full bg-zinc-950 border border-zinc-800 hover:border-emerald-500 text-zinc-400 rounded-xl px-4 py-3 cursor-pointer transition-colors group">
+                            <label htmlFor="topicImage" className="flex items-center gap-3 w-full bg-zinc-950 border border-zinc-800 hover:border-emerald-500 text-zinc-400 rounded-[10px] px-4 py-3 cursor-pointer transition-colors group">
                                 <ImageIcon size={20} className="group-hover:text-emerald-500 transition-colors" />
                                 <span className="truncate flex-1">{selectedImage ? "Ubah Gambar" : "Pilih Gambar..."}</span>
                             </label>
@@ -235,7 +235,7 @@ export default function EditKomunitasPage() {
                                  <span className="text-amber-500 text-sm">⚠️</span> Maksimal ukuran file: 1MB
                              </p>
                             {selectedImage && (
-                                <div className="mt-3 relative w-full h-40 rounded-xl overflow-hidden border border-zinc-800">
+                                <div className="mt-3 relative w-full h-40 rounded-[10px] overflow-hidden border border-zinc-800">
                                     <img src={selectedImage} alt="Preview" className="w-full h-full object-cover" />
                                 </div>
                             )}
@@ -244,10 +244,10 @@ export default function EditKomunitasPage() {
                 </div>
 
                 <div className="pt-6 border-t border-zinc-800 flex items-center justify-end gap-3">
-                    <Link href="/user/komunitas" className="px-6 py-3 bg-zinc-800 hover:bg-zinc-700 text-white font-bold rounded-xl transition-colors">
+                    <Link href="/user/komunitas" className="px-6 py-3 bg-zinc-800 hover:bg-zinc-700 text-white font-bold rounded-[10px] transition-colors">
                         Batal
                     </Link>
-                    <button type="submit" disabled={isSubmitting} className={`px-8 py-3 bg-emerald-500 hover:bg-emerald-400 text-zinc-950 font-bold rounded-xl transition-colors flex items-center gap-2 ${isSubmitting ? "opacity-70 cursor-not-allowed" : ""}`}>
+                    <button type="submit" disabled={isSubmitting} className={`px-8 py-3 bg-emerald-500 hover:bg-emerald-400 text-zinc-950 font-bold rounded-[10px] transition-colors flex items-center gap-2 ${isSubmitting ? "opacity-70 cursor-not-allowed" : ""}`}>
                         {isSubmitting ? (
                             <div className="w-5 h-5 border-2 border-zinc-950 border-t-transparent rounded-full animate-spin"></div>
                         ) : (
@@ -260,7 +260,7 @@ export default function EditKomunitasPage() {
             {/* Modal Error */}
             {errorModal.isOpen && (
                 <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-zinc-950/80 backdrop-blur-sm animate-in fade-in zoom-in-95 duration-200">
-                    <div className="bg-zinc-900 border border-red-500/30 rounded-3xl w-full max-w-sm overflow-hidden">
+                    <div className="bg-zinc-900 border border-red-500/30 rounded-[10px] w-full max-w-sm overflow-hidden">
                         <div className="p-6 flex flex-col items-center text-center space-y-4">
                             <div className="w-16 h-16 bg-red-500/10 text-red-500 rounded-full flex items-center justify-center shrink-0">
                                 <span className="text-3xl">⚠️</span>
@@ -275,7 +275,7 @@ export default function EditKomunitasPage() {
                         <div className="p-4 bg-zinc-950/50 border-t border-zinc-800 flex justify-center">
                             <button
                                 onClick={() => setErrorModal({ isOpen: false, message: "" })}
-                                className="w-full px-6 py-3 bg-zinc-800 hover:bg-zinc-700 text-white font-bold rounded-xl transition-all"
+                                className="w-full px-6 py-3 bg-zinc-800 hover:bg-zinc-700 text-white font-bold rounded-[10px] transition-all"
                             >
                                 Mengerti
                             </button>

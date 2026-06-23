@@ -170,11 +170,11 @@ export default function KomunitasPage() {
           </h1>
           <p className="text-lg md:text-xl text-zinc-400 max-w-2xl mx-auto mb-10">Bergabung dengan ribuan pecinta satwa. Diskusikan perawatan, pamerkan koleksi, dan temukan teman se-hobi dalam satu platform.</p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link href="/user/komunitas" className="px-8 py-4 bg-[#228B22] hover:bg-[#4CBB17] text-white font-black rounded-2xl transition-all flex items-center justify-center gap-2 hover:scale-105">
+            <Link href="/user/komunitas" className="px-8 py-4 bg-[#228B22] hover:bg-[#4CBB17] text-white font-black rounded-[10px] transition-all flex items-center justify-center gap-2 hover:scale-105">
               <MessageSquare size={20} />
               Buat Diskusi Baru
             </Link>
-            <a href="#discussions" className="px-8 py-4 bg-white/10 border border-white/10 hover:bg-white/20 text-white font-bold rounded-2xl transition-all flex items-center justify-center gap-2 backdrop-blur-md">
+            <a href="#discussions" className="px-8 py-4 bg-white/10 border border-white/10 hover:bg-white/20 text-white font-bold rounded-[10px] transition-all flex items-center justify-center gap-2 backdrop-blur-md">
               Jelajahi Diskusi <ArrowRight size={20} />
             </a>
           </div>
@@ -185,20 +185,20 @@ export default function KomunitasPage() {
         {/* Ad Card for Mobile (Visible on mobile only, at the top) */}
         {isLoading ? (
           <div className="block md:hidden mb-6 px-1">
-            <div className="w-full aspect-[2.1/1] min-h-[140px] bg-zinc-200 dark:bg-zinc-800 animate-pulse rounded-2xl border border-zinc-200/50" />
+            <div className="w-full aspect-[2.1/1] min-h-[140px] bg-zinc-200 dark:bg-zinc-800 animate-pulse rounded-[10px] border border-zinc-200/50" />
           </div>
         ) : ads.length > 0 ? (
           <div className="block md:hidden mb-6 px-1">
-            <a href={ads[0].link_url || "#"} target="_blank" rel="noopener noreferrer" className="block relative aspect-[2.1/1] min-h-[140px] rounded-2xl overflow-hidden border border-zinc-200/70 shadow-md group">
+            <a href={ads[0].link_url || "#"} target="_blank" rel="noopener noreferrer" className="block relative aspect-[2.1/1] min-h-[140px] rounded-[10px] overflow-hidden border border-zinc-200/70 shadow-md group">
               <img src={getImageUrl(ads[0].image_url)} alt={ads[0].placement} className="absolute inset-0 w-full h-full object-cover" />
               <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/40 to-transparent"></div>
               <div className="absolute inset-0 p-4 flex flex-col justify-end">
                 <div className="mb-auto flex">
-                  <span className="px-2.5 py-0.5 bg-emerald-500 text-zinc-950 text-[8px] font-black uppercase tracking-wider rounded-lg">Promosi</span>
+                  <span className="px-2.5 py-0.5 bg-emerald-500 text-zinc-950 text-[8px] font-black uppercase tracking-wider rounded-[10px]">Promosi</span>
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="text-[10px] font-bold text-zinc-200 truncate max-w-[70%]">Kunjungi link sponsor kami</span>
-                  <div className="py-1 px-3 bg-white/10 hover:bg-white/20 backdrop-blur-md border border-white/20 text-white font-bold rounded-lg text-[9px] transition-all flex items-center gap-1 shrink-0">
+                  <div className="py-1 px-3 bg-white/10 hover:bg-white/20 backdrop-blur-md border border-white/20 text-white font-bold rounded-[10px] text-[9px] transition-all flex items-center gap-1 shrink-0">
                     Kunjungi <ArrowRight size={10} />
                   </div>
                 </div>
@@ -207,14 +207,14 @@ export default function KomunitasPage() {
           </div>
         ) : (
           <div className="block md:hidden mb-6 px-1">
-            <div className="bg-zinc-900 rounded-2xl overflow-hidden border border-zinc-800/80 p-4 flex items-center justify-between min-h-[90px] relative">
+            <div className="bg-zinc-900 rounded-[10px] overflow-hidden border border-zinc-800/80 p-4 flex items-center justify-between min-h-[90px] relative">
               <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/10 via-transparent to-transparent"></div>
               <div className="min-w-0 pr-4">
                 <span className="text-[7px] font-black uppercase tracking-wider text-emerald-400">Iklan Tersedia</span>
                 <h4 className="font-black text-white text-xs mt-0.5 truncate">Pasang Iklan Anda</h4>
                 <p className="text-[9px] text-zinc-500 leading-normal truncate">Jangkau ribuan pencinta reptil aktif.</p>
               </div>
-              <button className="py-2 px-4 bg-emerald-500 hover:bg-emerald-400 text-zinc-950 font-black rounded-xl text-[9px] transition-all shrink-0">Hubungi Admin</button>
+              <button className="py-2 px-4 bg-emerald-500 hover:bg-emerald-400 text-zinc-950 font-black rounded-[10px] text-[9px] transition-all shrink-0">Hubungi Admin</button>
             </div>
           </div>
         )}
@@ -225,19 +225,19 @@ export default function KomunitasPage() {
           {/* Left Sidebar */}
           <div className="space-y-5 order-2 lg:order-1 lg:col-span-1">
             {/* Categories */}
-            <div className="bg-white border border-zinc-200/70 rounded-2xl p-5">
+            <div className="bg-white border border-zinc-200/70 rounded-[10px] p-5">
               <h3 className="text-[10px] font-black text-zinc-400 uppercase tracking-[0.2em] mb-4">Kategori Populer</h3>
               <div className="space-y-1">
                 {dynamicCategories.length > 0 ? (
                   dynamicCategories.map((category) => (
-                    <button key={category.id} className="w-full flex items-center justify-between px-3 py-2.5 rounded-xl hover:bg-emerald-50 group transition-all text-left">
+                    <button key={category.id} className="w-full flex items-center justify-between px-3 py-2.5 rounded-[10px] hover:bg-emerald-50 group transition-all text-left">
                       <div className="flex items-center gap-2.5 min-w-0">
-                        <div className="w-7 h-7 rounded-lg bg-zinc-100 text-zinc-400 flex items-center justify-center group-hover:bg-emerald-500 group-hover:text-white transition-all shrink-0">
+                        <div className="w-7 h-7 rounded-[10px] bg-zinc-100 text-zinc-400 flex items-center justify-center group-hover:bg-emerald-500 group-hover:text-white transition-all shrink-0">
                           <Hash size={13} />
                         </div>
                         <span className="font-semibold text-sm text-zinc-600 group-hover:text-emerald-700 transition-colors truncate">{category.name}</span>
                       </div>
-                      <span className="text-[10px] font-black text-zinc-400 bg-zinc-100 px-2 py-0.5 rounded-full group-hover:bg-emerald-100 group-hover:text-emerald-600 transition-all shrink-0 ml-2">{category.count}</span>
+                      <span className="text-[10px] font-black text-zinc-400 bg-zinc-100 px-2 py-0.5 rounded-[10px] group-hover:bg-emerald-100 group-hover:text-emerald-600 transition-all shrink-0 ml-2">{category.count}</span>
                     </button>
                   ))
                 ) : (
@@ -248,7 +248,7 @@ export default function KomunitasPage() {
 
             {/* Recent Chats Widget */}
             {currentUser && (
-              <div className="bg-white border border-zinc-200/70 rounded-2xl p-5">
+              <div className="bg-white border border-zinc-200/70 rounded-[10px] p-5">
                 <div className="flex items-center justify-between mb-4">
                   <h3 className="text-[10px] font-black text-zinc-400 uppercase tracking-[0.2em]">Pesan Terakhir</h3>
                   <button onClick={() => setIsInboxOpen(true)} className="text-[10px] font-black text-emerald-600 hover:text-emerald-700 uppercase tracking-widest">
@@ -274,9 +274,9 @@ export default function KomunitasPage() {
                               productId: chat.listing_id,
                             })
                           }
-                          className="w-full flex items-center gap-3 p-2 rounded-xl hover:bg-zinc-50 transition-all text-left group"
+                          className="w-full flex items-center gap-3 p-2 rounded-[10px] hover:bg-zinc-50 transition-all text-left group"
                         >
-                          <div className="w-10 h-10 rounded-xl bg-zinc-100 overflow-hidden shrink-0 border border-zinc-100 group-hover:border-emerald-200">
+                          <div className="w-10 h-10 rounded-[10px] bg-zinc-100 overflow-hidden shrink-0 border border-zinc-100 group-hover:border-emerald-200">
                             {otherUser?.avatar_url ? <img src={getImageUrl(otherUser.avatar_url)} className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center bg-zinc-200 text-zinc-500 font-bold text-xs">{otherUser?.name?.charAt(0)}</div>}
                           </div>
                           <div className="min-w-0">
@@ -297,9 +297,9 @@ export default function KomunitasPage() {
 
             {/* Ad Card - Full Portrait Style */}
             {isLoading ? (
-              <div className="hidden md:block w-full aspect-[3/4] bg-zinc-200 dark:bg-zinc-800 animate-pulse rounded-2xl border border-zinc-200/50" />
+              <div className="hidden md:block w-full aspect-[3/4] bg-zinc-200 dark:bg-zinc-800 animate-pulse rounded-[10px] border border-zinc-200/50" />
             ) : ads.length > 0 ? (
-              <a href={ads[0].link_url || "#"} target="_blank" rel="noopener noreferrer" className="hidden md:block relative aspect-[3/4] rounded-2xl overflow-hidden border border-zinc-200/70 group transition-all hover:scale-[1.02] active:scale-[0.98]">
+              <a href={ads[0].link_url || "#"} target="_blank" rel="noopener noreferrer" className="hidden md:block relative aspect-[3/4] rounded-[10px] overflow-hidden border border-zinc-200/70 group transition-all hover:scale-[1.02] active:scale-[0.98]">
                 {/* Full Image Background */}
                 <img src={getImageUrl(ads[0].image_url)} alt={ads[0].placement} className="absolute inset-0 w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110" />
 
@@ -309,11 +309,11 @@ export default function KomunitasPage() {
                 {/* Content Overlay */}
                 <div className="absolute inset-0 p-6 flex flex-col justify-end">
                   <div className="mb-auto flex">
-                    <span className="px-3 py-1 bg-emerald-500 text-zinc-950 text-[10px] font-black uppercase tracking-widest rounded-full">Promosi</span>
+                    <span className="px-3 py-1 bg-emerald-500 text-zinc-950 text-[10px] font-black uppercase tracking-widest rounded-[10px]">Promosi</span>
                   </div>
 
                   <div className="transform translate-y-2 group-hover:translate-y-0 transition-transform duration-500">
-                    <div className="w-full py-3 bg-white/10 hover:bg-white/20 backdrop-blur-md border border-white/20 text-white font-bold rounded-xl text-xs transition-all flex items-center justify-center gap-2 group/btn">
+                    <div className="w-full py-3 bg-white/10 hover:bg-white/20 backdrop-blur-md border border-white/20 text-white font-bold rounded-[10px] text-xs transition-all flex items-center justify-center gap-2 group/btn">
                       Kunjungi Link
                       <ArrowRight size={14} className="group-hover/btn:translate-x-1 transition-transform" />
                     </div>
@@ -321,13 +321,13 @@ export default function KomunitasPage() {
                 </div>
               </a>
             ) : (
-              <div className="hidden md:block bg-zinc-900 rounded-2xl overflow-hidden border border-zinc-800/80 group">
+              <div className="hidden md:block bg-zinc-900 rounded-[10px] overflow-hidden border border-zinc-800/80 group">
                 <div className="h-60 bg-gradient-to-br from-zinc-800 to-zinc-950 flex flex-col items-center justify-center relative overflow-hidden">
                   <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/10 via-transparent to-transparent"></div>
                   <div className="absolute -right-4 -top-4 opacity-10">
                     <Megaphone size={80} className="text-emerald-500" />
                   </div>
-                  <div className="w-14 h-14 bg-emerald-500/10 border border-emerald-500/20 rounded-2xl flex items-center justify-center mb-3 relative z-10 group-hover:scale-110 transition-transform duration-500">
+                  <div className="w-14 h-14 bg-emerald-500/10 border border-emerald-500/20 rounded-[10px] flex items-center justify-center mb-3 relative z-10 group-hover:scale-110 transition-transform duration-500">
                     <Megaphone size={26} className="text-emerald-400 group-hover:-rotate-12 transition-transform duration-500" />
                   </div>
                   <span className="text-[9px] font-black uppercase tracking-widest text-emerald-400/60 relative z-10">Iklan Tersedia</span>
@@ -335,7 +335,7 @@ export default function KomunitasPage() {
                 <div className="p-5">
                   <h4 className="font-black text-white text-base mb-1.5">Pasang Iklan Anda</h4>
                   <p className="text-xs text-zinc-500 leading-relaxed mb-4">Jangkau ribuan pencinta reptil aktif. Promosikan produk, jasa, atau toko Anda di sini.</p>
-                  <button className="w-full py-3 bg-emerald-500 hover:bg-emerald-400 text-zinc-950 font-black rounded-xl text-xs transition-all flex items-center justify-center gap-2">Hubungi Admin</button>
+                  <button className="w-full py-3 bg-emerald-500 hover:bg-emerald-400 text-zinc-950 font-black rounded-[10px] text-xs transition-all flex items-center justify-center gap-2">Hubungi Admin</button>
                 </div>
               </div>
             )}
@@ -344,14 +344,14 @@ export default function KomunitasPage() {
           {/* Main Content */}
           <div className="lg:col-span-3 space-y-4 order-1 lg:order-2">
             {/* Filter Bar */}
-            <div className="bg-white border border-zinc-200/70 rounded-2xl p-2 sm:p-3 flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3">
-              <div className="flex items-center gap-1 bg-zinc-100 rounded-xl p-1">
+            <div className="bg-white border border-zinc-200/70 rounded-[10px] p-2 sm:p-3 flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3">
+              <div className="flex items-center gap-1 bg-zinc-100 rounded-[10px] p-1">
                 {[
                   { id: "terbaru", label: "Terbaru", icon: Clock },
                   { id: "populer", label: "Populer", icon: Flame },
                   { id: "trending", label: "Trending", icon: TrendingUp },
                 ].map((tab) => (
-                  <button key={tab.id} onClick={() => setActiveTab(tab.id)} className={`flex-1 sm:flex-none px-4 py-2 rounded-lg font-bold text-sm whitespace-nowrap transition-all flex items-center justify-center gap-1.5 ${activeTab === tab.id ? "bg-white text-emerald-600" : "text-zinc-500 hover:text-zinc-700"}`}>
+                  <button key={tab.id} onClick={() => setActiveTab(tab.id)} className={`flex-1 sm:flex-none px-4 py-2 rounded-[10px] font-bold text-sm whitespace-nowrap transition-all flex items-center justify-center gap-1.5 ${activeTab === tab.id ? "bg-white text-emerald-600" : "text-zinc-500 hover:text-zinc-700"}`}>
                     <tab.icon size={14} /> {tab.label}
                   </button>
                 ))}
@@ -362,7 +362,7 @@ export default function KomunitasPage() {
                 <input
                   type="text"
                   placeholder="Cari topik diskusi..."
-                  className="w-full bg-zinc-50 border border-zinc-200 rounded-xl pl-9 pr-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-400 transition-all text-zinc-900 placeholder:text-zinc-400"
+                  className="w-full bg-zinc-50 border border-zinc-200 rounded-[10px] pl-9 pr-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-400 transition-all text-zinc-900 placeholder:text-zinc-400"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                 />
@@ -377,10 +377,10 @@ export default function KomunitasPage() {
                   <div className="flex flex-col items-center justify-center py-12 gap-4">
                     {/* Spinner */}
                     <div className="relative">
-                      <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center shadow-lg shadow-emerald-500/30">
+                      <div className="w-14 h-14 rounded-[10px] bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center shadow-lg shadow-emerald-500/30">
                         <MessageSquare size={24} className="text-white" />
                       </div>
-                      <div className="absolute -inset-1.5 rounded-[18px] border-2 border-emerald-400/40 animate-spin border-t-emerald-500" />
+                      <div className="absolute -inset-1.5 rounded-[10px] border-2 border-emerald-400/40 animate-spin border-t-emerald-500" />
                     </div>
                     <div className="text-center">
                       <p className="text-sm font-black text-zinc-700">Memuat Diskusi</p>
@@ -397,11 +397,11 @@ export default function KomunitasPage() {
                   {/* Skeleton grid cards below the spinner */}
                   <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
                     {[1, 2, 3, 4, 5, 6].map((i) => (
-                      <div key={i} className="flex flex-col justify-between bg-white rounded-2xl p-5 border border-zinc-200/70 animate-pulse h-[360px]" style={{ animationDelay: `${(i - 1) * 80}ms` }}>
+                      <div key={i} className="flex flex-col justify-between bg-white rounded-[10px] p-5 border border-zinc-200/70 animate-pulse h-[360px]" style={{ animationDelay: `${(i - 1) * 80}ms` }}>
                         <div className="space-y-4 flex-1 flex flex-col">
                           {/* Author Row Skeleton */}
                           <div className="flex items-center gap-3">
-                            <div className="w-9 h-9 rounded-xl bg-zinc-100" />
+                            <div className="w-9 h-9 rounded-[10px] bg-zinc-100" />
                             <div className="space-y-1.5 flex-1">
                               <div className="h-3.5 bg-zinc-100 w-24 rounded-full" />
                               <div className="h-3 bg-zinc-50 w-16 rounded-full" />
@@ -414,7 +414,7 @@ export default function KomunitasPage() {
                             <div className="h-3 bg-zinc-100 w-5/6 rounded-full" />
                           </div>
                           {/* Image Placeholder Skeleton */}
-                          <div className="w-full aspect-video rounded-xl bg-zinc-50 border border-zinc-100/50 mt-auto" />
+                          <div className="w-full aspect-video rounded-[10px] bg-zinc-50 border border-zinc-100/50 mt-auto" />
                         </div>
                         {/* Bottom Row Skeleton */}
                         <div className="flex items-center justify-between pt-4 border-t border-zinc-50 mt-4">
@@ -431,18 +431,18 @@ export default function KomunitasPage() {
               ) : currentTopics.length > 0 ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
                   {currentTopics.map((topic) => (
-                    <Link href={`/komunitas/${topic.id}`} key={topic.id} className="flex flex-col justify-between bg-white border border-zinc-200/70 hover:border-emerald-400/50 rounded-2xl p-5 transition-all duration-200 group hover:-translate-y-1 hover:shadow-lg hover:shadow-zinc-200/50 h-full">
+                    <Link href={`/komunitas/${topic.id}`} key={topic.id} className="flex flex-col justify-between bg-white border border-zinc-200/70 hover:border-emerald-400/50 rounded-[10px] p-5 transition-all duration-200 group hover:-translate-y-1 hover:shadow-lg hover:shadow-zinc-200/50 h-full">
                       <div className="flex-1 flex flex-col">
                         {/* Author Row */}
                         <div className="flex items-center gap-3 mb-3">
-                          <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-emerald-100 to-teal-100 border border-emerald-200/50 overflow-hidden flex items-center justify-center text-emerald-700 font-black text-sm shrink-0">
+                          <div className="w-9 h-9 rounded-[10px] bg-gradient-to-br from-emerald-100 to-teal-100 border border-emerald-200/50 overflow-hidden flex items-center justify-center text-emerald-700 font-black text-sm shrink-0">
                             {topic.author?.avatar_url ? <img src={getImageUrl(topic.author.avatar_url)} alt={topic.author.username} className="w-full h-full object-cover" /> : topic.author?.username ? topic.author.username.charAt(0).toUpperCase() : "U"}
                           </div>
                           <div className="flex items-center gap-2 flex-1 min-w-0 flex-wrap">
                             <span className="text-sm font-bold text-zinc-700 truncate max-w-[120px]">@{topic.author?.username || "Unknown"}</span>
 
                             {(topic.author?.stars > 0 || topic.author?.reputation > 0) && (
-                              <div className="flex items-center gap-1 bg-amber-50 border border-amber-200/50 px-2 py-0.5 rounded-full" title={`${topic.author?.reputation?.toLocaleString("id-ID") || 0} Poin Reputasi`}>
+                              <div className="flex items-center gap-1 bg-amber-50 border border-amber-200/50 px-2 py-0.5 rounded-[10px]" title={`${topic.author?.reputation?.toLocaleString("id-ID") || 0} Poin Reputasi`}>
                                 {topic.author?.stars > 0 ? (
                                   <div className="flex text-amber-500 gap-0.5">
                                     {Array.from({ length: topic.author.stars }).map((_, i) => (
@@ -464,7 +464,7 @@ export default function KomunitasPage() {
 
                         {/* Image */}
                         {topic.image && (
-                          <div className="w-full aspect-video rounded-xl overflow-hidden border border-zinc-100 mt-auto bg-zinc-50 mb-4">
+                          <div className="w-full aspect-video rounded-[10px] overflow-hidden border border-zinc-100 mt-auto bg-zinc-50 mb-4">
                             <img src={getImageUrl(topic.image)} alt={topic.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
                           </div>
                         )}
@@ -472,7 +472,7 @@ export default function KomunitasPage() {
 
                       {/* Bottom Row */}
                       <div className="flex items-center justify-between pt-3 border-t border-zinc-100 mt-3">
-                        <span className="px-2.5 py-1 bg-zinc-50 text-zinc-500 text-[8px] font-black rounded-full uppercase tracking-[0.1em] border border-zinc-100 group-hover:bg-emerald-50 group-hover:text-emerald-600 group-hover:border-emerald-100 transition-all truncate min-w-0 max-w-[150px] md:max-w-none">
+                        <span className="px-2.5 py-1 bg-zinc-50 text-zinc-500 text-[8px] font-black rounded-[10px] uppercase tracking-[0.1em] border border-zinc-100 group-hover:bg-emerald-50 group-hover:text-emerald-600 group-hover:border-emerald-100 transition-all truncate min-w-0 max-w-[150px] md:max-w-none">
                           {topic.category || "Diskusi Umum"}
                         </span>
 
@@ -494,13 +494,13 @@ export default function KomunitasPage() {
                   ))}
                 </div>
               ) : (
-                <div className="text-center py-20 bg-white border border-dashed border-zinc-200 rounded-2xl">
-                  <div className="w-16 h-16 bg-zinc-50 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-zinc-100">
+                <div className="text-center py-20 bg-white border border-dashed border-zinc-200 rounded-[10px]">
+                  <div className="w-16 h-16 bg-zinc-50 rounded-[10px] flex items-center justify-center mx-auto mb-4 border border-zinc-100">
                     <MessageSquare className="text-zinc-300" size={28} />
                   </div>
                   <h3 className="text-base font-black text-zinc-400 mb-1">Belum Ada Diskusi</h3>
                   <p className="text-zinc-400 text-sm mb-6">Jadilah yang pertama memulai topik diskusi!</p>
-                  <Link href="/user/komunitas" className="inline-flex items-center gap-2 px-6 py-3 bg-emerald-500 hover:bg-emerald-400 text-white font-bold rounded-xl transition-all text-sm">
+                  <Link href="/user/komunitas" className="inline-flex items-center gap-2 px-6 py-3 bg-emerald-500 hover:bg-emerald-400 text-white font-bold rounded-[10px] transition-all text-sm">
                     <MessageSquare size={15} /> Mulai Diskusi Baru
                   </Link>
                 </div>
@@ -510,17 +510,17 @@ export default function KomunitasPage() {
             {/* Pagination */}
             {totalPages > 1 && (
               <div className="pt-4 flex justify-center items-center gap-1.5">
-                <button onClick={() => setCurrentPage((p) => Math.max(1, p - 1))} disabled={currentPage === 1} className="p-2.5 bg-white border border-zinc-200 hover:bg-zinc-50 disabled:opacity-40 disabled:cursor-not-allowed text-zinc-500 rounded-xl transition-all">
+                <button onClick={() => setCurrentPage((p) => Math.max(1, p - 1))} disabled={currentPage === 1} className="p-2.5 bg-white border border-zinc-200 hover:bg-zinc-50 disabled:opacity-40 disabled:cursor-not-allowed text-zinc-500 rounded-[10px] transition-all">
                   <ChevronLeft size={17} />
                 </button>
 
                 {Array.from({ length: totalPages }).map((_, i) => (
-                  <button key={i} onClick={() => setCurrentPage(i + 1)} className={`w-10 h-10 rounded-xl font-black text-sm transition-all ${currentPage === i + 1 ? "bg-emerald-500 text-white" : "bg-white border border-zinc-200 hover:bg-zinc-50 text-zinc-500"}`}>
+                  <button key={i} onClick={() => setCurrentPage(i + 1)} className={`w-10 h-10 rounded-[10px] font-black text-sm transition-all ${currentPage === i + 1 ? "bg-emerald-500 text-white" : "bg-white border border-zinc-200 hover:bg-zinc-50 text-zinc-500"}`}>
                     {i + 1}
                   </button>
                 ))}
 
-                <button onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))} disabled={currentPage === totalPages} className="p-2.5 bg-white border border-zinc-200 hover:bg-zinc-50 disabled:opacity-40 disabled:cursor-not-allowed text-zinc-500 rounded-xl transition-all">
+                <button onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))} disabled={currentPage === totalPages} className="p-2.5 bg-white border border-zinc-200 hover:bg-zinc-50 disabled:opacity-40 disabled:cursor-not-allowed text-zinc-500 rounded-[10px] transition-all">
                   <ChevronRight size={17} />
                 </button>
               </div>

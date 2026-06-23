@@ -314,7 +314,7 @@ export default function ShippingConfirmationPage({ params }) {
       {/* Header Navigation */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <Link href={`/user/toko/pesanan-masuk/detail/${id}`} className="flex items-center gap-2 text-zinc-400 hover:text-white transition-colors group self-start">
-          <div className="w-8 h-8 rounded-lg bg-zinc-900 border border-zinc-800 flex items-center justify-center group-hover:bg-zinc-800 transition-all">
+          <div className="w-8 h-8 rounded-[10px] bg-zinc-900 border border-zinc-800 flex items-center justify-center group-hover:bg-zinc-800 transition-all">
             <ChevronLeft size={18} />
           </div>
           <span className="text-sm font-bold">Kembali ke Detail</span>
@@ -331,10 +331,10 @@ export default function ShippingConfirmationPage({ params }) {
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
         {/* LEFT: Shipping Form */}
         <div className="lg:col-span-7 space-y-8">
-          <div className="bg-zinc-900 border border-zinc-800 rounded-[2rem] lg:rounded-[3rem] p-6 lg:p-10 relative overflow-hidden">
+          <div className="bg-zinc-900 border border-zinc-800 rounded-[10px] p-6 lg:p-10 relative overflow-hidden">
             <div className="space-y-8">
               <div className="flex items-center gap-4">
-                <div className="w-12 h-12 bg-blue-500/10 text-blue-500 rounded-2xl flex items-center justify-center border border-blue-500/20">
+                <div className="w-12 h-12 bg-blue-500/10 text-blue-500 rounded-[10px] flex items-center justify-center border border-blue-500/20">
                   <Truck size={24} />
                 </div>
                 <div>
@@ -355,11 +355,11 @@ export default function ShippingConfirmationPage({ params }) {
                       type="text"
                       value={form.tracking_number}
                       onChange={(e) => setForm({ ...form, tracking_number: e.target.value.toUpperCase() })}
-                      className="w-full bg-zinc-950 border border-zinc-800 rounded-[2rem] py-5 px-8 text-white focus:outline-none focus:border-blue-500 transition-all font-black text-lg placeholder:text-zinc-800"
+                      className="w-full bg-zinc-950 border border-zinc-800 rounded-[10px] py-5 px-8 text-white focus:outline-none focus:border-blue-500 transition-all font-black text-lg placeholder:text-zinc-800"
                       placeholder="CONTOH: JNE123456789"
                     />
                     <div className="absolute right-6 top-1/2 -translate-y-1/2">
-                      <div className="w-8 h-8 bg-zinc-900 border border-zinc-800 rounded-lg flex items-center justify-center text-zinc-600">
+                      <div className="w-8 h-8 bg-zinc-900 border border-zinc-800 rounded-[10px] flex items-center justify-center text-zinc-600">
                         <Info size={16} />
                       </div>
                     </div>
@@ -374,7 +374,7 @@ export default function ShippingConfirmationPage({ params }) {
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div
-                      className={`relative aspect-video rounded-[2rem] border-2 border-dashed transition-all overflow-hidden flex flex-col items-center justify-center gap-4 group cursor-pointer
+                      className={`relative aspect-video rounded-[10px] border-2 border-dashed transition-all overflow-hidden flex flex-col items-center justify-center gap-4 group cursor-pointer
                                                 ${form.shipping_proof ? "border-emerald-500/50 bg-emerald-500/5" : "border-zinc-800 bg-zinc-950 hover:border-blue-500/50 hover:bg-blue-500/5"}`}
                     >
                       {form.shipping_proof ? (
@@ -402,7 +402,7 @@ export default function ShippingConfirmationPage({ params }) {
                         </>
                       ) : (
                         <>
-                          <div className="w-16 h-16 bg-zinc-900 text-zinc-500 rounded-3xl flex items-center justify-center group-hover:scale-110 group-hover:text-blue-500 transition-all border border-zinc-800">
+                          <div className="w-16 h-16 bg-zinc-900 text-zinc-500 rounded-[10px] flex items-center justify-center group-hover:scale-110 group-hover:text-blue-500 transition-all border border-zinc-800">
                             {uploading ? <div className="w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div> : <Upload size={32} />}
                           </div>
                           <div className="text-center">
@@ -414,7 +414,7 @@ export default function ShippingConfirmationPage({ params }) {
                       <input type="file" className="absolute inset-0 opacity-0 cursor-pointer" accept="image/*" onChange={handleFileUpload} disabled={uploading} />
                     </div>
 
-                    <div className="bg-zinc-950/50 border border-zinc-800 rounded-[2rem] p-6 space-y-4">
+                    <div className="bg-zinc-950/50 border border-zinc-800 rounded-[10px] p-6 space-y-4">
                       <p className="text-zinc-500 text-[11px] font-medium leading-relaxed italic border-b border-zinc-800 pb-3 mb-3">Pastikan foto struk atau paket terlihat jelas dan tajam dengan ukuran file maksimal 1MB agar proses verifikasi lancar.</p>
                       <ul className="space-y-3">
                         {["Foto resi harus terlihat jelas", "Foto paket sebelum diserahkan ke kurir", "Pastikan nomor resi sesuai dengan fisik", "Simpan bukti fisik hingga paket diterima"].map((tip, i) => (
@@ -431,10 +431,10 @@ export default function ShippingConfirmationPage({ params }) {
                 </div>
 
                 <div className="pt-6 border-t border-zinc-800/50 flex flex-col sm:flex-row gap-4">
-                  <Link href={`/user/toko/pesanan-masuk/detail/${id}`} className="flex-1 py-5 bg-zinc-800 hover:bg-zinc-700 text-white font-black rounded-2xl transition-all text-center text-sm uppercase tracking-widest">
+                  <Link href={`/user/toko/pesanan-masuk/detail/${id}`} className="flex-1 py-5 bg-zinc-800 hover:bg-zinc-700 text-white font-black rounded-[10px] transition-all text-center text-sm uppercase tracking-widest">
                     Batal
                   </Link>
-                  <button type="submit" disabled={isSubmitting || uploading} className="flex-[2] py-5 bg-[#228B22] hover:bg-[#4CBB17] text-white font-black rounded-2xl transition-all disabled:opacity-50 flex items-center justify-center gap-3 active:scale-95 text-sm uppercase tracking-widest">
+                  <button type="submit" disabled={isSubmitting || uploading} className="flex-[2] py-5 bg-[#228B22] hover:bg-[#4CBB17] text-white font-black rounded-[10px] transition-all disabled:opacity-50 flex items-center justify-center gap-3 active:scale-95 text-sm uppercase tracking-widest">
                     {isSubmitting ? (
                       <>
                         <div className="w-5 h-5 border-2 border-zinc-950 border-t-transparent rounded-full animate-spin"></div>
@@ -457,7 +457,7 @@ export default function ShippingConfirmationPage({ params }) {
 
         {/* RIGHT: Product Summary */}
         <div className="lg:col-span-5 space-y-8 lg:sticky lg:top-24">
-          <div className="bg-zinc-900 border border-zinc-800 rounded-[2rem] lg:rounded-[3rem] p-6 lg:p-8 space-y-8">
+          <div className="bg-zinc-900 border border-zinc-800 rounded-[10px] p-6 lg:p-8 space-y-8">
             <h3 className="text-[10px] font-black text-zinc-500 uppercase tracking-widest flex items-center gap-2">
               <ShoppingBag size={16} className="text-blue-500" /> Ringkasan Pesanan
             </h3>
@@ -465,8 +465,8 @@ export default function ShippingConfirmationPage({ params }) {
             {order.items && order.items.length > 0 ? (
               <div className="space-y-4">
                 {order.items.map((item, idx) => (
-                  <div key={item.id || idx} className="flex gap-4 p-3 bg-zinc-950/40 border border-zinc-800/80 rounded-2xl">
-                    <div className="w-16 h-16 rounded-xl overflow-hidden bg-zinc-950 border border-zinc-800 shrink-0 relative aspect-square">
+                  <div key={item.id || idx} className="flex gap-4 p-3 bg-zinc-950/40 border border-zinc-800/80 rounded-[10px]">
+                    <div className="w-16 h-16 rounded-[10px] overflow-hidden bg-zinc-950 border border-zinc-800 shrink-0 relative aspect-square">
                       {(() => {
                         const mediaUrl = getImageUrl(item.product?.images);
                         return isVideoUrl(mediaUrl) ? <video src={mediaUrl} className="w-full h-full object-cover" preload="metadata" muted playsInline /> : <img src={mediaUrl || "https://placehold.co/400x400/f4f4f5/71717a?text=No+Image"} className="w-full h-full object-cover" alt={item.product?.name} />;
@@ -474,10 +474,10 @@ export default function ShippingConfirmationPage({ params }) {
                     </div>
                     <div className="space-y-1 min-w-0 flex-1">
                       <div className="flex flex-wrap items-center gap-1.5">
-                        <span className="px-1.5 py-0.5 bg-zinc-800 text-[8px] text-zinc-400 rounded font-black uppercase tracking-widest border border-zinc-700">{item.product?.species}</span>
-                        <span className="px-1.5 py-0.5 bg-zinc-800 text-[8px] text-zinc-400 rounded font-black uppercase tracking-widest border border-zinc-700">Qty: {item.quantity}</span>
-                        {item.product?.is_free_shipping && <span className="px-1.5 py-0.5 bg-emerald-500/15 text-emerald-400 rounded text-[8px] font-black uppercase tracking-widest border border-emerald-500/20">Bebas Ongkir</span>}
-                        {item.product?.is_free_packing && <span className="px-1.5 py-0.5 bg-blue-500/15 text-blue-400 rounded text-[8px] font-black uppercase tracking-widest border border-blue-500/20">Gratis Packing</span>}
+                        <span className="px-1.5 py-0.5 bg-zinc-800 text-[8px] text-zinc-400 rounded-[10px] font-black uppercase tracking-widest border border-zinc-700">{item.product?.species}</span>
+                        <span className="px-1.5 py-0.5 bg-zinc-800 text-[8px] text-zinc-400 rounded-[10px] font-black uppercase tracking-widest border border-zinc-700">Qty: {item.quantity}</span>
+                        {item.product?.is_free_shipping && <span className="px-1.5 py-0.5 bg-emerald-500/15 text-emerald-400 rounded-[10px] text-[8px] font-black uppercase tracking-widest border border-emerald-500/20">Bebas Ongkir</span>}
+                        {item.product?.is_free_packing && <span className="px-1.5 py-0.5 bg-blue-500/15 text-blue-400 rounded-[10px] text-[8px] font-black uppercase tracking-widest border border-blue-500/20">Gratis Packing</span>}
                       </div>
                       <h4 className="text-xs font-black text-white leading-tight truncate">{item.product?.name}</h4>
                       <p className="text-[10px] font-bold text-zinc-500">{formatPrice(item.price)} / ekor</p>
@@ -487,7 +487,7 @@ export default function ShippingConfirmationPage({ params }) {
               </div>
             ) : (
               <div className="flex gap-6">
-                <div className="w-24 h-24 rounded-2xl overflow-hidden bg-zinc-950 border border-zinc-800 shrink-0">
+                <div className="w-24 h-24 rounded-[10px] overflow-hidden bg-zinc-950 border border-zinc-800 shrink-0">
                   {(() => {
                     const mediaUrl = getImageUrl(order.product?.images);
                     return isVideoUrl(mediaUrl) ? <video src={mediaUrl} className="w-full h-full object-cover" preload="metadata" muted playsInline /> : <img src={mediaUrl || "https://placehold.co/400x400/f4f4f5/71717a?text=No+Image"} alt={order.product?.name} className="w-full h-full object-cover" />;
@@ -495,10 +495,10 @@ export default function ShippingConfirmationPage({ params }) {
                 </div>
                 <div className="space-y-1">
                   <div className="flex flex-wrap items-center gap-2">
-                    <span className="px-2 py-0.5 bg-zinc-800 text-[8px] text-zinc-400 rounded font-black uppercase tracking-widest border border-zinc-700">{order.product?.species}</span>
-                    <span className="px-2 py-0.5 bg-zinc-800 text-[8px] text-zinc-400 rounded font-black uppercase tracking-widest border border-zinc-700">ID : {order.product?.product_id || "-"}</span>
-                    {order.product?.is_free_shipping && <span className="px-2 py-0.5 bg-emerald-500/15 text-emerald-400 rounded text-[8px] font-black uppercase tracking-widest border border-emerald-500/20">Bebas Ongkir</span>}
-                    {order.product?.is_free_packing && <span className="px-2 py-0.5 bg-blue-500/15 text-blue-400 rounded text-[8px] font-black uppercase tracking-widest border border-blue-500/20">Gratis Packing</span>}
+                    <span className="px-2 py-0.5 bg-zinc-800 text-[8px] text-zinc-400 rounded-[10px] font-black uppercase tracking-widest border border-zinc-700">{order.product?.species}</span>
+                    <span className="px-2 py-0.5 bg-zinc-800 text-[8px] text-zinc-400 rounded-[10px] font-black uppercase tracking-widest border border-zinc-700">ID : {order.product?.product_id || "-"}</span>
+                    {order.product?.is_free_shipping && <span className="px-2 py-0.5 bg-emerald-500/15 text-emerald-400 rounded-[10px] text-[8px] font-black uppercase tracking-widest border border-emerald-500/20">Bebas Ongkir</span>}
+                    {order.product?.is_free_packing && <span className="px-2 py-0.5 bg-blue-500/15 text-blue-400 rounded-[10px] text-[8px] font-black uppercase tracking-widest border border-blue-500/20">Gratis Packing</span>}
                   </div>
                   <h4 className="text-lg font-black text-white leading-tight">{order.product?.name}</h4>
                   <p className="text-sm font-bold text-zinc-500">
@@ -532,7 +532,7 @@ export default function ShippingConfirmationPage({ params }) {
               </div>
               <div className="flex justify-between items-center text-[10px]">
                 <span className="text-zinc-500 font-bold italic uppercase tracking-widest">Sudah Dibayar Oleh Pembeli</span>
-                <div className="px-2 py-1 bg-emerald-500/10 text-emerald-500 rounded-md font-black uppercase tracking-widest flex items-center gap-1">
+                <div className="px-2 py-1 bg-emerald-500/10 text-emerald-500 rounded-[10px] font-black uppercase tracking-widest flex items-center gap-1">
                   <CheckCircle2 size={10} /> LUNAS
                 </div>
               </div>
@@ -540,11 +540,11 @@ export default function ShippingConfirmationPage({ params }) {
           </div>
 
           {/* Alamat Pengiriman Recap */}
-          <div className="bg-zinc-900 border border-zinc-800 rounded-[2rem] lg:rounded-[3rem] p-6 lg:p-8 space-y-6">
+          <div className="bg-zinc-900 border border-zinc-800 rounded-[10px] p-6 lg:p-8 space-y-6">
             <h3 className="text-[10px] font-black text-zinc-500 uppercase tracking-widest flex items-center gap-2">
               <MapPin size={16} className="text-blue-500" /> Alamat Tujuan Pengiriman
             </h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-5 bg-zinc-950/50 rounded-[2rem] border border-zinc-800">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-5 bg-zinc-950/50 rounded-[10px] border border-zinc-800">
               <div className="space-y-4">
                 <div className="space-y-1">
                   <p className="text-[9px] font-black text-zinc-500 uppercase tracking-widest">Penerima</p>
@@ -576,8 +576,8 @@ export default function ShippingConfirmationPage({ params }) {
               Tutup [X]
             </button>
 
-            <div className="bg-zinc-900 border border-zinc-800 rounded-3xl p-3 max-w-full overflow-hidden flex items-center justify-center">
-              <img src={getImageUrl(form.shipping_proof)} className="max-w-full max-h-[70vh] object-contain rounded-2xl" alt="Review Bukti Pengiriman" />
+            <div className="bg-zinc-900 border border-zinc-800 rounded-[10px] p-3 max-w-full overflow-hidden flex items-center justify-center">
+              <img src={getImageUrl(form.shipping_proof)} className="max-w-full max-h-[70vh] object-contain rounded-[10px]" alt="Review Bukti Pengiriman" />
             </div>
             <p className="text-zinc-500 text-[10px] font-black uppercase tracking-widest">Review Bukti Pengiriman Anda</p>
           </div>

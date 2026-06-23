@@ -163,12 +163,12 @@ export default function PengajuanPencairanPage({ params }) {
       {/* Header */}
       <div className="flex items-center justify-between">
         <Link href="/user/toko/pengajuan-keuangan" className="flex items-center gap-2 text-zinc-400 hover:text-white transition-colors group">
-          <div className="w-10 h-10 rounded-xl bg-zinc-900 border border-zinc-800 flex items-center justify-center group-hover:bg-zinc-800 transition-all">
+          <div className="w-10 h-10 rounded-[10px] bg-zinc-900 border border-zinc-800 flex items-center justify-center group-hover:bg-zinc-800 transition-all">
             <ChevronLeft size={20} />
           </div>
           <span className="font-black uppercase tracking-widest text-[10px]">Batal</span>
         </Link>
-        <div className="px-4 py-2 bg-zinc-900 border border-zinc-800 rounded-xl">
+        <div className="px-4 py-2 bg-zinc-900 border border-zinc-800 rounded-[10px]">
           <span className="text-[10px] font-black text-emerald-500 font-mono tracking-wider">{order.order_id}</span>
         </div>
       </div>
@@ -176,7 +176,7 @@ export default function PengajuanPencairanPage({ params }) {
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
         {/* Summary Info */}
         <div className="lg:col-span-7 space-y-8">
-          <div className="bg-zinc-900 border border-zinc-800 rounded-[3rem] p-10 space-y-10 relative overflow-hidden">
+          <div className="bg-zinc-900 border border-zinc-800 rounded-[10px] p-10 space-y-10 relative overflow-hidden">
             <div className="relative z-10 space-y-8">
               <div className="flex items-center gap-4">
                 <div>
@@ -184,18 +184,18 @@ export default function PengajuanPencairanPage({ params }) {
                   <p className="text-zinc-500 text-sm font-medium">Ajukan penarikan dana ke rekening Anda</p>
                 </div>
               </div>
-
+ 
               <div className="space-y-6">
-                <div className="p-6 bg-zinc-950/50 rounded-3xl border border-zinc-800 space-y-4">
+                <div className="p-6 bg-zinc-950/50 rounded-[10px] border border-zinc-800 space-y-4">
                   <div className="flex items-center justify-between">
                     <p className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Informasi Produk</p>
-                    <div className="px-2 py-1 bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 rounded-lg text-[9px] font-black uppercase">Selesai</div>
+                    <div className="px-2 py-1 bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 rounded-[10px] text-[9px] font-black uppercase">Selesai</div>
                   </div>
                   <div className="flex flex-col gap-4">
                     {order.items && order.items.length > 0 ? (
                       order.items.map((item, idx) => (
                         <div key={item.id || idx} className="flex items-center gap-4 border-b border-zinc-800/40 pb-3 last:border-0 last:pb-0">
-                          <div className="w-16 h-16 bg-zinc-900 rounded-2xl overflow-hidden border border-zinc-800 shrink-0">
+                          <div className="w-16 h-16 bg-zinc-900 rounded-[10px] overflow-hidden border border-zinc-800 shrink-0">
                             {item.product?.images && isVideoUrl(item.product.images) ? (
                               <video src={getImageUrl(item.product.images)} className="w-full h-full object-cover" preload="metadata" muted playsInline />
                             ) : (
@@ -212,7 +212,7 @@ export default function PengajuanPencairanPage({ params }) {
                       ))
                     ) : (
                       <div className="flex items-center gap-4">
-                        <div className="w-16 h-16 bg-zinc-900 rounded-2xl overflow-hidden border border-zinc-800 shrink-0">
+                        <div className="w-16 h-16 bg-zinc-900 rounded-[10px] overflow-hidden border border-zinc-800 shrink-0">
                           {order.product?.images && isVideoUrl(order.product.images) ? (
                             <video src={getImageUrl(order.product.images)} className="w-full h-full object-cover" preload="metadata" muted playsInline />
                           ) : (
@@ -232,7 +232,7 @@ export default function PengajuanPencairanPage({ params }) {
 
                 <div className="space-y-4">
                   <p className="text-[10px] font-black text-zinc-500 uppercase tracking-widest ml-1">Rincian Dana Pencairan</p>
-                  <div className="bg-zinc-950/30 rounded-3xl border border-zinc-800 p-6 space-y-4">
+                  <div className="bg-zinc-950/30 rounded-[10px] border border-zinc-800 p-6 space-y-4">
                     <div className="flex justify-between items-center text-xs">
                       <span className="text-zinc-500 font-bold uppercase tracking-widest">Harga Produk</span>
                       <span className="text-white font-black">{formatPrice(getOrderSubtotal(order))}</span>
@@ -254,8 +254,8 @@ export default function PengajuanPencairanPage({ params }) {
                   <p className="text-[9px] text-zinc-500 font-medium italic ml-1">* Estimasi belum termasuk biaya transfer antar bank (jika ada).</p>
                 </div>
               </div>
-
-              <button onClick={handleSubmit} disabled={isSubmitting} className="w-full py-5 bg-[#2563EB] hover:bg-[#1D4ED8] text-[#FFFFFF] font-black rounded-3xl transition-all disabled:opacity-50 flex items-center justify-center gap-3 active:scale-[0.98] group">
+ 
+              <button onClick={handleSubmit} disabled={isSubmitting} className="w-full py-5 bg-[#2563EB] hover:bg-[#1D4ED8] text-[#FFFFFF] font-black rounded-[10px] transition-all disabled:opacity-50 flex items-center justify-center gap-3 active:scale-[0.98] group">
                 {isSubmitting ? (
                   <>
                     <div className="w-5 h-5 border-2 border-zinc-950 border-t-transparent rounded-full animate-spin"></div>
@@ -276,12 +276,12 @@ export default function PengajuanPencairanPage({ params }) {
 
         {/* Account Details Sidebar */}
         <div className="lg:col-span-5 space-y-6">
-          <div className="bg-zinc-900 border border-zinc-800 rounded-[2.5rem] p-8 space-y-8">
+          <div className="bg-zinc-900 border border-zinc-800 rounded-[10px] p-8 space-y-8">
             <div className="space-y-6">
               <h4 className="text-[10px] font-black text-zinc-500 uppercase tracking-widest flex items-center gap-2">
                 <CreditCard size={14} className="text-emerald-500" /> Rekening Tujuan
               </h4>
-              <div className="bg-zinc-950/50 rounded-3xl p-6 border border-zinc-800/50 space-y-6">
+              <div className="bg-zinc-950/50 rounded-[10px] p-6 border border-zinc-800/50 space-y-6">
                 <div className="space-y-4">
                   <div>
                     <p className="text-[9px] font-black text-zinc-600 uppercase tracking-widest leading-none mb-2">Nama Bank</p>
@@ -305,8 +305,8 @@ export default function PengajuanPencairanPage({ params }) {
                 </div>
               </div>
             </div>
-
-            <div className="bg-amber-500/5 border border-amber-500/20 rounded-3xl p-6 flex gap-4 items-start">
+ 
+            <div className="bg-amber-500/5 border border-amber-500/20 rounded-[10px] p-6 flex gap-4 items-start">
               <AlertCircle className="text-amber-500 shrink-0" size={20} />
               <div className="space-y-1">
                 <p className="text-[10px] font-black text-amber-500 uppercase tracking-widest">Informasi</p>

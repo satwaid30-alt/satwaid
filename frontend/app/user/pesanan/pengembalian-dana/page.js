@@ -3,8 +3,21 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ChevronLeft, Search, Filter, CheckCircle2, Clock, XCircle, Wallet, Store, ArrowRight, Eye, RefreshCw } from "lucide-react";
+import { ChevronLeft, ChevronRight, Search, Filter, CheckCircle2, Clock, XCircle, Wallet, Store, ArrowRight, Eye, RefreshCw } from "lucide-react";
 import { getApiUrl, getImageUrl } from "@/app/utils/api";
+
+const getPaginationRange = (currentPage, totalPages) => {
+  if (totalPages <= 4) {
+    return Array.from({ length: totalPages }, (_, i) => i + 1);
+  }
+  if (currentPage <= 2) {
+    return [1, 2, "...", totalPages];
+  }
+  if (currentPage >= totalPages - 1) {
+    return [1, "...", totalPages - 1, totalPages];
+  }
+  return [1, "...", currentPage, "...", totalPages];
+};
 
 export default function PengembalianDanaPage() {
   const [orders, setOrders] = useState([]);
@@ -137,7 +150,7 @@ export default function PengembalianDanaPage() {
           <p className="text-zinc-400 font-medium text-sm font-medium">Pantau status refund untuk pesanan yang dibatalkan setelah pembayaran dilakukan.</p>
         </div>
 
-        <button onClick={handleRefresh} disabled={refreshing} className="self-start md:self-auto flex items-center gap-2 px-5 py-3 bg-zinc-900 border border-zinc-800 text-zinc-400 hover:text-white hover:border-zinc-700 rounded-2xl transition-all text-xs font-black uppercase tracking-widest">
+        <button onClick={handleRefresh} disabled={refreshing} className="self-start md:self-auto flex items-center gap-2 px-5 py-3 bg-zinc-900 border border-zinc-800 text-zinc-400 hover:text-white hover:border-zinc-700 rounded-[10px] transition-all text-xs font-black uppercase tracking-widest">
           <RefreshCw size={14} className={refreshing ? "animate-spin" : ""} />
           Perbarui Data
         </button>
@@ -151,9 +164,9 @@ export default function PengembalianDanaPage() {
           { label: "Menunggu Transfer", count: counts.pending, colorClass: "text-amber-500" },
           { label: "Refund Berhasil", count: counts.refunded, colorClass: "text-emerald-500" },
         ].map((card) => (
-          <div key={card.label} className="p-5 bg-zinc-900/40 border border-zinc-800 rounded-2xl flex flex-col gap-1 transition-all shadow-md">
-            <p className={`text-2xl font-black ${card.colorClass}`}>{card.count}</p>
-            <p className="text-[9px] font-black text-zinc-500 uppercase tracking-widest">{card.label}</p>
+          <div key={card.label} className="p-5 bg-zinc-900/40 border border-zinc-800 rounded-[10px] flex items-center gap-3 transition-all shadow-md">
+            <p className={`text-2xl font-black leading-none ${card.colorClass}`}>{card.count}</p>
+            <p className="text-[9px] font-black text-zinc-500 uppercase tracking-widest leading-tight">{card.label}</p>
           </div>
         ))}
       </div>
@@ -162,11 +175,11 @@ export default function PengembalianDanaPage() {
       <div className="grid grid-cols-1 md:grid-cols-12 gap-4">
         <div className="md:col-span-8 relative group">
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500 group-focus-within:text-emerald-500 transition-colors" size={18} />
-          <input type="text" placeholder="Cari ID Pesanan, Nama Produk, atau Toko..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="w-full bg-zinc-900/30 border border-zinc-800 text-white pl-12 pr-4 py-3.5 rounded-2xl focus:outline-none focus:border-emerald-500/50 transition-all text-sm font-medium" />
+          <input type="text" placeholder="Cari ID Pesanan, Nama Produk, atau Toko..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="w-full bg-zinc-900/30 border border-zinc-800 text-white pl-12 pr-4 py-3.5 rounded-[10px] focus:outline-none focus:border-emerald-500/50 transition-all text-sm font-medium" />
         </div>
         <div className="md:col-span-4 relative">
           <Filter className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500" size={18} />
-          <select value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)} className="w-full bg-zinc-900/30 border border-zinc-800 text-white pl-12 pr-4 py-3.5 rounded-2xl focus:outline-none focus:border-emerald-500/50 transition-all text-sm font-black uppercase tracking-widest appearance-none cursor-pointer">
+          <select value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)} className="w-full bg-zinc-900/30 border border-zinc-800 text-white pl-12 pr-4 py-3.5 rounded-[10px] focus:outline-none focus:border-emerald-500/50 transition-all text-sm font-black uppercase tracking-widest appearance-none cursor-pointer">
             <option value="all">Semua Status</option>
             <option value="not_submitted">Belum Diajukan ({counts.not_submitted})</option>
             <option value="pending">Menunggu Transfer ({counts.pending})</option>
@@ -177,7 +190,7 @@ export default function PengembalianDanaPage() {
       </div>
 
       {/* Refund List Table (Desktop View) */}
-      <div className="hidden md:block bg-zinc-900/20 border border-zinc-800 rounded-[2.5rem] overflow-hidden shadow-2xl relative">
+      <div className="hidden md:block bg-zinc-900/20 border border-zinc-800 rounded-[10px] overflow-hidden shadow-2xl relative">
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>
@@ -220,7 +233,7 @@ export default function PengembalianDanaPage() {
                         </div>
                       </td>
                       <td className="px-6 py-6 text-center">
-                        <span className={`inline-block px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-widest border ${order.product?.type === "auction" ? "bg-amber-500/10 text-amber-500 border-amber-500/20" : "bg-blue-500/10 text-blue-400 border-blue-500/20"}`}>
+                        <span className={`inline-block px-2 py-0.5 rounded-[10px] text-[9px] font-black uppercase tracking-widest border ${order.product?.type === "auction" ? "bg-amber-500/10 text-amber-500 border-amber-500/20" : "bg-blue-500/10 text-blue-400 border-blue-500/20"}`}>
                           {order.product?.type === "auction" ? "Lelang" : "Beli Langsung"}
                         </span>
                       </td>
@@ -229,22 +242,22 @@ export default function PengembalianDanaPage() {
                       </td>
                       <td className="px-6 py-6 text-center">
                         {isNotSubmitted && (
-                          <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-amber-500/10 border border-amber-500/20 text-amber-400 rounded-full text-[9px] font-black uppercase tracking-wider">
+                          <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-amber-500/10 border border-amber-500/20 text-amber-400 rounded-[10px] text-[9px] font-black uppercase tracking-wider">
                             <Clock size={8} /> Belum Diajukan
                           </span>
                         )}
                         {isPending && (
-                          <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-amber-500/10 border border-amber-500/20 text-amber-500 rounded-full text-[9px] font-black uppercase tracking-wider">
+                          <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-amber-500/10 border border-amber-500/20 text-amber-500 rounded-[10px] text-[9px] font-black uppercase tracking-wider">
                             <Clock size={8} /> Menunggu Transfer
                           </span>
                         )}
                         {isRefunded && (
-                          <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-emerald-500/10 border border-emerald-500/20 text-emerald-500 rounded-full text-[9px] font-black uppercase tracking-wider">
+                          <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-emerald-500/10 border border-emerald-500/20 text-emerald-500 rounded-[10px] text-[9px] font-black uppercase tracking-wider">
                             <CheckCircle2 size={8} /> Selesai
                           </span>
                         )}
                         {isRejected && (
-                          <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-red-500/10 border border-red-500/20 text-red-500 rounded-full text-[9px] font-black uppercase tracking-wider">
+                          <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-red-500/10 border border-red-500/20 text-red-500 rounded-[10px] text-[9px] font-black uppercase tracking-wider">
                             <XCircle size={8} /> Ditolak
                           </span>
                         )}
@@ -252,7 +265,7 @@ export default function PengembalianDanaPage() {
                       <td className="px-6 py-6 text-center">
                         <Link
                           href={`/user/pesanan/pengembalian-dana/detail/${order.id}`}
-                          className={`inline-flex items-center gap-1.5 px-4 py-2 border rounded-xl text-[10px] font-black uppercase tracking-widest transition-all active:scale-95 shadow-md ${
+                          className={`inline-flex items-center gap-1.5 px-4 py-2 border rounded-[10px] text-[10px] font-black uppercase tracking-widest transition-all active:scale-95 shadow-md ${
                             isNotSubmitted ? "bg-[#2563EB] hover:bg-[#1D4ED8] text-[#FFFFFF] border-[#1D4ED8]" : "bg-zinc-800 hover:bg-zinc-700 text-zinc-400 hover:text-white border-zinc-700"
                           }`}
                         >
@@ -266,7 +279,7 @@ export default function PengembalianDanaPage() {
                 <tr>
                   <td colSpan={6} className="px-6 py-20 text-center">
                     <div className="max-w-md mx-auto space-y-4">
-                      <div className="w-16 h-16 bg-zinc-900 border border-zinc-800 rounded-2xl flex items-center justify-center text-zinc-600 mx-auto">
+                      <div className="w-16 h-16 bg-zinc-900 border border-zinc-800 rounded-[10px] flex items-center justify-center text-zinc-650 mx-auto">
                         <Wallet size={32} />
                       </div>
                       <div className="space-y-1">
@@ -292,7 +305,7 @@ export default function PengembalianDanaPage() {
             const isRejected = order.refund_status === "rejected";
 
             return (
-              <div key={order.id} className="bg-zinc-900/40 border border-zinc-800/80 rounded-3xl p-5 space-y-4 shadow-lg">
+              <div key={order.id} className="bg-zinc-900/40 border border-zinc-800/80 rounded-[10px] p-5 space-y-4 shadow-lg">
                 {/* Header: Invoice & Status */}
                 <div className="flex items-start justify-between gap-3 pb-3 border-b border-zinc-800/60">
                   <div className="space-y-0.5">
@@ -300,21 +313,21 @@ export default function PengembalianDanaPage() {
                     <p className="text-[10px] text-zinc-500 font-bold">Batal: {formatDate(order.cancelled_at || order.updated_at)}</p>
                   </div>
                   <div>
-                    {isNotSubmitted && <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-amber-500/10 border border-amber-500/20 text-amber-400 rounded-full text-[9px] font-black uppercase tracking-wider">Belum Diajukan</span>}
-                    {isPending && <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-amber-500/10 border border-amber-500/20 text-amber-500 rounded-full text-[9px] font-black uppercase tracking-wider">Menunggu Transfer</span>}
-                    {isRefunded && <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-emerald-500/10 border border-emerald-500/20 text-emerald-500 rounded-full text-[9px] font-black uppercase tracking-wider">Selesai</span>}
-                    {isRejected && <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-red-500/10 border border-red-500/20 text-red-500 rounded-full text-[9px] font-black uppercase tracking-wider">Ditolak</span>}
+                    {isNotSubmitted && <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-amber-500/10 border border-amber-500/20 text-amber-400 rounded-[10px] text-[9px] font-black uppercase tracking-wider">Belum Diajukan</span>}
+                    {isPending && <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-amber-500/10 border border-amber-500/20 text-amber-500 rounded-[10px] text-[9px] font-black uppercase tracking-wider">Menunggu Transfer</span>}
+                    {isRefunded && <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-emerald-500/10 border border-emerald-500/20 text-emerald-500 rounded-[10px] text-[9px] font-black uppercase tracking-wider">Selesai</span>}
+                    {isRejected && <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-red-500/10 border border-red-500/20 text-red-500 rounded-[10px] text-[9px] font-black uppercase tracking-wider">Ditolak</span>}
                   </div>
                 </div>
 
                 {/* Body: Product Info */}
                 <div className="flex gap-4">
-                  <div className="w-16 h-16 bg-zinc-950 border border-zinc-800 rounded-2xl overflow-hidden shrink-0 flex items-center justify-center text-zinc-650">
+                  <div className="w-16 h-16 bg-zinc-950 border border-zinc-800 rounded-[10px] overflow-hidden shrink-0 flex items-center justify-center text-zinc-650">
                     {order.product?.images?.length > 0 ? <img src={getImageUrl(order.product.images)} className="w-full h-full object-cover" alt={order.product.name} /> : <Store size={20} />}
                   </div>
                   <div className="min-w-0 flex-1 space-y-1">
                     <div className="flex items-center gap-2">
-                      <span className={`inline-block px-1.5 py-0.5 rounded text-[8px] font-black uppercase tracking-widest border ${order.product?.type === "auction" ? "bg-amber-500/10 text-amber-500 border-amber-500/20" : "bg-blue-500/10 text-blue-400 border-blue-500/20"}`}>
+                      <span className={`inline-block px-1.5 py-0.5 rounded-[10px] text-[8px] font-black uppercase tracking-widest border ${order.product?.type === "auction" ? "bg-amber-500/10 text-amber-500 border-amber-500/20" : "bg-blue-500/10 text-blue-400 border-blue-500/20"}`}>
                         {order.product?.type === "auction" ? "Lelang" : "Beli Langsung"}
                       </span>
                     </div>
@@ -337,7 +350,7 @@ export default function PengembalianDanaPage() {
                   </div>
                   <Link
                     href={`/user/pesanan/pengembalian-dana/detail/${order.id}`}
-                    className={`inline-flex items-center gap-1.5 px-4 py-2 border rounded-xl text-[10px] font-black uppercase tracking-widest transition-all active:scale-95 shadow-md ${
+                    className={`inline-flex items-center gap-1.5 px-4 py-2 border rounded-[10px] text-[10px] font-black uppercase tracking-widest transition-all active:scale-95 shadow-md ${
                       isNotSubmitted ? "bg-amber-400 hover:bg-amber-300 text-zinc-950 border-amber-300" : "bg-zinc-800 hover:bg-zinc-700 text-zinc-400 hover:text-white border-zinc-700"
                     }`}
                   >
@@ -348,9 +361,9 @@ export default function PengembalianDanaPage() {
             );
           })
         ) : (
-          <div className="bg-zinc-900/20 border border-zinc-800 rounded-[2rem] p-8 text-center">
+          <div className="bg-zinc-900/20 border border-zinc-800 rounded-[10px] p-8 text-center">
             <div className="max-w-md mx-auto space-y-4">
-              <div className="w-16 h-16 bg-zinc-900 border border-zinc-800 rounded-2xl flex items-center justify-center text-zinc-600 mx-auto">
+              <div className="w-16 h-16 bg-zinc-900 border border-zinc-800 rounded-[10px] flex items-center justify-center text-zinc-650 mx-auto">
                 <Wallet size={32} />
               </div>
               <div className="space-y-1">
@@ -364,21 +377,31 @@ export default function PengembalianDanaPage() {
 
       {/* Pagination Footer */}
       {totalPages > 1 && (
-        <div className="p-6 bg-zinc-900/40 border border-zinc-800 flex items-center justify-between gap-4 rounded-3xl mt-6 shadow-lg">
-          <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">
-            Halaman {currentPage} dari {totalPages}
+        <div className="flex flex-col md:flex-row items-center justify-between gap-4 bg-zinc-900/50 border border-zinc-800 p-6 rounded-[10px] mt-6">
+          <p className="text-[10px] md:text-xs font-black text-zinc-500 uppercase tracking-widest">
+            Menampilkan {indexOfFirstItem + 1} - {Math.min(indexOfLastItem, filteredOrders.length)} dari {filteredOrders.length} Data Refund
           </p>
-          <div className="flex items-center gap-2">
-            <button onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))} disabled={currentPage === 1} className="px-4 py-2 bg-zinc-900 border border-zinc-800 hover:border-zinc-700 text-zinc-400 hover:text-white disabled:opacity-50 disabled:cursor-not-allowed rounded-xl text-xs font-black uppercase tracking-widest transition-all">
-              Sebelumnya
-            </button>
-            <button
-              onClick={() => setCurrentPage((p) => Math.min(p + 1, totalPages))}
-              disabled={currentPage === totalPages}
-              className="px-4 py-2 bg-zinc-900 border border-zinc-800 hover:border-zinc-700 text-zinc-400 hover:text-white disabled:opacity-50 disabled:cursor-not-allowed rounded-xl text-xs font-black uppercase tracking-widest transition-all"
-            >
-              Selanjutnya
-            </button>
+          <div className="flex items-center">
+            <div className="inline-flex rounded-[10px] border border-zinc-800 bg-zinc-950 divide-x divide-zinc-800 overflow-hidden">
+              <button onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))} disabled={currentPage === 1} className="w-10 h-10 flex items-center justify-center text-zinc-400 hover:text-white hover:bg-zinc-900/50 disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-transparent transition-all">
+                <ChevronLeft size={16} />
+              </button>
+
+              {getPaginationRange(currentPage, totalPages).map((page, idx) => (
+                <button
+                  key={idx}
+                  onClick={() => typeof page === "number" && setCurrentPage(page)}
+                  disabled={page === "..."}
+                  className={`w-10 h-10 flex items-center justify-center text-xs font-bold transition-all ${page === currentPage ? "bg-zinc-800 text-white font-black" : page === "..." ? "text-zinc-500 cursor-default bg-zinc-950" : "text-zinc-400 hover:text-white hover:bg-zinc-900/50 bg-zinc-950"}`}
+                >
+                  {page}
+                </button>
+              ))}
+
+              <button onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))} disabled={currentPage === totalPages} className="w-10 h-10 flex items-center justify-center text-zinc-400 hover:text-white hover:bg-zinc-900/50 disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-transparent transition-all">
+                <ChevronRight size={16} />
+              </button>
+            </div>
           </div>
         </div>
       )}

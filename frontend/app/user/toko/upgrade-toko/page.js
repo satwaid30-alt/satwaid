@@ -5,6 +5,8 @@ import { Sparkles, ShieldCheck, Clock, Plus, Check, ArrowRight, Upload, Info, Al
 import Link from "next/link";
 import { getApiUrl, getSocketUrl, getLogoUrl } from "@/app/utils/api";
 import { io } from "socket.io-client";
+import { uploadImageToS3 } from "@/components/HandleUpload";
+import ActionModal from "@/components/ActionModal";
 
 export default function UpgradeTokoPage() {
   const [user, setUser] = useState(null);
@@ -33,6 +35,8 @@ export default function UpgradeTokoPage() {
   // Active pending upgrade request stored locally
   const [pendingRequest, setPendingRequest] = useState(null);
   const [toastMessage, setToastMessage] = useState("");
+  const [showErrorModal, setShowErrorModal] = useState(false);
+  const [errorModalMessage, setErrorModalMessage] = useState("");
 
   const formatPrice = (price) => {
     return new Intl.NumberFormat("id-ID", {
@@ -182,12 +186,66 @@ export default function UpgradeTokoPage() {
     setTimeout(() => setCopiedText(""), 2000);
   };
 
+  const validateImageFile = (file, inputRef) => {
+    if (!file) return false;
+
+    // 1. Block dangerous extensions
+    const blockedExtensions = [".php", ".exe", ".svg", ".doc", ".docx", ".xls", ".xlsx", ".ppt", ".pptx", ".pdf"];
+    const fileName = file.name.toLowerCase();
+    if (blockedExtensions.some((ext) => fileName.endsWith(ext))) {
+      setShowErrorModal(true);
+      setErrorModalMessage("Format file tersebut tidak diperbolehkan. Hanya gambar JPG, PNG, atau WEBP yang diterima.");
+      if (inputRef) inputRef.value = null;
+      return false;
+    }
+
+    // 2. Block dangerous & document MIME types
+    const blockedMime = [
+      "application/pdf",
+      "application/msword",
+      "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+      "application/vnd.ms-excel",
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+      "application/vnd.ms-powerpoint",
+      "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+      "application/x-php",
+      "application/x-httpd-php",
+      "text/x-php",
+      "application/octet-stream",
+      "image/svg+xml",
+    ];
+    if (blockedMime.includes(file.type)) {
+      setShowErrorModal(true);
+      setErrorModalMessage("Tipe file tersebut tidak diperbolehkan. Hanya gambar JPG, PNG, atau WEBP yang diterima.");
+      if (inputRef) inputRef.value = null;
+      return false;
+    }
+
+    // 3. Validate allowed image MIME types
+    const allowedMime = ["image/jpeg", "image/jpg", "image/png", "image/webp", "image/gif"];
+    if (!allowedMime.includes(file.type)) {
+      setShowErrorModal(true);
+      setErrorModalMessage("Hanya gambar berformat JPG, PNG, WEBP, atau GIF yang diperbolehkan.");
+      if (inputRef) inputRef.value = null;
+      return false;
+    }
+
+    // 4. Validate file size (max 1 MB)
+    if (file.size > 1 * 1024 * 1024) {
+      setShowErrorModal(true);
+      setErrorModalMessage("Ukuran foto tidak boleh melebihi 1MB. Silakan kompres foto Anda.");
+      if (inputRef) inputRef.value = null;
+      return false;
+    }
+
+    return true;
+  };
+
   const handleFileChange = (e) => {
     const file = e.target.files[0];
     if (!file) return;
 
-    if (file.size > 1 * 1024 * 1024) {
-      alert("Ukuran file tidak boleh melebihi 1MB");
+    if (!validateImageFile(file, e.target)) {
       return;
     }
 
@@ -249,21 +307,14 @@ export default function UpgradeTokoPage() {
     try {
       const token = localStorage.getItem("token");
 
-      // 1. Upload payment proof
-      const uploadData = new FormData();
-      uploadData.append("image", paymentProof);
+      // 1. Upload payment proof to S3
+      const extension = paymentProof.name.split(".").pop();
+      const uniqueId = typeof crypto !== "undefined" && typeof crypto.randomUUID === "function" ? crypto.randomUUID() : Math.random().toString(36).substring(2, 15);
+      const randomName = `${uniqueId}.${extension}`;
+      const renamedFile = new File([paymentProof], randomName, { type: paymentProof.type });
 
-      const uploadRes = await fetch(`${getApiUrl()}/upload`, {
-        method: "POST",
-        body: uploadData,
-      });
-
-      if (!uploadRes.ok) {
-        throw new Error("Gagal mengunggah bukti transfer.");
-      }
-
-      const uploadResult = await uploadRes.json();
-      const imageUrl = uploadResult.url;
+      const { objectKey } = await uploadImageToS3(renamedFile, token, "payments");
+      const imageUrl = "/" + objectKey;
 
       // 2. Submit upgrade request
       const upgradeRes = await fetch(`${getApiUrl()}/shop-upgrades`, {
@@ -306,10 +357,7 @@ export default function UpgradeTokoPage() {
     const planName = (plan.name || "").toLowerCase();
 
     // Check if this plan is currently active for the shop
-    const isOwned =
-      currentLevel === planName ||
-      (currentLevel.includes("pro") && planName.includes("pro")) ||
-      (currentLevel.includes("enterprise") && planName.includes("enterprise"));
+    const isOwned = currentLevel === planName || (currentLevel.includes("pro") && planName.includes("pro")) || (currentLevel.includes("enterprise") && planName.includes("enterprise"));
 
     if (isOwned) {
       return { text: "Sudah Membeli", disabled: true, isOwned: true };
@@ -318,11 +366,7 @@ export default function UpgradeTokoPage() {
     // Check if there is a pending request for this specific plan
     if (pendingRequest) {
       const pendingPlanName = (pendingRequest.plan_name || pendingRequest.planName || "").toLowerCase();
-      const isPendingThis =
-        pendingRequest.plan_id === plan.id ||
-        pendingPlanName === planName ||
-        (pendingPlanName.includes("pro") && planName.includes("pro")) ||
-        (pendingPlanName.includes("enterprise") && planName.includes("enterprise"));
+      const isPendingThis = pendingRequest.plan_id === plan.id || pendingPlanName === planName || (pendingPlanName.includes("pro") && planName.includes("pro")) || (pendingPlanName.includes("enterprise") && planName.includes("enterprise"));
 
       if (isPendingThis) {
         return { text: "Menunggu Verifikasi", disabled: true, isPending: true };
@@ -345,13 +389,13 @@ export default function UpgradeTokoPage() {
     return (
       <div className="space-y-8 animate-pulse max-w-6xl mx-auto">
         <div className="space-y-3">
-          <div className="h-8 bg-zinc-900 rounded-lg w-1/3"></div>
-          <div className="h-4 bg-zinc-900 rounded-lg w-1/2"></div>
+          <div className="h-8 bg-zinc-900 rounded-[10px] w-1/3"></div>
+          <div className="h-4 bg-zinc-900 rounded-[10px] w-1/2"></div>
         </div>
-        <div className="h-44 bg-zinc-900 border border-zinc-800 rounded-[2.5rem]"></div>
+        <div className="h-44 bg-zinc-900 border border-zinc-800 rounded-[10px]"></div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           {[1, 2, 3].map((i) => (
-            <div key={i} className="h-96 bg-zinc-900 border border-zinc-800 rounded-[2.5rem]"></div>
+            <div key={i} className="h-96 bg-zinc-900 border border-zinc-800 rounded-[10px]"></div>
           ))}
         </div>
       </div>
@@ -361,13 +405,13 @@ export default function UpgradeTokoPage() {
   // Handle Error
   if (error) {
     return (
-      <div className="max-w-xl mx-auto my-12 p-8 bg-zinc-900 border border-zinc-800 rounded-[2rem] text-center space-y-6">
+      <div className="max-w-xl mx-auto my-12 p-8 bg-zinc-900 border border-zinc-800 rounded-[10px] text-center space-y-6">
         <AlertTriangle size={48} className="text-amber-500 mx-auto" />
         <div className="space-y-2">
           <h2 className="text-xl font-bold text-white uppercase tracking-wider">Kesalahan Koneksi</h2>
           <p className="text-zinc-400 text-sm leading-relaxed">{error}</p>
         </div>
-        <button onClick={loadData} className="flex items-center gap-2 px-6 py-3 bg-emerald-500 hover:bg-emerald-400 text-zinc-950 font-black rounded-xl mx-auto transition-transform active:scale-[0.98]">
+        <button onClick={loadData} className="flex items-center gap-2 px-6 py-3 bg-emerald-500 hover:bg-emerald-400 text-zinc-950 font-black rounded-[10px] mx-auto transition-transform active:scale-[0.98]">
           <RefreshCw size={16} />
           Coba Lagi
         </button>
@@ -378,8 +422,8 @@ export default function UpgradeTokoPage() {
   // Handle No Shop State
   if (!shop) {
     return (
-      <div className="max-w-2xl mx-auto my-12 p-10 bg-zinc-900 border border-zinc-800 rounded-[2.5rem] text-center space-y-6">
-        <div className="w-16 h-16 bg-zinc-800 border border-zinc-700/50 rounded-2xl flex items-center justify-center text-zinc-500 mx-auto">
+      <div className="max-w-2xl mx-auto my-12 p-10 bg-zinc-900 border border-zinc-800 rounded-[10px] text-center space-y-6">
+        <div className="w-16 h-16 bg-zinc-800 border border-zinc-700/50 rounded-[10px] flex items-center justify-center text-zinc-500 mx-auto">
           <Store size={36} />
         </div>
         <div className="space-y-2">
@@ -387,7 +431,7 @@ export default function UpgradeTokoPage() {
           <p className="text-zinc-400 text-sm leading-relaxed max-w-md mx-auto">Anda harus mendaftarkan toko seller terlebih dahulu sebelum dapat mengakses menu Upgrade Toko.</p>
         </div>
         <div className="pt-2">
-          <Link href="/user/toko" className="inline-flex items-center gap-2 px-8 py-3.5 bg-emerald-500 hover:bg-emerald-400 text-zinc-950 font-black rounded-xl transition-all">
+          <Link href="/user/toko" className="inline-flex items-center gap-2 px-8 py-3.5 bg-emerald-500 hover:bg-emerald-400 text-zinc-950 font-black rounded-[10px] transition-all">
             Buka Toko Sekarang
             <ArrowRight size={16} />
           </Link>
@@ -400,7 +444,7 @@ export default function UpgradeTokoPage() {
     <div className="space-y-10 max-w-6xl mx-auto pb-16 relative">
       {/* Toast Notification */}
       {toastMessage && (
-        <div className="fixed top-6 left-1/2 -translate-x-1/2 z-50 bg-emerald-500 text-zinc-950 font-bold px-6 py-3.5 rounded-2xl flex items-center gap-3 animate-in fade-in slide-in-from-top-4 duration-300 border border-emerald-400/20">
+        <div className="fixed top-6 left-1/2 -translate-x-1/2 z-50 bg-emerald-500 text-zinc-950 font-bold px-6 py-3.5 rounded-[10px] flex items-center gap-3 animate-in fade-in slide-in-from-top-4 duration-300 border border-emerald-400/20">
           <CheckCircle size={20} />
           <span className="text-sm">{toastMessage}</span>
         </div>
@@ -418,42 +462,43 @@ export default function UpgradeTokoPage() {
 
       {/* Active Pending Request Banner */}
       {pendingRequest && (
-        <div className="p-6 bg-amber-500/10 border border-amber-500/20 rounded-[2rem] flex flex-col md:flex-row items-start md:items-center justify-between gap-6 hover:bg-amber-500/15 transition-all">
+        <div className="p-6 bg-amber-500/10 border border-amber-500/20 rounded-[10px] flex flex-col md:flex-row items-start md:items-center justify-between gap-6 hover:bg-amber-500/15 transition-all">
           <div className="flex gap-4">
-            <div className="w-12 h-12 bg-amber-500/10 border border-amber-500/20 rounded-2xl flex items-center justify-center text-amber-500 shrink-0">
+            <div className="w-12 h-12 bg-amber-500/10 border border-amber-500/20 rounded-[10px] flex items-center justify-center text-amber-500 shrink-0">
               <Clock size={24} />
             </div>
             <div className="space-y-1">
-              <span className="text-[10px] font-black text-amber-500 uppercase tracking-widest leading-none bg-amber-500/10 px-2.5 py-0.5 rounded border border-amber-500/20 inline-block mb-1">Menunggu Verifikasi Admin</span>
+              <span className="text-[10px] font-black text-amber-500 uppercase tracking-widest leading-none bg-amber-500/10 px-2.5 py-0.5 rounded-[10px] border border-amber-500/20 inline-block mb-1">Menunggu Verifikasi Admin</span>
               <h3 className="text-base font-black text-white">
                 Pengajuan Upgrade: <span className="text-amber-400">{pendingRequest.plan_name || pendingRequest.planName}</span>
               </h3>
               <p className="text-xs text-zinc-400 leading-relaxed font-medium">
-                Diajukan pada {pendingRequest.created_at || pendingRequest.submitted_at || pendingRequest.submittedAt ? new Date(pendingRequest.created_at || pendingRequest.submitted_at || pendingRequest.submittedAt).toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" }) : "-"} pukul {pendingRequest.created_at || pendingRequest.submitted_at || pendingRequest.submittedAt ? new Date(pendingRequest.created_at || pendingRequest.submitted_at || pendingRequest.submittedAt).toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" }).replace(".", ":") : "-"} WIB. Atas nama rekening transfer:{" "}
+                Diajukan pada {pendingRequest.created_at || pendingRequest.submitted_at || pendingRequest.submittedAt ? new Date(pendingRequest.created_at || pendingRequest.submitted_at || pendingRequest.submittedAt).toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" }) : "-"} pukul{" "}
+                {pendingRequest.created_at || pendingRequest.submitted_at || pendingRequest.submittedAt ? new Date(pendingRequest.created_at || pendingRequest.submitted_at || pendingRequest.submittedAt).toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" }).replace(".", ":") : "-"} WIB. Atas nama rekening transfer:{" "}
                 <span className="font-bold text-zinc-200">{pendingRequest.account_name || pendingRequest.accountName}</span> ({(pendingRequest.bank_origin || pendingRequest.bankOrigin || "").toUpperCase()}) dengan <span className="font-mono font-bold text-amber-500">Kode Transaksi #UPG-{pendingRequest.unique_code}</span>.
               </p>
             </div>
           </div>
-          <button onClick={handleCancelPending} className="px-5 py-2.5 bg-zinc-900 border border-zinc-800 hover:border-zinc-700 text-rose-500 hover:bg-rose-500/10 rounded-xl text-xs font-black uppercase tracking-widest transition-all shrink-0">
+          <button onClick={handleCancelPending} className="px-5 py-2.5 bg-zinc-900 border border-zinc-800 hover:border-zinc-700 text-rose-500 hover:bg-rose-500/10 rounded-[10px] text-xs font-black uppercase tracking-widest transition-all shrink-0">
             Batalkan Pengajuan
           </button>
         </div>
       )}
 
       {/* Shop Info & Current Quota Overview */}
-      <div className="bg-zinc-900 border border-zinc-800 p-6 md:p-8 rounded-[2.5rem] grid grid-cols-1 lg:grid-cols-3 gap-8 items-center">
+      <div className="bg-zinc-900 border border-zinc-800 p-6 md:p-8 rounded-[10px] grid grid-cols-1 lg:grid-cols-3 gap-8 items-center">
         {/* Col 1: Shop Identity */}
         <div className="flex items-center gap-5">
-          <div className="w-16 h-16 rounded-2xl bg-zinc-800 border border-zinc-750 flex items-center justify-center text-zinc-500 overflow-hidden shrink-0">{shop.logo_url ? <img src={getLogoUrl(shop.logo_url)} className="w-full h-full object-cover" alt={shop.name} /> : <Store size={32} className="text-zinc-550" />}</div>
+          <div className="w-16 h-16 rounded-[10px] bg-zinc-800 border border-zinc-750 flex items-center justify-center text-zinc-500 overflow-hidden shrink-0">{shop.logo_url ? <img src={getLogoUrl(shop.logo_url)} className="w-full h-full object-cover" alt={shop.name} /> : <Store size={32} className="text-zinc-550" />}</div>
           <div>
             <div className="flex items-center gap-2">
               <h2 className="text-lg font-black text-white">{shop.name}</h2>
-              {shop.listing_limit > 500 && <span className="px-2 py-0.5 bg-emerald-500/10 text-emerald-500 text-[8px] font-black rounded uppercase tracking-wider border border-emerald-500/20">Pro Seller</span>}
+              {shop.listing_limit > 500 && <span className="px-2 py-0.5 bg-emerald-500/10 text-emerald-500 text-[8px] font-black rounded-[10px] uppercase tracking-wider border border-emerald-500/20">Pro Seller</span>}
             </div>
             <p className="text-zinc-500 text-xs mt-0.5">
               Kode Toko: <span className="font-mono text-zinc-400">{shop.shop_code || "-"}</span>
             </p>
-            <p className="text-[10px] text-zinc-400 bg-zinc-800/40 border border-zinc-800 px-2.5 py-0.5 rounded-lg inline-block mt-2">
+            <p className="text-[10px] text-zinc-400 bg-zinc-800/40 border border-zinc-800 px-2.5 py-0.5 rounded-[10px] inline-block mt-2">
               Level Keanggotaan: <strong className="text-zinc-200">{shop.membership_level || "Standard Seller"}</strong>
             </p>
           </div>
@@ -475,49 +520,22 @@ export default function UpgradeTokoPage() {
 
         {/* Col 3: Disbursement speed status */}
         <div className="flex gap-4 items-start lg:pl-4">
-          <div className="w-10 h-10 bg-emerald-500/10 border border-emerald-500/20 rounded-xl flex items-center justify-center text-emerald-500 shrink-0">
+          <div className="w-10 h-10 bg-emerald-500/10 border border-emerald-500/20 rounded-[10px] flex items-center justify-center text-emerald-500 shrink-0">
             <Clock size={20} />
           </div>
           <div className="space-y-1">
             <p className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Kecepatan Pencairan Dana</p>
-            <h4 className="text-sm font-black text-white">
-              {shop?.membership_level === 'Pro Seller' ? 'Prioritas (1-2 Hari Kerja)' : 
-               shop?.membership_level === 'Enterprise Seller' ? 'Prioritas (1 Hari Kerja)' : 
-               'Standar (3-5 Hari Kerja)'}
-            </h4>
+            <h4 className="text-sm font-black text-white">{shop?.membership_level === "Pro Seller" ? "Prioritas (1-2 Hari Kerja)" : shop?.membership_level === "Enterprise Seller" ? "Prioritas (1 Hari Kerja)" : "Standar (3-5 Hari Kerja)"}</h4>
             <p className="text-[10px] text-zinc-500 leading-relaxed font-medium">
-              {shop?.membership_level === 'Pro Seller' ? 'Pro Seller menikmati prioritas pencairan dana hasil penjualan selesai dalam 1-2 hari kerja.' :
-               shop?.membership_level === 'Enterprise Seller' ? 'Enterprise Seller menikmati prioritas instan pencairan dana hasil penjualan selesai dalam 1 hari kerja.' :
-               'Upgrade untuk prioritas pencairan dana hasil penjualan selesai dalam 1-2 hari kerja.'}
+              {shop?.membership_level === "Pro Seller"
+                ? "Pro Seller menikmati prioritas pencairan dana hasil penjualan selesai dalam 1-2 hari kerja."
+                : shop?.membership_level === "Enterprise Seller"
+                  ? "Enterprise Seller menikmati prioritas instan pencairan dana hasil penjualan selesai dalam 1 hari kerja."
+                  : "Upgrade untuk prioritas pencairan dana hasil penjualan selesai dalam 1-2 hari kerja."}
             </p>
           </div>
         </div>
       </div>
-
-      {/* Benefits Comparison Overview */}
-      <div className="space-y-6">
-        <div className="text-center md:text-left">
-          <h3 className="text-lg font-bold text-white uppercase tracking-wider italic">Mengapa Harus Upgrade Toko?</h3>
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="bg-zinc-900 border border-zinc-800 p-6 rounded-3xl space-y-3 hover:border-zinc-700 transition-colors">
-            <div className="w-12 h-12 bg-blue-500/10 border border-blue-500/20 rounded-xl flex items-center justify-center text-blue-400">
-              <Plus size={24} />
-            </div>
-            <h4 className="font-bold text-white text-sm">Katalog Tanpa Batas</h4>
-            <p className="text-zinc-500 text-xs leading-relaxed font-medium">Tambah kuota 500 produk lagi, memungkinkan Anda mengunggah varian hewan, aksesoris, pakan, dan kelengkapannya.</p>
-          </div>
-
-          <div className="bg-zinc-900 border border-zinc-800 p-6 rounded-3xl space-y-3 hover:border-zinc-700 transition-colors">
-            <div className="w-12 h-12 bg-purple-500/10 border border-purple-500/20 rounded-xl flex items-center justify-center text-purple-400">
-              <Clock size={24} />
-            </div>
-            <h4 className="font-bold text-white text-sm">Pencairan Dana Lebih Cepat</h4>
-            <p className="text-zinc-500 text-xs leading-relaxed font-medium">Kecepatan review dan transfer pencairan dalam 1-2 hari kerja membantu Anda memutar modal jauh lebih cepat.</p>
-          </div>
-        </div>
-      </div>
-
       {/* Plan Selection Cards */}
       <div className="space-y-6">
         <div className="text-center md:text-left">
@@ -527,7 +545,7 @@ export default function UpgradeTokoPage() {
 
         <div className="flex justify-center w-full">
           {plans.length === 0 ? (
-            <div className="text-center py-12 px-6 bg-zinc-900 border border-zinc-800 rounded-[2.5rem] max-w-md w-full text-zinc-550 text-sm font-semibold space-y-3">
+            <div className="text-center py-12 px-6 bg-zinc-900 border border-zinc-800 rounded-[10px] max-w-md w-full text-zinc-550 text-sm font-semibold space-y-3">
               <Info size={36} className="text-zinc-600 mx-auto" />
               <p>Belum ada paket upgrade yang tersedia saat ini.</p>
             </div>
@@ -536,15 +554,15 @@ export default function UpgradeTokoPage() {
               {plans.map((plan) => (
                 <div
                   key={plan.id}
-                  className={`bg-zinc-900 border ${plan.popular ? "border-emerald-500/40 relative" : "border-zinc-800"} rounded-[2.5rem] p-8 flex flex-col justify-between transition-all duration-300 hover:scale-[1.01] hover:-translate-y-1 bg-gradient-to-b ${plan.gradient || "from-emerald-500/10 via-teal-500/5 to-zinc-900 hover:border-emerald-500/40"} w-full`}
+                  className={`bg-zinc-900 border ${plan.popular ? "border-emerald-500/40 relative" : "border-zinc-800"} rounded-[10px] p-8 flex flex-col justify-between transition-all duration-300 hover:scale-[1.01] hover:-translate-y-1 bg-gradient-to-b ${plan.gradient || "from-emerald-500/10 via-teal-500/5 to-zinc-900 hover:border-emerald-500/40"} w-full`}
                 >
-                  {plan.popular && <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 bg-emerald-500 text-zinc-950 font-black text-[9px] uppercase tracking-widest px-4 py-1.5 rounded-full">Rekomendasi Utama</div>}
+                  {plan.popular && <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 bg-emerald-500 text-zinc-950 font-black text-[9px] uppercase tracking-widest px-4 py-1.5 rounded-[10px]">Rekomendasi Utama</div>}
 
                   <div className="space-y-6">
                     {/* Plan Header */}
                     <div className="space-y-2">
                       <div className="flex items-center justify-between">
-                        <span className={`px-2.5 py-1 text-[8px] font-black uppercase tracking-wider rounded-lg ${plan.badgeColor || plan.badge_color || "bg-emerald-500/10 text-emerald-400 border border-emerald-500/25"}`}>{plan.badge}</span>
+                        <span className={`px-2.5 py-1 text-[8px] font-black uppercase tracking-wider rounded-[10px] ${plan.badgeColor || plan.badge_color || "bg-emerald-500/10 text-emerald-400 border border-emerald-500/25"}`}>{plan.badge}</span>
                       </div>
                       <h3 className="text-xl font-black text-white mt-1 leading-none">{plan.name}</h3>
                       <p className="text-sm font-bold text-emerald-400">{plan.subName || plan.sub_name}</p>
@@ -580,19 +598,11 @@ export default function UpgradeTokoPage() {
                         return (
                           <button
                             disabled
-                            className={`w-full py-4 rounded-2xl text-xs font-black uppercase tracking-wider flex items-center justify-center gap-2 border cursor-not-allowed transition-all opacity-60 ${
-                              btnState.isOwned
-                                ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
-                                : btnState.isPending
-                                ? "bg-amber-500/10 text-amber-400 border-amber-500/20"
-                                : "bg-zinc-900 text-zinc-650 border-zinc-800"
+                            className={`w-full py-4 rounded-[10px] text-xs font-black uppercase tracking-wider flex items-center justify-center gap-2 border cursor-not-allowed transition-all opacity-60 ${
+                              btnState.isOwned ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20" : btnState.isPending ? "bg-amber-500/10 text-amber-400 border-amber-500/20" : "bg-zinc-900 text-zinc-650 border-zinc-800"
                             }`}
                           >
-                            {btnState.isOwned ? (
-                              <CheckCircle size={14} className="stroke-[2.5]" />
-                            ) : btnState.isPending ? (
-                              <Clock size={14} className="stroke-[2.5]" />
-                            ) : null}
+                            {btnState.isOwned ? <CheckCircle size={14} className="stroke-[2.5]" /> : btnState.isPending ? <Clock size={14} className="stroke-[2.5]" /> : null}
                             {btnState.text}
                           </button>
                         );
@@ -600,11 +610,7 @@ export default function UpgradeTokoPage() {
                       return (
                         <button
                           onClick={() => handleOpenCheckout(plan)}
-                          className={`w-full py-4 rounded-2xl text-xs font-black uppercase tracking-wider flex items-center justify-center gap-2 transition-all active:scale-[0.98] ${
-                            plan.popular
-                              ? "bg-emerald-500 hover:bg-emerald-400 text-zinc-950 shadow-lg shadow-emerald-500/10"
-                              : "bg-zinc-800 hover:bg-zinc-750 text-white border border-zinc-700/50"
-                          }`}
+                          className={`w-full py-4 rounded-[10px] text-xs font-black uppercase tracking-wider flex items-center justify-center gap-2 transition-all active:scale-[0.98] ${plan.popular ? "bg-[#228B22] hover:bg-[#4CBB17] text-white" : "bg-zinc-800 hover:bg-zinc-750 text-white border border-zinc-700/50"}`}
                         >
                           {btnState.text}
                           <ArrowRight size={14} />
@@ -626,17 +632,14 @@ export default function UpgradeTokoPage() {
           <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" onClick={() => setIsModalOpen(false)}></div>
 
           {/* Content Wrapper */}
-          <div className="bg-zinc-900 border border-zinc-800 w-full max-w-lg rounded-[2.5rem] relative overflow-hidden z-10 max-h-[90vh] flex flex-col animate-in zoom-in-95 duration-200">
+          <div className="bg-zinc-900 border border-zinc-800 w-full max-w-lg rounded-[10px] relative overflow-hidden z-10 max-h-[90vh] flex flex-col animate-in zoom-in-95 duration-200">
             {/* Modal Header */}
             <div className="p-6 border-b border-zinc-800 flex items-center justify-between shrink-0">
               <div>
-                <h3 className="text-lg font-black text-white uppercase tracking-wider italic flex items-center gap-2">
-                  <Sparkles className="text-emerald-500" size={20} />
-                  Checkout Upgrade Toko
-                </h3>
+                <h3 className="text-lg font-black text-white uppercase tracking-wider italic flex items-center gap-2">Checkout Upgrade Toko</h3>
                 <p className="text-zinc-500 text-xs mt-0.5">{selectedPlan.name}</p>
               </div>
-              <button onClick={() => setIsModalOpen(false)} className="w-8 h-8 rounded-xl bg-zinc-800 border border-zinc-700/50 text-zinc-400 hover:text-white flex items-center justify-center transition-colors">
+              <button onClick={() => setIsModalOpen(false)} className="w-8 h-8 rounded-[10px] bg-zinc-800 border border-zinc-700/50 text-zinc-400 hover:text-white flex items-center justify-center transition-colors">
                 <X size={16} />
               </button>
             </div>
@@ -655,7 +658,7 @@ export default function UpgradeTokoPage() {
               {/* Step 1: Package Review */}
               {currentStep === 1 && (
                 <div className="space-y-6">
-                  <div className="p-5 bg-zinc-950 rounded-3xl border border-zinc-800/50 space-y-4">
+                  <div className="p-5 bg-zinc-950 rounded-[10px] border border-zinc-800/50 space-y-4">
                     <div className="flex justify-between items-start">
                       <div>
                         <h4 className="text-sm font-black text-white">{selectedPlan.name}</h4>
@@ -675,7 +678,7 @@ export default function UpgradeTokoPage() {
 
                   <div className="space-y-3">
                     <h4 className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Detail Keuntungan Paket:</h4>
-                    <ul className="space-y-3 bg-zinc-900/40 p-4 rounded-3xl border border-zinc-800/50">
+                    <ul className="space-y-3 bg-zinc-900/40 p-4 rounded-[10px] border border-zinc-800/50">
                       {selectedPlan.features.map((feat, i) => (
                         <li key={i} className="flex items-center gap-2 text-xs text-zinc-300">
                           <Check size={12} className="text-emerald-500 stroke-[3]" />
@@ -685,12 +688,12 @@ export default function UpgradeTokoPage() {
                     </ul>
                   </div>
 
-                  <div className="p-4 bg-blue-500/10 border border-blue-500/20 rounded-2xl flex gap-3 items-start">
+                  <div className="p-4 bg-blue-500/10 border border-blue-500/20 rounded-[10px] flex gap-3 items-start">
                     <Info size={16} className="text-blue-400 shrink-0 mt-0.5" />
                     <p className="text-[10px] text-zinc-400 leading-relaxed font-medium">Pengajuan upgrade Anda akan langsung diverifikasi oleh Tim Admin SatwaID setelah bukti transfer pembayaran diunggah.</p>
                   </div>
 
-                  <button onClick={() => setCurrentStep(2)} className="w-full py-4 bg-emerald-500 hover:bg-emerald-400 text-zinc-950 text-xs font-black uppercase tracking-wider rounded-2xl transition-all flex items-center justify-center gap-2">
+                  <button onClick={() => setCurrentStep(2)} className="w-full py-4 bg-[#228B22] hover:bg-[#4CBB17] text-white text-xs font-black uppercase tracking-wider rounded-[10px] transition-all flex items-center justify-center gap-2">
                     Lanjutkan Pembayaran
                     <ArrowRight size={14} />
                   </button>
@@ -700,7 +703,7 @@ export default function UpgradeTokoPage() {
               {/* Step 2: Transfer Bank Details */}
               {currentStep === 2 && (
                 <div className="space-y-6">
-                  <div className="bg-zinc-950 border border-zinc-800/50 p-5 rounded-3xl space-y-4">
+                  <div className="bg-zinc-950 border border-zinc-800/50 p-5 rounded-[10px] space-y-4">
                     <div className="flex justify-between items-center text-xs">
                       <span className="text-zinc-500 font-bold uppercase tracking-wider">Total Pembayaran</span>
                       <span className="text-lg font-black text-emerald-500">{formatPrice(selectedPlan.price)}</span>
@@ -712,11 +715,11 @@ export default function UpgradeTokoPage() {
                   </div>
 
                   {/* Payment Method Selector */}
-                  <div className="grid grid-cols-2 gap-3 p-1 bg-zinc-950 border border-zinc-800/50 rounded-2xl">
+                  <div className="grid grid-cols-2 gap-3 p-1 bg-zinc-950 border border-zinc-800/50 rounded-[10px]">
                     <button
                       type="button"
                       onClick={() => setPaymentMethod("qris")}
-                      className={`py-3 px-4 rounded-xl text-xs font-black uppercase tracking-wider transition-all flex items-center justify-center gap-2 active:scale-95 ${paymentMethod === "qris" ? "bg-emerald-500 text-zinc-950 shadow-lg shadow-emerald-500/10" : "bg-transparent text-zinc-500 hover:text-white"}`}
+                      className={`py-3 px-4 rounded-[10px] text-xs font-black uppercase tracking-wider transition-all flex items-center justify-center gap-2 active:scale-95 ${paymentMethod === "qris" ? "bg-emerald-500 text-zinc-950 shadow-lg shadow-emerald-500/10" : "bg-transparent text-zinc-500 hover:text-white"}`}
                     >
                       <QrCode size={14} />
                       QRIS
@@ -724,7 +727,7 @@ export default function UpgradeTokoPage() {
                     <button
                       type="button"
                       onClick={() => setPaymentMethod("bca")}
-                      className={`py-3 px-4 rounded-xl text-xs font-black uppercase tracking-wider transition-all flex items-center justify-center gap-2 active:scale-95 ${paymentMethod === "bca" ? "bg-emerald-500 text-zinc-950 shadow-lg shadow-emerald-500/10" : "bg-transparent text-zinc-500 hover:text-white"}`}
+                      className={`py-3 px-4 rounded-[10px] text-xs font-black uppercase tracking-wider transition-all flex items-center justify-center gap-2 active:scale-95 ${paymentMethod === "bca" ? "bg-emerald-500 text-zinc-950 shadow-lg shadow-emerald-500/10" : "bg-transparent text-zinc-500 hover:text-white"}`}
                     >
                       <CreditCard size={14} />
                       Transfer BCA
@@ -736,19 +739,19 @@ export default function UpgradeTokoPage() {
                     <div className="flex flex-col items-center gap-6 animate-in fade-in duration-300">
                       {/* QR Container */}
                       <div className="w-full flex flex-col items-center gap-3">
-                        <div className="relative w-full max-w-[200px] aspect-square overflow-hidden rounded-2xl bg-black border-2 border-zinc-800 p-2.5 group/qr shadow-lg shadow-black/40">
+                        <div className="relative w-full max-w-[200px] aspect-square overflow-hidden rounded-[10px] bg-black border-2 border-zinc-800 p-2.5 group/qr shadow-lg shadow-black/40">
                           {/* Scanner Target corners */}
                           <div className="absolute top-2 left-2 w-3 h-3 border-t-2 border-l-2 border-emerald-500 rounded-tl-sm"></div>
                           <div className="absolute top-2 right-2 w-3 h-3 border-t-2 border-r-2 border-emerald-500 rounded-tr-sm"></div>
                           <div className="absolute bottom-2 left-2 w-3 h-3 border-b-2 border-l-2 border-emerald-500 rounded-bl-sm"></div>
                           <div className="absolute bottom-2 right-2 w-3 h-3 border-b-2 border-r-2 border-emerald-500 rounded-br-sm"></div>
 
-                          <img src="/images/Pembayaran.jpeg" alt="QRIS Payment Details" className="w-full h-full object-contain rounded-lg transition-transform duration-500 group-hover/qr:scale-105" />
+                          <img src="/images/Pembayaran.jpeg" alt="QRIS Payment Details" className="w-full h-full object-contain rounded-[10px] transition-transform duration-500 group-hover/qr:scale-105" />
                         </div>
 
                         {/* Action Buttons */}
                         <div className="w-full max-w-[200px]">
-                          <button type="button" onClick={() => setPreviewImage("/images/Pembayaran.jpeg")} className="w-full py-1.5 px-2 bg-emerald-500 hover:bg-emerald-400 text-zinc-950 rounded-lg text-[9px] font-black uppercase tracking-wider flex items-center justify-center gap-1 active:scale-95 transition-all">
+                          <button type="button" onClick={() => setPreviewImage("/images/Pembayaran.jpeg")} className="w-full py-1.5 px-2 bg-emerald-500 hover:bg-emerald-400 text-zinc-950 rounded-[10px] text-[9px] font-black uppercase tracking-wider flex items-center justify-center gap-1 active:scale-95 transition-all">
                             <Eye size={10} /> Perbesar Kode QR
                           </button>
                         </div>
@@ -780,8 +783,8 @@ export default function UpgradeTokoPage() {
                     <div className="flex flex-col items-center gap-6 animate-in fade-in duration-300">
                       {/* BCA Details Container */}
                       <div className="w-full flex flex-col items-center gap-3">
-                        <div className="w-full max-w-[240px] bg-zinc-950 border-2 border-zinc-800 rounded-2xl p-6 text-center space-y-4 shadow-lg shadow-black/40 relative">
-                          <div className="inline-flex items-center justify-center px-4 py-1.5 bg-blue-500/10 border border-blue-500/20 rounded-xl text-blue-400 text-xs font-black tracking-wider uppercase">BCA</div>
+                        <div className="w-full max-w-[240px] bg-zinc-950 border-2 border-zinc-800 rounded-[10px] p-6 text-center space-y-4 shadow-lg shadow-black/40 relative">
+                          <div className="inline-flex items-center justify-center px-4 py-1.5 bg-blue-500/10 border border-blue-500/20 rounded-[10px] text-blue-400 text-xs font-black tracking-wider uppercase">BCA</div>
                           <div className="space-y-1">
                             <p className="text-[9px] font-black text-zinc-500 uppercase tracking-widest">Nomor Rekening</p>
                             <p className="text-sm font-black text-white tracking-widest font-mono">8480483953</p>
@@ -789,7 +792,7 @@ export default function UpgradeTokoPage() {
                           <button
                             type="button"
                             onClick={() => handleCopy("8480483953", "bca_account")}
-                            className="relative w-full py-2.5 bg-zinc-900 text-zinc-300 hover:text-white hover:bg-zinc-800 border border-zinc-800 rounded-xl text-[10px] font-black uppercase tracking-wider flex items-center justify-center gap-2 transition-all active:scale-95"
+                            className="relative w-full py-2.5 bg-zinc-900 text-zinc-300 hover:text-white hover:bg-zinc-800 border border-zinc-800 rounded-[10px] text-[10px] font-black uppercase tracking-wider flex items-center justify-center gap-2 transition-all active:scale-95"
                           >
                             <Copy size={13} />
                             <span>{copiedText === "bca_account" ? "Rekening Disalin!" : "Salin Rekening"}</span>
@@ -833,16 +836,16 @@ export default function UpgradeTokoPage() {
                     </div>
                   )}
 
-                  <div className="p-4 bg-amber-500/10 border border-amber-500/20 rounded-2xl flex gap-3 items-start">
+                  <div className="p-4 bg-amber-500/10 border border-amber-500/20 rounded-[10px] flex gap-3 items-start">
                     <AlertTriangle size={16} className="text-amber-500 shrink-0 mt-0.5" />
                     <p className="text-[10px] text-zinc-400 leading-relaxed font-medium">Harap lakukan pembayaran sesuai nilai nominal di atas. Setelah transfer, pastikan Anda menyimpan struk atau screenshot bukti pembayaran untuk diunggah di tahap berikutnya.</p>
                   </div>
 
                   <div className="flex gap-4">
-                    <button onClick={() => setCurrentStep(1)} className="flex-1 py-4 bg-zinc-800 hover:bg-zinc-750 text-white text-xs font-black uppercase tracking-wider rounded-2xl transition-all border border-zinc-700/50">
+                    <button onClick={() => setCurrentStep(1)} className="flex-1 py-4 bg-zinc-800 hover:bg-zinc-750 text-white text-xs font-black uppercase tracking-wider rounded-[10px] transition-all border border-zinc-700/50">
                       Kembali
                     </button>
-                    <button onClick={() => setCurrentStep(3)} className="flex-1 py-4 bg-emerald-500 hover:bg-emerald-400 text-zinc-950 text-xs font-black uppercase tracking-wider rounded-2xl transition-all flex items-center justify-center gap-2">
+                    <button onClick={() => setCurrentStep(3)} className="flex-1 py-4 bg-[#228B22] hover:bg-[#4CBB17] text-white text-xs font-black uppercase tracking-wider rounded-[10px] transition-all flex items-center justify-center gap-2">
                       Konfirmasi Transfer
                       <ArrowRight size={14} />
                     </button>
@@ -854,7 +857,7 @@ export default function UpgradeTokoPage() {
               {currentStep === 3 && (
                 <form onSubmit={handleFormSubmit} className="space-y-5">
                   {/* Shop Details Info */}
-                  <div className="p-4 bg-zinc-950/40 border border-zinc-800/50 rounded-2xl space-y-2.5">
+                  <div className="p-4 bg-zinc-950/40 border border-zinc-800/50 rounded-[10px] space-y-2.5">
                     <div className="flex justify-between items-center text-xs">
                       <span className="text-zinc-500 font-bold">Nama Toko:</span>
                       <span className="text-white font-black">{shop?.name || "-"}</span>
@@ -871,27 +874,34 @@ export default function UpgradeTokoPage() {
 
                   <div className="space-y-2">
                     <label className="text-[10px] font-black text-zinc-450 uppercase tracking-widest block">Atas Nama Pengirim</label>
-                    <input type="text" placeholder="Contoh: Rian Hidayat" value={accountName} onChange={(e) => setAccountName(e.target.value)} required className="w-full bg-zinc-950 border border-zinc-800 focus:border-zinc-700 focus:outline-none rounded-xl px-4 py-3 text-xs text-white placeholder-zinc-650 transition-colors" />
+                    <input type="text" placeholder="Contoh: Rian Hidayat" value={accountName} onChange={(e) => setAccountName(e.target.value)} required className="w-full bg-zinc-950 border border-zinc-800 focus:border-zinc-700 focus:outline-none rounded-[10px] px-4 py-3 text-xs text-white placeholder-zinc-650 transition-colors" />
                   </div>
 
                   <div className="space-y-2">
                     <label className="text-[10px] font-black text-zinc-450 uppercase tracking-widest block">Bank Asal / Pengirim</label>
-                    <input type="text" placeholder="Contoh: BCA / Mandiri / CIMB Niaga" value={bankOrigin} onChange={(e) => setBankOrigin(e.target.value)} required className="w-full bg-zinc-950 border border-zinc-800 focus:border-zinc-700 focus:outline-none rounded-xl px-4 py-3 text-xs text-white placeholder-zinc-650 transition-colors" />
+                    <input
+                      type="text"
+                      placeholder="Contoh: BCA / Mandiri / CIMB Niaga"
+                      value={bankOrigin}
+                      onChange={(e) => setBankOrigin(e.target.value)}
+                      required
+                      className="w-full bg-zinc-950 border border-zinc-800 focus:border-zinc-700 focus:outline-none rounded-[10px] px-4 py-3 text-xs text-white placeholder-zinc-650 transition-colors"
+                    />
                   </div>
 
                   <div className="space-y-2">
                     <label className="text-[10px] font-black text-zinc-450 uppercase tracking-widest block">Unggah Bukti Transfer</label>
 
                     {!paymentProofPreview ? (
-                      <div className="border border-dashed border-zinc-800 hover:border-zinc-700 bg-zinc-950/40 rounded-2xl p-6 text-center cursor-pointer transition-colors relative group">
+                      <div className="border border-dashed border-zinc-800 hover:border-zinc-700 bg-zinc-950/40 rounded-[10px] p-6 text-center cursor-pointer transition-colors relative group">
                         <input type="file" accept="image/*" onChange={handleFileChange} required className="absolute inset-0 opacity-0 cursor-pointer w-full h-full" />
                         <Upload size={28} className="text-zinc-600 group-hover:text-zinc-500 mx-auto mb-2" />
                         <span className="text-[10px] font-bold text-zinc-400 block">Klik atau Seret file Gambar</span>
                         <span className="text-[9px] text-zinc-600 block mt-1">Format JPG, PNG (Maks 1MB)</span>
                       </div>
                     ) : (
-                      <div className="relative border border-zinc-800 rounded-2xl overflow-hidden aspect-[4/3] bg-zinc-950 flex items-center justify-center p-2 group">
-                        <img src={paymentProofPreview} className="max-h-full max-w-full object-contain rounded-lg" alt="" />
+                      <div className="relative border border-zinc-800 rounded-[10px] overflow-hidden aspect-[4/3] bg-zinc-950 flex items-center justify-center p-2 group">
+                        <img src={paymentProofPreview} className="max-h-full max-w-full object-contain rounded-[10px]" alt="" />
                         <button
                           type="button"
                           onClick={() => {
@@ -908,10 +918,10 @@ export default function UpgradeTokoPage() {
                   </div>
 
                   <div className="flex gap-4 pt-3">
-                    <button type="button" disabled={isSubmitting} onClick={() => setCurrentStep(2)} className="flex-1 py-4 bg-zinc-800 hover:bg-zinc-750 text-white text-xs font-black uppercase tracking-wider rounded-2xl transition-all border border-zinc-700/50 disabled:opacity-50">
+                    <button type="button" disabled={isSubmitting} onClick={() => setCurrentStep(2)} className="flex-1 py-4 bg-zinc-800 hover:bg-zinc-750 text-white text-xs font-black uppercase tracking-wider rounded-[10px] transition-all border border-zinc-700/50 disabled:opacity-50">
                       Kembali
                     </button>
-                    <button type="submit" disabled={isSubmitting} className="flex-1 py-4 bg-emerald-500 hover:bg-emerald-400 text-zinc-950 text-xs font-black uppercase tracking-wider rounded-2xl transition-all flex items-center justify-center gap-2 disabled:opacity-60">
+                    <button type="submit" disabled={isSubmitting} className="flex-1 py-4 bg-[#228B22] hover:bg-[#4CBB17] text-white text-xs font-black uppercase tracking-wider rounded-[10px] transition-all flex items-center justify-center gap-2 disabled:opacity-60">
                       {isSubmitting ? (
                         <>
                           <div className="w-4 h-4 border-2 border-zinc-950 border-t-transparent rounded-full animate-spin"></div>
@@ -939,10 +949,11 @@ export default function UpgradeTokoPage() {
             <button onClick={() => setPreviewImage(null)} className="absolute -top-12 right-0 w-10 h-10 rounded-full bg-zinc-900 border border-zinc-800 text-zinc-400 hover:text-white flex items-center justify-center transition-colors">
               <X size={20} />
             </button>
-            <img src={previewImage} className="max-h-[75vh] max-w-full object-contain rounded-3xl border-2 border-zinc-800 shadow-2xl" alt="Preview" />
+            <img src={previewImage} className="max-h-[75vh] max-w-full object-contain rounded-[10px] border-2 border-zinc-800 shadow-2xl" alt="Preview" />
           </div>
         </div>
       )}
+      <ActionModal isOpen={showErrorModal} onClose={() => setShowErrorModal(false)} type="warning" title="File Tidak Valid!" message={errorModalMessage} />
     </div>
   );
 }

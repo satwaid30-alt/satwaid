@@ -16,19 +16,16 @@ const isVideoUrl = (url) => {
 };
 
 const getPaginationRange = (currentPage, totalPages) => {
-  if (totalPages <= 5) {
+  if (totalPages <= 4) {
     return Array.from({ length: totalPages }, (_, i) => i + 1);
   }
-
-  if (currentPage <= 3) {
-    return [1, 2, 3, "...", totalPages];
+  if (currentPage <= 2) {
+    return [1, 2, "...", totalPages];
   }
-
-  if (currentPage >= totalPages - 2) {
-    return [1, "...", totalPages - 2, totalPages - 1, totalPages];
+  if (currentPage >= totalPages - 1) {
+    return [1, "...", totalPages - 1, totalPages];
   }
-
-  return [1, "...", currentPage - 1, currentPage, currentPage + 1, "...", totalPages];
+  return [1, "...", currentPage, "...", totalPages];
 };
 
 const calculateStockInfo = (item) => {
@@ -429,11 +426,11 @@ export default function DaftarJualanPage() {
       {/* Stats Cards Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         <QuotaCard quota={quota} loading={quotaLoading} />
-        <div className="bg-zinc-900 border border-zinc-800 rounded-2xl sm:rounded-3xl p-4 sm:p-5 flex flex-col justify-between h-full">
+        <div className="bg-zinc-900 border border-zinc-800 rounded-[10px] p-4 sm:p-5 flex flex-col justify-between h-full">
           <div className="space-y-4">
             <div className="flex items-start justify-between gap-2">
               <div className="flex items-center gap-2.5 min-w-0">
-                <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-blue-500/10 text-blue-400 flex items-center justify-center shrink-0">
+                <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-[10px] bg-blue-500/10 text-blue-400 flex items-center justify-center shrink-0">
                   <ShoppingBag size={16} />
                 </div>
                 <div className="min-w-0">
@@ -461,11 +458,11 @@ export default function DaftarJualanPage() {
             </div>
           </div>
         </div>
-        <div className="bg-zinc-900 border border-zinc-800 rounded-2xl sm:rounded-3xl p-4 sm:p-5 flex flex-col justify-between h-full">
+        <div className="bg-zinc-900 border border-zinc-800 rounded-[10px] p-4 sm:p-5 flex flex-col justify-between h-full">
           <div className="space-y-4">
             <div className="flex items-start justify-between gap-2">
               <div className="flex items-center gap-2.5 min-w-0">
-                <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-amber-500/10 text-amber-400 flex items-center justify-center shrink-0">
+                <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-[10px] bg-amber-500/10 text-amber-400 flex items-center justify-center shrink-0">
                   <Clock size={16} />
                 </div>
                 <div className="min-w-0">
@@ -494,25 +491,25 @@ export default function DaftarJualanPage() {
       </div>
 
       {/* Filters */}
-      <div className="bg-zinc-900 border border-zinc-800 p-2 rounded-[2rem] flex flex-col md:flex-row gap-2 items-center">
+      <div className="bg-zinc-900 border border-zinc-800 p-2 rounded-[10px] flex flex-col md:flex-row gap-2 items-center">
         <div className="relative flex-1 w-full">
           <Search className="absolute left-6 top-1/2 -translate-y-1/2 text-zinc-500" size={18} />
-          <input type="text" placeholder="Cari nama Produk atau id produk..." className="w-full bg-zinc-950 border border-transparent rounded-[1.5rem] pl-14 pr-6 py-4 text-sm text-white focus:border-emerald-500 transition-all outline-none" value={searchQuery} onChange={(e) => handleSearchChange(e.target.value)} />
+          <input type="text" placeholder="Cari nama Produk atau id produk..." className="w-full bg-zinc-950 border border-transparent rounded-[10px] pl-14 pr-6 py-4 text-sm text-white focus:border-emerald-500 transition-all outline-none" value={searchQuery} onChange={(e) => handleSearchChange(e.target.value)} />
         </div>
         <div className="flex flex-col md:flex-row gap-2 w-full md:w-auto">
-          <div className="hidden md:flex bg-zinc-950 border border-zinc-800 rounded-[1.5rem] p-1.5">
+          <div className="hidden md:flex bg-zinc-950 border border-zinc-800 rounded-[10px] p-1.5">
             {[
               { id: "all", label: "Tipe: Semua" },
               { id: "sell", label: "Jual" },
               { id: "auction", label: "Lelang" },
             ].map((type) => (
-              <button key={type.id} onClick={() => handleFilterChange(type.id)} className={`px-6 py-2.5 rounded-xl text-xs font-black transition-all ${filterType === type.id ? "bg-zinc-800 text-white" : "text-zinc-500 hover:text-white"}`}>
+              <button key={type.id} onClick={() => handleFilterChange(type.id)} className={`px-6 py-2.5 rounded-[10px] text-xs font-black transition-all ${filterType === type.id ? "bg-zinc-800 text-white" : "text-zinc-500 hover:text-white"}`}>
                 {type.label}
               </button>
             ))}
           </div>
 
-          <div className="hidden md:flex bg-zinc-950 border border-zinc-800 rounded-[1.5rem] p-1.5">
+          <div className="hidden md:flex bg-zinc-950 border border-zinc-800 rounded-[10px] p-1.5">
             {[
               { id: "all", label: "Status: Semua" },
               { id: "active", label: "Aktif" },
@@ -525,7 +522,7 @@ export default function DaftarJualanPage() {
                   setFilterStatus(status.id);
                   setCurrentPage(1);
                 }}
-                className={`px-6 py-2.5 rounded-xl text-xs font-black transition-all whitespace-nowrap ${filterStatus === status.id ? "bg-zinc-800 text-white" : "text-zinc-500 hover:text-white"}`}
+                className={`px-6 py-2.5 rounded-[10px] text-xs font-black transition-all whitespace-nowrap ${filterStatus === status.id ? "bg-zinc-800 text-white" : "text-zinc-500 hover:text-white"}`}
               >
                 {status.label}
               </button>
@@ -533,7 +530,7 @@ export default function DaftarJualanPage() {
           </div>
 
           <div className="grid grid-cols-2 gap-2 md:hidden">
-            <select value={filterType} onChange={(e) => handleFilterChange(e.target.value)} className="bg-zinc-950 border border-zinc-800 text-white text-xs font-black px-4 py-4 rounded-2xl outline-none appearance-none">
+            <select value={filterType} onChange={(e) => handleFilterChange(e.target.value)} className="bg-zinc-950 border border-zinc-800 text-white text-xs font-black px-4 py-4 rounded-[10px] outline-none appearance-none">
               <option value="all">Tipe: Semua</option>
               <option value="sell">Jual</option>
               <option value="auction">Lelang</option>
@@ -544,7 +541,7 @@ export default function DaftarJualanPage() {
                 setFilterStatus(e.target.value);
                 setCurrentPage(1);
               }}
-              className="bg-zinc-950 border border-zinc-800 text-white text-xs font-black px-4 py-4 rounded-2xl outline-none appearance-none"
+              className="bg-zinc-950 border border-zinc-800 text-white text-xs font-black px-4 py-4 rounded-[10px] outline-none appearance-none"
             >
               <option value="all">Status: Semua</option>
               <option value="active">Aktif</option>
@@ -554,9 +551,8 @@ export default function DaftarJualanPage() {
           </div>
         </div>
       </div>
-
       {/* Table View (Desktop) */}
-      <div className="hidden md:block bg-zinc-900 border border-zinc-800 rounded-[2.5rem] overflow-hidden">
+      <div className="hidden md:block bg-zinc-900 border border-zinc-800 rounded-[10px] overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse min-w-[1000px]">
             <thead>
@@ -580,7 +576,7 @@ export default function DaftarJualanPage() {
                       <td className="p-6 text-xs font-bold text-zinc-600">{globalIndex + 1}</td>
                       <td className="p-6">
                         <div className="flex items-center gap-4">
-                          <div className="w-14 h-14 rounded-2xl bg-zinc-950 border border-zinc-800 overflow-hidden shrink-0 group-hover:border-zinc-700 transition-all">
+                          <div className="w-14 h-14 rounded-[10px] bg-zinc-950 border border-zinc-800 overflow-hidden shrink-0 group-hover:border-zinc-700 transition-all">
                             {item.images && item.images[0] && isVideoUrl(item.images[0]) ? (
                               <video src={getImageUrl(item.images[0])} className="w-full h-full object-cover" preload="metadata" muted playsInline />
                             ) : (
@@ -614,7 +610,7 @@ export default function DaftarJualanPage() {
                               )}
                             </div>
                             {item.displayStatus === "rejected" && item.rejection_reason && (
-                              <div className="flex items-start gap-1.5 mt-2 bg-red-500/5 border border-red-500/20 rounded-xl px-3 py-2 max-w-xs">
+                              <div className="flex items-start gap-1.5 mt-2 bg-red-500/5 border border-red-500/20 rounded-[10px] px-3 py-2 max-w-xs">
                                 <AlertCircle size={11} className="text-red-400 mt-0.5 shrink-0" />
                                 <p className="text-[10px] font-bold text-red-400 leading-snug">{item.rejection_reason}</p>
                               </div>
@@ -647,13 +643,13 @@ export default function DaftarJualanPage() {
                           <>
                             <Link
                               href={item.type === "auction" ? `/user/toko/lelang-produk/detail/${item.id}` : `/user/toko/daftar-produk/detail/${item.id}`}
-                              className={`w-10 h-10 bg-zinc-800 text-white rounded-xl flex items-center justify-center transition-all active:scale-90 ${item.type === "auction" ? "hover:bg-amber-500 hover:text-zinc-950" : "hover:bg-emerald-500 hover:text-zinc-950"}`}
+                              className={`w-10 h-10 bg-zinc-800 text-white rounded-[10px] flex items-center justify-center transition-all active:scale-90 ${item.type === "auction" ? "hover:bg-amber-500 hover:text-zinc-950" : "hover:bg-emerald-500 hover:text-zinc-950"}`}
                               title="Detail Iklan"
                             >
                               <Eye size={18} />
                             </Link>
                             {item.type === "auction" && item.latestOrderUuid && (
-                              <Link href={`/user/toko/pesanan-masuk/detail/${item.latestOrderUuid}`} className="w-10 h-10 bg-violet-600/10 text-violet-400 hover:bg-violet-600 hover:text-white rounded-xl flex items-center justify-center transition-all active:scale-90 border border-violet-500/20" title="Kelola Transaksi Lelang">
+                              <Link href={`/user/toko/pesanan-masuk/detail/${item.latestOrderUuid}`} className="w-10 h-10 bg-violet-600/10 text-violet-400 hover:bg-violet-600 hover:text-white rounded-[10px] flex items-center justify-center transition-all active:scale-90 border border-violet-500/20" title="Kelola Transaksi Lelang">
                                 <ShoppingBag size={18} />
                               </Link>
                             )}
@@ -661,23 +657,23 @@ export default function DaftarJualanPage() {
                               ? (Number(item.bid_count || 0) === 0 || item.displayStatus === "auction_cancelled_dismissed") &&
                                 item.displayStatus !== "proses_lelang" && (
                                   <>
-                                    <Link href={`/user/toko/lelang-produk/edit/${item.id}`} className="w-10 h-10 bg-zinc-800 text-white hover:bg-amber-500 hover:text-zinc-950 rounded-xl flex items-center justify-center transition-all active:scale-90" title="Edit Lelang">
+                                    <Link href={`/user/toko/lelang-produk/edit/${item.id}`} className="w-10 h-10 bg-zinc-800 text-white hover:bg-amber-500 hover:text-zinc-950 rounded-[10px] flex items-center justify-center transition-all active:scale-90" title="Edit Lelang">
                                       <Edit size={18} />
                                     </Link>
-                                    <Link href={`/user/toko/lelang-produk/edit/${item.id}?reauction=true`} className="w-10 h-10 bg-zinc-800 text-white hover:bg-emerald-500 hover:text-zinc-950 rounded-xl flex items-center justify-center transition-all active:scale-90" title="Lelang Kembali">
+                                    <Link href={`/user/toko/lelang-produk/edit/${item.id}?reauction=true`} className="w-10 h-10 bg-zinc-800 text-white hover:bg-emerald-500 hover:text-zinc-950 rounded-[10px] flex items-center justify-center transition-all active:scale-90" title="Lelang Kembali">
                                       <RotateCcw size={18} />
                                     </Link>
-                                    <button onClick={() => openDeleteModal(item)} className="w-10 h-10 bg-zinc-800 text-white hover:bg-red-500 hover:text-white rounded-xl flex items-center justify-center transition-all active:scale-90" title="Hapus Lelang">
+                                    <button onClick={() => openDeleteModal(item)} className="w-10 h-10 bg-zinc-800 text-white hover:bg-red-500 hover:text-white rounded-[10px] flex items-center justify-center transition-all active:scale-90" title="Hapus Lelang">
                                       <Trash2 size={18} />
                                     </button>
                                   </>
                                 )
                               : item.displayStatus !== "sold" && (
                                   <>
-                                    <Link href={`/user/toko/jual-produk/edit/${item.id}`} className="w-10 h-10 bg-zinc-800 text-white hover:bg-amber-500 hover:text-zinc-950 rounded-xl flex items-center justify-center transition-all active:scale-90" title="Edit Iklan">
+                                    <Link href={`/user/toko/jual-produk/edit/${item.id}`} className="w-10 h-10 bg-zinc-800 text-white hover:bg-amber-500 hover:text-zinc-950 rounded-[10px] flex items-center justify-center transition-all active:scale-90" title="Edit Iklan">
                                       <Edit size={18} />
                                     </Link>
-                                    <button onClick={() => openDeleteModal(item)} className="w-10 h-10 bg-zinc-800 text-white hover:bg-red-500 hover:text-white rounded-xl flex items-center justify-center transition-all active:scale-90" title="Hapus Iklan">
+                                    <button onClick={() => openDeleteModal(item)} className="w-10 h-10 bg-zinc-800 text-white hover:bg-red-500 hover:text-white rounded-[10px] flex items-center justify-center transition-all active:scale-90" title="Hapus Iklan">
                                       <Trash2 size={18} />
                                     </button>
                                   </>
@@ -710,11 +706,11 @@ export default function DaftarJualanPage() {
       <div className="md:hidden space-y-4">
         {paginatedListings.length > 0 ? (
           paginatedListings.map((item, index) => (
-            <div key={item.id} className="bg-zinc-900 border border-zinc-800 rounded-[2rem] overflow-hidden animate-in slide-in-from-bottom-4 duration-300" style={{ animationDelay: `${index * 50}ms` }}>
+            <div key={item.id} className="bg-zinc-900 border border-zinc-800 rounded-[10px] overflow-hidden animate-in slide-in-from-bottom-4 duration-300" style={{ animationDelay: `${index * 50}ms` }}>
               {/* Card Header */}
               <div className="px-5 py-3 border-b border-zinc-800 bg-zinc-950/30 flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <span className="w-5 h-5 bg-zinc-800 rounded flex items-center justify-center text-[10px] font-black text-zinc-500">{index + 1}</span>
+                  <span className="w-5 h-5 bg-zinc-800 rounded-[10px] flex items-center justify-center text-[10px] font-black text-zinc-500">{index + 1}</span>
                   <span className={`px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest border ${getStatusStyles(item.displayStatus)}`}>{getStatusLabel(item.displayStatus)}</span>
                 </div>
                 <span className={`px-2 py-0.5 rounded text-[8px] font-black uppercase tracking-tighter border ${item.type === "sell" ? "bg-blue-500/10 text-blue-400 border-blue-500/20" : "bg-amber-500/10 text-amber-400 border-amber-500/20"}`}>{item.type === "sell" ? "Reguler" : "Lelang"}</span>
@@ -723,7 +719,7 @@ export default function DaftarJualanPage() {
               {/* Card Body */}
               <div className="p-5 space-y-4">
                 <div className="flex gap-4">
-                  <div className="w-16 h-16 rounded-2xl bg-zinc-950 border border-zinc-800 overflow-hidden shrink-0">
+                  <div className="w-16 h-16 rounded-[10px] bg-zinc-950 border border-zinc-800 overflow-hidden shrink-0">
                     {item.images && item.images[0] && isVideoUrl(item.images[0]) ? (
                       <video src={getImageUrl(item.images[0])} className="w-full h-full object-cover" preload="metadata" muted playsInline />
                     ) : (
@@ -734,7 +730,7 @@ export default function DaftarJualanPage() {
                     <h3 className="text-sm font-black text-white line-clamp-1 mb-0.5">{item.name}</h3>
                     <div className="flex items-center gap-2 mb-1 flex-wrap">
                       <p className="text-[10px] font-bold text-emerald-500 uppercase tracking-widest">{item.species}</p>
-                      {item.product_id && <p className="text-[9px] font-mono font-black text-zinc-500 bg-zinc-950 px-1.5 py-0.5 rounded border border-zinc-800">{item.product_id}</p>}
+                      {item.product_id && <p className="text-[9px] font-mono font-black text-zinc-500 bg-zinc-950 px-1.5 py-0.5 rounded-[10px] border border-zinc-800">{item.product_id}</p>}
                     </div>
                     {(item.is_free_shipping || item.is_free_packing) && (
                       <div className="flex items-center gap-1.5 flex-wrap mb-2">
@@ -762,7 +758,7 @@ export default function DaftarJualanPage() {
                   </div>
                 </div>
                 {item.displayStatus === "rejected" && item.rejection_reason && (
-                  <div className="flex items-start gap-2 bg-red-500/5 border border-red-500/20 rounded-2xl px-4 py-3">
+                  <div className="flex items-start gap-2 bg-red-500/5 border border-red-500/20 rounded-[10px] px-4 py-3">
                     <AlertCircle size={13} className="text-red-400 mt-0.5 shrink-0" />
                     <div>
                       <p className="text-[8px] font-black text-red-500 uppercase tracking-widest mb-1">Alasan Penolakan Admin</p>
@@ -775,13 +771,13 @@ export default function DaftarJualanPage() {
                   <>
                     <Link
                       href={item.type === "auction" ? `/user/toko/lelang-produk/detail/${item.id}` : `/user/toko/daftar-produk/detail/${item.id}`}
-                      className={`flex-1 min-w-[80px] flex items-center justify-center gap-1.5 py-3 bg-zinc-800 text-zinc-400 rounded-xl transition-all border border-zinc-700 ${item.type === "auction" ? "hover:bg-amber-500 hover:text-zinc-950 hover:border-amber-500" : "hover:bg-emerald-500 hover:text-zinc-950 hover:border-emerald-500"}`}
+                      className={`flex-1 min-w-[80px] flex items-center justify-center gap-1.5 py-3 bg-zinc-800 text-zinc-400 rounded-[10px] transition-all border border-zinc-700 ${item.type === "auction" ? "hover:bg-amber-500 hover:text-zinc-950 hover:border-amber-500" : "hover:bg-emerald-500 hover:text-zinc-950 hover:border-emerald-500"}`}
                     >
                       <Eye size={14} />
                       <span className="text-[9px] font-black uppercase tracking-widest">Detail</span>
                     </Link>
                     {item.type === "auction" && item.latestOrderUuid && (
-                      <Link href={`/user/toko/pesanan-masuk/detail/${item.latestOrderUuid}`} className="flex-1 min-w-[80px] flex items-center justify-center gap-1.5 py-3 bg-violet-600/10 hover:bg-violet-600 text-violet-400 hover:text-white rounded-xl transition-all border border-violet-500/20 hover:border-violet-600 font-bold">
+                      <Link href={`/user/toko/pesanan-masuk/detail/${item.latestOrderUuid}`} className="flex-1 min-w-[80px] flex items-center justify-center gap-1.5 py-3 bg-violet-600/10 hover:bg-violet-600 text-violet-400 hover:text-white rounded-[10px] transition-all border border-violet-500/20 hover:border-violet-600 font-bold">
                         <ShoppingBag size={14} />
                         <span className="text-[9px] font-black uppercase tracking-widest">Transaksi</span>
                       </Link>
@@ -790,15 +786,15 @@ export default function DaftarJualanPage() {
                       ? (Number(item.bid_count || 0) === 0 || item.displayStatus === "auction_cancelled_dismissed") &&
                         item.displayStatus !== "proses_lelang" && (
                           <>
-                            <Link href={`/user/toko/lelang-produk/edit/${item.id}`} className="flex-1 min-w-[80px] flex items-center justify-center gap-1.5 py-3 bg-zinc-800 hover:bg-amber-500 text-zinc-400 hover:text-zinc-950 rounded-xl transition-all border border-zinc-700 hover:border-amber-500">
+                            <Link href={`/user/toko/lelang-produk/edit/${item.id}`} className="flex-1 min-w-[80px] flex items-center justify-center gap-1.5 py-3 bg-zinc-800 hover:bg-amber-500 text-zinc-400 hover:text-zinc-950 rounded-[10px] transition-all border border-zinc-700 hover:border-amber-500">
                               <Edit size={14} />
                               <span className="text-[9px] font-black uppercase tracking-widest">Edit</span>
                             </Link>
-                            <Link href={`/user/toko/lelang-produk/edit/${item.id}?reauction=true`} className="flex-1 min-w-[80px] flex items-center justify-center gap-1.5 py-3 bg-zinc-800 hover:bg-emerald-500 text-zinc-400 hover:text-zinc-950 rounded-xl transition-all border border-zinc-700 hover:border-emerald-500">
+                            <Link href={`/user/toko/lelang-produk/edit/${item.id}?reauction=true`} className="flex-1 min-w-[80px] flex items-center justify-center gap-1.5 py-3 bg-zinc-800 hover:bg-emerald-500 text-zinc-400 hover:text-zinc-950 rounded-[10px] transition-all border border-zinc-700 hover:border-emerald-500">
                               <RotateCcw size={14} />
                               <span className="text-[9px] font-black uppercase tracking-widest">Lelang</span>
                             </Link>
-                            <button onClick={() => openDeleteModal(item)} className="flex-1 min-w-[80px] flex items-center justify-center gap-1.5 py-3 bg-zinc-800 hover:bg-red-500 text-zinc-400 hover:text-white rounded-xl transition-all border border-zinc-700 hover:border-red-500">
+                            <button onClick={() => openDeleteModal(item)} className="flex-1 min-w-[80px] flex items-center justify-center gap-1.5 py-3 bg-zinc-800 hover:bg-red-500 text-zinc-400 hover:text-white rounded-[10px] transition-all border border-zinc-700 hover:border-red-500">
                               <Trash2 size={14} />
                               <span className="text-[9px] font-black uppercase tracking-widest">Hapus</span>
                             </button>
@@ -806,11 +802,11 @@ export default function DaftarJualanPage() {
                         )
                       : item.displayStatus !== "sold" && (
                           <>
-                            <Link href={`/user/toko/jual-produk/edit/${item.id}`} className="flex-1 min-w-[80px] flex items-center justify-center gap-1.5 py-3 bg-zinc-800 hover:bg-amber-500 text-zinc-400 hover:text-zinc-950 rounded-xl transition-all border border-zinc-700 hover:border-amber-500">
+                            <Link href={`/user/toko/jual-produk/edit/${item.id}`} className="flex-1 min-w-[80px] flex items-center justify-center gap-1.5 py-3 bg-zinc-800 hover:bg-amber-500 text-zinc-400 hover:text-zinc-950 rounded-[10px] transition-all border border-zinc-700 hover:border-amber-500">
                               <Edit size={14} />
                               <span className="text-[9px] font-black uppercase tracking-widest">Edit</span>
                             </Link>
-                            <button onClick={() => openDeleteModal(item)} className="flex-1 min-w-[80px] flex items-center justify-center gap-1.5 py-3 bg-zinc-800 hover:bg-red-500 text-zinc-400 hover:text-white rounded-xl transition-all border border-zinc-700 hover:border-red-500">
+                            <button onClick={() => openDeleteModal(item)} className="flex-1 min-w-[80px] flex items-center justify-center gap-1.5 py-3 bg-zinc-800 hover:bg-red-500 text-zinc-400 hover:text-white rounded-[10px] transition-all border border-zinc-700 hover:border-red-500">
                               <Trash2 size={14} />
                               <span className="text-[9px] font-black uppercase tracking-widest">Hapus</span>
                             </button>
@@ -822,8 +818,8 @@ export default function DaftarJualanPage() {
             </div>
           ))
         ) : (
-          <div className="py-16 flex flex-col items-center text-center space-y-4 bg-zinc-900/40 border border-dashed border-zinc-800 rounded-[2.5rem]">
-            <div className="w-16 h-16 bg-zinc-900 rounded-2xl flex items-center justify-center text-zinc-700">{listings.length > 0 ? <Search size={32} /> : <Tag size={32} />}</div>
+          <div className="py-16 flex flex-col items-center text-center space-y-4 bg-zinc-900/40 border border-dashed border-zinc-800 rounded-[10px]">
+            <div className="w-16 h-16 bg-zinc-900 rounded-[10px] flex items-center justify-center text-zinc-700">{listings.length > 0 ? <Search size={32} /> : <Tag size={32} />}</div>
             <div>
               <p className="text-sm font-black text-white">{listings.length > 0 ? "Data tidak ditemukan" : "Belum ada iklan"}</p>
               <p className="text-xs text-zinc-500 italic mt-1">{listings.length > 0 ? "- Coba kata kunci atau filter lain -" : "Data jualan Anda akan muncul di sini"}</p>
@@ -834,12 +830,12 @@ export default function DaftarJualanPage() {
 
       {/* Pagination Controls */}
       {totalPages > 1 && (
-        <div className="flex flex-col md:flex-row items-center justify-between gap-4 bg-zinc-900/50 border border-zinc-800 p-6 rounded-[2rem] mt-6">
+        <div className="flex flex-col md:flex-row items-center justify-between gap-4 bg-zinc-900/50 border border-zinc-800 p-6 rounded-[10px] mt-6">
           <p className="text-[10px] md:text-xs font-black text-zinc-500 uppercase tracking-widest">
             Menampilkan {(currentPage - 1) * itemsPerPage + 1} - {Math.min(currentPage * itemsPerPage, filteredListings.length)} dari {filteredListings.length} Produk jualan
           </p>
           <div className="flex items-center">
-            <div className="inline-flex rounded-xl border border-zinc-800 bg-zinc-950 divide-x divide-zinc-800 overflow-hidden">
+            <div className="inline-flex rounded-[10px] border border-zinc-800 bg-zinc-950 divide-x divide-zinc-800 overflow-hidden">
               <button onClick={() => goToPage(currentPage - 1)} disabled={currentPage === 1} className="w-10 h-10 flex items-center justify-center text-zinc-400 hover:text-white hover:bg-zinc-900/50 disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-transparent transition-all">
                 <ChevronLeft size={16} />
               </button>

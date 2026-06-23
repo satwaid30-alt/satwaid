@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
-import { Store, ChevronLeft, ChevronRight, CheckCircle2, X, ScrollText, ShieldCheck, PencilLine, XCircle, Lock, LogOut, ArrowLeft, MapPin, Tag, ChevronDown, ChevronUp, AlertCircle, Star, Image as ImageIcon, Upload, Info, LayoutGrid, Clock } from "lucide-react";
+import { Store, ChevronLeft, ChevronRight, ScrollText, ShieldCheck, PencilLine, XCircle, Lock, MapPin, Tag, ChevronDown, ChevronUp, AlertCircle, Star, Image as LayoutGrid, Clock } from "lucide-react";
 import ActionModal from "@/components/ActionModal";
 import { getApiUrl, getLogoUrl, getSocketUrl, getImageUrl } from "@/app/utils/api";
 import { useShopQuota } from "@/hooks/useShopQuota";
@@ -307,7 +307,7 @@ export default function UserTokoDetailPage() {
                   <ShieldCheck size={16} className="text-amber-500 group-hover/membership:scale-110 transition-transform duration-500" />
                   <div className="text-left">
                     <p className="text-[8px] font-black text-zinc-500 uppercase tracking-widest leading-none">Membership</p>
-                    <p className="text-xs font-black text-white mt-0.5">{shopData.membership_name || shopData.membershipName || "FREE"}</p>
+                    <p className="text-xs font-black text-white mt-0.5">{shopData.membership_level || "Standard Seller"}</p>
                   </div>
                 </Link>
               </div>
@@ -350,10 +350,7 @@ export default function UserTokoDetailPage() {
                       Upgrade Toko (Terkunci)
                     </button>
                   ) : (
-                    <Link
-                      href="/user/toko/upgrade-toko"
-                      className="w-full sm:w-auto px-5 py-3 sm:py-2.5 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-zinc-950 text-xs sm:text-sm font-black rounded-[10px] transition-all flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/10 hover:no-underline text-center"
-                    >
+                    <Link href="/user/toko/upgrade-toko" className="w-full sm:w-auto px-5 py-3 sm:py-2.5 bg-gradient-to-r bg-[#228B22] hover:bg-[#4CBB17] text-white text-xs sm:text-sm font-black rounded-[10px] transition-all flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/10 hover:no-underline text-center">
                       <ShieldCheck size={18} /> Upgrade Toko
                     </Link>
                   )}
@@ -389,9 +386,7 @@ export default function UserTokoDetailPage() {
           {/* Bank Accounts Display */}
           <div className="mt-6 sm:mt-8 pt-6 sm:pt-8 border-t border-zinc-800 flex flex-col sm:flex-row sm:items-center justify-between gap-4 sm:gap-6">
             <div className="min-w-0">
-              <p className="text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-2 flex items-center gap-2">
-                <Tag size={12} className="text-emerald-500" /> Informasi Rekening Bank
-              </p>
+              <p className="text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-2 flex items-center gap-2">Informasi Rekening Bank</p>
               <div className="flex flex-wrap gap-2 sm:gap-4">
                 {userBankAccounts && userBankAccounts.length > 0 ? (
                   userBankAccounts.map((bank, idx) => (
@@ -464,7 +459,7 @@ export default function UserTokoDetailPage() {
                 <ScrollText size={24} />
               </div>
               <div>
-                <h2 className="text-xl font-black text-amber-500 uppercase tracking-tight">📜 Peraturan Jualan</h2>
+                <h2 className="text-xl font-black text-amber-500 uppercase tracking-tight">Peraturan Jualan</h2>
                 <p className="text-amber-500/60 text-sm">Wajib dibaca dan dipatuhi oleh semua penjual</p>
               </div>
             </div>
@@ -612,12 +607,10 @@ export default function UserTokoDetailPage() {
         <div className="bg-zinc-900 border border-zinc-800 rounded-[10px] p-6 sm:p-10 space-y-6 sm:space-y-8">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-zinc-800 pb-6">
             <div className="space-y-1">
-              <h2 className="text-xl sm:text-2xl font-black text-white uppercase tracking-tight flex items-center gap-2">
-                <Star className="text-amber-500 fill-amber-500" size={24} /> Ulasan & Komentar Pembeli
-              </h2>
+              <h2 className="text-xl sm:text-2xl font-black text-white uppercase tracking-tight flex items-center gap-2">Ulasan & Komentar Pembeli</h2>
               <p className="text-xs sm:text-sm text-zinc-500 font-medium">Ulasan dari hasil penjualan sukses toko Anda.</p>
             </div>
-            <div className="flex items-center gap-4 bg-zinc-950/50 border border-zinc-850 px-4 py-3 rounded-[10px] shrink-0">
+            <div className="flex items-center gap-4 bg-zinc-950/50 px-4 py-3 rounded-[10px] shrink-0">
               <div className="text-center border-r border-zinc-800 pr-4">
                 <p className="text-2xl sm:text-3xl font-black text-white leading-none">{shopData.avgRating || "5.0"}</p>
                 <p className="text-[9px] text-zinc-500 font-black uppercase tracking-wider mt-1">Skor Toko</p>
@@ -693,11 +686,7 @@ export default function UserTokoDetailPage() {
                     </button>
 
                     {Array.from({ length: totalPages }, (_, i) => i + 1).map((pageNumber) => {
-                      if (
-                        pageNumber === 1 ||
-                        pageNumber === totalPages ||
-                        (pageNumber >= currentPage - 1 && pageNumber <= currentPage + 1)
-                      ) {
+                      if (pageNumber === 1 || pageNumber === totalPages || (pageNumber >= currentPage - 1 && pageNumber <= currentPage + 1)) {
                         return (
                           <button
                             type="button"
@@ -708,15 +697,9 @@ export default function UserTokoDetailPage() {
                             {pageNumber}
                           </button>
                         );
-                      } else if (
-                        (pageNumber === currentPage - 2 && pageNumber > 1) ||
-                        (pageNumber === currentPage + 2 && pageNumber < totalPages)
-                      ) {
+                      } else if ((pageNumber === currentPage - 2 && pageNumber > 1) || (pageNumber === currentPage + 2 && pageNumber < totalPages)) {
                         return (
-                          <span
-                            key={pageNumber}
-                            className="w-8 h-8 flex items-center justify-center text-xs font-bold text-zinc-500"
-                          >
+                          <span key={pageNumber} className="w-8 h-8 flex items-center justify-center text-xs font-bold text-zinc-500">
                             ..
                           </span>
                         );

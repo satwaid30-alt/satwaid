@@ -339,7 +339,7 @@ export default function PesananMasukPage() {
         </div>
 
         <div className="flex flex-col sm:flex-row gap-4 w-full md:w-auto">
-          <Link href="/user/toko/dashboard" className="flex items-center gap-2 px-5 py-3 bg-zinc-900 border border-zinc-800 text-zinc-400 hover:text-white hover:border-zinc-700 rounded-2xl transition-all text-xs font-black uppercase tracking-widest group shrink-0">
+          <Link href="/user/toko/dashboard" className="flex items-center gap-2 px-5 py-3 bg-zinc-900 border border-zinc-800 text-zinc-400 hover:text-white hover:border-zinc-700 rounded-[10px] transition-all text-xs font-black uppercase tracking-widest group shrink-0">
             <CheckCircle2 size={14} className="text-emerald-500" />
             Riwayat Penjualan
           </Link>
@@ -348,7 +348,7 @@ export default function PesananMasukPage() {
             <input
               type="text"
               placeholder="Cari Order ID atau Nama Produk..."
-              className="w-full bg-zinc-900/50 border border-zinc-800 rounded-2xl py-3 md:py-3.5 pl-12 pr-6 text-white focus:outline-none focus:border-emerald-500 transition-all text-xs md:text-sm font-medium"
+              className="w-full bg-zinc-900/50 border border-zinc-800 rounded-[10px] py-3 md:py-3.5 pl-12 pr-6 text-white focus:outline-none focus:border-emerald-500 transition-all text-xs md:text-sm font-medium"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
@@ -402,7 +402,7 @@ export default function PesananMasukPage() {
 
       {/* Success Message */}
       {successMessage && (
-        <div className="fixed bottom-10 right-10 z-50 bg-emerald-500 text-zinc-950 px-8 py-4 rounded-[2rem] font-black flex items-center gap-3 animate-in slide-in-from-bottom-4">
+        <div className="fixed bottom-10 right-10 z-50 bg-emerald-500 text-zinc-950 px-8 py-4 rounded-[10px] font-black flex items-center gap-3 animate-in slide-in-from-bottom-4">
           <CheckCircle2 size={24} />
           {successMessage}
         </div>
@@ -412,12 +412,12 @@ export default function PesananMasukPage() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8">
         {currentItems.length > 0 ? (
           currentItems.map((order) => (
-            <div key={order.id} className="bg-zinc-900/20 backdrop-blur-md border border-zinc-800 rounded-[2rem] md:rounded-[2.5rem] overflow-hidden hover:border-zinc-700 hover:-translate-y-1 transition-all duration-300 group flex flex-col">
+            <div key={order.id} className="bg-zinc-900/20 backdrop-blur-md border border-zinc-800 rounded-[10px] overflow-hidden hover:border-zinc-700 hover:-translate-y-1 transition-all duration-300 group flex flex-col">
               {/* Card Header */}
               <div className="px-4 md:px-6 py-4 md:py-5 border-b border-zinc-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-zinc-900/50">
                 <div className="flex flex-wrap items-center gap-3 md:gap-5">
                   <div className="flex items-center gap-2">
-                    <div className="w-8 h-8 rounded-xl bg-emerald-500/10 flex items-center justify-center text-emerald-500 border border-emerald-500/20">
+                    <div className="w-8 h-8 rounded-[10px] bg-emerald-500/10 flex items-center justify-center text-emerald-500 border border-emerald-500/20">
                       <Hash size={14} />
                     </div>
                     <div className="space-y-0.5">
@@ -438,9 +438,9 @@ export default function PesananMasukPage() {
                   </div>
                 </div>
                 <div className="flex flex-wrap items-center gap-2 self-start sm:self-auto">
-                  <div className={`px-4 py-1.5 rounded-xl border text-[9px] font-black uppercase tracking-widest ${getStatusStyle(order.status)}`}>{getStatusLabel(order.status)}</div>
+                  <div className={`px-4 py-1.5 rounded-[10px] border text-[9px] font-black uppercase tracking-widest ${getStatusStyle(order.status)}`}>{getStatusLabel(order.status)}</div>
                   {order.status === "waiting_payment" && order.payment_rejection_reason && (
-                    <div className="px-4 py-1.5 rounded-xl border text-[9px] font-black uppercase tracking-widest bg-red-500/10 text-red-400 border-red-500/20 flex items-center gap-1">
+                    <div className="px-4 py-1.5 rounded-[10px] border text-[9px] font-black uppercase tracking-widest bg-red-500/10 text-red-400 border-red-500/20 flex items-center gap-1">
                       <AlertCircle size={10} className="shrink-0" />
                       Pembayaran Ditolak Admin
                     </div>
@@ -488,7 +488,7 @@ export default function PesananMasukPage() {
 
               {/* Auto Confirmation Notice Banner */}
               {order.status === "shipped" && (
-                <div className="mx-4 md:mx-6 mt-4 p-3.5 bg-amber-500/10 border border-amber-500/20 rounded-2xl flex items-start gap-3 animate-in slide-in-from-top-2 duration-300">
+                <div className="mx-4 md:mx-6 mt-4 p-3.5 bg-amber-500/10 border border-amber-500/20 rounded-[10px] flex items-start gap-3 animate-in slide-in-from-top-2 duration-300">
                   <Info size={16} className="text-amber-500 shrink-0 mt-0.5" />
                   <div className="space-y-0.5">
                     <p className="text-[8px] font-black text-amber-500 uppercase tracking-widest leading-none">Informasi Penyelesaian Otomatis</p>
@@ -499,7 +499,7 @@ export default function PesananMasukPage() {
 
               {/* Complaint Notification for Seller */}
               {order.status === "complained" && (
-                <div className="mx-4 md:mx-6 mt-4 p-4.5 bg-red-500/10 border border-red-500/20 rounded-2xl flex items-start gap-3.5 animate-in slide-in-from-top-2 duration-300">
+                <div className="mx-4 md:mx-6 mt-4 p-4.5 bg-red-500/10 border border-red-500/20 rounded-[10px] flex items-start gap-3.5 animate-in slide-in-from-top-2 duration-300">
                   <AlertCircle size={20} className="text-red-500 shrink-0 mt-0.5" />
                   <div className="space-y-1 text-left">
                     <p className="text-xs md:text-sm font-black text-red-500 uppercase tracking-wider leading-none">Perhatian: Ada Komplain Aktif!</p>
@@ -515,8 +515,8 @@ export default function PesananMasukPage() {
                 {order.items && order.items.length > 0 ? (
                   <div className="space-y-3">
                     {order.items.map((item, idx) => (
-                      <div key={item.id || idx} className="flex items-center gap-4 bg-zinc-950/20 p-3 rounded-2xl border border-zinc-800/40">
-                        <div onClick={() => setSelectedImage(getImageUrl(item.product?.images))} className="w-16 h-16 md:w-20 md:h-20 rounded-xl overflow-hidden bg-zinc-950 shrink-0 border border-zinc-800 relative group/img cursor-zoom-in">
+                      <div key={item.id || idx} className="flex items-center gap-4 bg-zinc-950/20 p-3 rounded-[10px] border border-zinc-800/40">
+                        <div onClick={() => setSelectedImage(getImageUrl(item.product?.images))} className="w-16 h-16 md:w-20 md:h-20 rounded-[10px] overflow-hidden bg-zinc-950 shrink-0 border border-zinc-800 relative group/img cursor-zoom-in">
                           {(() => {
                             const mediaUrl = getImageUrl(item.product?.images);
                             return isVideoUrl(mediaUrl) ? (
@@ -532,7 +532,7 @@ export default function PesananMasukPage() {
                         </div>
                         <div className="space-y-1 flex-1 min-w-0">
                           <div className="flex flex-wrap items-center gap-1.5">
-                            <span className="px-1.5 py-0.5 bg-zinc-800 text-[8px] text-zinc-400 rounded font-black uppercase tracking-widest">{item.product?.species}</span>
+                            <span className="px-1.5 py-0.5 bg-zinc-800 text-[8px] text-zinc-400 rounded-[10px] font-black uppercase tracking-widest">{item.product?.species}</span>
                             <span className="text-zinc-700 font-bold text-[8px]">•</span>
                             <span className="text-[8px] font-black text-zinc-500 uppercase tracking-widest">Qty: {item.quantity}</span>
                           </div>
@@ -544,15 +544,15 @@ export default function PesananMasukPage() {
                         </div>
                       </div>
                     ))}
-                    <div className="flex items-center justify-between px-4 py-2 bg-zinc-950/20 rounded-xl border border-zinc-800/40 text-[9px] font-black uppercase tracking-wider">
+                    <div className="flex items-center justify-between px-4 py-2 bg-zinc-950/20 rounded-[10px] border border-zinc-800/40 text-[9px] font-black uppercase tracking-wider">
                       <span className="text-zinc-500">Pembeli:</span>
                       <span className="text-emerald-500 font-black">{order.user?.username}</span>
                     </div>
                   </div>
                 ) : (
                   /* Legacy Product Detail Header */
-                  <div className="flex items-center gap-4 bg-zinc-950/20 p-3 rounded-2xl border border-zinc-800/40">
-                    <div onClick={() => setSelectedImage(getImageUrl(order.product?.images))} className="w-16 h-16 md:w-20 md:h-20 rounded-xl overflow-hidden bg-zinc-950 shrink-0 border border-zinc-800 relative group/img cursor-zoom-in">
+                  <div className="flex items-center gap-4 bg-zinc-950/20 p-3 rounded-[10px] border border-zinc-800/40">
+                    <div onClick={() => setSelectedImage(getImageUrl(order.product?.images))} className="w-16 h-16 md:w-20 md:h-20 rounded-[10px] overflow-hidden bg-zinc-950 shrink-0 border border-zinc-800 relative group/img cursor-zoom-in">
                       {(() => {
                         const mediaUrl = getImageUrl(order.product?.images);
                         return isVideoUrl(mediaUrl) ? (
@@ -568,7 +568,7 @@ export default function PesananMasukPage() {
                     </div>
                     <div className="space-y-1 flex-1 min-w-0">
                       <div className="flex flex-wrap items-center gap-1.5">
-                        <span className="px-1.5 py-0.5 bg-zinc-800 text-[8px] text-zinc-400 rounded font-black uppercase tracking-widest">{order.product?.species}</span>
+                        <span className="px-1.5 py-0.5 bg-zinc-800 text-[8px] text-zinc-400 rounded-[10px] font-black uppercase tracking-widest">{order.product?.species}</span>
                         <span className="text-zinc-700 font-bold text-[8px]">•</span>
                         <span className="text-[8px] font-black text-zinc-500 uppercase tracking-widest">Qty: {order.quantity}</span>
                       </div>
@@ -586,11 +586,11 @@ export default function PesananMasukPage() {
                   <div className="flex items-center gap-2 text-zinc-500">
                     <span className="text-[10px] md:text-xs font-black uppercase tracking-widest">Rincian Biaya</span>
                   </div>
-                  <div className="bg-zinc-950/40 rounded-2xl p-4 border border-zinc-800/40 space-y-2.5">
+                  <div className="bg-zinc-950/40 rounded-[10px] p-4 border border-zinc-800/40 space-y-2.5">
                     <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-1.5 group/cost border-b border-zinc-800/40 pb-2.5 font-bold">
                       <div className="flex flex-col text-left">
                         <span className="text-[10px] md:text-xs font-bold text-zinc-500 uppercase tracking-tight">Harga Produk</span>
-                        {order.items && order.items.length > 1 && <span className="text-[9px] text-zinc-500 font-bold mt-1 leading-normal max-w-full sm:max-w-[320px] bg-zinc-950/40 p-2 rounded-xl border border-zinc-800/20">{order.items.map((item) => `${item.product?.name || "Produk"} (x${item.quantity})`).join(", ")}</span>}
+                        {order.items && order.items.length > 1 && <span className="text-[9px] text-zinc-500 font-bold mt-1 leading-normal max-w-full sm:max-w-[320px] bg-zinc-950/40 p-2 rounded-[10px] border border-zinc-800/20">{order.items.map((item) => `${item.product?.name || "Produk"} (x${item.quantity})`).join(", ")}</span>}
                       </div>
                       <span className="text-[11px] md:text-xs font-black text-zinc-300 group-hover/cost:text-white transition-colors">{formatPrice(order.items && order.items.length > 0 ? order.items.reduce((sum, item) => sum + Number(item.price) * (item.quantity || 1), 0) : order.price * order.quantity)}</span>
                     </div>
@@ -617,20 +617,20 @@ export default function PesananMasukPage() {
                   <div className="space-y-2 pt-1">
                     <div className={`grid gap-2 ${["waiting_shipping_cost", "waiting_shipment", "payment_verified"].includes(order.status) ? "grid-cols-2" : "grid-cols-1"}`}>
                       {order.status === "waiting_shipping_cost" ? (
-                        <Link href={`/user/toko/pesanan-masuk/biaya-kirim/${order.id}`} className="py-2 bg-[#228B22] hover:bg-[#4CBB17] text-white rounded-xl transition-all font-black text-[8px] uppercase tracking-widest text-center border border-[#228B22] hover:border-[#4CBB17] flex items-center justify-center gap-1">
+                        <Link href={`/user/toko/pesanan-masuk/biaya-kirim/${order.id}`} className="py-2 bg-[#228B22] hover:bg-[#4CBB17] text-white rounded-[10px] transition-all font-black text-[8px] uppercase tracking-widest text-center border border-[#228B22] hover:border-[#4CBB17] flex items-center justify-center gap-1">
                           <Truck size={10} /> Input Resi
                         </Link>
                       ) : ["waiting_shipment", "payment_verified"].includes(order.status) ? (
-                        <Link href={`/user/toko/pesanan-masuk/pengiriman/${order.id}`} className="py-2 bg-[#228B22] hover:bg-[#4CBB17] text-white rounded-xl transition-all font-black text-[8px] uppercase tracking-widest text-center border border-[#228B22] hover:border-[#4CBB17] flex items-center justify-center gap-1">
+                        <Link href={`/user/toko/pesanan-masuk/pengiriman/${order.id}`} className="py-2 bg-[#228B22] hover:bg-[#4CBB17] text-white rounded-[10px] transition-all font-black text-[8px] uppercase tracking-widest text-center border border-[#228B22] hover:border-[#4CBB17] flex items-center justify-center gap-1">
                           <Truck size={10} /> Input Resi
                         </Link>
                       ) : null}
-                      <Link href={`/user/toko/pesanan-masuk/detail/${order.id}`} className="py-2 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 hover:text-white rounded-xl transition-all font-black text-[8px] uppercase tracking-widest text-center border border-zinc-700 hover:border-zinc-600 flex items-center justify-center gap-1">
+                      <Link href={`/user/toko/pesanan-masuk/detail/${order.id}`} className="py-2 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 hover:text-white rounded-[10px] transition-all font-black text-[8px] uppercase tracking-widest text-center border border-zinc-700 hover:border-zinc-600 flex items-center justify-center gap-1">
                         <Info size={10} /> Detail
                       </Link>
                     </div>
                     {!["cancelled", "completed", "shipped", "complained"].includes(order.status) && (
-                      <button onClick={() => setCancellingOrder(order)} className="w-full py-2 bg-red-500/5 hover:bg-red-500 hover:text-white text-text-white rounded-xl transition-all font-black text-[8px] uppercase tracking-widest text-center border border-red-500/10 hover:border-red-500/20 flex items-center justify-center gap-1">
+                      <button onClick={() => setCancellingOrder(order)} className="w-full py-2 bg-red-500/5 hover:bg-red-500 hover:text-white text-text-white rounded-[10px] transition-all font-black text-[8px] uppercase tracking-widest text-center border border-red-500/10 hover:border-red-500/20 flex items-center justify-center gap-1">
                         <XCircle size={10} /> Batalkan Transaksi
                       </button>
                     )}
@@ -639,11 +639,11 @@ export default function PesananMasukPage() {
 
                 {/* Complaint Section (Conditionally rendered at the bottom) */}
                 {order.status === "complained" && (
-                  <div className="mt-4 border border-red-500/20 hover:border-red-500/30 rounded-2xl overflow-hidden bg-red-950/5 transition-all duration-300 shadow-lg shadow-red-950/10">
+                  <div className="mt-4 border border-red-500/20 hover:border-red-500/30 rounded-[10px] overflow-hidden bg-red-950/5 transition-all duration-300 shadow-lg shadow-red-950/10">
                     {/* Header / Trigger */}
                     <div onClick={() => toggleComplaint(order.id)} className="flex items-center justify-between gap-3 px-4 py-3.5 bg-red-500/10 cursor-pointer select-none hover:bg-red-500/15 transition-colors border-b border-red-500/10">
                       <div className="flex items-center gap-2.5">
-                        <div className="w-7 h-7 rounded-lg bg-red-500/15 flex items-center justify-center text-red-500 border border-red-500/20">
+                        <div className="w-7 h-7 rounded-[10px] bg-red-500/15 flex items-center justify-center text-red-500 border border-red-500/20">
                           <ShieldAlert size={14} />
                         </div>
                         <div>
@@ -652,7 +652,7 @@ export default function PesananMasukPage() {
                         </div>
                       </div>
                       <div className="flex items-center gap-2">
-                        <span className="text-[8px] font-black uppercase tracking-widest text-red-400 px-2 py-0.5 rounded bg-red-950/40 border border-red-500/20">Tinjau</span>
+                        <span className="text-[8px] font-black uppercase tracking-widest text-red-400 px-2 py-0.5 rounded-[10px] bg-red-950/40 border border-red-500/20">Tinjau</span>
                         <ChevronRight size={14} className={`transition-transform duration-300 ${expandedComplaints[order.id] ? "rotate-90 text-white" : "text-zinc-500"}`} />
                       </div>
                     </div>
@@ -664,7 +664,7 @@ export default function PesananMasukPage() {
                           {/* Description / Reason */}
                           <div className="flex-1 space-y-1.5">
                             <span className="text-[9px] font-black text-zinc-500 uppercase tracking-wider block">Alasan Komplain</span>
-                            <div className="p-3 bg-zinc-950/60 rounded-xl border border-zinc-800/50 min-h-[80px] flex flex-col justify-center">
+                            <div className="p-3 bg-zinc-950/60 rounded-[10px] border border-zinc-800/50 min-h-[80px] flex flex-col justify-center">
                               <p className="text-xs text-zinc-300 leading-relaxed font-medium italic">&ldquo;{order.complaint_description || "Tidak ada deskripsi alasan komplain dari pembeli."}&rdquo;</p>
                             </div>
                           </div>
@@ -673,7 +673,7 @@ export default function PesananMasukPage() {
                           {order.complaint_image && (
                             <div className="space-y-1.5 shrink-0">
                               <span className="text-[9px] font-black text-zinc-500 uppercase tracking-wider block sm:text-right mr-1">Bukti Lampiran</span>
-                              <div onClick={() => setSelectedImage(getImageUrl(order.complaint_image))} className="relative w-28 h-28 sm:w-32 sm:h-32 rounded-xl overflow-hidden border border-zinc-800 bg-zinc-950 cursor-zoom-in group/complaint shadow-md hover:border-zinc-700 transition-colors">
+                              <div onClick={() => setSelectedImage(getImageUrl(order.complaint_image))} className="relative w-28 h-28 sm:w-32 sm:h-32 rounded-[10px] overflow-hidden border border-zinc-800 bg-zinc-950 cursor-zoom-in group/complaint shadow-md hover:border-zinc-700 transition-colors">
                                 {isVideoUrl(order.complaint_image) ? (
                                   <div className="relative w-full h-full">
                                     <video src={getImageUrl(order.complaint_image)} className="w-full h-full object-cover" preload="metadata" muted />
@@ -701,8 +701,8 @@ export default function PesananMasukPage() {
             </div>
           ))
         ) : (
-          <div className="col-span-1 lg:col-span-2 py-32 flex flex-col items-center justify-center text-center space-y-6 bg-zinc-900/20 border border-zinc-800 rounded-[4rem] border-dashed">
-            <div className="w-32 h-32 bg-zinc-900 rounded-[2.5rem] flex items-center justify-center text-zinc-700">
+          <div className="col-span-1 lg:col-span-2 py-32 flex flex-col items-center justify-center text-center space-y-6 bg-zinc-900/20 border border-zinc-800 rounded-[10px] border-dashed">
+            <div className="w-32 h-32 bg-zinc-900 rounded-[10px] flex items-center justify-center text-zinc-700">
               <ShoppingBag size={64} />
             </div>
             <div className="space-y-2">
@@ -723,12 +723,12 @@ export default function PesananMasukPage() {
 
       {/* Pagination Controls */}
       {totalPages > 1 && (
-        <div className="flex flex-col md:flex-row items-center justify-between gap-4 bg-zinc-900/50 border border-zinc-800 p-6 rounded-[2rem]">
+        <div className="flex flex-col md:flex-row items-center justify-between gap-4 bg-zinc-900/50 border border-zinc-800 p-6 rounded-[10px]">
           <p className="text-[10px] md:text-xs font-black text-zinc-500 uppercase tracking-widest">
             Menampilkan {indexOfFirstItem + 1} - {Math.min(indexOfLastItem, filteredOrders.length)} dari {filteredOrders.length} Pesanan
           </p>
           <div className="flex items-center">
-            <div className="inline-flex rounded-xl border border-zinc-800 bg-zinc-950 divide-x divide-zinc-800 overflow-hidden">
+            <div className="inline-flex rounded-[10px] border border-zinc-800 bg-zinc-950 divide-x divide-zinc-800 overflow-hidden">
               <button onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))} disabled={currentPage === 1} className="w-10 h-10 flex items-center justify-center text-zinc-400 hover:text-white hover:bg-zinc-900/50 disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-transparent transition-all">
                 <ChevronLeft size={16} />
               </button>
@@ -754,10 +754,10 @@ export default function PesananMasukPage() {
       {cancellingOrder && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-zinc-950/80 backdrop-blur-sm animate-in fade-in duration-300" onClick={() => !isCancelling && handleCloseCancelModal()}></div>
-          <div className="bg-zinc-900 border border-zinc-800 w-full max-w-md rounded-[2.5rem] relative z-10 overflow-hidden animate-in zoom-in-95 duration-300">
+          <div className="bg-zinc-900 border border-zinc-800 w-full max-w-md rounded-[10px] relative z-10 overflow-hidden animate-in zoom-in-95 duration-300">
             <div className="p-8 md:p-10 space-y-6">
               <div className="flex items-center justify-between">
-                <div className="w-12 h-12 bg-red-500/10 text-red-500 rounded-2xl flex items-center justify-center border border-red-500/20">
+                <div className="w-12 h-12 bg-red-500/10 text-red-500 rounded-[10px] flex items-center justify-center border border-red-500/20">
                   <AlertCircle size={24} />
                 </div>
                 <button onClick={() => handleCloseCancelModal()} className="text-zinc-500 hover:text-white transition-colors">
@@ -776,7 +776,7 @@ export default function PesananMasukPage() {
                 <div className="space-y-3">
                   <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest ml-1">Alasan Pembatalan</label>
                   <div className="relative">
-                    <select required value={cancelOption} onChange={(e) => setCancelOption(e.target.value)} className="w-full bg-zinc-950 border border-zinc-800 rounded-2xl py-4 pl-6 pr-12 text-white focus:outline-none focus:border-red-500 transition-all text-sm font-medium cursor-pointer appearance-none">
+                    <select required value={cancelOption} onChange={(e) => setCancelOption(e.target.value)} className="w-full bg-zinc-950 border border-zinc-800 rounded-[10px] py-4 pl-6 pr-12 text-white focus:outline-none focus:border-red-500 transition-all text-sm font-medium cursor-pointer appearance-none">
                       <option value="" disabled>
                         Pilih Alasan Pembatalan
                       </option>
@@ -805,20 +805,20 @@ export default function PesananMasukPage() {
                       rows={4}
                       value={customCancelReason}
                       onChange={(e) => setCustomCancelReason(e.target.value)}
-                      className="w-full bg-zinc-950 border border-zinc-800 rounded-2xl p-5 text-white focus:outline-none focus:border-red-500 transition-all font-semibold text-sm resize-none leading-relaxed"
+                      className="w-full bg-zinc-950 border border-zinc-800 rounded-[10px] p-5 text-white focus:outline-none focus:border-red-500 transition-all font-semibold text-sm resize-none leading-relaxed"
                       placeholder="Sebutkan detail alasan pembatalan lainnya secara lengkap..."
                     ></textarea>
                   </div>
                 )}
 
                 <div className="flex gap-4">
-                  <button type="button" onClick={() => handleCloseCancelModal()} className="flex-1 py-4 bg-zinc-800 hover:bg-zinc-700 text-white font-black rounded-2xl transition-all text-xs uppercase tracking-widest">
+                  <button type="button" onClick={() => handleCloseCancelModal()} className="flex-1 py-4 bg-zinc-800 hover:bg-zinc-700 text-white font-black rounded-[10px] transition-all text-xs uppercase tracking-widest">
                     Kembali
                   </button>
                   <button
                     type="submit"
                     disabled={isCancelling || !cancelOption || (cancelOption === "Lainnya" && !customCancelReason.trim())}
-                    className="flex-[2] py-4 bg-red-500 hover:bg-red-400 text-zinc-950 font-black rounded-2xl transition-all disabled:opacity-50 flex items-center justify-center gap-2 active:scale-95 text-xs uppercase tracking-widest"
+                    className="flex-[2] py-4 bg-red-500 hover:bg-red-400 text-zinc-950 font-black rounded-[10px] transition-all disabled:opacity-50 flex items-center justify-center gap-2 active:scale-95 text-xs uppercase tracking-widest"
                   >
                     {isCancelling ? "Membatalkan..." : "Ya, Batalkan Pesanan"}
                   </button>
@@ -837,7 +837,7 @@ export default function PesananMasukPage() {
               <X size={24} className="group-hover:rotate-90 transition-transform duration-500" />
             </button>
             <div className="w-full h-full flex items-center justify-center p-4 md:p-12">
-              {isVideoUrl(selectedImage) ? <video src={selectedImage} controls className="max-w-full max-h-[85vh] object-contain rounded-2xl shadow-2xl" autoPlay /> : <img src={selectedImage} className="max-w-full max-h-full object-contain rounded-2xl" alt="Zoomed View" />}
+              {isVideoUrl(selectedImage) ? <video src={selectedImage} controls className="max-w-full max-h-[85vh] object-contain rounded-[10px] shadow-2xl" autoPlay /> : <img src={selectedImage} className="max-w-full max-h-full object-contain rounded-[10px]" alt="Zoomed View" />}
             </div>
           </div>
         </div>

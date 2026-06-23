@@ -9,16 +9,8 @@ import { getApiUrl, getSocketUrl, getImageUrl } from "@/app/utils/api";
 const isVideoUrl = (url) => {
   if (!url) return false;
   const lower = url.toLowerCase();
-  return (
-    lower.endsWith(".mp4") ||
-    lower.endsWith(".mov") ||
-    lower.endsWith(".avi") ||
-    lower.endsWith(".webm") ||
-    lower.endsWith(".mkv") ||
-    lower.endsWith(".3gp")
-  );
+  return lower.endsWith(".mp4") || lower.endsWith(".mov") || lower.endsWith(".avi") || lower.endsWith(".webm") || lower.endsWith(".mkv") || lower.endsWith(".3gp");
 };
-
 
 // Individual Card Component with self-contained countdown state
 function AuctionCard({ listing, currentUserId }) {
@@ -109,9 +101,9 @@ function AuctionCard({ listing, currentUserId }) {
   const statusStyle = getStatusStyles();
 
   return (
-    <div className="bg-zinc-900/20 border border-zinc-800 hover:border-zinc-700 rounded-3xl overflow-hidden transition-all group p-4 md:p-6 flex flex-col md:flex-row items-center md:items-start gap-4 md:gap-6 animate-in slide-in-from-bottom-2 duration-500">
+    <div className="bg-zinc-900/20 border border-zinc-800 hover:border-zinc-700 rounded-[10px] overflow-hidden transition-all group p-4 md:p-6 flex flex-col md:flex-row items-center md:items-start gap-4 md:gap-6 animate-in slide-in-from-bottom-2 duration-500">
       {/* Image/Video section */}
-      <div className="w-24 h-24 md:w-28 md:h-28 rounded-2xl overflow-hidden bg-zinc-800 shrink-0 border border-zinc-700 relative mx-auto md:mx-0">
+      <div className="w-24 h-24 md:w-28 md:h-28 rounded-[10px] overflow-hidden bg-zinc-800 shrink-0 border border-zinc-700 relative mx-auto md:mx-0">
         {(() => {
           const mediaUrl = getImageUrl(listing.images);
           return isVideoUrl(mediaUrl) ? (
@@ -120,7 +112,9 @@ function AuctionCard({ listing, currentUserId }) {
             <img src={mediaUrl || "https://placehold.co/400x400/f4f4f5/71717a?text=No+Image"} alt={listing.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
           );
         })()}
-        <div className={`absolute top-2 right-2 px-2.5 py-0.5 rounded-full border text-[8px] font-black uppercase tracking-wider ${statusStyle.badge} backdrop-blur-md`}>{statusStyle.label}</div>
+        {userStatus !== "won" && (
+          <div className={`absolute top-2 right-2 px-2.5 py-0.5 rounded-[10px] border text-[8px] font-black uppercase tracking-wider ${statusStyle.badge} backdrop-blur-md`}>{statusStyle.label}</div>
+        )}
       </div>
 
       {/* Info Section */}
@@ -131,14 +125,14 @@ function AuctionCard({ listing, currentUserId }) {
           {listing.product_id && (
             <>
               <span className="text-zinc-750">•</span>
-              <span className="text-[9px] font-black bg-zinc-800/50 text-zinc-400 px-2 py-0.5 rounded-md border border-zinc-700/50 uppercase tracking-widest">ID Produk: {listing.product_id}</span>
+              <span className="text-[9px] font-black bg-zinc-800/50 text-zinc-400 px-2 py-0.5 rounded-[10px] border border-zinc-700/50 uppercase tracking-widest">ID Produk: {listing.product_id}</span>
             </>
           )}
         </div>
         <h3 className="text-base md:text-xl font-black text-white mb-2 line-clamp-2">{listing.name}</h3>
 
         {/* Timer info */}
-        <div className="flex items-center justify-center md:justify-start gap-2 text-xs text-zinc-400 mb-4 bg-zinc-950/40 w-fit mx-auto md:mx-0 px-3 py-1.5 rounded-xl border border-zinc-800/80">
+        <div className="flex items-center justify-center md:justify-start gap-2 text-xs text-zinc-400 mb-4 bg-zinc-950/40 w-fit mx-auto md:mx-0 px-3 py-1.5 rounded-[10px] border border-zinc-800/80">
           <Clock size={12} className="text-zinc-500" />
           {auctionStatus === "scheduled" && timeLeft && (
             <span className="text-amber-500 font-bold">
@@ -152,10 +146,19 @@ function AuctionCard({ listing, currentUserId }) {
               {timeLeft.h}:{timeLeft.m}:{timeLeft.s}
             </span>
           )}
-          {auctionStatus === "ended" && <span className="text-zinc-500 font-medium">Lelang telah berakhir</span>}
+          {auctionStatus === "ended" && (
+            <>
+              <span className="text-zinc-500 font-medium">Lelang telah berakhir</span>
+              {userStatus === "won" && (
+                <span className={`px-2 py-0.5 rounded-[10px] border text-[9px] font-black uppercase tracking-wider ${statusStyle.badge} backdrop-blur-md`}>
+                  {statusStyle.label}
+                </span>
+              )}
+            </>
+          )}
         </div>
 
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-4 bg-zinc-950/20 p-3 rounded-2xl border border-zinc-800/50">
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-4 bg-zinc-950/20 p-3 rounded-[10px] border border-zinc-800/50">
           <div>
             <p className="text-[9px] font-bold text-zinc-500 uppercase tracking-wider">Tawaran Tertinggi</p>
             <p className="text-sm md:text-base font-black text-white">{formatPrice(listing.current_bid)}</p>
@@ -171,14 +174,13 @@ function AuctionCard({ listing, currentUserId }) {
         </div>
 
         <div className="flex items-center justify-center md:justify-start gap-1.5 text-[11px] font-bold text-zinc-400">
-          <Sparkles size={12} className="text-emerald-500" />
           <span>{statusStyle.description}</span>
         </div>
       </div>
 
       {/* Actions Section */}
       <div className="flex flex-row md:flex-col justify-center items-stretch gap-3 w-full md:w-auto shrink-0 self-stretch md:self-start">
-        <Link href={`/toko/detail-lelang/${listing.id}`} className="flex-1 md:flex-none px-6 py-3.5 bg-zinc-900 border border-zinc-800 hover:border-zinc-700 text-zinc-300 hover:text-white rounded-2xl transition-all text-xs font-black flex items-center justify-center gap-2 active:scale-95">
+        <Link href={`/toko/detail-lelang/${listing.id}`} className="flex-1 md:flex-none px-6 py-3.5 bg-zinc-900 border border-zinc-800 hover:border-zinc-700 text-zinc-300 hover:text-white rounded-[10px] transition-all text-xs font-black flex items-center justify-center gap-2 active:scale-95">
           <Eye size={14} /> Detail Lelang
         </Link>
       </div>
@@ -310,7 +312,7 @@ export default function LelangPage() {
           <p className="text-zinc-400 font-medium">Pantau semua lelang yang sedang Anda ikuti dan tawaran Anda</p>
         </div>
         <div>
-          <Link href="/lelang" className="flex items-center gap-2 px-5 py-3 bg-zinc-900 border border-zinc-800 text-zinc-400 hover:text-white hover:border-zinc-700 rounded-2xl transition-all text-xs font-black uppercase tracking-widest group">
+          <Link href="/lelang" className="flex items-center gap-2 px-5 py-3 bg-zinc-900 border border-zinc-800 text-zinc-400 hover:text-white hover:border-zinc-700 rounded-[10px] transition-all text-xs font-black uppercase tracking-widest group">
             Cari Lelang Lain
             <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform text-emerald-500" />
           </Link>
@@ -320,7 +322,7 @@ export default function LelangPage() {
       {/* Filter & Search Section */}
       <div className="space-y-4">
         {/* Search Bar */}
-        <div className="bg-zinc-900/30 border border-zinc-800 rounded-2xl md:rounded-[2rem] p-2 md:p-3 flex flex-col lg:flex-row items-center gap-4">
+        <div className="bg-zinc-900/30 border border-zinc-800 rounded-[10px] md:rounded-[10px] p-2 md:p-3 flex flex-col lg:flex-row items-center gap-4">
           <div className="relative flex-1 w-full">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500" size={18} />
             <input
@@ -328,41 +330,48 @@ export default function LelangPage() {
               placeholder="Cari lelang berdasarkan nama produk atau toko..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full bg-zinc-950/50 border border-zinc-800 rounded-xl md:rounded-2xl py-3 md:py-3.5 pl-12 pr-4 text-white placeholder:text-zinc-600 focus:outline-none focus:border-emerald-500/50 focus:ring-4 focus:ring-emerald-500/10 transition-all text-xs md:text-sm font-medium"
+              className="w-full bg-zinc-950/50 border border-zinc-800 rounded-[10px] md:rounded-[10px] py-3 md:py-3.5 pl-12 pr-4 text-white placeholder:text-zinc-600 focus:outline-none focus:border-emerald-500/50 focus:ring-4 focus:ring-emerald-500/10 transition-all text-xs md:text-sm font-medium"
             />
           </div>
         </div>
 
-        {/* Tabs */}
-        <div className="grid grid-cols-2 sm:flex sm:flex-wrap items-center gap-2">
+        {/* Tabs Row */}
+        <div className="flex items-center gap-6 md:gap-8 border-b border-zinc-800/80 overflow-x-auto overflow-y-hidden pb-2 md:pb-px w-full custom-tab-scrollbar">
           {[
             { id: "semua", label: "Semua" },
             { id: "berjalan", label: "Berjalan" },
             { id: "menang", label: "Tertinggi / Menang" },
             { id: "kalah", label: "Tersalip / Kalah" },
-          ].map((tab) => (
-            <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
-              className={`flex items-center justify-center gap-3 px-4 md:px-6 py-3 rounded-2xl text-[10px] md:text-[11px] font-black uppercase tracking-wider transition-all border ${
-                activeTab === tab.id ? "bg-emerald-500 border-emerald-400 text-zinc-950" : "bg-zinc-900/50 border-zinc-800 text-zinc-500 hover:text-zinc-200 hover:border-zinc-700"
-              }`}
-            >
-              <span>{tab.label}</span>
-              <span className={`flex items-center justify-center w-5 h-5 rounded-full text-[9px] font-black ${activeTab === tab.id ? "bg-zinc-950/20 text-zinc-950" : "bg-zinc-800 text-zinc-400"}`}>{getTabCount(tab.id)}</span>
-            </button>
-          ))}
+          ].map((tab) => {
+            const isActive = activeTab === tab.id;
+            const count = getTabCount(tab.id);
+            const hasBadge = count !== undefined && count > 0;
+            return (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={`group flex items-center gap-2.5 pb-4 text-xs md:text-sm font-black uppercase tracking-wider transition-all relative border-b-2 -mb-[2px] whitespace-nowrap ${isActive ? "border-emerald-500 text-emerald-500" : "border-transparent text-zinc-500 hover:text-zinc-200"}`}
+              >
+                <span>{tab.label}</span>
+                {hasBadge && (
+                  <span className={`flex items-center justify-center min-w-[20px] h-5 px-1.5 rounded-full text-[9px] font-black tracking-normal transition-all shrink-0 ${isActive ? "bg-amber-500 text-zinc-950" : "bg-zinc-800 text-zinc-400 group-hover:bg-amber-500 group-hover:text-zinc-950"}`}>
+                    {count}
+                  </span>
+                )}
+              </button>
+            );
+          })}
         </div>
       </div>
 
       {/* Content List */}
       <div className="space-y-4">
         {isLoading ? (
-          [1, 2, 3].map((i) => <div key={i} className="h-44 bg-zinc-900/50 border border-zinc-800 rounded-3xl animate-pulse" />)
+          [1, 2, 3].map((i) => <div key={i} className="h-44 bg-zinc-900/50 border border-zinc-800 rounded-[10px] animate-pulse" />)
         ) : filteredListings.length > 0 ? (
           filteredListings.map((item) => <AuctionCard key={item.id} listing={item} currentUserId={currentUser?.id} />)
         ) : (
-          <div className="py-20 flex flex-col items-center text-center space-y-6 bg-zinc-900/20 border border-zinc-800 rounded-[3rem] border-dashed">
+          <div className="py-20 flex flex-col items-center text-center space-y-6 bg-zinc-900/20 border border-zinc-800 rounded-[10px] border-dashed">
             <div className="w-24 h-24 bg-zinc-900 rounded-full flex items-center justify-center text-zinc-700">
               <Gavel size={48} />
             </div>

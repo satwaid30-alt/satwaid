@@ -372,7 +372,7 @@ export default function EditLelangListingPage({ params }) {
           <p className="text-zinc-500 mt-1 font-bold uppercase tracking-widest text-[10px] sm:text-xs">{isReauction ? "Atur ulang tanggal dan kelipatan bid lelang baru Anda" : "Sesuaikan parameter lelang dan deskripsi secara akurat"}</p>
         </div>
         <div className="flex flex-wrap items-center gap-3">
-          <Link href={`/user/toko/daftar-produk/detail/${id}`} className="px-5 py-2.5 bg-zinc-900 hover:bg-zinc-800 text-white text-sm font-bold rounded-xl border border-zinc-800 transition-all flex items-center gap-2">
+          <Link href={`/user/toko/daftar-produk/detail/${id}`} className="px-5 py-2.5 bg-zinc-900 hover:bg-zinc-800 text-white text-sm font-bold rounded-[10px] border border-zinc-800 transition-all flex items-center gap-2">
             <ChevronLeft size={16} />
             Kembali ke Detail
           </Link>
@@ -380,10 +380,10 @@ export default function EditLelangListingPage({ params }) {
       </div>
 
       {/* Regulations Section */}
-      <div className="bg-amber-500/10 border border-amber-500/20 rounded-3xl overflow-hidden shadow-xl shadow-amber-500/5">
+      <div className="bg-amber-500/10 border border-amber-500/20 rounded-[10px] overflow-hidden shadow-xl shadow-amber-500/5">
         <button onClick={() => setShowRules(!showRules)} className="w-full p-4 sm:p-6 flex items-center justify-between text-left hover:bg-amber-500/5 transition-colors">
           <div className="flex items-center gap-4">
-            <div className="w-12 h-12 bg-amber-500 text-zinc-950 rounded-2xl flex items-center justify-center shadow-lg shadow-amber-500/20">
+            <div className="w-12 h-12 bg-amber-500 text-zinc-950 rounded-[10px] flex items-center justify-center shadow-lg shadow-amber-500/20">
               <ScrollText size={24} />
             </div>
             <div>
@@ -405,7 +405,7 @@ export default function EditLelangListingPage({ params }) {
               <div className="space-y-8">
                 <div className="space-y-3">
                   <h3 className="font-black text-white flex items-center gap-2 text-base">
-                    <span className="w-7 h-7 bg-amber-500 text-zinc-950 rounded-lg flex items-center justify-center text-xs shadow-lg shadow-amber-500/10">1</span>
+                    <span className="w-7 h-7 bg-amber-500 text-zinc-950 rounded-[10px] flex items-center justify-center text-xs shadow-lg shadow-amber-500/10">1</span>
                     Keaslian & Kejujuran Produk
                   </h3>
                   <ul className="list-disc list-outside ml-9 text-zinc-400 space-y-2 leading-relaxed">
@@ -416,7 +416,7 @@ export default function EditLelangListingPage({ params }) {
 
                 <div className="space-y-3">
                   <h3 className="font-black text-white flex items-center gap-2 text-base">
-                    <span className="w-7 h-7 bg-amber-500 text-zinc-950 rounded-lg flex items-center justify-center text-xs shadow-lg shadow-amber-500/10">2</span>
+                    <span className="w-7 h-7 bg-amber-500 text-zinc-950 rounded-[10px] flex items-center justify-center text-xs shadow-lg shadow-amber-500/10">2</span>
                     Kondisi Hewan
                   </h3>
                   <ul className="list-disc list-outside ml-9 text-zinc-400 space-y-2 leading-relaxed">
@@ -427,7 +427,7 @@ export default function EditLelangListingPage({ params }) {
 
                 <div className="space-y-3">
                   <h3 className="font-black text-white flex items-center gap-2 text-base">
-                    <span className="w-7 h-7 bg-amber-500 text-zinc-950 rounded-lg flex items-center justify-center text-xs shadow-lg shadow-amber-500/10">3</span>
+                    <span className="w-7 h-7 bg-amber-500 text-zinc-950 rounded-[10px] flex items-center justify-center text-xs shadow-lg shadow-amber-500/10">3</span>
                     Foto Produk
                   </h3>
                   <ul className="list-disc list-outside ml-9 text-zinc-400 space-y-2 leading-relaxed">
@@ -439,7 +439,7 @@ export default function EditLelangListingPage({ params }) {
 
                 <div className="space-y-3">
                   <h3 className="font-black text-white flex items-center gap-2 text-base">
-                    <span className="w-7 h-7 bg-amber-500 text-zinc-950 rounded-lg flex items-center justify-center text-xs shadow-lg shadow-amber-500/10">4</span>
+                    <span className="w-7 h-7 bg-amber-500 text-zinc-950 rounded-[10px] flex items-center justify-center text-xs shadow-lg shadow-amber-500/10">4</span>
                     Penetapan Harga
                   </h3>
                   <ul className="list-disc list-outside ml-9 text-zinc-400 space-y-2 leading-relaxed">
@@ -451,7 +451,7 @@ export default function EditLelangListingPage({ params }) {
 
               {/* Kolom 2 */}
               <div className="space-y-8">
-                <div className="bg-amber-500/5 border border-amber-500/20 p-5 rounded-2xl space-y-3 shadow-inner">
+                <div className="bg-amber-500/5 border border-amber-500/20 p-5 rounded-[10px] space-y-3 shadow-inner">
                   <h3 className="font-black text-amber-500 flex items-center gap-2 text-base">
                     <AlertCircle size={20} />
                     5. Metode Transaksi (Wajib Admin)
@@ -467,14 +467,14 @@ export default function EditLelangListingPage({ params }) {
                       Apabila transaksi dilakukan di luar Admin, maka <strong>segala risiko dan kerugian bukan menjadi tanggung jawab Admin Platform</strong>.
                     </li>
                     <li>
-                      Penjual <strong>wajib mengirimkan nomor resi atau bukti pengiriman kepada Admin dan pembeli</strong> sebagai bentuk validasi transaksi.
+                      Penjual <strong>wajib mengirimkan nomor resi atau bukti pengiriman kepada Admin and pembeli</strong> sebagai bentuk validasi transaksi.
                     </li>
                   </ul>
                 </div>
 
                 <div className="space-y-3">
                   <h3 className="font-black text-white flex items-center gap-2 text-base">
-                    <span className="w-7 h-7 bg-amber-500 text-zinc-950 rounded-lg flex items-center justify-center text-xs shadow-lg shadow-amber-500/10">6</span>
+                    <span className="w-7 h-7 bg-amber-500 text-zinc-950 rounded-[10px] flex items-center justify-center text-xs shadow-lg shadow-amber-500/10">6</span>
                     Pengiriman & Penyerahan
                   </h3>
                   <ul className="list-disc list-outside ml-9 text-zinc-400 space-y-2 leading-relaxed">
@@ -487,7 +487,7 @@ export default function EditLelangListingPage({ params }) {
 
                 <div className="space-y-3">
                   <h3 className="font-black text-white flex items-center gap-2 text-base">
-                    <span className="w-7 h-7 bg-amber-500 text-zinc-950 rounded-lg flex items-center justify-center text-xs shadow-lg shadow-amber-500/10">7</span>
+                    <span className="w-7 h-7 bg-amber-500 text-zinc-950 rounded-[10px] flex items-center justify-center text-xs shadow-lg shadow-amber-500/10">7</span>
                     Larangan Penjualan
                   </h3>
                   <ul className="list-disc list-outside ml-9 text-zinc-400 space-y-2 leading-relaxed">
@@ -498,7 +498,7 @@ export default function EditLelangListingPage({ params }) {
 
                 <div className="space-y-3">
                   <h3 className="font-black text-white flex items-center gap-2 text-base">
-                    <span className="w-7 h-7 bg-amber-500 text-zinc-950 rounded-lg flex items-center justify-center text-xs shadow-lg shadow-amber-500/10">8</span>
+                    <span className="w-7 h-7 bg-amber-500 text-zinc-950 rounded-[10px] flex items-center justify-center text-xs shadow-lg shadow-amber-500/10">8</span>
                     Tanggung Jawab Penjual
                   </h3>
                   <ul className="list-disc list-outside ml-9 text-zinc-400 space-y-2 leading-relaxed">
@@ -509,7 +509,7 @@ export default function EditLelangListingPage({ params }) {
 
                 <div className="space-y-3">
                   <h3 className="font-black text-white flex items-center gap-2 text-base">
-                    <span className="w-7 h-7 bg-amber-500 text-zinc-950 rounded-lg flex items-center justify-center text-xs shadow-lg shadow-amber-500/10">9</span>
+                    <span className="w-7 h-7 bg-amber-500 text-zinc-950 rounded-[10px] flex items-center justify-center text-xs shadow-lg shadow-amber-500/10">9</span>
                     Sanksi
                   </h3>
                   <div className="ml-9 space-y-2">
@@ -524,15 +524,17 @@ export default function EditLelangListingPage({ params }) {
               </div>
             </div>
 
+
             <div className="mt-12 pt-8 border-t border-amber-500/20 text-center">
               <p className="text-sm text-amber-500 font-bold italic">💡 Dengan menggunakan platform ini, penjual dianggap telah membaca, memahami, dan menyetujui seluruh peraturan yang berlaku.</p>
             </div>
           </div>
+          
         )}
       </div>
 
       {/* Form Container */}
-      <div className="bg-transparent sm:bg-zinc-900 border-none sm:border border-zinc-800 rounded-none sm:rounded-3xl overflow-hidden shadow-none sm:shadow-2xl">
+      <div className="bg-transparent sm:bg-zinc-900 border-none sm:border border-zinc-800 rounded-none sm:rounded-[10px] overflow-hidden shadow-none sm:shadow-2xl">
         <form onSubmit={handleUpdateAuction} className="px-0 py-6 sm:p-8 space-y-8">
           {/* Basic Info Section */}
           <div className="space-y-6">
@@ -546,7 +548,7 @@ export default function EditLelangListingPage({ params }) {
                   required
                   disabled
                   placeholder="Contoh: [LELANG] Ball Python Piebald High White"
-                  className="w-full bg-zinc-950/30 border border-zinc-800/50 text-zinc-500 rounded-2xl px-5 py-4 focus:outline-none transition-all font-bold placeholder:text-zinc-700 shadow-inner cursor-not-allowed"
+                  className="w-full bg-zinc-950/30 border border-zinc-800/50 text-zinc-500 rounded-[10px] px-5 py-4 focus:outline-none transition-all font-bold placeholder:text-zinc-700 shadow-inner cursor-not-allowed"
                   value={reptileData.name}
                   onChange={(e) => setReptileData({ ...reptileData, name: e.target.value })}
                 />
@@ -555,7 +557,7 @@ export default function EditLelangListingPage({ params }) {
                 <label className="text-xs font-black text-zinc-300 uppercase tracking-widest ml-1">
                   Kategori / Spesies <span className="text-red-500">*</span>
                 </label>
-                <select required disabled className="w-full bg-zinc-950/30 border border-zinc-800/50 text-zinc-500 rounded-2xl px-5 py-4 focus:outline-none transition-all font-bold appearance-none cursor-not-allowed shadow-inner" value={reptileData.species} onChange={(e) => setReptileData({ ...reptileData, species: e.target.value })}>
+                <select required disabled className="w-full bg-zinc-950/30 border border-zinc-800/50 text-zinc-500 rounded-[10px] px-5 py-4 focus:outline-none transition-all font-bold appearance-none cursor-not-allowed shadow-inner" value={reptileData.species} onChange={(e) => setReptileData({ ...reptileData, species: e.target.value })}>
                   <option value="">Pilih Kategori</option>
                   <option value="Reptil">Reptil</option>
                   <option value="Mamalia">Mamalia</option>
@@ -576,7 +578,7 @@ export default function EditLelangListingPage({ params }) {
                 <label className="text-xs font-black text-zinc-500 uppercase tracking-widest ml-1">
                   Jenis Kelamin <span className="text-red-500">*</span>
                 </label>
-                <select required className="w-full bg-zinc-950 border border-zinc-800 text-white rounded-2xl px-5 py-4 focus:outline-none focus:border-amber-500 transition-all font-bold appearance-none cursor-pointer shadow-inner text-sm" value={reptileData.sex} onChange={(e) => setReptileData({ ...reptileData, sex: e.target.value })}>
+                <select required className="w-full bg-zinc-950 border border-zinc-800 text-white rounded-[10px] px-5 py-4 focus:outline-none focus:border-amber-500 transition-all font-bold appearance-none cursor-pointer shadow-inner text-sm" value={reptileData.sex} onChange={(e) => setReptileData({ ...reptileData, sex: e.target.value })}>
                   <option value="" disabled>
                     Pilih Jenis Kelamin
                   </option>
@@ -590,7 +592,7 @@ export default function EditLelangListingPage({ params }) {
                 <label className="text-xs font-black text-zinc-500 uppercase tracking-widest ml-1">
                   Jumlah Stok <span className="text-red-500">*</span>
                 </label>
-                <input type="number" required disabled min="1" className="w-full bg-zinc-950/30 border border-zinc-800/50 text-zinc-500 rounded-2xl px-5 py-4 focus:outline-none transition-all font-bold cursor-not-allowed shadow-inner" value={reptileData.stock} onChange={(e) => setReptileData({ ...reptileData, stock: e.target.value })} />
+                <input type="number" required disabled min="1" className="w-full bg-zinc-950/30 border border-zinc-800/50 text-zinc-500 rounded-[10px] px-5 py-4 focus:outline-none transition-all font-bold cursor-not-allowed shadow-inner" value={reptileData.stock} onChange={(e) => setReptileData({ ...reptileData, stock: e.target.value })} />
               </div>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -600,7 +602,7 @@ export default function EditLelangListingPage({ params }) {
                 </label>
                 <input
                   type="date"
-                  className="w-full bg-zinc-950 border border-zinc-800 text-white rounded-2xl px-5 py-4 focus:outline-none focus:border-amber-500 transition-all font-bold shadow-inner text-sm cursor-pointer"
+                  className="w-full bg-zinc-950 border border-zinc-800 text-white rounded-[10px] px-5 py-4 focus:outline-none focus:border-amber-500 transition-all font-bold shadow-inner text-sm cursor-pointer"
                   style={{ colorScheme: "dark" }}
                   value={reptileData.start_date}
                   onChange={(e) =>
@@ -617,7 +619,7 @@ export default function EditLelangListingPage({ params }) {
                 </label>
                 <select
                   required
-                  className="w-full bg-zinc-950 border border-zinc-800 text-white rounded-2xl px-5 py-4 focus:outline-none focus:border-amber-500 transition-all font-bold appearance-none cursor-pointer shadow-inner text-sm"
+                  className="w-full bg-zinc-950 border border-zinc-800 text-white rounded-[10px] px-5 py-4 focus:outline-none focus:border-amber-500 transition-all font-bold appearance-none cursor-pointer shadow-inner text-sm"
                   value={reptileData.duration}
                   onChange={(e) => setReptileData({ ...reptileData, duration: e.target.value })}
                 >
@@ -634,7 +636,7 @@ export default function EditLelangListingPage({ params }) {
             </div>
 
             {previewDates && (
-              <div className="bg-zinc-900/50 border border-zinc-800 p-6 rounded-2xl flex flex-col md:flex-row gap-6 md:gap-12 text-sm mt-6 shadow-inner animate-in fade-in duration-300">
+              <div className="bg-zinc-900/50 border border-zinc-800 p-6 rounded-[10px] flex flex-col md:flex-row gap-6 md:gap-12 text-sm mt-6 shadow-inner animate-in fade-in duration-300">
                 <div>
                   <p className="text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-1.5">Mulai lelang:</p>
                   <p className="text-white font-bold">{previewDates.start}</p>
@@ -652,7 +654,7 @@ export default function EditLelangListingPage({ params }) {
           </div>
 
           {/* Shipping Options */}
-          <div className="p-4 sm:p-6 bg-zinc-950/50 border border-zinc-800 rounded-3xl space-y-6">
+          <div className="p-4 sm:p-6 bg-zinc-950/50 border border-zinc-800 rounded-[10px] space-y-6">
             {/* Open Bid, Kelipatan, Beli Sekarang */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-4 border-t border-zinc-800/50">
               <div className="space-y-2">
@@ -666,7 +668,7 @@ export default function EditLelangListingPage({ params }) {
                     inputMode="numeric"
                     required
                     placeholder="500.000"
-                    className="w-full bg-zinc-950 border border-zinc-800 text-white rounded-2xl pl-12 pr-5 py-4 focus:outline-none focus:border-amber-500 transition-all font-bold placeholder:text-zinc-700 shadow-inner"
+                    className="w-full bg-zinc-950 border border-zinc-800 text-white rounded-[10px] pl-12 pr-5 py-4 focus:outline-none focus:border-amber-500 transition-all font-bold placeholder:text-zinc-700 shadow-inner"
                     value={reptileData.start_bid}
                     onChange={(e) =>
                       setReptileData({
@@ -691,7 +693,7 @@ export default function EditLelangListingPage({ params }) {
                     inputMode="numeric"
                     required
                     placeholder="50.000"
-                    className="w-full bg-zinc-950 border border-zinc-800 text-white rounded-2xl pl-12 pr-5 py-4 focus:outline-none focus:border-amber-500 transition-all font-bold placeholder:text-zinc-700 shadow-inner"
+                    className="w-full bg-zinc-950 border border-zinc-800 text-white rounded-[10px] pl-12 pr-5 py-4 focus:outline-none focus:border-amber-500 transition-all font-bold placeholder:text-zinc-700 shadow-inner"
                     value={reptileData.multiple}
                     onChange={(e) =>
                       setReptileData({
@@ -712,7 +714,7 @@ export default function EditLelangListingPage({ params }) {
                     type="text"
                     inputMode="numeric"
                     placeholder="1.000.000"
-                    className="w-full bg-zinc-950 border border-zinc-800 text-white rounded-2xl pl-12 pr-5 py-4 focus:outline-none focus:border-amber-500 transition-all font-bold placeholder:text-zinc-700 shadow-inner"
+                    className="w-full bg-zinc-950 border border-zinc-800 text-white rounded-[10px] pl-12 pr-5 py-4 focus:outline-none focus:border-amber-500 transition-all font-bold placeholder:text-zinc-700 shadow-inner"
                     value={reptileData.bin_price}
                     onChange={(e) =>
                       setReptileData({
@@ -728,7 +730,7 @@ export default function EditLelangListingPage({ params }) {
             <div className="space-y-4">
               <p className="text-[10px] font-black text-zinc-500 uppercase tracking-[0.2em] mb-2">Opsi Tambahan</p>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <label className="flex items-center gap-4 cursor-pointer group bg-zinc-900/50 p-4 rounded-2xl border border-zinc-800/50 hover:border-amber-500/30 transition-all">
+                <label className="flex items-center gap-4 cursor-pointer group bg-zinc-900/50 p-4 rounded-[10px] border border-zinc-800/50 hover:border-amber-500/30 transition-all">
                   <div className="relative flex items-center">
                     <input
                       type="checkbox"
@@ -741,13 +743,13 @@ export default function EditLelangListingPage({ params }) {
                         })
                       }
                     />
-                    <div className="w-6 h-6 bg-zinc-950 border-2 border-zinc-700 rounded-lg peer-checked:bg-amber-500 peer-checked:border-amber-500 transition-all flex items-center justify-center">
+                    <div className="w-6 h-6 bg-zinc-950 border-2 border-zinc-700 rounded-[10px] peer-checked:bg-amber-500 peer-checked:border-amber-500 transition-all flex items-center justify-center">
                       <CheckCircle2 size={14} className="text-zinc-950 scale-0 peer-checked:scale-100 transition-transform" />
                     </div>
                   </div>
                   <span className="text-xs font-bold text-zinc-400 group-hover:text-zinc-200 transition-colors">Bebas Ongkos Kirim (Gratis)</span>
                 </label>
-                <label className="flex items-center gap-4 cursor-pointer group bg-zinc-900/50 p-4 rounded-2xl border border-zinc-800/50 hover:border-amber-500/30 transition-all">
+                <label className="flex items-center gap-4 cursor-pointer group bg-zinc-900/50 p-4 rounded-[10px] border border-zinc-800/50 hover:border-amber-500/30 transition-all">
                   <div className="relative flex items-center">
                     <input
                       type="checkbox"
@@ -760,7 +762,7 @@ export default function EditLelangListingPage({ params }) {
                         })
                       }
                     />
-                    <div className="w-6 h-6 bg-zinc-950 border-2 border-zinc-700 rounded-lg peer-checked:bg-amber-500 peer-checked:border-amber-500 transition-all flex items-center justify-center">
+                    <div className="w-6 h-6 bg-zinc-950 border-2 border-zinc-700 rounded-[10px] peer-checked:bg-amber-500 peer-checked:border-amber-500 transition-all flex items-center justify-center">
                       <CheckCircle2 size={14} className="text-zinc-950 scale-0 peer-checked:scale-100 transition-transform" />
                     </div>
                   </div>
@@ -774,7 +776,7 @@ export default function EditLelangListingPage({ params }) {
               </label>
               <select
                 required
-                className="w-full bg-zinc-950 border border-zinc-800 text-white rounded-2xl px-5 py-4 focus:outline-none focus:border-amber-500 transition-all font-bold appearance-none cursor-pointer shadow-inner text-sm"
+                className="w-full bg-zinc-950 border border-zinc-800 text-white rounded-[10px] px-5 py-4 focus:outline-none focus:border-amber-500 transition-all font-bold appearance-none cursor-pointer shadow-inner text-sm"
                 value={reptileData.shipping_type}
                 onChange={(e) =>
                   setReptileData({
@@ -806,7 +808,7 @@ export default function EditLelangListingPage({ params }) {
                   modules={quillModules}
                   formats={quillFormats}
                   placeholder="Tuliskan kondisi kesehatan, karakter, riwayat makan, dan detail lainnya secara lengkap..."
-                  className="bg-zinc-950 text-white rounded-2xl overflow-hidden border border-zinc-800 focus-within:border-amber-500 transition-all"
+                  className="bg-zinc-950 text-white rounded-[10px] overflow-hidden border border-zinc-800 focus-within:border-amber-500 transition-all"
                 />
               </div>
             </div>
@@ -817,9 +819,9 @@ export default function EditLelangListingPage({ params }) {
                   <Truck size={14} className="text-white" />
                   <label className="text-xs font-black text-zinc-300 uppercase tracking-widest">Kebijakan Pengiriman & Garansi</label>
                 </div>
-                <span className="text-[10px] font-black text-amber-500 uppercase tracking-widest bg-amber-500/10 px-2 py-0.5 rounded-md border border-amber-500/20">Otomatis dari Profil</span>
+                <span className="text-[10px] font-black text-amber-500 uppercase tracking-widest bg-amber-500/10 px-2 py-0.5 rounded-[10px] border border-amber-500/20">Otomatis dari Profil</span>
               </div>
-              <div className="p-4 sm:p-6 bg-zinc-950 border border-zinc-800 rounded-2xl relative overflow-hidden group">
+              <div className="p-4 sm:p-6 bg-zinc-950 border border-zinc-800 rounded-[10px] relative overflow-hidden group">
                 <div className="absolute top-0 right-0 w-24 h-24 bg-amber-500/5 blur-2xl rounded-full -mr-8 -mt-8"></div>
                 <div
                   className="text-xs sm:text-sm text-zinc-400 leading-relaxed description-content relative z-10 break-words"
@@ -847,7 +849,7 @@ export default function EditLelangListingPage({ params }) {
 
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
               {reptileData.images.map((img, index) => (
-                <div key={index} className="relative aspect-square rounded-2xl overflow-hidden group border border-zinc-800 shadow-2xl">
+                <div key={index} className="relative aspect-square rounded-[10px] overflow-hidden group border border-zinc-800 shadow-2xl">
                   <img src={getImageUrl(img)} alt="Preview" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
                   <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center backdrop-blur-sm">
                     <button
@@ -867,12 +869,12 @@ export default function EditLelangListingPage({ params }) {
 
               {reptileData.images.length < 3 &&
                 (isUploading ? (
-                  <div className="aspect-square bg-zinc-950 border border-zinc-800 rounded-2xl flex flex-col items-center justify-center gap-2 text-amber-500">
+                  <div className="aspect-square bg-zinc-950 border border-zinc-800 rounded-[10px] flex flex-col items-center justify-center gap-2 text-amber-500">
                     <Loader2 className="w-8 h-8 animate-spin" />
                     <span className="text-[10px] font-black uppercase tracking-[0.2em] animate-pulse">Mengunggah...</span>
                   </div>
                 ) : (
-                  <label className="aspect-square bg-zinc-950 border-2 border-dashed border-zinc-800 rounded-2xl flex flex-col items-center justify-center gap-2 text-zinc-500 hover:border-amber-500 hover:text-amber-500 transition-all cursor-pointer group hover:bg-amber-500/5 shadow-inner">
+                  <label className="aspect-square bg-zinc-950 border-2 border-dashed border-zinc-800 rounded-[10px] flex flex-col items-center justify-center gap-2 text-zinc-500 hover:border-amber-500 hover:text-amber-500 transition-all cursor-pointer group hover:bg-amber-500/5 shadow-inner">
                     <input
                       type="file"
                       accept="image/jpeg,image/jpg,image/png,image/webp,image/gif"
@@ -917,7 +919,7 @@ export default function EditLelangListingPage({ params }) {
             <label className="flex items-start gap-4 cursor-pointer group mb-8 px-2">
               <div className="relative mt-0.5">
                 <input type="checkbox" required className="peer sr-only" checked={isAgreed} onChange={(e) => setIsAgreed(e.target.checked)} />
-                <div className="w-6 h-6 bg-zinc-950 border-2 border-zinc-700 rounded-lg peer-checked:bg-amber-500 peer-checked:border-amber-500 transition-all flex items-center justify-center shadow-inner">
+                <div className="w-6 h-6 bg-zinc-950 border-2 border-zinc-700 rounded-[10px] peer-checked:bg-amber-500 peer-checked:border-amber-500 transition-all flex items-center justify-center shadow-inner">
                   <CheckCircle2 size={14} className="text-zinc-950 scale-0 peer-checked:scale-100 transition-transform" />
                 </div>
               </div>
@@ -925,14 +927,14 @@ export default function EditLelangListingPage({ params }) {
             </label>
 
             <div className="flex gap-3">
-              <button type="button" onClick={() => router.back()} className="flex items-center justify-center gap-2 px-6 py-5 rounded-[1.5rem] bg-zinc-800 hover:bg-zinc-700 text-white font-black transition-all active:scale-[0.98] shrink-0">
+              <button type="button" onClick={() => router.back()} className="flex items-center justify-center gap-2 px-6 py-5 rounded-[10px] bg-zinc-800 hover:bg-zinc-700 text-white font-black transition-all active:scale-[0.98] shrink-0">
                 <ArrowLeft size={20} />
                 Kembali
               </button>
               <button
                 type="submit"
                 disabled={isSubmitting || isUploading || reptileData.images.length === 0}
-                className="flex-1 py-5 rounded-[1.5rem] bg-amber-500 hover:bg-amber-400 text-zinc-950 font-black shadow-2xl shadow-amber-500/20 transition-all flex items-center justify-center gap-3 group active:scale-[0.98] disabled:opacity-50 disabled:grayscale disabled:cursor-not-allowed"
+                className="flex-1 py-5 rounded-[10px] bg-amber-500 hover:bg-amber-400 text-zinc-950 font-black shadow-2xl shadow-amber-500/20 transition-all flex items-center justify-center gap-3 group active:scale-[0.98] disabled:opacity-50 disabled:grayscale disabled:cursor-not-allowed"
               >
                 {isSubmitting ? (
                   <div className="w-6 h-6 border-4 border-zinc-950 border-t-transparent rounded-full animate-spin"></div>
@@ -957,7 +959,7 @@ export default function EditLelangListingPage({ params }) {
       {showConfirmModal && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-zinc-950/80 backdrop-blur-md animate-in fade-in duration-300"></div>
-          <div className="bg-zinc-900 border border-zinc-800 rounded-[2.5rem] w-full max-w-md p-10 text-center relative z-10 animate-in zoom-in-95 duration-300">
+          <div className="bg-zinc-900 border border-zinc-800 rounded-[10px] w-full max-w-md p-10 text-center relative z-10 animate-in zoom-in-95 duration-300">
             <div className="w-20 h-20 bg-amber-500/10 text-amber-500 rounded-full flex items-center justify-center mx-auto mb-6 border border-amber-500/20 animate-bounce">
               <AlertCircle size={40} />
             </div>
@@ -974,10 +976,10 @@ export default function EditLelangListingPage({ params }) {
               )}
             </p>
             <div className="flex flex-col gap-3">
-              <button onClick={confirmUpdate} className="w-full bg-amber-500 hover:bg-amber-400 text-zinc-950 font-black py-4 rounded-2xl transition-all active:scale-95">
+              <button onClick={confirmUpdate} className="w-full bg-amber-500 hover:bg-amber-400 text-zinc-950 font-black py-4 rounded-[10px] transition-all active:scale-95">
                 {isReauction ? "Ya, Mulai Lelang Baru" : "Ya, Simpan & Verifikasi Ulang"}
               </button>
-              <button onClick={() => setShowConfirmModal(false)} className="w-full bg-zinc-800 hover:bg-zinc-700 text-white font-black py-4 rounded-2xl transition-all active:scale-95">
+              <button onClick={() => setShowConfirmModal(false)} className="w-full bg-zinc-800 hover:bg-zinc-700 text-white font-black py-4 rounded-[10px] transition-all active:scale-95">
                 Batal
               </button>
             </div>
@@ -995,7 +997,7 @@ export default function EditLelangListingPage({ params }) {
               router.push(`/user/toko/daftar-produk/detail/${id}`);
             }}
           ></div>
-          <div className="bg-zinc-900 border border-zinc-800 rounded-[2.5rem] w-full max-w-md p-12 text-center relative z-10 shadow-[0_0_100px_rgba(245,158,11,0.1)] animate-in zoom-in-95 duration-300">
+          <div className="bg-zinc-900 border border-zinc-800 rounded-[10px] w-full max-w-md p-12 text-center relative z-10 shadow-[0_0_100px_rgba(245,158,11,0.1)] animate-in zoom-in-95 duration-300">
             <div className="w-24 h-24 bg-amber-500 text-zinc-950 rounded-full flex items-center justify-center mx-auto mb-8 shadow-2xl shadow-amber-500/30 relative">
               <div className="absolute inset-0 bg-amber-500 rounded-full animate-ping opacity-20"></div>
               <Gavel size={48} className="relative z-10" />
@@ -1018,7 +1020,7 @@ export default function EditLelangListingPage({ params }) {
                   setShowSuccessModal(false);
                   router.push(`/user/toko/daftar-produk/detail/${id}`);
                 }}
-                className="w-full bg-amber-500 hover:bg-amber-400 text-zinc-950 font-black py-4 rounded-2xl transition-all shadow-xl flex items-center justify-center gap-2 active:scale-95"
+                className="w-full bg-amber-500 hover:bg-amber-400 text-zinc-950 font-black py-4 rounded-[10px] transition-all shadow-xl flex items-center justify-center gap-2 active:scale-95"
               >
                 Kembali ke Detail Produk
               </button>
@@ -1027,7 +1029,7 @@ export default function EditLelangListingPage({ params }) {
                   setShowSuccessModal(false);
                   router.push("/user/toko/daftar-produk");
                 }}
-                className="w-full bg-zinc-800 hover:bg-zinc-700 text-white font-black py-4 rounded-2xl transition-all shadow-xl flex items-center justify-center"
+                className="w-full bg-zinc-800 hover:bg-zinc-700 text-white font-black py-4 rounded-[10px] transition-all shadow-xl flex items-center justify-center"
               >
                 Lihat Daftar Produk
               </button>
@@ -1046,7 +1048,7 @@ export default function EditLelangListingPage({ params }) {
               setErrorModalTitle("File Tidak Valid!");
             }}
           ></div>
-          <div className="bg-zinc-900 border border-zinc-800 rounded-[2.5rem] w-full max-w-md p-12 text-center relative z-10 shadow-2xl animate-in zoom-in-95 duration-300">
+          <div className="bg-zinc-900 border border-zinc-800 rounded-[10px] w-full max-w-md p-12 text-center relative z-10 shadow-2xl animate-in zoom-in-95 duration-300">
             <div className="w-24 h-24 bg-red-500 text-zinc-950 rounded-full flex items-center justify-center mx-auto mb-8 shadow-2xl shadow-red-500/30">
               <AlertCircle size={48} />
             </div>
@@ -1057,7 +1059,7 @@ export default function EditLelangListingPage({ params }) {
                 setShowErrorModal(false);
                 setErrorModalTitle("File Tidak Valid!");
               }}
-              className="w-full bg-red-500 hover:bg-red-400 text-zinc-950 font-black py-4 rounded-2xl transition-all active:scale-95"
+              className="w-full bg-red-500 hover:bg-red-400 text-zinc-950 font-black py-4 rounded-[10px] transition-all active:scale-95"
             >
               Saya Mengerti
             </button>
@@ -1069,13 +1071,13 @@ export default function EditLelangListingPage({ params }) {
         .quill-dark-editor .ql-toolbar {
           background-color: #09090b !important;
           border-color: #18181b !important;
-          border-top-left-radius: 1rem;
-          border-top-right-radius: 1rem;
+          border-top-left-radius: 10px;
+          border-top-right-radius: 10px;
         }
         .quill-dark-editor .ql-container {
           border-color: #18181b !important;
-          border-bottom-left-radius: 1rem;
-          border-bottom-right-radius: 1rem;
+          border-bottom-left-radius: 10px;
+          border-bottom-right-radius: 10px;
           min-height: 180px;
           font-size: 0.875rem;
         }

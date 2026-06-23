@@ -141,6 +141,12 @@ module.exports.updateUpgradeStatus = async (req, res, next) => {
         updated_at: new Date(),
       });
 
+      // Update membership_level on the shop record
+      await upgrade.shop.update({
+        membership_level: upgrade.plan_name,
+        updated_at: new Date(),
+      });
+
       // Send notification to store owner
       try {
         const title = "Upgrade Toko Berhasil!";
@@ -155,7 +161,7 @@ module.exports.updateUpgradeStatus = async (req, res, next) => {
           created_at: new Date(),
         });
 
-        // Emit socket event
+        // Emit socket events
         const io = req.app.get("socketio");
         if (io) {
           io.to(`user_${upgrade.shop.user_id}`).emit("new_notification", {
@@ -164,6 +170,11 @@ module.exports.updateUpgradeStatus = async (req, res, next) => {
             title,
             message,
             time: newNotif.created_at,
+          });
+          // Emit membership updated event so detail page refreshes
+          io.to(`user_${upgrade.shop.user_id}`).emit("shop_membership_updated", {
+            shop_id: upgrade.shop.id,
+            membership_level: upgrade.plan_name,
           });
           // Emit status update event
           io.to(`user_${upgrade.shop.user_id}`).emit("shop_upgrade_status_updated", {

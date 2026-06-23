@@ -21,14 +21,7 @@ const isVideoUrl = (url) => {
   } catch (e) {}
   if (!finalPath || typeof finalPath !== "string") return false;
   const lower = finalPath.toLowerCase();
-  return (
-    lower.endsWith(".mp4") ||
-    lower.endsWith(".mov") ||
-    lower.endsWith(".avi") ||
-    lower.endsWith(".webm") ||
-    lower.endsWith(".mkv") ||
-    lower.endsWith(".3gp")
-  );
+  return lower.endsWith(".mp4") || lower.endsWith(".mov") || lower.endsWith(".avi") || lower.endsWith(".webm") || lower.endsWith(".mkv") || lower.endsWith(".3gp");
 };
 
 const getPaginationRange = (currentPage, totalPages) => {
@@ -174,7 +167,6 @@ export default function RiwayatTransaksiSeller() {
     }).format(price || 0);
   };
 
-
   const getOrderSubtotal = (order) => {
     if (order.items && order.items.length > 0) {
       return order.items.reduce((sum, item) => sum + Number(item.price) * (item.quantity || 1), 0);
@@ -209,10 +201,7 @@ export default function RiwayatTransaksiSeller() {
     if (!isRelevant) return false;
 
     const query = searchQuery.toLowerCase();
-    const matchesSearch =
-      order.order_id?.toLowerCase().includes(query) ||
-      order.product?.name?.toLowerCase().includes(query) ||
-      (order.items && order.items.length > 0 && order.items.some(item => item.product?.name?.toLowerCase().includes(query)));
+    const matchesSearch = order.order_id?.toLowerCase().includes(query) || order.product?.name?.toLowerCase().includes(query) || (order.items && order.items.length > 0 && order.items.some((item) => item.product?.name?.toLowerCase().includes(query)));
 
     const matchesStatus =
       statusFilter === "all" ||
@@ -247,8 +236,8 @@ export default function RiwayatTransaksiSeller() {
       {/* Stats Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
         {/* Card 1: Total Pendapatan */}
-        <div className="bg-zinc-900 border border-zinc-800 rounded-2xl md:rounded-[2.5rem] p-5 md:p-8 flex items-center gap-4 md:gap-5 relative overflow-hidden group">
-          <div className="w-10 h-10 md:w-12 md:h-12 bg-purple-500/10 rounded-xl md:rounded-2xl flex items-center justify-center text-purple-500 border border-purple-500/20 group-hover:scale-110 transition-transform shrink-0">
+        <div className="bg-zinc-900 border border-zinc-800 rounded-[10px] p-5 md:p-8 flex items-center gap-4 md:gap-5 relative overflow-hidden group">
+          <div className="w-10 h-10 md:w-12 md:h-12 bg-purple-500/10 rounded-[10px] flex items-center justify-center text-purple-500 border border-purple-500/20 group-hover:scale-110 transition-transform shrink-0">
             <Wallet size={18} className="md:hidden" />
             <Wallet size={24} className="hidden md:block" />
           </div>
@@ -259,8 +248,8 @@ export default function RiwayatTransaksiSeller() {
         </div>
 
         {/* Card 2: Sudah Ditransfer */}
-        <div className="bg-zinc-900 border border-zinc-800 rounded-2xl md:rounded-[2.5rem] p-5 md:p-8 flex items-center gap-4 md:gap-5 relative overflow-hidden group">
-          <div className="w-10 h-10 md:w-12 md:h-12 bg-emerald-500/10 rounded-xl md:rounded-2xl flex items-center justify-center text-emerald-500 border border-emerald-500/20 group-hover:scale-110 transition-transform shrink-0">
+        <div className="bg-zinc-900 border border-zinc-800 rounded-[10px] p-5 md:p-8 flex items-center gap-4 md:gap-5 relative overflow-hidden group">
+          <div className="w-10 h-10 md:w-12 md:h-12 bg-emerald-500/10 rounded-[10px] flex items-center justify-center text-emerald-500 border border-emerald-500/20 group-hover:scale-110 transition-transform shrink-0">
             <CheckCircle2 size={18} className="md:hidden" />
             <CheckCircle2 size={24} className="hidden md:block" />
           </div>
@@ -271,8 +260,8 @@ export default function RiwayatTransaksiSeller() {
         </div>
 
         {/* Card 3: Belum Ditransfer */}
-        <div className="bg-zinc-900 border border-zinc-800 rounded-2xl md:rounded-[2.5rem] p-5 md:p-8 flex items-center gap-4 md:gap-5 relative overflow-hidden group">
-          <div className="w-10 h-10 md:w-12 md:h-12 bg-amber-500/10 rounded-xl md:rounded-2xl flex items-center justify-center text-amber-500 border border-amber-500/20 group-hover:scale-110 transition-transform shrink-0">
+        <div className="bg-zinc-900 border border-zinc-800 rounded-[10px] p-5 md:p-8 flex items-center gap-4 md:gap-5 relative overflow-hidden group">
+          <div className="w-10 h-10 md:w-12 md:h-12 bg-amber-500/10 rounded-[10px] flex items-center justify-center text-amber-500 border border-amber-500/20 group-hover:scale-110 transition-transform shrink-0">
             <DollarSign size={18} className="md:hidden" />
             <DollarSign size={24} className="hidden md:block" />
           </div>
@@ -283,8 +272,8 @@ export default function RiwayatTransaksiSeller() {
         </div>
 
         {/* Card 4: Status Pencairan (Pengajuan Aktif & Belum Diajukan) */}
-        <div className="bg-zinc-900 border border-zinc-800 rounded-2xl md:rounded-[2.5rem] p-5 md:p-8 flex items-center gap-4 md:gap-5 relative overflow-hidden group">
-          <div className="w-10 h-10 md:w-12 md:h-12 bg-blue-500/10 rounded-xl md:rounded-2xl flex items-center justify-center text-blue-500 border border-blue-500/20 group-hover:scale-110 transition-transform shrink-0">
+        <div className="bg-zinc-900 border border-zinc-800 rounded-[10px] p-5 md:p-8 flex items-center gap-4 md:gap-5 relative overflow-hidden group">
+          <div className="w-10 h-10 md:w-12 md:h-12 bg-blue-500/10 rounded-[10px] flex items-center justify-center text-blue-500 border border-blue-500/20 group-hover:scale-110 transition-transform shrink-0">
             <Clock size={18} className="md:hidden" />
             <Clock size={24} className="hidden md:block" />
           </div>
@@ -310,7 +299,7 @@ export default function RiwayatTransaksiSeller() {
       </div>
 
       {/* Filters */}
-      <div className="bg-zinc-900 border border-zinc-800 rounded-[2rem] p-3 flex flex-col md:flex-row gap-4">
+      <div className="bg-zinc-900 border border-zinc-800 rounded-[10px] p-3 flex flex-col md:flex-row gap-4">
         <div className="relative flex-1">
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500" size={18} />
           <input
@@ -318,10 +307,10 @@ export default function RiwayatTransaksiSeller() {
             placeholder="Cari Nomor Invoice atau Nama Produk..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full bg-zinc-950 border border-zinc-800 rounded-xl py-3 pl-12 pr-4 text-white placeholder:text-zinc-600 focus:outline-none focus:border-emerald-500/50 transition-all text-sm font-medium"
+            className="w-full bg-zinc-950 border border-zinc-800 rounded-[10px] py-3 pl-12 pr-4 text-white placeholder:text-zinc-600 focus:outline-none focus:border-emerald-500/50 transition-all text-sm font-medium"
           />
         </div>
-        <div className="flex items-center gap-2 bg-zinc-950 border border-zinc-800 rounded-xl px-4 py-2 min-w-[200px]">
+        <div className="flex items-center gap-2 bg-zinc-950 border border-zinc-800 rounded-[10px] px-4 py-2 min-w-[200px]">
           <Filter size={16} className="text-zinc-500" />
           <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} className="bg-transparent text-white text-xs font-bold outline-none cursor-pointer w-full pr-4">
             <option value="all" className="bg-zinc-900 text-white">
@@ -341,8 +330,8 @@ export default function RiwayatTransaksiSeller() {
       </div>
 
       {/* Info Banner */}
-      <div className="mb-6 p-5 bg-emerald-500/10 border border-emerald-500/20 rounded-[1.8rem] flex items-center gap-4 hover:bg-emerald-500/20 transition-all duration-300">
-        <div className="w-10 h-10 rounded-xl bg-emerald-500/20 flex items-center justify-center shrink-0 border border-emerald-500/30">
+      <div className="mb-6 p-5 bg-emerald-500/10 border border-emerald-500/20 rounded-[10px] flex items-center gap-4 hover:bg-emerald-500/20 transition-all duration-300">
+        <div className="w-10 h-10 rounded-[10px] bg-emerald-500/20 flex items-center justify-center shrink-0 border border-emerald-500/30">
           <Info size={20} className="text-emerald-500" />
         </div>
         <p className="text-xs text-zinc-300 leading-relaxed font-medium">
@@ -352,7 +341,7 @@ export default function RiwayatTransaksiSeller() {
       </div>
 
       {/* Desktop Table View */}
-      <div className="hidden md:block bg-zinc-900 border border-zinc-800 rounded-[2.5rem] overflow-hidden">
+      <div className="hidden md:block bg-zinc-900 border border-zinc-800 rounded-[10px] overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>
@@ -418,7 +407,7 @@ export default function RiwayatTransaksiSeller() {
                               }}
                               className="rounded border-zinc-800 bg-zinc-950 text-emerald-500 focus:ring-emerald-500/20 w-4 h-4 cursor-pointer"
                             />
-                            <span className="text-[10px] font-black text-emerald-500 uppercase tracking-widest leading-none bg-emerald-500/10 px-2 py-1 rounded border border-emerald-500/20">Cairkan</span>
+                            <span className="text-[10px] font-black text-emerald-500 uppercase tracking-widest leading-none bg-emerald-500/10 px-2 py-1 rounded-[10px] border border-emerald-500/20">Cairkan</span>
                           </>
                         ) : (
                           <>
@@ -434,25 +423,21 @@ export default function RiwayatTransaksiSeller() {
                         {order.items && order.items.length > 0 ? (
                           order.items.map((item, idx) => (
                             <div key={item.id || idx} className="flex items-center gap-4">
-                              <div className="w-12 h-12 rounded-xl overflow-hidden bg-zinc-950 border border-zinc-800 shrink-0">
-                                {item.product?.images && isVideoUrl(item.product.images) ? (
-                                  <video src={getImageUrl(item.product.images)} className="w-full h-full object-cover" preload="metadata" muted playsInline />
-                                ) : (
-                                  <img src={getImageUrl(item.product?.images) || "/placeholder.png"} className="w-full h-full object-cover" alt="" />
-                                )}
+                              <div className="w-12 h-12 rounded-[10px] overflow-hidden bg-zinc-950 border border-zinc-800 shrink-0">
+                                {item.product?.images && isVideoUrl(item.product.images) ? <video src={getImageUrl(item.product.images)} className="w-full h-full object-cover" preload="metadata" muted playsInline /> : <img src={getImageUrl(item.product?.images) || "/placeholder.png"} className="w-full h-full object-cover" alt="" />}
                               </div>
                               <div>
                                 <p className="text-sm font-black text-white line-clamp-1 max-w-[200px]">{item.product?.name || "Produk"}</p>
                                 <div className="flex items-center flex-wrap gap-1.5 mt-1">
-                                  <span className="px-1.5 py-0.5 bg-zinc-950 text-[8px] text-zinc-400 rounded font-black uppercase tracking-widest border border-zinc-800">ID: {item.product?.product_id || "-"}</span>
-                                  <span className="inline-block px-1.5 py-0.5 bg-zinc-950 text-[8px] text-zinc-500 rounded font-black uppercase tracking-widest border border-zinc-800">Qty: {item.quantity || 1}</span>
+                                  <span className="px-1.5 py-0.5 bg-zinc-950 text-[8px] text-zinc-400 rounded-[10px] font-black uppercase tracking-widest border border-zinc-800">ID: {item.product?.product_id || "-"}</span>
+                                  <span className="inline-block px-1.5 py-0.5 bg-zinc-950 text-[8px] text-zinc-500 rounded-[10px] font-black uppercase tracking-widest border border-zinc-800">Qty: {item.quantity || 1}</span>
                                 </div>
                               </div>
                             </div>
                           ))
                         ) : (
                           <div className="flex items-center gap-4">
-                            <div className="w-12 h-12 rounded-xl overflow-hidden bg-zinc-950 border border-zinc-800 shrink-0">
+                            <div className="w-12 h-12 rounded-[10px] overflow-hidden bg-zinc-950 border border-zinc-800 shrink-0">
                               {order.product?.images && isVideoUrl(order.product.images) ? (
                                 <video src={getImageUrl(order.product.images)} className="w-full h-full object-cover" preload="metadata" muted playsInline />
                               ) : (
@@ -462,8 +447,8 @@ export default function RiwayatTransaksiSeller() {
                             <div>
                               <p className="text-sm font-black text-white line-clamp-1 max-w-[200px]">{order.product?.name || "Produk dihapus"}</p>
                               <div className="flex items-center flex-wrap gap-1.5 mt-1">
-                                <span className="px-1.5 py-0.5 bg-zinc-950 text-[8px] text-zinc-400 rounded font-black uppercase tracking-widest border border-zinc-800">ID: {order.product?.product_id || "-"}</span>
-                                <span className="inline-block px-1.5 py-0.5 bg-zinc-950 text-[8px] text-zinc-500 rounded font-black uppercase tracking-widest border border-zinc-800">Qty: {order.quantity || 1}</span>
+                                <span className="px-1.5 py-0.5 bg-zinc-950 text-[8px] text-zinc-400 rounded-[10px] font-black uppercase tracking-widest border border-zinc-800">ID: {order.product?.product_id || "-"}</span>
+                                <span className="inline-block px-1.5 py-0.5 bg-zinc-950 text-[8px] text-zinc-500 rounded-[10px] font-black uppercase tracking-widest border border-zinc-800">Qty: {order.quantity || 1}</span>
                               </div>
                             </div>
                           </div>
@@ -486,7 +471,7 @@ export default function RiwayatTransaksiSeller() {
                           <span className="text-[10px] font-black text-zinc-500 font-mono tracking-tighter">{new Date(order.disbursement_requested_at).toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" }).replace(".", ":")} WIB</span>
                         </div>
                       ) : order.disbursed_at || order.disbursement_proof ? (
-                        <span className="px-2.5 py-1 bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 text-[8px] font-black rounded-lg uppercase tracking-widest whitespace-nowrap">Langsung Transfer</span>
+                        <span className="px-2.5 py-1 bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 text-[8px] font-black rounded-[10px] uppercase tracking-widest whitespace-nowrap">Langsung Transfer</span>
                       ) : (
                         <span className="text-[10px] font-bold text-zinc-600 italic">Belum Diajukan</span>
                       )}
@@ -538,17 +523,17 @@ export default function RiwayatTransaksiSeller() {
                     <td className="px-8 py-6 text-center">
                       <div className="flex justify-center items-center gap-2">
                         {order.disbursed_at || order.disbursement_proof ? (
-                          <Link href={`/user/toko/pengajuan-keuangan/detail/${order.id}`} className="flex items-center gap-2 px-4 py-2 bg-zinc-800 hover:bg-zinc-700 text-white rounded-xl text-[10px] font-black uppercase tracking-widest transition-all border border-zinc-700 hover:border-zinc-600 group/btn min-w-[140px] justify-center">
+                          <Link href={`/user/toko/pengajuan-keuangan/detail/${order.id}`} className="flex items-center gap-2 px-4 py-2 bg-zinc-800 hover:bg-zinc-700 text-white rounded-[10px] text-[10px] font-black uppercase tracking-widest transition-all border border-zinc-700 hover:border-zinc-600 group/btn min-w-[140px] justify-center">
                             <FileText size={14} className="text-emerald-500 group-hover/btn:scale-110 transition-transform" />
                             Detail Transfer
                           </Link>
                         ) : order.status === "disbursement_requested" ? (
-                          <div className="flex items-center gap-2 px-4 py-2 bg-blue-500/10 text-blue-400 rounded-xl text-[10px] font-black uppercase tracking-widest border border-blue-500/20 min-w-[140px] justify-center cursor-default">
+                          <div className="flex items-center gap-2 px-4 py-2 bg-blue-500/10 text-blue-400 rounded-[10px] text-[10px] font-black uppercase tracking-widest border border-blue-500/20 min-w-[140px] justify-center cursor-default">
                             <ArrowUpRight size={14} />
                             Menunggu Admin
                           </div>
                         ) : (
-                          <Link href={`/user/toko/pengajuan-keuangan/pengajuan/${order.id}`} className="px-4 py-2 bg-emerald-500 hover:bg-emerald-400 text-zinc-950 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all active:scale-[0.98] inline-flex items-center gap-2">
+                          <Link href={`/user/toko/pengajuan-keuangan/pengajuan/${order.id}`} className="px-4 py-2 bg-emerald-500 hover:bg-emerald-400 text-white text-[10px] font-black uppercase tracking-widest rounded-[10px] transition-all active:scale-[0.98] inline-flex items-center gap-2">
                             <ArrowUpRight size={14} /> Ajukan Pencairan
                           </Link>
                         )}
@@ -580,7 +565,7 @@ export default function RiwayatTransaksiSeller() {
       <div className="md:hidden space-y-4">
         {/* Select All & Summary Control Bar for Mobile */}
         {!isLoading && currentItems.length > 0 && (
-          <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-4 flex items-center justify-between">
+          <div className="bg-zinc-900 border border-zinc-800 rounded-[10px] p-4 flex items-center justify-between">
             <label className="flex items-center gap-3 cursor-pointer select-none">
               <input
                 type="checkbox"
@@ -607,7 +592,7 @@ export default function RiwayatTransaksiSeller() {
               </div>
             </label>
             {selectedOrders.length > 0 && (
-              <button onClick={() => setSelectedOrders([])} className="text-[9px] font-black text-rose-500 hover:text-rose-400 uppercase tracking-widest bg-rose-500/10 px-3 py-1.5 rounded-lg border border-rose-500/20">
+              <button onClick={() => setSelectedOrders([])} className="text-[9px] font-black text-rose-500 hover:text-rose-400 uppercase tracking-widest bg-rose-500/10 px-3 py-1.5 rounded-[10px] border border-rose-500/20">
                 Bersihkan ({selectedOrders.length})
               </button>
             )}
@@ -615,10 +600,10 @@ export default function RiwayatTransaksiSeller() {
         )}
 
         {isLoading ? (
-          [1, 2, 3].map((i) => <div key={i} className="bg-zinc-900 border border-zinc-800 rounded-3xl p-6 h-48 animate-pulse"></div>)
+          [1, 2, 3].map((i) => <div key={i} className="bg-zinc-900 border border-zinc-800 rounded-[10px] p-6 h-48 animate-pulse"></div>)
         ) : currentItems.length > 0 ? (
           currentItems.map((order, index) => (
-            <div key={order.id} className="bg-zinc-900 border border-zinc-800 rounded-3xl p-5 space-y-4 active:scale-[0.99] transition-all duration-300">
+            <div key={order.id} className="bg-zinc-900 border border-zinc-800 rounded-[10px] p-5 space-y-4 active:scale-[0.99] transition-all duration-300">
               {/* Card Header: Invoice ID & Status Badge */}
               <div className="flex items-center justify-between border-b border-zinc-800/60 pb-3">
                 <div className="flex items-center gap-3">
@@ -643,11 +628,11 @@ export default function RiwayatTransaksiSeller() {
                 </div>
                 <div>
                   {order.disbursed_at || order.disbursement_proof ? (
-                    <span className="px-2 py-1 bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 rounded-lg text-[8px] font-black uppercase tracking-widest">Transfer Berhasil</span>
+                    <span className="px-2 py-1 bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 rounded-[10px] text-[8px] font-black uppercase tracking-widest">Transfer Berhasil</span>
                   ) : order.status === "disbursement_requested" ? (
-                    <span className="px-2 py-1 bg-blue-500/10 text-blue-400 border border-blue-500/20 rounded-lg text-[8px] font-black uppercase tracking-widest animate-pulse">Pengajuan</span>
+                    <span className="px-2 py-1 bg-blue-500/10 text-blue-400 border border-blue-500/20 rounded-[10px] text-[8px] font-black uppercase tracking-widest animate-pulse">Pengajuan</span>
                   ) : (
-                    <span className="px-2 py-1 bg-zinc-800 text-zinc-400 border border-zinc-700 rounded-lg text-[8px] font-black uppercase tracking-widest">Belum Diajukan</span>
+                    <span className="px-2 py-1 bg-zinc-800 text-zinc-400 border border-zinc-700 rounded-[10px] text-[8px] font-black uppercase tracking-widest">Belum Diajukan</span>
                   )}
                 </div>
               </div>
@@ -655,36 +640,28 @@ export default function RiwayatTransaksiSeller() {
               <div className="flex flex-col gap-3">
                 {order.items && order.items.length > 0 ? (
                   order.items.map((item, idx) => (
-                    <div key={item.id || idx} className="flex items-center gap-4 bg-zinc-950/20 p-2.5 rounded-2xl border border-zinc-800/40">
-                      <div className="w-14 h-14 rounded-xl overflow-hidden bg-zinc-950 border border-zinc-800 shrink-0">
-                        {item.product?.images && isVideoUrl(item.product.images) ? (
-                          <video src={getImageUrl(item.product.images)} className="w-full h-full object-cover" preload="metadata" muted playsInline />
-                        ) : (
-                          <img src={getImageUrl(item.product?.images) || "/placeholder.png"} className="w-full h-full object-cover" alt="" />
-                        )}
+                    <div key={item.id || idx} className="flex items-center gap-4 bg-zinc-950/20 p-2.5 rounded-[10px] border border-zinc-800/40">
+                      <div className="w-14 h-14 rounded-[10px] overflow-hidden bg-zinc-950 border border-zinc-800 shrink-0">
+                        {item.product?.images && isVideoUrl(item.product.images) ? <video src={getImageUrl(item.product.images)} className="w-full h-full object-cover" preload="metadata" muted playsInline /> : <img src={getImageUrl(item.product?.images) || "/placeholder.png"} className="w-full h-full object-cover" alt="" />}
                       </div>
                       <div className="min-w-0 flex-1 space-y-1">
                         <p className="text-xs font-black text-white line-clamp-1">{item.product?.name || "Produk"}</p>
                         <div className="flex items-center gap-2">
-                          <span className="px-1.5 py-0.5 bg-zinc-950 text-[8px] text-zinc-500 rounded font-black uppercase tracking-widest border border-zinc-800">ID: {item.product?.product_id || "-"}</span>
+                          <span className="px-1.5 py-0.5 bg-zinc-950 text-[8px] text-zinc-500 rounded-[10px] font-black uppercase tracking-widest border border-zinc-800">ID: {item.product?.product_id || "-"}</span>
                           <span className="text-[9px] font-bold text-zinc-500">Qty: {item.quantity || 1}</span>
                         </div>
                       </div>
                     </div>
                   ))
                 ) : (
-                  <div className="flex items-center gap-4 bg-zinc-950/20 p-2.5 rounded-2xl border border-zinc-800/40">
-                    <div className="w-14 h-14 rounded-xl overflow-hidden bg-zinc-950 border border-zinc-800 shrink-0">
-                      {order.product?.images && isVideoUrl(order.product.images) ? (
-                        <video src={getImageUrl(order.product.images)} className="w-full h-full object-cover" preload="metadata" muted playsInline />
-                      ) : (
-                        <img src={getImageUrl(order.product?.images) || "/placeholder.png"} className="w-full h-full object-cover" alt="" />
-                      )}
+                  <div className="flex items-center gap-4 bg-zinc-950/20 p-2.5 rounded-[10px] border border-zinc-800/40">
+                    <div className="w-14 h-14 rounded-[10px] overflow-hidden bg-zinc-950 border border-zinc-800 shrink-0">
+                      {order.product?.images && isVideoUrl(order.product.images) ? <video src={getImageUrl(order.product.images)} className="w-full h-full object-cover" preload="metadata" muted playsInline /> : <img src={getImageUrl(order.product?.images) || "/placeholder.png"} className="w-full h-full object-cover" alt="" />}
                     </div>
                     <div className="min-w-0 flex-1 space-y-1">
                       <p className="text-xs font-black text-white line-clamp-1">{order.product?.name || "Produk dihapus"}</p>
                       <div className="flex items-center gap-2">
-                        <span className="px-1.5 py-0.5 bg-zinc-950 text-[8px] text-zinc-500 rounded font-black uppercase tracking-widest border border-zinc-800">ID: {order.product?.product_id || "-"}</span>
+                        <span className="px-1.5 py-0.5 bg-zinc-950 text-[8px] text-zinc-500 rounded-[10px] font-black uppercase tracking-widest border border-zinc-800">ID: {order.product?.product_id || "-"}</span>
                         <span className="text-[9px] font-bold text-zinc-500">Qty: {order.quantity || 1}</span>
                       </div>
                     </div>
@@ -693,7 +670,7 @@ export default function RiwayatTransaksiSeller() {
               </div>
 
               {/* Details List */}
-              <div className="bg-zinc-950/40 rounded-2xl p-4 border border-zinc-800/40 space-y-3">
+              <div className="bg-zinc-950/40 rounded-[10px] p-4 border border-zinc-800/40 space-y-3">
                 <div className="flex justify-between items-center text-[10px]">
                   <span className="text-zinc-500 font-bold uppercase tracking-widest">Tanggal Terjual</span>
                   <span className="text-zinc-300 font-bold flex items-center gap-1.5">
@@ -709,7 +686,7 @@ export default function RiwayatTransaksiSeller() {
                       {new Date(order.disbursement_requested_at).toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" })} - {new Date(order.disbursement_requested_at).toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" }).replace(".", ":")} WIB
                     </span>
                   ) : order.disbursed_at || order.disbursement_proof ? (
-                    <span className="px-2 py-0.5 bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 rounded-md text-[8px] font-black uppercase tracking-widest">Langsung Transfer</span>
+                    <span className="px-2 py-0.5 bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 rounded-[10px] text-[8px] font-black uppercase tracking-widest">Langsung Transfer</span>
                   ) : (
                     <span className="text-zinc-600 font-bold italic">Belum Diajukan</span>
                   )}
@@ -746,14 +723,14 @@ export default function RiwayatTransaksiSeller() {
                 </div>
                 <div className="flex-1 max-w-[180px]">
                   {order.disbursed_at || order.disbursement_proof ? (
-                    <Link href={`/user/toko/pengajuan-keuangan/detail/${order.id}`} className="w-full flex items-center justify-center gap-1.5 py-3 bg-zinc-800 hover:bg-zinc-700 text-white rounded-xl text-[9px] font-black uppercase tracking-widest transition-all border border-zinc-700">
+                    <Link href={`/user/toko/pengajuan-keuangan/detail/${order.id}`} className="w-full flex items-center justify-center gap-1.5 py-3 bg-zinc-800 hover:bg-zinc-700 text-white rounded-[10px] text-[9px] font-black uppercase tracking-widest transition-all border border-zinc-700">
                       <FileText size={12} className="text-emerald-500" />
                       Detail
                     </Link>
                   ) : order.status === "disbursement_requested" ? (
-                    <div className="w-full flex items-center justify-center gap-1.5 py-3 bg-blue-500/10 text-blue-400 rounded-xl text-[9px] font-black uppercase tracking-widest border border-blue-500/20 cursor-default text-center leading-tight">Proses Review</div>
+                    <div className="w-full flex items-center justify-center gap-1.5 py-3 bg-blue-500/10 text-blue-400 rounded-[10px] text-[9px] font-black uppercase tracking-widest border border-blue-500/20 cursor-default text-center leading-tight">Proses Review</div>
                   ) : (
-                    <Link href={`/user/toko/pengajuan-keuangan/pengajuan/${order.id}`} className="w-full flex items-center justify-center gap-1.5 py-3 bg-emerald-500 hover:bg-emerald-400 text-zinc-950 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all active:scale-[0.98]">
+                    <Link href={`/user/toko/pengajuan-keuangan/pengajuan/${order.id}`} className="w-full flex items-center justify-center gap-1.5 py-3 bg-emerald-500 hover:bg-emerald-400 text-white rounded-[10px] text-[9px] font-black uppercase tracking-widest transition-all active:scale-[0.98]">
                       <ArrowUpRight size={12} /> Ajukan
                     </Link>
                   )}
@@ -762,7 +739,7 @@ export default function RiwayatTransaksiSeller() {
             </div>
           ))
         ) : (
-          <div className="bg-zinc-900 border border-zinc-800 rounded-3xl p-12 text-center">
+          <div className="bg-zinc-900 border border-zinc-800 rounded-[10px] p-12 text-center">
             <p className="text-zinc-500 text-xs font-bold uppercase tracking-widest">Tidak ada data</p>
           </div>
         )}
@@ -770,12 +747,12 @@ export default function RiwayatTransaksiSeller() {
 
       {/* Pagination Controls */}
       {totalPages > 1 && (
-        <div className="flex flex-col md:flex-row items-center justify-between gap-4 bg-zinc-900/50 border border-zinc-800 p-6 rounded-[2rem]">
+        <div className="flex flex-col md:flex-row items-center justify-between gap-4 bg-zinc-900/50 border border-zinc-800 p-6 rounded-[10px]">
           <p className="text-[10px] md:text-xs font-black text-zinc-500 uppercase tracking-widest">
             Menampilkan {indexOfFirstItem + 1} - {Math.min(indexOfLastItem, filteredOrders.length)} dari {filteredOrders.length} Transaksi
           </p>
           <div className="flex items-center">
-            <div className="inline-flex rounded-xl border border-zinc-800 bg-zinc-950 divide-x divide-zinc-800 overflow-hidden">
+            <div className="inline-flex rounded-[10px] border border-zinc-800 bg-zinc-950 divide-x divide-zinc-800 overflow-hidden">
               <button onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))} disabled={currentPage === 1} className="w-10 h-10 flex items-center justify-center text-zinc-400 hover:text-white hover:bg-zinc-900/50 disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-transparent transition-all">
                 <ChevronLeft size={16} />
               </button>
@@ -801,8 +778,8 @@ export default function RiwayatTransaksiSeller() {
 
       {/* Info Section */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pb-10">
-        <div className="p-8 bg-zinc-900 border border-zinc-800 rounded-[2.5rem] flex gap-6 items-start group hover:border-emerald-500/30 transition-all">
-          <div className="w-14 h-14 bg-emerald-500/10 text-emerald-500 rounded-2xl flex items-center justify-center shrink-0 border border-emerald-500/20 group-hover:scale-110 transition-transform">
+        <div className="p-8 bg-zinc-900 border border-zinc-800 rounded-[10px] flex gap-6 items-start group hover:border-emerald-500/30 transition-all">
+          <div className="w-14 h-14 bg-emerald-500/10 text-emerald-500 rounded-[10px] flex items-center justify-center shrink-0 border border-emerald-500/20 group-hover:scale-110 transition-transform">
             <Wallet size={28} />
           </div>
           <div className="space-y-2">
@@ -819,8 +796,8 @@ export default function RiwayatTransaksiSeller() {
             </p>
           </div>
         </div>
-        <div className="p-8 bg-zinc-900 border border-zinc-800 rounded-[2.5rem] flex gap-6 items-start group hover:border-blue-500/30 transition-all">
-          <div className="w-14 h-14 bg-blue-500/10 text-blue-500 rounded-2xl flex items-center justify-center shrink-0 border border-blue-500/20 group-hover:scale-110 transition-transform">
+        <div className="p-8 bg-zinc-900 border border-zinc-800 rounded-[10px] flex gap-6 items-start group hover:border-blue-500/30 transition-all">
+          <div className="w-14 h-14 bg-blue-500/10 text-blue-500 rounded-[10px] flex items-center justify-center shrink-0 border border-blue-500/20 group-hover:scale-110 transition-transform">
             <Info size={28} />
           </div>
           <div className="space-y-2">
@@ -833,15 +810,15 @@ export default function RiwayatTransaksiSeller() {
       {/* Centered Bulk Confirmation Modal (Appears immediately when selectedOrders.length > 0) */}
       {selectedOrders.length > 0 && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-zinc-950/80 backdrop-blur-sm animate-in fade-in duration-200">
-          <div className="bg-zinc-900 border border-zinc-800 rounded-[2.5rem] p-8 max-w-md w-full shadow-2xl space-y-6 relative animate-in zoom-in-95 duration-200">
+          <div className="bg-zinc-900 border border-zinc-800 rounded-[10px] p-8 max-w-md w-full shadow-2xl space-y-6 relative animate-in zoom-in-95 duration-200">
             {/* Close Button */}
-            <button onClick={() => setSelectedOrders([])} className="absolute top-6 right-6 w-8 h-8 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-zinc-400 hover:text-white flex items-center justify-center transition-colors">
+            <button onClick={() => setSelectedOrders([])} className="absolute top-6 right-6 w-8 h-8 rounded-[10px] bg-zinc-800 hover:bg-zinc-700 text-zinc-400 hover:text-white flex items-center justify-center transition-colors">
               <span className="font-bold text-sm">✕</span>
             </button>
 
             {/* Modal Header */}
             <div className="text-center space-y-2 mt-2">
-              <div className="w-14 h-14 bg-emerald-500/10 text-emerald-500 rounded-2xl flex items-center justify-center mx-auto border border-emerald-500/20">
+              <div className="w-14 h-14 bg-emerald-500/10 text-emerald-500 rounded-[10px] flex items-center justify-center mx-auto border border-emerald-500/20">
                 <ShoppingBag size={28} />
               </div>
               <h3 className="text-lg font-black text-white uppercase tracking-wider">Konfirmasi Pencairan</h3>
@@ -849,54 +826,29 @@ export default function RiwayatTransaksiSeller() {
             </div>
 
             {/* Selected Items Breakdown List */}
-            <div className="bg-zinc-950/45 border border-zinc-800/80 rounded-2xl p-5 space-y-3.5 max-h-48 overflow-y-auto custom-scrollbar shadow-inner">
+            <div className="bg-zinc-950/45 border border-zinc-800/80 rounded-[10px] p-5 space-y-3.5 max-h-48 overflow-y-auto custom-scrollbar shadow-inner">
               {orders
                 .filter((o) => selectedOrders.includes(o.id))
                 .map((order) => (
                   <div key={order.id} className="flex justify-between items-center text-xs border-b border-zinc-850 pb-2.5 last:border-0 last:pb-0">
                     <div className="text-left">
-                      <p className="font-black text-white line-clamp-1 max-w-[190px]">
-                        {order.items && order.items.length > 0
-                          ? order.items.map((item) => item.product?.name || "Produk").join(" + ")
-                          : order.product?.name || "Produk dihapus"}
-                      </p>
+                      <p className="font-black text-white line-clamp-1 max-w-[190px]">{order.items && order.items.length > 0 ? order.items.map((item) => item.product?.name || "Produk").join(" + ") : order.product?.name || "Produk dihapus"}</p>
                       <p className="text-[9px] font-bold text-zinc-500 uppercase tracking-tighter">{order.order_id}</p>
                     </div>
-                    <p className="font-black text-emerald-500 text-right shrink-0 ml-4">
-                      {formatPrice(
-                        getOrderSubtotal(order) +
-                        Number(order.shipping_cost || 0) +
-                        Number(order.packing_cost || 0) -
-                        Number(order.additional_fee || 0)
-                      )}
-                    </p>
+                    <p className="font-black text-emerald-500 text-right shrink-0 ml-4">{formatPrice(getOrderSubtotal(order) + Number(order.shipping_cost || 0) + Number(order.packing_cost || 0) - Number(order.additional_fee || 0))}</p>
                   </div>
                 ))}
             </div>
 
             {/* Payout Summary */}
-            <div className="bg-zinc-950/80 border border-zinc-850 p-5 rounded-2xl space-y-2.5 shadow-inner">
+            <div className="bg-zinc-950/80 border border-zinc-850 p-5 rounded-[10px] space-y-2.5 shadow-inner">
               <div className="flex items-center justify-between text-xs">
                 <span className="text-zinc-500 font-bold uppercase tracking-wider">Total Pesanan</span>
                 <span className="font-black text-white">{selectedOrders.length} Pesanan Terpilih</span>
               </div>
               <div className="flex items-center justify-between border-t border-zinc-800 pt-3">
                 <span className="text-xs text-emerald-400 font-black uppercase tracking-wider">Total Dana Bersih</span>
-                <span className="text-base font-black text-emerald-400">
-                  {formatPrice(
-                    orders
-                      .filter((o) => selectedOrders.includes(o.id))
-                      .reduce(
-                        (acc, curr) =>
-                          acc +
-                          (getOrderSubtotal(curr) +
-                            Number(curr.shipping_cost || 0) +
-                            Number(curr.packing_cost || 0) -
-                            Number(curr.additional_fee || 0)),
-                        0
-                      )
-                  )}
-                </span>
+                <span className="text-base font-black text-emerald-400">{formatPrice(orders.filter((o) => selectedOrders.includes(o.id)).reduce((acc, curr) => acc + (getOrderSubtotal(curr) + Number(curr.shipping_cost || 0) + Number(curr.packing_cost || 0) - Number(curr.additional_fee || 0)), 0))}</span>
               </div>
             </div>
 
@@ -907,11 +859,11 @@ export default function RiwayatTransaksiSeller() {
                   await handleBulkRequest();
                 }}
                 disabled={isSubmittingBulk}
-                className="w-full py-4 bg-emerald-500 hover:bg-emerald-400 text-zinc-950 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all active:scale-[0.98] flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed shadow-[0_10px_25px_rgba(16,185,129,0.2)]"
+                className="w-full py-4 bg-emerald-500 hover:bg-emerald-400 text-zinc-950 rounded-[10px] text-[10px] font-black uppercase tracking-widest transition-all active:scale-[0.98] flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed shadow-[0_10px_25px_rgba(16,185,129,0.2)]"
               >
                 {isSubmittingBulk ? "Memproses..." : "Ajukan Sekarang"} <ArrowUpRight size={14} />
               </button>
-              <button onClick={() => setSelectedOrders([])} disabled={isSubmittingBulk} className="w-full py-4 bg-zinc-850 hover:bg-zinc-800 text-zinc-400 hover:text-white rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all border border-zinc-800">
+              <button onClick={() => setSelectedOrders([])} disabled={isSubmittingBulk} className="w-full py-4 bg-zinc-850 hover:bg-zinc-800 text-zinc-400 hover:text-white rounded-[10px] text-[10px] font-black uppercase tracking-widest transition-all border border-zinc-800">
                 Batal
               </button>
             </div>

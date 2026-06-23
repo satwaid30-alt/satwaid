@@ -123,7 +123,7 @@ export default function AuctionDetailPage({ params }) {
       {/* Navigation Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-6 animate-in fade-in duration-700">
         <Link href="/user/toko/daftar-produk" className="inline-flex items-center gap-3 text-zinc-500 hover:text-white transition-all group">
-          <div className="w-10 h-10 rounded-xl bg-zinc-900 border border-zinc-800 flex items-center justify-center group-hover:bg-zinc-800 group-hover:border-zinc-700 transition-all">
+          <div className="w-10 h-10 rounded-[10px] bg-zinc-900 border border-zinc-800 flex items-center justify-center group-hover:bg-zinc-800 group-hover:border-zinc-700 transition-all">
             <ChevronLeft size={20} />
           </div>
           <div>
@@ -135,7 +135,7 @@ export default function AuctionDetailPage({ params }) {
 
       <div className="flex flex-col lg:flex-row gap-8 lg:gap-12 items-start">
         <div className="w-full lg:w-[42%] space-y-4 lg:space-y-6 lg:sticky lg:top-24 shrink-0">
-          <div className="bg-zinc-900 border border-zinc-800 rounded-3xl lg:rounded-[2.5rem] overflow-hidden relative animate-in fade-in duration-700">
+          <div className="bg-zinc-900 border border-zinc-800 rounded-[10px] lg:rounded-[10px] overflow-hidden relative animate-in fade-in duration-700">
             <div className="w-full aspect-square bg-zinc-950 relative group cursor-zoom-in">
               {parsedImages.length > 0 && parsedImages[activeImageIndex] ? (
                 <img src={parsedImages[activeImageIndex]} alt={listing.name} className="w-full h-full object-contain p-4 lg:p-8" />
@@ -148,10 +148,10 @@ export default function AuctionDetailPage({ params }) {
               {/* Image Nav Arrows */}
               {parsedImages.length > 1 && (
                 <div className="absolute inset-x-4 top-1/2 -translate-y-1/2 flex justify-between opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none">
-                  <button onClick={() => setActiveImageIndex((prev) => (prev > 0 ? prev - 1 : parsedImages.length - 1))} className="p-3 lg:p-4 bg-zinc-900/80 backdrop-blur-md text-white rounded-xl lg:rounded-2xl hover:bg-amber-500 hover:text-zinc-950 transition-all pointer-events-auto">
+                  <button onClick={() => setActiveImageIndex((prev) => (prev > 0 ? prev - 1 : parsedImages.length - 1))} className="p-3 lg:p-4 bg-zinc-900/80 backdrop-blur-md text-white rounded-[10px] lg:rounded-[10px] hover:bg-amber-500 hover:text-zinc-950 transition-all pointer-events-auto">
                     <ChevronLeft size={20} className="lg:w-6 lg:h-6" />
                   </button>
-                  <button onClick={() => setActiveImageIndex((prev) => (prev < parsedImages.length - 1 ? prev + 1 : 0))} className="p-3 lg:p-4 bg-zinc-900/80 backdrop-blur-md text-white rounded-xl lg:rounded-2xl hover:bg-amber-500 hover:text-zinc-950 transition-all pointer-events-auto">
+                  <button onClick={() => setActiveImageIndex((prev) => (prev < parsedImages.length - 1 ? prev + 1 : 0))} className="p-3 lg:p-4 bg-zinc-900/80 backdrop-blur-md text-white rounded-[10px] lg:rounded-[10px] hover:bg-amber-500 hover:text-zinc-950 transition-all pointer-events-auto">
                     <ChevronRight size={20} className="lg:w-6 lg:h-6" />
                   </button>
                 </div>
@@ -169,7 +169,7 @@ export default function AuctionDetailPage({ params }) {
             {parsedImages.length > 1 && (
               <div className="p-4 lg:p-6 bg-zinc-950/30 border-t border-zinc-800 flex gap-3 lg:gap-4 overflow-x-auto custom-scrollbar">
                 {parsedImages.map((img, idx) => (
-                  <button key={idx} onClick={() => setActiveImageIndex(idx)} className={`w-16 h-16 lg:w-20 lg:h-20 rounded-xl lg:rounded-2xl overflow-hidden border-2 shrink-0 transition-all duration-300 ${activeImageIndex === idx ? "border-amber-500 scale-105" : "border-zinc-800 opacity-40 hover:opacity-100"}`}>
+                  <button key={idx} onClick={() => setActiveImageIndex(idx)} className={`w-16 h-16 lg:w-20 lg:h-20 rounded-[10px] lg:rounded-[10px] overflow-hidden border-2 shrink-0 transition-all duration-300 ${activeImageIndex === idx ? "border-amber-500 scale-105" : "border-zinc-800 opacity-40 hover:opacity-100"}`}>
                     <img src={img} className="w-full h-full object-cover" />
                   </button>
                 ))}
@@ -181,7 +181,7 @@ export default function AuctionDetailPage({ params }) {
         {/* RIGHT: Info Section */}
         <div className="flex-1 space-y-6 lg:space-y-8 min-w-0 animate-in fade-in duration-700">
           {/* Basic Info & Price */}
-          <div className="bg-zinc-900 border border-zinc-800 rounded-3xl lg:rounded-[2.5rem] p-6 lg:p-12 relative overflow-hidden group">
+          <div className="bg-zinc-900 border border-zinc-800 rounded-[10px] lg:rounded-[10px] p-6 lg:p-12 relative overflow-hidden group">
             <div className="absolute top-0 right-0 w-64 h-64 bg-amber-500/5 blur-[100px] -mr-32 -mt-32 group-hover:bg-amber-500/10 transition-colors duration-700"></div>
 
             <div className="relative space-y-8">
@@ -197,7 +197,7 @@ export default function AuctionDetailPage({ params }) {
               </div>
 
               {/* Price Card */}
-              <div className="rounded-3xl p-8 border group/price relative overflow-hidden shadow-2xl bg-amber-500/5 border-amber-500/20">
+              <div className="rounded-[10px] p-8 border group/price relative overflow-hidden shadow-2xl bg-amber-500/5 border-amber-500/20">
                 <div className="relative">
                   <p className="text-[10px] font-black text-zinc-500 uppercase tracking-[0.3em] mb-3">Open Bid (OB)</p>
                   <div className="flex flex-wrap items-baseline gap-2 lg:gap-4">
@@ -213,13 +213,13 @@ export default function AuctionDetailPage({ params }) {
                   )}
 
                   <div className="mt-6 pt-6 border-t border-amber-500/10 grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="bg-zinc-950/50 p-4 rounded-2xl border border-zinc-800/50">
+                    <div className="bg-zinc-950/50 p-4 rounded-[10px] border border-zinc-800/50">
                       <p className="text-[9px] font-black text-zinc-500 uppercase tracking-widest mb-1.5 flex items-center gap-1.5">
                         <Calendar size={12} className="text-amber-500" /> Mulai Lelang
                       </p>
                       <p className="text-sm font-bold text-zinc-300">{new Date(listing.start_date).toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" }).replace(".", ":").replace(" pukul ", " • ")} WIB</p>
                     </div>
-                    <div className="bg-amber-500/10 p-4 rounded-2xl border border-amber-500/20">
+                    <div className="bg-amber-500/10 p-4 rounded-[10px] border border-amber-500/20">
                       <p className="text-[9px] font-black text-amber-500/80 uppercase tracking-widest mb-1.5 flex items-center gap-1.5">
                         <Clock size={12} className="text-amber-500" /> Berakhir Pada
                       </p>
@@ -229,13 +229,13 @@ export default function AuctionDetailPage({ params }) {
 
                   <div className="flex flex-wrap gap-3 mt-6 pt-6 border-t border-amber-500/10">
                     {listing.is_free_shipping && (
-                      <div className="flex items-center gap-2 px-4 py-2 rounded-xl bg-amber-500/10 border border-amber-500/20">
+                      <div className="flex items-center gap-2 px-4 py-2 rounded-[10px] bg-amber-500/10 border border-amber-500/20">
                         <Truck size={14} className="text-amber-500" />
                         <span className="text-[10px] font-black uppercase tracking-widest text-amber-500">Gratis Ongkir</span>
                       </div>
                     )}
                     {listing.is_free_packing && (
-                      <div className="flex items-center gap-2 px-4 py-2 bg-blue-500/10 border border-blue-500/20 rounded-xl">
+                      <div className="flex items-center gap-2 px-4 py-2 bg-blue-500/10 border border-blue-500/20 rounded-[10px]">
                         <AlertCircle size={14} className="text-blue-500" />
                         <span className="text-[10px] font-black text-blue-500 uppercase tracking-widest">Gratis Packing</span>
                       </div>
@@ -249,7 +249,7 @@ export default function AuctionDetailPage({ params }) {
               {(() => {
                 const isEnded = listing.end_date ? new Date(listing.end_date) <= new Date() : false;
                 return (
-                  <div className="bg-zinc-950 border border-zinc-800 rounded-3xl p-6 lg:p-8 space-y-4">
+                  <div className="bg-zinc-950 border border-zinc-800 rounded-[10px] p-6 lg:p-8 space-y-4">
                     <div className="flex items-center justify-between border-b border-zinc-800 pb-3">
                       <h3 className="text-xs font-black uppercase tracking-wider text-zinc-400 flex items-center gap-2">
                         <Gavel size={14} className="text-amber-500" />
@@ -261,7 +261,7 @@ export default function AuctionDetailPage({ params }) {
                     {isEnded ? (
                       bids && bids.length > 0 ? (
                         <div className="space-y-4">
-                          <div className="flex items-center gap-3 bg-zinc-900/50 p-4 rounded-2xl border border-zinc-800">
+                          <div className="flex items-center gap-3 bg-zinc-900/50 p-4 rounded-[10px] border border-zinc-800">
                             <div className="w-10 h-10 rounded-full bg-zinc-800 border border-zinc-700 overflow-hidden flex-shrink-0 flex items-center justify-center">
                               {bids[0].bidder?.avatar_url ? <img src={getImageUrl(bids[0].bidder.avatar_url)} alt="avatar" className="w-full h-full object-cover" /> : <span className="text-xs font-black text-zinc-500 uppercase">{bids[0].bidder?.username?.substring(0, 2)}</span>}
                             </div>
@@ -277,23 +277,23 @@ export default function AuctionDetailPage({ params }) {
 
                           {/* Link to transaction if available */}
                           {listing.latestOrderUuid ? (
-                            <Link href={`/user/toko/pesanan-masuk/detail/${listing.latestOrderUuid}`} className="inline-flex w-full h-11 bg-emerald-500 hover:bg-emerald-600 text-zinc-950 font-black rounded-2xl text-xs transition-all items-center justify-center gap-2 shadow-lg shadow-emerald-500/20 active:scale-95 cursor-pointer">
+                            <Link href={`/user/toko/pesanan-masuk/detail/${listing.latestOrderUuid}`} className="inline-flex w-full h-11 bg-emerald-500 hover:bg-emerald-600 text-zinc-950 font-black rounded-[10px] text-xs transition-all items-center justify-center gap-2 shadow-lg shadow-emerald-500/20 active:scale-95 cursor-pointer">
                               Lihat Detail Transaksi Pesanan
                             </Link>
                           ) : (
-                            <p className="text-[10px] text-amber-500 font-bold text-center bg-amber-500/5 border border-amber-500/10 py-2 px-4 rounded-xl leading-relaxed">Menunggu pemenang melakukan checkout pembayaran.</p>
+                            <p className="text-[10px] text-amber-500 font-bold text-center bg-amber-500/5 border border-amber-500/10 py-2 px-4 rounded-[10px] leading-relaxed">Menunggu pemenang melakukan checkout pembayaran.</p>
                           )}
                         </div>
                       ) : (
                         <div className="py-4 text-center">
-                          <p className="text-xs font-black text-zinc-500 uppercase tracking-wider bg-zinc-900 border border-zinc-800 py-3 px-4 rounded-2xl">Tidak ada pemenang</p>
+                          <p className="text-xs font-black text-zinc-500 uppercase tracking-wider bg-zinc-900 border border-zinc-800 py-3 px-4 rounded-[10px]">Tidak ada pemenang</p>
                         </div>
                       )
                     ) : /* Active Auction Bidders List */
                     bids && bids.length > 0 ? (
                       <div className="space-y-2 max-h-48 overflow-y-auto custom-scrollbar pr-1">
                         {bids.map((b, idx) => (
-                          <div key={b.id || idx} className={`flex items-center justify-between p-3 rounded-xl border transition-all ${idx === 0 ? "bg-amber-500/5 border-amber-500/20 shadow-md" : "bg-zinc-900/30 border-zinc-800"}`}>
+                          <div key={b.id || idx} className={`flex items-center justify-between p-3 rounded-[10px] border transition-all ${idx === 0 ? "bg-amber-500/5 border-amber-500/20 shadow-md" : "bg-zinc-900/30 border-zinc-800"}`}>
                             <div className="flex items-center gap-2 min-w-0">
                               <span className={`text-[10px] font-black w-5 h-5 rounded-full flex items-center justify-center ${idx === 0 ? "bg-amber-500 text-zinc-950" : "bg-zinc-800 text-zinc-400"}`}>{idx + 1}</span>
                               <span className="text-xs font-bold text-zinc-200 truncate">{b.bidder?.name || b.bidder?.username}</span>
@@ -313,22 +313,22 @@ export default function AuctionDetailPage({ params }) {
 
               {/* Specs Grid */}
               <div className="grid grid-cols-2 md:grid-cols-4 gap-3 lg:gap-4">
-                <div className="p-4 lg:p-5 bg-zinc-950/40 border border-zinc-800/60 rounded-2xl lg:rounded-3xl group/spec hover:border-amber-500/30 transition-all duration-300">
+                <div className="p-4 lg:p-5 bg-zinc-950/40 border border-zinc-800/60 rounded-[10px] lg:rounded-[10px] group/spec hover:border-amber-500/30 transition-all duration-300">
                   <VenusAndMars size={16} className="text-amber-500 mb-2 lg:mb-3 group-hover/spec:scale-110 transition-transform" />
                   <p className="text-[9px] font-black text-zinc-600 uppercase tracking-widest mb-1">Kelamin</p>
                   <p className="text-xs lg:text-sm font-black text-zinc-200">{listing.sex || "Unsex"}</p>
                 </div>
-                <div className="p-4 lg:p-5 bg-zinc-950/40 border border-zinc-800/60 rounded-2xl lg:rounded-3xl group/spec hover:border-amber-500/30 transition-all duration-300">
+                <div className="p-4 lg:p-5 bg-zinc-950/40 border border-zinc-800/60 rounded-[10px] lg:rounded-[10px] group/spec hover:border-amber-500/30 transition-all duration-300">
                   <Globe size={16} className="text-amber-500 mb-2 lg:mb-3 group-hover/spec:scale-110 transition-transform" />
                   <p className="text-[9px] font-black text-zinc-600 uppercase tracking-widest mb-1">Jangkauan</p>
                   <p className="text-xs lg:text-sm font-black text-zinc-200">{listing.shipping_type || "-"}</p>
                 </div>
-                <div className="p-4 lg:p-5 bg-zinc-950/40 border border-zinc-800/60 rounded-2xl lg:rounded-3xl group/spec hover:border-amber-500/30 transition-all duration-300">
+                <div className="p-4 lg:p-5 bg-zinc-950/40 border border-zinc-800/60 rounded-[10px] lg:rounded-[10px] group/spec hover:border-amber-500/30 transition-all duration-300">
                   <Package size={16} className="text-amber-500 mb-2 lg:mb-3 group-hover/spec:scale-110 transition-transform" />
                   <p className="text-[9px] font-black text-zinc-600 uppercase tracking-widest mb-1">Stok</p>
                   <p className="text-xs lg:text-sm font-black text-zinc-200">{listing.stock || 0} Ekor</p>
                 </div>
-                <div className="p-4 lg:p-5 bg-zinc-950/40 border border-zinc-800/60 rounded-2xl lg:rounded-3xl group/spec hover:border-amber-500/30 transition-all duration-300">
+                <div className="p-4 lg:p-5 bg-zinc-950/40 border border-zinc-800/60 rounded-[10px] lg:rounded-[10px] group/spec hover:border-amber-500/30 transition-all duration-300">
                   <Clock size={16} className="text-amber-500 mb-2 lg:mb-3 group-hover/spec:scale-110 transition-transform" />
                   <p className="text-[9px] font-black text-zinc-600 uppercase tracking-widest mb-1">Posting</p>
                   <p className="text-xs lg:text-sm font-black text-zinc-200">{new Date(listing.created_at).toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" })}</p>
@@ -338,17 +338,17 @@ export default function AuctionDetailPage({ params }) {
               {/* Actions */}
               <div className="pt-4 lg:pt-6 flex flex-col sm:flex-row gap-3 lg:gap-4">
                 {isSold ? (
-                  <div className="flex-1 bg-zinc-800/50 border border-zinc-700 text-zinc-500 font-black py-4 lg:py-5 rounded-2xl lg:rounded-[2rem] flex items-center justify-center gap-3 cursor-not-allowed text-xs lg:text-sm">
+                  <div className="flex-1 bg-zinc-800/50 border border-zinc-700 text-zinc-500 font-black py-4 lg:py-5 rounded-[10px] lg:rounded-[10px] flex items-center justify-center gap-3 cursor-not-allowed text-xs lg:text-sm">
                     <ShoppingBag size={20} />
                     PRODUK SUDAH TERJUAL
                   </div>
                 ) : isProses ? (
-                  <div className="flex-1 bg-amber-500/5 border border-amber-500/20 text-amber-400 font-black py-4 lg:py-5 rounded-2xl lg:rounded-[2rem] flex items-center justify-center gap-3 cursor-not-allowed text-xs lg:text-sm">
+                  <div className="flex-1 bg-amber-500/5 border border-amber-500/20 text-amber-400 font-black py-4 lg:py-5 rounded-[10px] lg:rounded-[10px] flex items-center justify-center gap-3 cursor-not-allowed text-xs lg:text-sm">
                     <Gavel size={20} className="animate-pulse" />
                     LELANG SEDANG BERLANGSUNG
                   </div>
                 ) : (
-                  <Link href={`/user/toko/lelang-produk/edit/${listing.id}`} className="flex-1 font-black py-4 lg:py-5 bg-amber-500 hover:bg-amber-400 text-zinc-950 rounded-2xl lg:rounded-[2rem] flex items-center justify-center gap-3 transition-all active:scale-95 group/btn text-xs lg:text-sm cursor-pointer shadow-lg shadow-amber-500/20">
+                  <Link href={`/user/toko/lelang-produk/edit/${listing.id}`} className="flex-1 font-black py-4 lg:py-5 bg-amber-500 hover:bg-amber-400 text-zinc-950 rounded-[10px] lg:rounded-[10px] flex items-center justify-center gap-3 transition-all active:scale-95 group/btn text-xs lg:text-sm cursor-pointer shadow-lg shadow-amber-500/20">
                     <Edit size={20} className="group-hover:rotate-12 transition-transform" />
                     UBAH DATA LELANG
                   </Link>
@@ -360,9 +360,9 @@ export default function AuctionDetailPage({ params }) {
           {/* Descriptions Section */}
           <div className="grid grid-cols-1 gap-6 lg:gap-8">
             {/* Main Description */}
-            <div className="bg-zinc-900 border border-zinc-800 rounded-3xl lg:rounded-[2.5rem] p-6 lg:p-12 relative overflow-hidden group">
+            <div className="bg-zinc-900 border border-zinc-800 rounded-[10px] lg:rounded-[10px] p-6 lg:p-12 relative overflow-hidden group">
               <div className="flex items-center gap-4 mb-6 lg:mb-10">
-                <div className="w-10 h-10 lg:w-12 lg:h-12 bg-zinc-950 border border-zinc-800 rounded-xl lg:rounded-2xl flex items-center justify-center text-amber-500 group-hover:border-amber-500/30 transition-colors">
+                <div className="w-10 h-10 lg:w-12 lg:h-12 bg-zinc-950 border border-zinc-800 rounded-[10px] lg:rounded-[10px] flex items-center justify-center text-amber-500 group-hover:border-amber-500/30 transition-colors">
                   <ScrollText size={22} />
                 </div>
                 <h3 className="text-lg lg:text-xl font-black text-white tracking-tight uppercase tracking-[0.2em]">Deskripsi Produk</h3>
@@ -373,9 +373,9 @@ export default function AuctionDetailPage({ params }) {
             </div>
 
             {/* Shipping/Policy */}
-            <div className="bg-zinc-900 border border-zinc-800 rounded-3xl lg:rounded-[2.5rem] p-6 lg:p-12 relative overflow-hidden group">
+            <div className="bg-zinc-900 border border-zinc-800 rounded-[10px] lg:rounded-[10px] p-6 lg:p-12 relative overflow-hidden group">
               <div className="flex items-center gap-4 mb-6 lg:mb-10">
-                <div className="w-10 h-10 lg:w-12 lg:h-12 bg-zinc-950 border border-zinc-800 rounded-xl lg:rounded-2xl flex items-center justify-center text-amber-500 group-hover:border-amber-500/30 transition-colors">
+                <div className="w-10 h-10 lg:w-12 lg:h-12 bg-zinc-950 border border-zinc-800 rounded-[10px] lg:rounded-[10px] flex items-center justify-center text-amber-500 group-hover:border-amber-500/30 transition-colors">
                   <Truck size={22} />
                 </div>
                 <h3 className="text-lg lg:text-xl font-black text-white tracking-tight uppercase tracking-[0.2em]">Info Pengiriman</h3>

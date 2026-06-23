@@ -331,7 +331,7 @@ export default function PengaturanProfilPage() {
 
   // Helper: class input berdasarkan mode
   const inputClass = (extra = "") =>
-    isEditMode ? `w-full bg-zinc-950 border border-zinc-700 text-white rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all ${extra}` : `w-full bg-zinc-950 border border-zinc-800 text-white rounded-xl px-4 py-3 opacity-70 cursor-not-allowed ${extra}`;
+    isEditMode ? `w-full bg-zinc-950 border border-zinc-700 text-white rounded-[10px] px-4 py-3 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all ${extra}` : `w-full bg-zinc-950 border border-zinc-800 text-white rounded-[10px] px-4 py-3 opacity-70 cursor-not-allowed ${extra}`;
 
   const addressTextareaClass = isEditMode ? "bg-zinc-950 border border-zinc-700 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent" : "bg-zinc-950 border border-zinc-800 opacity-70 cursor-not-allowed";
 
@@ -357,7 +357,7 @@ export default function PengaturanProfilPage() {
       </div>
 
       <form onSubmit={handleSave}>
-        <div className="bg-zinc-900 border border-zinc-800 rounded-3xl p-6 md:p-8">
+        <div className="bg-zinc-900 border border-zinc-800 rounded-[10px] p-6 md:p-8">
           {/* Profile Picture Section */}
           <div className="flex flex-col md:flex-row items-center gap-6 mb-10 pb-10 border-b border-zinc-800">
             <div className="relative group w-24 h-24">
@@ -377,7 +377,7 @@ export default function PengaturanProfilPage() {
               <h3 className="text-xl font-bold text-white mb-1">Foto Profil</h3>
               <p className="text-zinc-400 text-sm mb-3">Ditampilkan pada halaman profil dan postingan Anda (Maks. 500 KB).</p>
               {isEditMode && (
-                <label className="inline-flex items-center gap-2 px-4 py-2 bg-zinc-800 hover:bg-zinc-700 text-white text-sm font-semibold rounded-lg transition-colors cursor-pointer">
+                <label className="inline-flex items-center gap-2 px-4 py-2 bg-zinc-800 hover:bg-zinc-700 text-white text-sm font-semibold rounded-[10px] transition-colors cursor-pointer">
                   <Camera size={16} />
                   Ganti Foto
                   <input type="file" className="hidden" accept="image/*" onChange={handleFileUpload} />
@@ -400,7 +400,7 @@ export default function PengaturanProfilPage() {
                 </div>
                 <div className="space-y-1.5">
                   <label className="text-sm font-semibold text-zinc-300">Username</label>
-                  <input type="text" value={user.username} disabled className="w-full bg-zinc-950 border border-zinc-800 text-zinc-500 rounded-xl px-4 py-3 cursor-not-allowed opacity-70" />
+                  <input type="text" value={user.username} disabled className="w-full bg-zinc-950 border border-zinc-800 text-zinc-500 rounded-[10px] px-4 py-3 cursor-not-allowed opacity-70" />
                   {isEditMode && <p className="text-xs text-zinc-500 mt-1">Username tidak dapat diubah.</p>}
                 </div>
               </div>
@@ -415,7 +415,7 @@ export default function PengaturanProfilPage() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-1.5">
                   <label className="text-sm font-semibold text-zinc-300">Email Address</label>
-                  <input type="email" value={user.email} disabled className="w-full bg-zinc-950 border border-zinc-800 text-white rounded-xl px-4 py-3 opacity-70 cursor-not-allowed" />
+                  <input type="email" value={user.email} disabled className="w-full bg-zinc-950 border border-zinc-800 text-white rounded-[10px] px-4 py-3 opacity-70 cursor-not-allowed" />
                 </div>
                 <div className="space-y-1.5">
                   <label className="text-sm font-semibold text-zinc-300">Nomor Telepon / WhatsApp</label>
@@ -457,7 +457,7 @@ export default function PengaturanProfilPage() {
                         autoComplete="off"
                       />
                       {isEditMode && showProvinceDropdown && (
-                        <div className="absolute z-50 w-full mt-2 bg-zinc-900 border border-zinc-700 rounded-xl max-h-60 overflow-y-auto custom-scrollbar">
+                        <div className="absolute z-50 w-full mt-2 bg-zinc-900 border border-zinc-700 rounded-[10px] max-h-60 overflow-y-auto custom-scrollbar">
                           {provinces
                             .filter((p) => p.name.toLowerCase().includes((provinceSearch || "").toLowerCase()))
                             .map((p) => (
@@ -500,7 +500,7 @@ export default function PengaturanProfilPage() {
                         autoComplete="off"
                       />
                       {isEditMode && showCityDropdown && cities.length > 0 && (
-                        <div className="absolute z-50 w-full mt-2 bg-zinc-900 border border-zinc-700 rounded-xl max-h-60 overflow-y-auto custom-scrollbar">
+                        <div className="absolute z-50 w-full mt-2 bg-zinc-900 border border-zinc-700 rounded-[10px] max-h-60 overflow-y-auto custom-scrollbar">
                           {cities
                             .filter((c) => c.name.toLowerCase().includes((citySearch || "").toLowerCase()))
                             .map((c) => (
@@ -534,13 +534,13 @@ export default function PengaturanProfilPage() {
                   Rekening Bank
                 </h3>
                 {/* Alert Informasi */}
-                <div className="bg-amber-500/10 border border-amber-500/20 text-amber-500 px-4 py-3 rounded-xl flex items-center gap-3 text-sm font-bold animate-pulse">
+                <div className="bg-amber-500/10 border border-amber-500/20 text-amber-500 px-4 py-3 rounded-[10px] flex items-center gap-3 text-sm font-bold animate-pulse">
                   <div className="w-2 h-2 bg-amber-500 rounded-full"></div>
                   MASUKKAN NOMOR REKENING AKTIF
                 </div>
               </div>
 
-              <div className="bg-zinc-950/50 border border-zinc-800 rounded-2xl p-6">
+              <div className="bg-zinc-950/50 border border-zinc-800 rounded-[10px] p-6">
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                   {/* Nama Bank (Select Dropdown) */}
                   <div className="space-y-2">
@@ -549,7 +549,7 @@ export default function PengaturanProfilPage() {
                       value={user.bankAccounts[0]?.bankName || ""}
                       onChange={(e) => handleBankAccountChange("bankName", e.target.value)}
                       disabled={!isEditMode}
-                      className={isEditMode ? "w-full bg-zinc-950 border border-zinc-700 text-white rounded-xl px-4 py-3 text-sm transition-all font-medium" : "w-full bg-zinc-900/50 border border-zinc-800 text-zinc-500 rounded-xl px-4 py-3 text-sm transition-all font-medium appearance-none opacity-70 cursor-not-allowed"}
+                      className={isEditMode ? "w-full bg-zinc-950 border border-zinc-700 text-white rounded-[10px] px-4 py-3 text-sm transition-all font-medium" : "w-full bg-zinc-900/50 border border-zinc-800 text-zinc-500 rounded-[10px] px-4 py-3 text-sm transition-all font-medium appearance-none opacity-70 cursor-not-allowed"}
                     >
                       <option value="" disabled>
                         Pilih Bank
@@ -570,7 +570,7 @@ export default function PengaturanProfilPage() {
                       onChange={(e) => handleBankAccountChange("accountNumber", e.target.value)}
                       disabled={!isEditMode}
                       placeholder={isEditMode ? "Masukkan nomor rekening" : "-"}
-                      className={isEditMode ? "w-full bg-zinc-950 border border-zinc-700 text-white rounded-xl px-4 py-3 text-sm transition-all font-medium" : "w-full bg-zinc-900/50 border border-zinc-800 text-zinc-500 rounded-xl px-4 py-3 text-sm transition-all font-medium opacity-70 cursor-not-allowed"}
+                      className={isEditMode ? "w-full bg-zinc-950 border border-zinc-700 text-white rounded-[10px] px-4 py-3 text-sm transition-all font-medium" : "w-full bg-zinc-900/50 border border-zinc-800 text-zinc-500 rounded-[10px] px-4 py-3 text-sm transition-all font-medium opacity-70 cursor-not-allowed"}
                     />
                   </div>
 
@@ -583,7 +583,7 @@ export default function PengaturanProfilPage() {
                       onChange={(e) => handleBankAccountChange("accountName", e.target.value)}
                       disabled={!isEditMode}
                       placeholder={isEditMode ? "Nama pemilik rekening" : "-"}
-                      className={isEditMode ? "w-full bg-zinc-950 border border-zinc-700 text-white rounded-xl px-4 py-3 text-sm transition-all font-medium" : "w-full bg-zinc-900/50 border border-zinc-800 text-zinc-500 rounded-xl px-4 py-3 text-sm transition-all font-medium opacity-70 cursor-not-allowed"}
+                      className={isEditMode ? "w-full bg-zinc-950 border border-zinc-700 text-white rounded-[10px] px-4 py-3 text-sm transition-all font-medium" : "w-full bg-zinc-900/50 border border-zinc-800 text-zinc-500 rounded-[10px] px-4 py-3 text-sm transition-all font-medium opacity-70 cursor-not-allowed"}
                     />
                   </div>
                 </div>
@@ -596,12 +596,12 @@ export default function PengaturanProfilPage() {
                 <>
                   {/* Tombol Batal — tidak tampil untuk user baru */}
                   {!isNewUser && (
-                    <button type="button" onClick={handleCancelEdit} className="flex items-center gap-2 px-6 py-3.5 bg-zinc-800 hover:bg-zinc-700 text-white font-bold rounded-xl transition-all">
+                    <button type="button" onClick={handleCancelEdit} className="flex items-center gap-2 px-6 py-3.5 bg-zinc-800 hover:bg-zinc-700 text-white font-bold rounded-[10px] transition-all">
                       <X size={18} />
                       Batal
                     </button>
                   )}
-                  <button type="submit" disabled={isLoading} className={`flex items-center gap-2 px-8 py-3.5 bg-emerald-500 hover:bg-emerald-400 text-zinc-950 font-bold rounded-xl transition-all ${isLoading ? "opacity-70 cursor-not-allowed" : ""}`}>
+                  <button type="submit" disabled={isLoading} className={`flex items-center gap-2 px-8 py-3.5 bg-emerald-500 hover:bg-emerald-400 text-zinc-950 font-bold rounded-[10px] transition-all ${isLoading ? "opacity-70 cursor-not-allowed" : ""}`}>
                     {isLoading ? (
                       <svg className="animate-spin h-5 w-5 text-current" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                         <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
@@ -616,7 +616,7 @@ export default function PengaturanProfilPage() {
                   </button>
                 </>
               ) : (
-                <button type="button" onClick={() => setIsEditMode(true)} className="flex items-center gap-2 px-8 py-3.5 bg-emerald-500 hover:bg-emerald-400 text-zinc-950 font-black rounded-xl transition-all">
+                <button type="button" onClick={() => setIsEditMode(true)} className="flex items-center gap-2 px-8 py-3.5 bg-emerald-500 hover:bg-emerald-400 text-zinc-950 font-black rounded-[10px] transition-all">
                   <Edit2 size={18} />
                   Edit Profil
                 </button>
@@ -636,12 +636,12 @@ export default function PengaturanProfilPage() {
               sessionStorage.setItem("profile_modal_dismissed", "true");
             }}
           ></div>
-          <div className="bg-zinc-900 border border-zinc-800 w-full max-w-lg rounded-[3rem] relative z-10 overflow-hidden animate-in zoom-in-95 slide-in-from-bottom-8 duration-500">
+          <div className="bg-zinc-900 border border-zinc-800 w-full max-w-lg rounded-[10px] relative z-10 overflow-hidden animate-in zoom-in-95 slide-in-from-bottom-8 duration-500">
             <div className="p-10 lg:p-12 space-y-8 text-center relative">
               {/* Decorative element */}
               <div className="absolute top-0 left-1/2 -translate-x-1/2 w-40 h-1 bg-emerald-500 rounded-full blur-sm opacity-50" />
 
-              <div className="w-24 h-24 bg-emerald-500/10 text-emerald-500 rounded-[2.5rem] flex items-center justify-center mx-auto mb-6 border border-emerald-500/20 group">
+              <div className="w-24 h-24 bg-emerald-500/10 text-emerald-500 rounded-[10px] flex items-center justify-center mx-auto mb-6 border border-emerald-500/20 group">
                 <User size={48} className="group-hover:scale-110 transition-transform duration-500" />
               </div>
 
@@ -660,7 +660,7 @@ export default function PengaturanProfilPage() {
                     sessionStorage.setItem("profile_modal_dismissed", "true");
                     window.scrollTo({ top: 0, behavior: "smooth" });
                   }}
-                  className="w-full py-5 bg-emerald-500 hover:bg-emerald-400 text-zinc-950 font-black rounded-2xl transition-all active:scale-95 flex items-center justify-center gap-3 text-lg"
+                  className="w-full py-5 bg-emerald-500 hover:bg-emerald-400 text-zinc-950 font-black rounded-[10px] transition-all active:scale-95 flex items-center justify-center gap-3 text-lg"
                 >
                   <Edit2 size={20} /> Mulai Edit Profil
                 </button>
@@ -669,7 +669,7 @@ export default function PengaturanProfilPage() {
                     setShowSettingsModal(false);
                     sessionStorage.setItem("profile_modal_dismissed", "true");
                   }}
-                  className="w-full py-4 bg-zinc-800 hover:bg-zinc-700 text-zinc-400 font-bold rounded-2xl transition-all active:scale-95"
+                  className="w-full py-4 bg-zinc-800 hover:bg-zinc-700 text-zinc-400 font-bold rounded-[10px] transition-all active:scale-95"
                 >
                   Lihat Data Saja
                 </button>

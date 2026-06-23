@@ -4,7 +4,7 @@
 import { useState, useEffect, Fragment } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Package, ShoppingBag, LayoutDashboard, Image as ImageIcon, X, XCircle, ChevronRight, MapPin, MessageCircle, DollarSign, AlertCircle, CheckCircle2, Clock, Calendar, Truck, Info, Star, Search, Filter, ChevronLeft, LayoutGrid, Wallet, Store } from "lucide-react";
+import { Package, ShoppingBag, Image as ImageIcon, X, XCircle, ChevronRight, MapPin, MessageCircle, DollarSign, AlertCircle, CheckCircle2, Clock, Calendar, Truck, Info, Star, Search, Filter, ChevronLeft, LayoutGrid, Wallet, Store } from "lucide-react";
 import { io } from "socket.io-client";
 import { getApiUrl, getSocketUrl, getImageUrl } from "@/app/utils/api";
 import QuotaCard from "@/components/QuotaCard";
@@ -13,14 +13,7 @@ import { useShopQuota } from "@/hooks/useShopQuota";
 const isVideoUrl = (url) => {
   if (!url) return false;
   const lower = url.toLowerCase();
-  return (
-    lower.endsWith(".mp4") ||
-    lower.endsWith(".mov") ||
-    lower.endsWith(".avi") ||
-    lower.endsWith(".webm") ||
-    lower.endsWith(".mkv") ||
-    lower.endsWith(".3gp")
-  );
+  return lower.endsWith(".mp4") || lower.endsWith(".mov") || lower.endsWith(".avi") || lower.endsWith(".webm") || lower.endsWith(".mkv") || lower.endsWith(".3gp");
 };
 
 const getPaginationRange = (currentPage, totalPages) => {
@@ -311,10 +304,7 @@ export default function SellerDashboardPage() {
     if (order.product?.name?.toLowerCase().includes(query)) return true;
     if (order.product?.product_id?.toLowerCase().includes(query)) return true;
     if (order.items && order.items.length > 0) {
-      return order.items.some(item => 
-        item.product?.name?.toLowerCase().includes(query) ||
-        item.product?.product_id?.toLowerCase().includes(query)
-      );
+      return order.items.some((item) => item.product?.name?.toLowerCase().includes(query) || item.product?.product_id?.toLowerCase().includes(query));
     }
     return false;
   };
@@ -356,9 +346,7 @@ export default function SellerDashboardPage() {
             value: orders
               .filter((o) => ["completed", "disbursement_requested", "disbursed"].includes(o.status))
               .reduce((sum, o) => {
-                const qty = o.items && o.items.length > 0
-                  ? o.items.reduce((itemSum, item) => itemSum + (item.quantity || 1), 0)
-                  : (o.quantity || 1);
+                const qty = o.items && o.items.length > 0 ? o.items.reduce((itemSum, item) => itemSum + (item.quantity || 1), 0) : o.quantity || 1;
                 return sum + qty;
               }, 0)
               .toString(),
@@ -403,7 +391,7 @@ export default function SellerDashboardPage() {
               <p className="text-sm sm:text-base md:text-xl font-black text-white truncate">{stat.value}</p>
               {stat.label === "Penghasilan" && <p className="text-[8px] md:text-[10px] text-emerald-500/70 font-bold mt-1 leading-tight">Penghasilan Bersih tanpa biaya admin</p>}
               {stat.label === "Rating Toko" && (
-                <p className="text-[8px] md:text-[10px] text-purple-500/70 font-bold mt-1 leading-tight">
+                <p className="text-[8px] md:text-[10px] text-emerald-500/70 font-bold mt-1 leading-tight">
                   {shop?.totalRatings || 0} Penilaian & {shop?.totalReviews || 0} Ulasan
                 </p>
               )}
@@ -426,18 +414,6 @@ export default function SellerDashboardPage() {
           }}
         />
         {[
-          {
-            id: "dashboard",
-            label: (
-              <span>
-                <span className="hidden sm:inline">Statistik Toko</span>
-                <span className="sm:hidden">Statistik</span>
-              </span>
-            ),
-            icon: LayoutDashboard,
-            href: "/user/toko/dashboard/statistik-toko",
-            type: "link",
-          },
           {
             id: "riwayat",
             label: (
@@ -538,7 +514,13 @@ export default function SellerDashboardPage() {
                 <div className="bg-zinc-900 border border-zinc-800 rounded-[10px] p-3 flex flex-col md:flex-row gap-4">
                   <div className="relative flex-1">
                     <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500" size={16} />
-                    <input type="text" placeholder="Cari Order ID / Nomor Invoice..." value={orderSearchQuery} onChange={(e) => setOrderSearchQuery(e.target.value)} className="w-full bg-zinc-950 border border-zinc-800 rounded-[10px] py-2.5 pl-12 pr-4 text-white text-xs font-medium focus:border-emerald-500/50 outline-none transition-all" />
+                    <input
+                      type="text"
+                      placeholder="Cari Order ID / Nomor Invoice..."
+                      value={orderSearchQuery}
+                      onChange={(e) => setOrderSearchQuery(e.target.value)}
+                      className="w-full bg-zinc-950 border border-zinc-800 rounded-[10px] py-2.5 pl-12 pr-4 text-white text-xs font-medium focus:border-emerald-500/50 outline-none transition-all"
+                    />
                   </div>
                   <div className="flex items-center gap-2 bg-zinc-950 border border-zinc-800 rounded-[10px] px-4 py-2">
                     <Filter size={14} className="text-zinc-500" />
@@ -619,11 +601,7 @@ export default function SellerDashboardPage() {
                                           <div key={item.id || idx} className="flex items-center gap-3">
                                             {item.product?.images?.[0] && (
                                               <div className="w-10 h-10 rounded-[10px] overflow-hidden bg-zinc-800 shrink-0 border border-zinc-700">
-                                                {isVideoUrl(item.product.images[0]) ? (
-                                                  <video src={getImageUrl(item.product.images[0])} className="w-full h-full object-cover" preload="metadata" muted playsInline />
-                                                ) : (
-                                                  <img src={getImageUrl(item.product.images[0])} className="w-full h-full object-cover" />
-                                                )}
+                                                {isVideoUrl(item.product.images[0]) ? <video src={getImageUrl(item.product.images[0])} className="w-full h-full object-cover" preload="metadata" muted playsInline /> : <img src={getImageUrl(item.product.images[0])} className="w-full h-full object-cover" />}
                                               </div>
                                             )}
                                             <div>
@@ -642,11 +620,7 @@ export default function SellerDashboardPage() {
                                         <div className="flex items-center gap-3">
                                           {order.product?.images?.[0] && (
                                             <div className="w-10 h-10 rounded-[10px] overflow-hidden bg-zinc-800 shrink-0 border border-zinc-700">
-                                              {isVideoUrl(order.product.images[0]) ? (
-                                                <video src={getImageUrl(order.product.images[0])} className="w-full h-full object-cover" preload="metadata" muted playsInline />
-                                              ) : (
-                                                <img src={getImageUrl(order.product.images[0])} className="w-full h-full object-cover" />
-                                              )}
+                                              {isVideoUrl(order.product.images[0]) ? <video src={getImageUrl(order.product.images[0])} className="w-full h-full object-cover" preload="metadata" muted playsInline /> : <img src={getImageUrl(order.product.images[0])} className="w-full h-full object-cover" />}
                                             </div>
                                           )}
                                           <div>
@@ -664,12 +638,7 @@ export default function SellerDashboardPage() {
                                       {order.status === "cancelled" && order.rejection_reason && <p className="text-[10px] text-zinc-500 mt-1 font-semibold italic leading-tight max-w-[180px]">Alasan Batal: {order.rejection_reason}</p>}
                                     </div>
                                   </td>
-                                  <td className="px-6 py-5 text-center text-sm font-black text-white">
-                                    {order.items && order.items.length > 0
-                                      ? order.items.reduce((sum, item) => sum + (item.quantity || 1), 0)
-                                      : (order.quantity || 1)}{" "}
-                                    Ekor
-                                  </td>
+                                  <td className="px-6 py-5 text-center text-sm font-black text-white">{order.items && order.items.length > 0 ? order.items.reduce((sum, item) => sum + (item.quantity || 1), 0) : order.quantity || 1} Ekor</td>
                                   <td className="px-6 py-5 text-right">
                                     <div className="flex flex-col items-end">
                                       <span className="text-sm font-black text-emerald-400">{formatPrice(Number(order.total_price) - (Number(order.admin_fee) || 0))}</span>
@@ -739,11 +708,7 @@ export default function SellerDashboardPage() {
                                       <div className="flex items-center gap-2.5">
                                         {item.product?.images?.[0] && (
                                           <div className="w-8 h-8 rounded-[10px] overflow-hidden bg-zinc-800 shrink-0 border border-zinc-700">
-                                            {isVideoUrl(item.product.images[0]) ? (
-                                              <video src={getImageUrl(item.product.images[0])} className="w-full h-full object-cover" preload="metadata" muted playsInline />
-                                            ) : (
-                                              <img src={getImageUrl(item.product.images[0])} className="w-full h-full object-cover" />
-                                            )}
+                                            {isVideoUrl(item.product.images[0]) ? <video src={getImageUrl(item.product.images[0])} className="w-full h-full object-cover" preload="metadata" muted playsInline /> : <img src={getImageUrl(item.product.images[0])} className="w-full h-full object-cover" />}
                                           </div>
                                         )}
                                         <div className="text-left">
@@ -769,12 +734,7 @@ export default function SellerDashboardPage() {
                             </div>
                             <div className="flex items-center justify-between">
                               <span className="text-[9px] font-black text-zinc-600 uppercase tracking-widest">Jumlah</span>
-                              <span className="text-xs font-bold text-zinc-300">
-                                {order.items && order.items.length > 0
-                                  ? order.items.reduce((sum, item) => sum + (item.quantity || 1), 0)
-                                  : (order.quantity || 1)}{" "}
-                                Ekor
-                              </span>
+                              <span className="text-xs font-bold text-zinc-300">{order.items && order.items.length > 0 ? order.items.reduce((sum, item) => sum + (item.quantity || 1), 0) : order.quantity || 1} Ekor</span>
                             </div>
                             <div className="flex items-center justify-between">
                               <span className="text-[9px] font-black text-zinc-600 uppercase tracking-widest">Tgl Selesai</span>
@@ -903,7 +863,13 @@ export default function SellerDashboardPage() {
                 <div className="bg-zinc-900 border border-zinc-800 rounded-[10px] p-3 flex flex-col md:flex-row gap-4">
                   <div className="relative flex-1">
                     <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500" size={16} />
-                    <input type="text" placeholder="Cari Order ID / Nomor Invoice..." value={orderSearchQuery} onChange={(e) => setOrderSearchQuery(e.target.value)} className="w-full bg-zinc-950 border border-zinc-800 rounded-[10px] py-2.5 pl-12 pr-4 text-white text-xs font-medium focus:border-emerald-500/50 outline-none transition-all" />
+                    <input
+                      type="text"
+                      placeholder="Cari Order ID / Nomor Invoice..."
+                      value={orderSearchQuery}
+                      onChange={(e) => setOrderSearchQuery(e.target.value)}
+                      className="w-full bg-zinc-950 border border-zinc-800 rounded-[10px] py-2.5 pl-12 pr-4 text-white text-xs font-medium focus:border-emerald-500/50 outline-none transition-all"
+                    />
                   </div>
                 </div>
 
@@ -967,11 +933,7 @@ export default function SellerDashboardPage() {
                                         <div key={item.id || idx} className="flex items-center gap-3">
                                           {item.product?.images?.[0] && (
                                             <div className="w-10 h-10 rounded-[10px] overflow-hidden bg-zinc-800 shrink-0 border border-zinc-700">
-                                              {isVideoUrl(item.product.images[0]) ? (
-                                                <video src={getImageUrl(item.product.images[0])} className="w-full h-full object-cover" preload="metadata" muted playsInline />
-                                              ) : (
-                                                <img src={getImageUrl(item.product.images[0])} className="w-full h-full object-cover" />
-                                              )}
+                                              {isVideoUrl(item.product.images[0]) ? <video src={getImageUrl(item.product.images[0])} className="w-full h-full object-cover" preload="metadata" muted playsInline /> : <img src={getImageUrl(item.product.images[0])} className="w-full h-full object-cover" />}
                                             </div>
                                           )}
                                           <div>
@@ -990,11 +952,7 @@ export default function SellerDashboardPage() {
                                       <div className="flex items-center gap-3">
                                         {order.product?.images?.[0] && (
                                           <div className="w-10 h-10 rounded-[10px] overflow-hidden bg-zinc-800 shrink-0 border border-zinc-700">
-                                            {isVideoUrl(order.product.images[0]) ? (
-                                              <video src={getImageUrl(order.product.images[0])} className="w-full h-full object-cover" preload="metadata" muted playsInline />
-                                            ) : (
-                                              <img src={getImageUrl(order.product.images[0])} className="w-full h-full object-cover" />
-                                            )}
+                                            {isVideoUrl(order.product.images[0]) ? <video src={getImageUrl(order.product.images[0])} className="w-full h-full object-cover" preload="metadata" muted playsInline /> : <img src={getImageUrl(order.product.images[0])} className="w-full h-full object-cover" />}
                                           </div>
                                         )}
                                         <div>
@@ -1010,12 +968,7 @@ export default function SellerDashboardPage() {
                                     )}
                                   </div>
                                 </td>
-                                <td className="px-6 py-5 text-center text-sm font-black text-white">
-                                  {order.items && order.items.length > 0
-                                    ? order.items.reduce((sum, item) => sum + (item.quantity || 1), 0)
-                                    : (order.quantity || 1)}{" "}
-                                  Ekor
-                                </td>
+                                <td className="px-6 py-5 text-center text-sm font-black text-white">{order.items && order.items.length > 0 ? order.items.reduce((sum, item) => sum + (item.quantity || 1), 0) : order.quantity || 1} Ekor</td>
                                 <td className="px-6 py-5 text-right font-black text-red-400 text-sm">{formatPrice(Number(order.total_price))}</td>
                                 <td className="px-6 py-5 text-xs text-zinc-400 max-w-[200px] truncate" title={order.rejection_reason || order.cancellation_reason || "-"}>
                                   {order.rejection_reason || order.cancellation_reason || "-"}
@@ -1057,11 +1010,7 @@ export default function SellerDashboardPage() {
                                       <div className="flex items-center gap-2.5">
                                         {item.product?.images?.[0] && (
                                           <div className="w-8 h-8 rounded-[10px] overflow-hidden bg-zinc-800 shrink-0 border border-zinc-700">
-                                            {isVideoUrl(item.product.images[0]) ? (
-                                              <video src={getImageUrl(item.product.images[0])} className="w-full h-full object-cover" preload="metadata" muted playsInline />
-                                            ) : (
-                                              <img src={getImageUrl(item.product.images[0])} className="w-full h-full object-cover" />
-                                            )}
+                                            {isVideoUrl(item.product.images[0]) ? <video src={getImageUrl(item.product.images[0])} className="w-full h-full object-cover" preload="metadata" muted playsInline /> : <img src={getImageUrl(item.product.images[0])} className="w-full h-full object-cover" />}
                                           </div>
                                         )}
                                         <div className="text-left">
@@ -1087,12 +1036,7 @@ export default function SellerDashboardPage() {
                             </div>
                             <div className="flex items-center justify-between">
                               <span className="text-[9px] font-black text-zinc-600 uppercase tracking-widest">Jumlah</span>
-                              <span className="text-xs font-bold text-zinc-300">
-                                {order.items && order.items.length > 0
-                                  ? order.items.reduce((sum, item) => sum + (item.quantity || 1), 0)
-                                  : (order.quantity || 1)}{" "}
-                                Ekor
-                              </span>
+                              <span className="text-xs font-bold text-zinc-300">{order.items && order.items.length > 0 ? order.items.reduce((sum, item) => sum + (item.quantity || 1), 0) : order.quantity || 1} Ekor</span>
                             </div>
                             <div className="flex items-center justify-between">
                               <span className="text-[9px] font-black text-zinc-600 uppercase tracking-widest">Tgl Batal</span>

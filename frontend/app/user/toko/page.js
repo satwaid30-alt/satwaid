@@ -385,8 +385,8 @@ export default function UserTokoPage() {
               { icon: <Tag className="text-blue-500" />, title: "Pasar Luas", desc: "Produk Anda terlihat oleh ribuan pecinta satwa setiap hari." },
               { icon: <CheckCircle2 className="text-amber-500" />, title: "Terverifikasi", desc: "Meningkatkan kepercayaan pembeli dengan badge toko resmi." },
             ].map((feature, i) => (
-              <div key={i} className="bg-zinc-900/50 border border-zinc-800 p-6 rounded-3xl text-left hover:border-zinc-700 transition-all group hover:bg-zinc-900">
-                <div className="w-12 h-12 bg-zinc-950 rounded-2xl flex items-center justify-center mb-4 border border-zinc-800 group-hover:border-emerald-500/50 transition-all">{feature.icon}</div>
+              <div key={i} className="bg-zinc-900/50 border border-zinc-800 p-6 rounded-[10px] text-left hover:border-zinc-700 transition-all group hover:bg-zinc-900">
+                <div className="w-12 h-12 bg-zinc-950 rounded-[10px] flex items-center justify-center mb-4 border border-zinc-800 group-hover:border-emerald-500/50 transition-all">{feature.icon}</div>
                 <h3 className="text-white font-black text-lg mb-2">{feature.title}</h3>
                 <p className="text-zinc-500 text-sm leading-relaxed">{feature.desc}</p>
               </div>
@@ -394,12 +394,12 @@ export default function UserTokoPage() {
           </div>
 
           <div className="pt-12 flex flex-col sm:flex-row items-center justify-center gap-4">
-            <button onClick={() => setShowCreateForm(true)} className="w-full sm:w-auto px-10 py-5 bg-emerald-500 hover:bg-emerald-400 text-zinc-950 font-black text-lg rounded-2xl transition-all flex items-center justify-center gap-3 group active:scale-95">
+            <button onClick={() => setShowCreateForm(true)} className="w-full sm:w-auto px-10 py-5 bg-emerald-500 hover:bg-emerald-400 text-zinc-950 font-black text-lg rounded-[10px] transition-all flex items-center justify-center gap-3 group active:scale-95">
               <Store size={24} />
               Mulai Buka Toko
               <ChevronRight size={24} className="group-hover:translate-x-1 transition-transform" />
             </button>
-            <Link href="/" className="w-full sm:w-auto px-10 py-5 bg-zinc-900 hover:bg-zinc-800 text-white font-black text-lg rounded-2xl transition-all border border-zinc-800 flex items-center justify-center">
+            <Link href="/" className="w-full sm:w-auto px-10 py-5 bg-zinc-900 hover:bg-zinc-800 text-white font-black text-lg rounded-[10px] transition-all border border-zinc-800 flex items-center justify-center">
               Kembali ke Beranda
             </Link>
           </div>
@@ -423,7 +423,7 @@ export default function UserTokoPage() {
               Kembali
             </button>
             <div className="flex items-center gap-3 sm:gap-5">
-              <div className="w-10 h-10 sm:w-16 sm:h-16 bg-emerald-500/10 text-emerald-500 rounded-xl sm:rounded-[1.5rem] flex items-center justify-center border border-emerald-500/20 shrink-0">
+              <div className="w-10 h-10 sm:w-16 sm:h-16 bg-emerald-500/10 text-emerald-500 rounded-[10px] sm:rounded-[10px] flex items-center justify-center border border-emerald-500/20 shrink-0">
                 <i className="fa-solid fa-store text-lg sm:text-3xl"></i>
               </div>
               <div>
@@ -433,10 +433,10 @@ export default function UserTokoPage() {
           </div>
         </div>
 
-        <div className="sm:bg-zinc-900/40 sm:border sm:border-zinc-800/50 sm:rounded-[2.5rem] sm:p-1 sm:shadow-2xl sm:backdrop-blur-3xl overflow-hidden">
+        <div className="sm:bg-zinc-900/40 sm:border sm:border-zinc-800/50 sm:rounded-[10px] sm:p-1 sm:shadow-2xl sm:backdrop-blur-3xl overflow-hidden">
           <form onSubmit={handleCreateShop} className="sm:p-8 md:p-10 space-y-8">
             {/* Notifikasi Peringatan Edit Profil Toko */}
-            <div className="bg-amber-500/10 border border-amber-500/20 text-amber-500 p-5 rounded-2xl flex items-start gap-3.5 mb-6 shadow-lg shadow-amber-500/5">
+            <div className="bg-amber-500/10 border border-amber-500/20 text-amber-500 p-5 rounded-[10px] flex items-start gap-3.5 mb-6 shadow-lg shadow-amber-500/5">
               <AlertCircle size={24} className="shrink-0 mt-0.5 text-amber-500 animate-pulse" />
               <div>
                 <p className="font-bold text-white text-sm md:text-base mb-1 uppercase tracking-wider">Penting: Validasi Profil Toko</p>
@@ -447,7 +447,7 @@ export default function UserTokoPage() {
             {/* Section 1: Identitas Toko */}
             <section className="space-y-6">
               <div className="flex items-center gap-3 mb-2">
-                <div className="w-8 h-8 bg-zinc-800 rounded-lg flex items-center justify-center text-zinc-400">
+                <div className="w-8 h-8 bg-zinc-800 rounded-[10px] flex items-center justify-center text-zinc-400">
                   <i className="fa-solid fa-store text-xs"></i>
                 </div>
                 <h2 className="text-lg font-black text-white uppercase tracking-widest text-sm">Identitas Toko</h2>
@@ -459,7 +459,7 @@ export default function UserTokoPage() {
                   <div className="relative">
                     <input
                       type="text"
-                      className="w-full bg-zinc-950/50 border border-zinc-800 text-white rounded-2xl px-4 py-3.5 sm:py-4 focus:outline-none focus:border-emerald-500/50 focus:ring-4 focus:ring-emerald-500/5 transition-all font-bold placeholder:text-zinc-700 text-sm sm:text-base"
+                      className="w-full bg-zinc-950/50 border border-zinc-800 text-white rounded-[10px] px-4 py-3.5 sm:py-4 focus:outline-none focus:border-emerald-500/50 focus:ring-4 focus:ring-emerald-500/5 transition-all font-bold placeholder:text-zinc-700 text-sm sm:text-base"
                       placeholder="Contoh: Reptile Zone Jakarta"
                       value={shopData.name || ""}
                       onChange={(e) => setShopData({ ...shopData, name: e.target.value })}
@@ -472,7 +472,7 @@ export default function UserTokoPage() {
                     <input
                       type="text"
                       placeholder="16 digit NIK sesuai KTP"
-                      className="w-full bg-zinc-950/50 border border-zinc-800 text-white rounded-2xl px-4 py-3.5 sm:py-4 focus:outline-none focus:border-emerald-500/50 focus:ring-4 focus:ring-emerald-500/5 transition-all font-bold placeholder:text-zinc-700 tracking-widest text-sm sm:text-base"
+                      className="w-full bg-zinc-950/50 border border-zinc-800 text-white rounded-[10px] px-4 py-3.5 sm:py-4 focus:outline-none focus:border-emerald-500/50 focus:ring-4 focus:ring-emerald-500/5 transition-all font-bold placeholder:text-zinc-700 tracking-widest text-sm sm:text-base"
                       value={shopData.nik || ""}
                       onChange={(e) => {
                         const val = e.target.value.replace(/\D/g, ""); // Enforce numbers only
@@ -490,7 +490,7 @@ export default function UserTokoPage() {
             {/* Section 2: Kontak & Lokasi Toko */}
             <section className="space-y-6">
               <div className="flex items-center gap-3 mb-2">
-                <div className="w-8 h-8 bg-zinc-800 rounded-lg flex items-center justify-center text-zinc-400">
+                <div className="w-8 h-8 bg-zinc-800 rounded-[10px] flex items-center justify-center text-zinc-400">
                   <i className="fa-solid fa-map-location-dot text-xs"></i>
                 </div>
                 <h2 className="text-base sm:text-lg font-black text-white uppercase tracking-widest">Kontak & Lokasi Toko</h2>
@@ -506,7 +506,7 @@ export default function UserTokoPage() {
                     </div>
                     <input
                       type="tel"
-                      className="w-full bg-zinc-950/50 border border-zinc-800 text-white rounded-2xl pl-20 sm:pl-24 pr-4 py-3.5 sm:py-4 focus:outline-none focus:border-emerald-500/50 focus:ring-4 focus:ring-emerald-500/5 transition-all font-bold placeholder:text-zinc-700 text-sm sm:text-base"
+                      className="w-full bg-zinc-950/50 border border-zinc-800 text-white rounded-[10px] pl-20 sm:pl-24 pr-4 py-3.5 sm:py-4 focus:outline-none focus:border-emerald-500/50 focus:ring-4 focus:ring-emerald-500/5 transition-all font-bold placeholder:text-zinc-700 text-sm sm:text-base"
                       placeholder="8123456789"
                       value={shopData.whatsapp || ""}
                       onChange={(e) => setShopData({ ...shopData, whatsapp: e.target.value })}
@@ -518,7 +518,7 @@ export default function UserTokoPage() {
                   <div className="relative">
                     <input
                       type="text"
-                      className="w-full bg-zinc-950/50 border border-zinc-800 text-white rounded-2xl px-4 py-3.5 sm:py-4 focus:outline-none focus:border-emerald-500/50 focus:ring-4 focus:ring-emerald-500/5 transition-all font-bold placeholder:text-zinc-700 text-sm sm:text-base"
+                      className="w-full bg-zinc-950/50 border border-zinc-800 text-white rounded-[10px] px-4 py-3.5 sm:py-4 focus:outline-none focus:border-emerald-500/50 focus:ring-4 focus:ring-emerald-500/5 transition-all font-bold placeholder:text-zinc-700 text-sm sm:text-base"
                       placeholder="Ketik untuk mencari provinsi..."
                       value={provinceSearch || shopData.province || ""}
                       onChange={(e) => {
@@ -533,7 +533,7 @@ export default function UserTokoPage() {
                       autoComplete="off"
                     />
                     {showProvinceDropdown && (
-                      <div className="absolute z-50 w-full mt-2 bg-zinc-900 border border-zinc-800 rounded-2xl max-h-60 overflow-y-auto custom-scrollbar">
+                      <div className="absolute z-50 w-full mt-2 bg-zinc-900 border border-zinc-800 rounded-[10px] max-h-60 overflow-y-auto custom-scrollbar">
                         {provinces
                           .filter((p) => p.name.toLowerCase().includes((provinceSearch || "").toLowerCase()))
                           .map((p) => (
@@ -562,7 +562,7 @@ export default function UserTokoPage() {
                   <div className="relative">
                     <input
                       type="text"
-                      className="w-full bg-zinc-950/50 border border-zinc-800 text-white rounded-2xl px-4 py-3.5 sm:py-4 focus:outline-none focus:border-emerald-500/50 focus:ring-4 focus:ring-emerald-500/5 transition-all font-bold placeholder:text-zinc-700 text-sm sm:text-base"
+                      className="w-full bg-zinc-950/50 border border-zinc-800 text-white rounded-[10px] px-4 py-3.5 sm:py-4 focus:outline-none focus:border-emerald-500/50 focus:ring-4 focus:ring-emerald-500/5 transition-all font-bold placeholder:text-zinc-700 text-sm sm:text-base"
                       placeholder={shopData.province ? "Ketik untuk mencari kota..." : "Pilih provinsi terlebih dahulu"}
                       value={citySearch || shopData.city || ""}
                       disabled={!shopData.province}
@@ -575,7 +575,7 @@ export default function UserTokoPage() {
                       autoComplete="off"
                     />
                     {showCityDropdown && cities.length > 0 && (
-                      <div className="absolute z-50 w-full mt-2 bg-zinc-900 border border-zinc-800 rounded-2xl max-h-60 overflow-y-auto custom-scrollbar">
+                      <div className="absolute z-50 w-full mt-2 bg-zinc-900 border border-zinc-800 rounded-[10px] max-h-60 overflow-y-auto custom-scrollbar">
                         {cities
                           .filter((c) => c.name.toLowerCase().includes((citySearch || "").toLowerCase()))
                           .map((c) => (
@@ -604,7 +604,7 @@ export default function UserTokoPage() {
                 <div className="relative">
                   <textarea
                     rows="2"
-                    className="w-full bg-zinc-950/50 border border-zinc-800 text-white rounded-2xl px-4 py-3.5 sm:py-4 focus:outline-none focus:border-emerald-500/50 focus:ring-4 focus:ring-emerald-500/5 transition-all font-bold placeholder:text-zinc-700 resize-none text-sm sm:text-base"
+                    className="w-full bg-zinc-950/50 border border-zinc-800 text-white rounded-[10px] px-4 py-3.5 sm:py-4 focus:outline-none focus:border-emerald-500/50 focus:ring-4 focus:ring-emerald-500/5 transition-all font-bold placeholder:text-zinc-700 resize-none text-sm sm:text-base"
                     placeholder="Tuliskan alamat lengkap toko fisik atau rumah Anda..."
                     value={shopData.address || ""}
                     onChange={(e) => setShopData({ ...shopData, address: e.target.value })}
@@ -618,20 +618,20 @@ export default function UserTokoPage() {
             {/* Section 2.5: Rekening Bank (Dari Profil) */}
             <section className="space-y-6">
               <div className="flex items-center gap-3 mb-2">
-                <div className="w-8 h-8 bg-zinc-800 rounded-lg flex items-center justify-center text-zinc-400">
+                <div className="w-8 h-8 bg-zinc-800 rounded-[10px] flex items-center justify-center text-zinc-400">
                   <i className="fa-solid fa-building-columns text-xs"></i>
                 </div>
                 <div className="flex-1 flex items-center justify-between">
                   <h2 className="text-lg font-black text-white uppercase tracking-widest text-sm">Informasi Rekening Bank</h2>
-                  <span className="text-[10px] font-bold text-zinc-600 bg-zinc-800 px-2 py-0.5 rounded uppercase">Dari Profil</span>
+                  <span className="text-[10px] font-bold text-zinc-600 bg-zinc-800 px-2 py-0.5 rounded-[10px] uppercase">Dari Profil</span>
                 </div>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {userBankAccounts.length > 0 ? (
                   userBankAccounts.map((bank, idx) => (
-                    <div key={idx} className="bg-zinc-950/30 border border-zinc-800/50 p-4 rounded-2xl flex items-center gap-4 group hover:border-emerald-500/30 transition-all">
-                      <div className="w-10 h-10 bg-emerald-500/10 text-emerald-500 rounded-xl flex items-center justify-center font-black text-xs uppercase">{(bank.bank_name || bank.bankName || "").substring(0, 3)}</div>
+                    <div key={idx} className="bg-zinc-950/30 border border-zinc-800/50 p-4 rounded-[10px] flex items-center gap-4 group hover:border-emerald-500/30 transition-all">
+                      <div className="w-10 h-10 bg-emerald-500/10 text-emerald-500 rounded-[10px] flex items-center justify-center font-black text-xs uppercase">{(bank.bank_name || bank.bankName || "").substring(0, 3)}</div>
                       <div className="flex-1">
                         <p className="text-white font-black tracking-widest text-sm">{bank.account_number || bank.accountNumber}</p>
                         <p className="text-[10px] text-zinc-500 font-bold uppercase tracking-tight">an. {bank.account_name || bank.accountName}</p>
@@ -640,7 +640,7 @@ export default function UserTokoPage() {
                     </div>
                   ))
                 ) : (
-                  <div className="col-span-full py-6 px-4 bg-zinc-950/20 border border-dashed border-zinc-800 rounded-2xl text-center">
+                  <div className="col-span-full py-6 px-4 bg-zinc-950/20 border border-dashed border-zinc-800 rounded-[10px] text-center">
                     <p className="text-xs text-zinc-600 font-bold italic">Belum ada rekening bank yang tertaut.</p>
                     <Link href="/user/profil" className="text-[10px] text-emerald-500 hover:underline uppercase font-black mt-2 inline-block tracking-widest">
                       Lengkapi di Profil Dahulu
@@ -655,7 +655,7 @@ export default function UserTokoPage() {
             {/* Section 3: Visual & Deskripsi */}
             <section className="space-y-6">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-emerald-500/10 text-emerald-500 rounded-xl flex items-center justify-center border border-emerald-500/20">
+                <div className="w-10 h-10 bg-emerald-500/10 text-emerald-500 rounded-[10px] flex items-center justify-center border border-emerald-500/20">
                   <ImageIcon size={20} />
                 </div>
                 <div>
@@ -667,9 +667,9 @@ export default function UserTokoPage() {
               {/* Logo Upload — compact horizontal on mobile */}
               <div className="space-y-3">
                 <label className="text-[10px] sm:text-xs font-black text-zinc-500 uppercase tracking-widest ml-1">Logo Toko</label>
-                <div className="flex items-center gap-4 bg-zinc-950/50 border border-zinc-800 rounded-2xl p-3 sm:p-4">
+                <div className="flex items-center gap-4 bg-zinc-950/50 border border-zinc-800 rounded-[10px] p-3 sm:p-4">
                   <div className="relative shrink-0">
-                    <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl overflow-hidden bg-zinc-900 border-2 border-zinc-800 flex items-center justify-center relative">
+                    <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-[10px] overflow-hidden bg-zinc-900 border-2 border-zinc-800 flex items-center justify-center relative">
                       {shopData.logo_url ? (
                         <img src={getLogoUrl(shopData.logo_url)} className="w-full h-full object-cover" alt="Logo Toko" />
                       ) : (
@@ -691,7 +691,7 @@ export default function UserTokoPage() {
                     <p className="text-[10px] text-zinc-500 leading-relaxed mb-3">
                       Format JPG, PNG, atau WEBP. Maks <span className="text-emerald-500">1MB</span>.
                     </p>
-                    <label className="inline-flex items-center gap-2 px-4 py-2 bg-zinc-800 hover:bg-emerald-500 text-zinc-400 hover:text-zinc-950 text-[11px] font-black rounded-xl cursor-pointer transition-all border border-zinc-700 hover:border-emerald-500 uppercase tracking-wider">
+                    <label className="inline-flex items-center gap-2 px-4 py-2 bg-zinc-800 hover:bg-emerald-500 text-zinc-400 hover:text-zinc-950 text-[11px] font-black rounded-[10px] cursor-pointer transition-all border border-zinc-700 hover:border-emerald-500 uppercase tracking-wider">
                       <Upload size={12} />
                       {shopData.logo_url ? "Ganti Logo" : "Pilih Logo"}
                       <input type="file" className="hidden" accept="image/*" onChange={handleFileUpload} />
@@ -703,7 +703,7 @@ export default function UserTokoPage() {
               {/* Deskripsi */}
               <div className="space-y-3">
                 <div className="flex items-center gap-2 ml-1">
-                  <div className="w-5 h-5 bg-blue-500/10 text-blue-500 rounded flex items-center justify-center border border-blue-500/20">
+                  <div className="w-5 h-5 bg-blue-500/10 text-blue-500 rounded-[10px] flex items-center justify-center border border-blue-500/20">
                     <Info size={12} />
                   </div>
                   <label className="text-[10px] sm:text-xs font-black text-zinc-500 uppercase tracking-widest">Deskripsi Toko</label>
@@ -714,7 +714,7 @@ export default function UserTokoPage() {
               {/* Shipping Policy */}
               <div className="space-y-3">
                 <div className="flex items-center gap-2 ml-1">
-                  <div className="w-5 h-5 bg-emerald-500/10 text-emerald-500 rounded flex items-center justify-center border border-emerald-500/20">
+                  <div className="w-5 h-5 bg-emerald-500/10 text-emerald-500 rounded-[10px] flex items-center justify-center border border-emerald-500/20">
                     <i className="fa-solid fa-truck-fast text-[9px]"></i>
                   </div>
                   <label className="text-[10px] sm:text-xs font-black text-zinc-500 uppercase tracking-widest">Kebijakan Pengiriman</label>
@@ -725,7 +725,7 @@ export default function UserTokoPage() {
               {/* Warranty Policy */}
               <div className="space-y-3">
                 <div className="flex items-center gap-2 ml-1">
-                  <div className="w-5 h-5 bg-amber-500/10 text-amber-500 rounded flex items-center justify-center border border-amber-500/20">
+                  <div className="w-5 h-5 bg-amber-500/10 text-amber-500 rounded-[10px] flex items-center justify-center border border-amber-500/20">
                     <i className="fa-solid fa-shield-heart text-[9px]"></i>
                   </div>
                   <label className="text-[10px] sm:text-xs font-black text-zinc-500 uppercase tracking-widest">Kebijakan Garansi (DOA)</label>
@@ -735,11 +735,11 @@ export default function UserTokoPage() {
             </section>
 
             <div className="pt-6 sm:pt-10 border-t border-zinc-800/50 flex flex-col sm:flex-row gap-3 sm:gap-5">
-              <Link href="/" className="flex-1 bg-zinc-950 hover:bg-zinc-900 text-zinc-500 hover:text-white font-black py-4 sm:py-5 rounded-xl sm:rounded-2xl text-center transition-all border border-zinc-800 flex items-center justify-center gap-2 group text-sm">
+              <Link href="/" className="flex-1 bg-zinc-950 hover:bg-zinc-900 text-zinc-500 hover:text-white font-black py-4 sm:py-5 rounded-[10px] sm:rounded-[10px] text-center transition-all border border-zinc-800 flex items-center justify-center gap-2 group text-sm">
                 <i className="fa-solid fa-circle-xmark group-hover:scale-110 transition-transform"></i>
                 Batalkan
               </Link>
-              <button type="submit" disabled={isSubmitting} className="flex-[1.5] bg-emerald-500 hover:bg-emerald-400 text-zinc-950 font-black py-4 sm:py-5 rounded-xl sm:rounded-2xl transition-all flex items-center justify-center gap-3 group disabled:opacity-50 disabled:cursor-not-allowed text-sm sm:text-base">
+              <button type="submit" disabled={isSubmitting} className="flex-[1.5] bg-emerald-500 hover:bg-emerald-400 text-zinc-950 font-black py-4 sm:py-5 rounded-[10px] sm:rounded-[10px] transition-all flex items-center justify-center gap-3 group disabled:opacity-50 disabled:cursor-not-allowed text-sm sm:text-base">
                 {isSubmitting ? <i className="fa-solid fa-circle-notch fa-spin text-xl"></i> : <>Buka Toko Sekarang</>}
               </button>
             </div>
@@ -772,11 +772,11 @@ export default function UserTokoPage() {
       {showTermsModal && (
         <div className="fixed inset-0 z-[120] flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-zinc-950/80 backdrop-blur-md animate-in fade-in duration-300" onClick={() => setShowTermsModal(false)}></div>
-          <div className="bg-zinc-900 border border-zinc-800 rounded-[2.5rem] w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col relative z-10 animate-in zoom-in-95 duration-300">
+          <div className="bg-zinc-900 border border-zinc-800 rounded-[10px] w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col relative z-10 animate-in zoom-in-95 duration-300">
             {/* Modal Header */}
             <div className="p-8 border-b border-zinc-800 flex items-center justify-between shrink-0">
               <div className="flex items-center gap-4">
-                <div className="w-12 h-12 bg-emerald-500/10 text-emerald-500 rounded-2xl flex items-center justify-center border border-emerald-500/20">
+                <div className="w-12 h-12 bg-emerald-500/10 text-emerald-500 rounded-[10px] flex items-center justify-center border border-emerald-500/20">
                   <i className="fa-solid fa-file-contract text-xl"></i>
                 </div>
                 <div>
@@ -784,7 +784,7 @@ export default function UserTokoPage() {
                   <p className="text-zinc-500 text-xs mt-0.5 uppercase tracking-widest font-bold">Pembukaan Toko Baru</p>
                 </div>
               </div>
-              <button onClick={() => setShowTermsModal(false)} className="w-10 h-10 rounded-xl bg-zinc-800 text-zinc-400 flex items-center justify-center hover:bg-zinc-700 hover:text-white transition-all">
+              <button onClick={() => setShowTermsModal(false)} className="w-10 h-10 rounded-[10px] bg-zinc-800 text-zinc-400 flex items-center justify-center hover:bg-zinc-700 hover:text-white transition-all">
                 <X size={20} />
               </button>
             </div>
@@ -849,7 +849,7 @@ export default function UserTokoPage() {
               <label className="flex items-start gap-4 mb-6 cursor-pointer group">
                 <div className="relative mt-0.5">
                   <input type="checkbox" className="peer sr-only" checked={agreedToTerms} onChange={(e) => setAgreedToTerms(e.target.checked)} />
-                  <div className="w-6 h-6 bg-zinc-950 border-2 border-zinc-700 rounded-lg peer-checked:bg-emerald-500 peer-checked:border-emerald-500 transition-all flex items-center justify-center">
+                  <div className="w-6 h-6 bg-zinc-950 border-2 border-zinc-700 rounded-[10px] peer-checked:bg-emerald-500 peer-checked:border-emerald-500 transition-all flex items-center justify-center">
                     <i className="fa-solid fa-check text-zinc-950 text-xs scale-0 peer-checked:scale-100 transition-transform"></i>
                   </div>
                 </div>
@@ -857,10 +857,10 @@ export default function UserTokoPage() {
               </label>
 
               <div className="flex gap-4">
-                <button onClick={() => setShowTermsModal(false)} className="flex-1 py-4 bg-zinc-800 hover:bg-zinc-700 text-white font-black rounded-2xl transition-all">
+                <button onClick={() => setShowTermsModal(false)} className="flex-1 py-4 bg-zinc-800 hover:bg-zinc-700 text-white font-black rounded-[10px] transition-all">
                   Batalkan
                 </button>
-                <button disabled={!agreedToTerms || isSubmitting} onClick={() => handleCreateShop()} className="flex-[2] py-4 bg-emerald-500 hover:bg-emerald-400 disabled:bg-zinc-800 disabled:text-zinc-600 text-zinc-950 font-black rounded-2xl transition-all flex items-center justify-center gap-2">
+                <button disabled={!agreedToTerms || isSubmitting} onClick={() => handleCreateShop()} className="flex-[2] py-4 bg-emerald-500 hover:bg-emerald-400 disabled:bg-zinc-800 disabled:text-zinc-600 text-zinc-950 font-black rounded-[10px] transition-all flex items-center justify-center gap-2">
                   {isSubmitting ? (
                     <i className="fa-solid fa-circle-notch fa-spin text-xl"></i>
                   ) : (

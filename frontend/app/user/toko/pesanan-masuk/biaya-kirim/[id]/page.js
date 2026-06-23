@@ -267,7 +267,7 @@ export default function InputShippingCostPage({ params }) {
       {/* Header Navigation */}
       <div className="flex items-center justify-between">
         <Link href={`/user/toko/pesanan-masuk/detail/${id}`} className="flex items-center gap-2 text-zinc-400 hover:text-white transition-colors group">
-          <div className="w-8 h-8 rounded-lg bg-zinc-900 border border-zinc-800 flex items-center justify-center group-hover:bg-zinc-800 transition-all">
+          <div className="w-8 h-8 rounded-[10px] bg-zinc-900 border border-zinc-800 flex items-center justify-center group-hover:bg-zinc-800 transition-all">
             <ChevronLeft size={18} />
           </div>
           <span className="text-sm font-bold">Kembali ke Detail</span>
@@ -286,7 +286,7 @@ export default function InputShippingCostPage({ params }) {
         <div className="lg:col-span-7 space-y-8">
           {/* RIWAYAT / TIMELINE */}
           {/* <OrderTimeline order={order} formatPrice={formatPrice} /> */}
-          <div className="bg-zinc-900 border border-zinc-800 rounded-[2rem] lg:rounded-[3rem] p-6 lg:p-10 relative overflow-hidden">
+          <div className="bg-zinc-900 border border-zinc-800 rounded-[10px] p-6 lg:p-10 relative overflow-hidden">
             <div className="space-y-8">
               <div className="flex items-center gap-4">
                 <div>
@@ -315,7 +315,7 @@ export default function InputShippingCostPage({ params }) {
                             shipping_cost: formatRupiah(e.target.value),
                           })
                         }
-                        className="w-full bg-zinc-950 border border-zinc-800 rounded-[2rem] py-5 pl-14 pr-8 text-white focus:outline-none focus:border-emerald-500 transition-all font-black text-lg disabled:opacity-50"
+                        className="w-full bg-zinc-950 border border-zinc-800 rounded-[10px] py-5 pl-14 pr-8 text-white focus:outline-none focus:border-emerald-500 transition-all font-black text-lg disabled:opacity-50"
                         placeholder="0"
                       />
                       {isFreeShipping && <span className="absolute right-6 top-1/2 -translate-y-1/2 text-[10px] font-black text-emerald-500 uppercase tracking-widest">Gratis Ongkir</span>}
@@ -340,7 +340,7 @@ export default function InputShippingCostPage({ params }) {
                             packing_cost: formatRupiah(e.target.value),
                           })
                         }
-                        className="w-full bg-zinc-950 border border-zinc-800 rounded-[2rem] py-5 pl-14 pr-8 text-white focus:outline-none focus:border-blue-400 transition-all font-black text-lg disabled:opacity-50"
+                        className="w-full bg-zinc-950 border border-zinc-800 rounded-[10px] py-5 pl-14 pr-8 text-white focus:outline-none focus:border-blue-400 transition-all font-black text-lg disabled:opacity-50"
                         placeholder="0"
                       />
                       {isFreePacking && <span className="absolute right-6 top-1/2 -translate-y-1/2 text-[10px] font-black text-blue-400 uppercase tracking-widest">Gratis Packing</span>}
@@ -348,7 +348,7 @@ export default function InputShippingCostPage({ params }) {
                   </div>
                 </div>
 
-                <div className="bg-zinc-950/50 rounded-[2.5rem] p-8 border border-zinc-800 space-y-4">
+                <div className="bg-zinc-950/50 rounded-[10px] p-8 border border-zinc-800 space-y-4">
                   <div className="flex justify-between items-center text-sm border-b border-zinc-800/20 pb-3">
                     <span className="text-zinc-500 font-bold">Harga Produk ({order.items && order.items.length > 0 ? order.items.reduce((sum, item) => sum + (item.quantity || 1), 0) : order.quantity} Ekor)</span>
                     <span className="text-white font-black">{formatPrice(order.items && order.items.length > 0 ? order.items.reduce((sum, item) => sum + Number(item.price) * (item.quantity || 1), 0) : order.price * order.quantity)}</span>
@@ -383,10 +383,10 @@ export default function InputShippingCostPage({ params }) {
                   </div>
 
                   <div className="pt-6 border-t border-zinc-800/50 flex flex-col sm:flex-row gap-4">
-                    <Link href={`/user/toko/pesanan-masuk/detail/${id}`} className="flex-1 py-4 lg:py-5 bg-zinc-800 hover:bg-zinc-700 text-white font-black rounded-2xl transition-all text-center text-sm">
+                    <Link href={`/user/toko/pesanan-masuk/detail/${id}`} className="flex-1 py-4 lg:py-5 bg-zinc-800 hover:bg-zinc-700 text-white font-black rounded-[10px] transition-all text-center text-sm">
                       Batal
                     </Link>
-                    <button type="submit" disabled={isUpdatingCost || order.status !== "waiting_shipping_cost"} className="flex-[2] py-4 lg:py-5 bg-[#228B22] hover:bg-[#4CBB17] text-white font-black rounded-2xl transition-all disabled:opacity-50 flex items-center justify-center gap-3 active:scale-95 text-sm uppercase tracking-widest">
+                    <button type="submit" disabled={isUpdatingCost || order.status !== "waiting_shipping_cost"} className="flex-[2] py-4 lg:py-5 bg-[#228B22] hover:bg-[#4CBB17] text-white font-black rounded-[10px] transition-all disabled:opacity-50 flex items-center justify-center gap-3 active:scale-95 text-sm uppercase tracking-widest">
                       {isUpdatingCost ? (
                         <>
                           <div className="w-5 h-5 border-2 border-zinc-950 border-t-transparent rounded-full animate-spin"></div>
@@ -409,7 +409,7 @@ export default function InputShippingCostPage({ params }) {
 
         {/* RIGHT: Product Summary */}
         <div className="lg:col-span-5 space-y-8 lg:sticky lg:top-24">
-          <div className="bg-zinc-900 border border-zinc-800 rounded-[2rem] lg:rounded-[3rem] p-6 lg:p-8 space-y-8">
+          <div className="bg-zinc-900 border border-zinc-800 rounded-[10px] p-6 lg:p-8 space-y-8">
             <h3 className="text-[10px] font-black text-zinc-500 uppercase tracking-widest flex items-center gap-2">
               <ShoppingBag size={16} className="text-emerald-500" /> Ringkasan Pesanan
             </h3>
@@ -417,8 +417,8 @@ export default function InputShippingCostPage({ params }) {
             {order.items && order.items.length > 0 ? (
               <div className="space-y-4">
                 {order.items.map((item, idx) => (
-                  <div key={item.id || idx} className="flex gap-4 p-3 bg-zinc-950/40 border border-zinc-800/80 rounded-2xl">
-                    <div className="w-16 h-16 rounded-xl overflow-hidden bg-zinc-950 border border-zinc-800 shrink-0 relative aspect-square">
+                  <div key={item.id || idx} className="flex gap-4 p-3 bg-zinc-950/40 border border-zinc-800/80 rounded-[10px]">
+                    <div className="w-16 h-16 rounded-[10px] overflow-hidden bg-zinc-950 border border-zinc-800 shrink-0 relative aspect-square">
                       {(() => {
                         const mediaUrl = getImageUrl(item.product?.images);
                         return isVideoUrl(mediaUrl) ? <video src={mediaUrl} className="w-full h-full object-cover" preload="metadata" muted playsInline /> : <img src={mediaUrl || "https://placehold.co/400x400/f4f4f5/71717a?text=No+Image"} className="w-full h-full object-cover" alt={item.product?.name} />;
@@ -426,10 +426,10 @@ export default function InputShippingCostPage({ params }) {
                     </div>
                     <div className="space-y-1 min-w-0 flex-1">
                       <div className="flex flex-wrap items-center gap-1.5">
-                        <span className="px-1.5 py-0.5 bg-zinc-800 text-[8px] text-zinc-400 rounded font-black uppercase tracking-widest border border-zinc-700">{item.product?.species}</span>
-                        <span className="px-1.5 py-0.5 bg-zinc-800 text-[8px] text-zinc-400 rounded font-black uppercase tracking-widest border border-zinc-700">Qty: {item.quantity}</span>
-                        {item.product?.is_free_shipping && <span className="px-1.5 py-0.5 bg-emerald-500/15 text-emerald-400 rounded text-[8px] font-black uppercase tracking-widest border border-emerald-500/20">Bebas Ongkir</span>}
-                        {item.product?.is_free_packing && <span className="px-1.5 py-0.5 bg-blue-500/15 text-blue-400 rounded text-[8px] font-black uppercase tracking-widest border border-blue-500/20">Gratis Packing</span>}
+                        <span className="px-1.5 py-0.5 bg-zinc-800 text-[8px] text-zinc-400 rounded-[10px] font-black uppercase tracking-widest border border-zinc-700">{item.product?.species}</span>
+                        <span className="px-1.5 py-0.5 bg-zinc-800 text-[8px] text-zinc-400 rounded-[10px] font-black uppercase tracking-widest border border-zinc-700">Qty: {item.quantity}</span>
+                        {item.product?.is_free_shipping && <span className="px-1.5 py-0.5 bg-emerald-500/15 text-emerald-400 rounded-[10px] text-[8px] font-black uppercase tracking-widest border border-emerald-500/20">Bebas Ongkir</span>}
+                        {item.product?.is_free_packing && <span className="px-1.5 py-0.5 bg-blue-500/15 text-blue-400 rounded-[10px] text-[8px] font-black uppercase tracking-widest border border-blue-500/20">Gratis Packing</span>}
                       </div>
                       <h4 className="text-xs font-black text-white leading-tight truncate">{item.product?.name}</h4>
                       <p className="text-[10px] font-bold text-zinc-500">{formatPrice(item.price)} / ekor</p>
@@ -439,7 +439,7 @@ export default function InputShippingCostPage({ params }) {
               </div>
             ) : (
               <div className="flex gap-6">
-                <div className="w-24 h-24 rounded-2xl overflow-hidden bg-zinc-950 border border-zinc-800 shrink-0">
+                <div className="w-24 h-24 rounded-[10px] overflow-hidden bg-zinc-950 border border-zinc-800 shrink-0">
                   {(() => {
                     const mediaUrl = getImageUrl(order.product?.images);
                     return isVideoUrl(mediaUrl) ? <video src={mediaUrl} className="w-full h-full object-cover" preload="metadata" muted playsInline /> : <img src={mediaUrl || "https://placehold.co/400x400/f4f4f5/71717a?text=No+Image"} alt={order.product?.name} className="w-full h-full object-cover" />;
@@ -447,10 +447,10 @@ export default function InputShippingCostPage({ params }) {
                 </div>
                 <div className="space-y-1">
                   <div className="flex flex-wrap items-center gap-2">
-                    <span className="px-2 py-0.5 bg-zinc-800 text-[8px] text-zinc-400 rounded font-black uppercase tracking-widest border border-zinc-700">{order.product?.species}</span>
-                    <span className="px-2 py-0.5 bg-zinc-800 text-[8px] text-zinc-400 rounded font-black uppercase tracking-widest border border-zinc-700">ID : {order.product?.product_id || "-"}</span>
-                    {order.product?.is_free_shipping && <span className="px-2 py-0.5 bg-emerald-500/15 text-emerald-400 rounded text-[8px] font-black uppercase tracking-widest border border-emerald-500/20">Bebas Ongkir</span>}
-                    {order.product?.is_free_packing && <span className="px-2 py-0.5 bg-blue-500/15 text-blue-400 rounded text-[8px] font-black uppercase tracking-widest border border-blue-500/20">Gratis Packing</span>}
+                    <span className="px-2 py-0.5 bg-zinc-800 text-[8px] text-zinc-400 rounded-[10px] font-black uppercase tracking-widest border border-zinc-700">{order.product?.species}</span>
+                    <span className="px-2 py-0.5 bg-zinc-800 text-[8px] text-zinc-400 rounded-[10px] font-black uppercase tracking-widest border border-zinc-700">ID : {order.product?.product_id || "-"}</span>
+                    {order.product?.is_free_shipping && <span className="px-2 py-0.5 bg-emerald-500/15 text-emerald-400 rounded-[10px] text-[8px] font-black uppercase tracking-widest border border-emerald-500/20">Bebas Ongkir</span>}
+                    {order.product?.is_free_packing && <span className="px-2 py-0.5 bg-blue-500/15 text-blue-400 rounded-[10px] text-[8px] font-black uppercase tracking-widest border border-blue-500/20">Gratis Packing</span>}
                   </div>
                   <h4 className="text-lg font-black text-white leading-tight">{order.product?.name}</h4>
                   <p className="text-sm font-bold text-zinc-500">
@@ -465,7 +465,7 @@ export default function InputShippingCostPage({ params }) {
                 <span className="text-zinc-500 font-bold">Subtotal Produk</span>
                 <span className="text-white font-black">{formatPrice(order.items && order.items.length > 0 ? order.items.reduce((sum, item) => sum + Number(item.price) * (item.quantity || 1), 0) : order.price * order.quantity)}</span>
               </div>
-              <div className="p-4 bg-amber-500/5 border border-dashed border-amber-500/20 rounded-2xl flex gap-3">
+              <div className="p-4 bg-amber-500/5 border border-dashed border-amber-500/20 rounded-[10px] flex gap-3">
                 <AlertCircle size={18} className="text-amber-500 shrink-0 mt-0.5" />
                 <p className="text-[11px] text-amber-500/80 font-medium leading-relaxed italic">Pastikan Anda telah mengecek tarif kurir sesuai dengan dimensi & berat paket ke alamat tujuan</p>
               </div>
@@ -473,11 +473,11 @@ export default function InputShippingCostPage({ params }) {
           </div>
 
           {/* Detail Pembeli */}
-          <div className="bg-zinc-900 border border-zinc-800 rounded-[2rem] lg:rounded-[3rem] p-6 lg:p-8 space-y-6">
+          <div className="bg-zinc-900 border border-zinc-800 rounded-[10px] p-6 lg:p-8 space-y-6">
             <h3 className="text-[10px] font-black text-zinc-500 uppercase tracking-widest flex items-center gap-2">
               <MapPin size={16} className="text-emerald-500" /> Detail Pembeli
             </h3>
-            <div className="grid grid-cols-1 gap-5 p-5 lg:p-6 bg-zinc-950/50 rounded-[1.5rem] lg:rounded-[2rem] border border-zinc-800">
+            <div className="grid grid-cols-1 gap-5 p-5 lg:p-6 bg-zinc-950/50 rounded-[10px] border border-zinc-800">
               <div className="space-y-1">
                 <p className="text-[9px] font-black text-zinc-500 uppercase tracking-widest">Penerima</p>
                 <p className="text-lg font-black text-white">{order.receiver_name}</p>

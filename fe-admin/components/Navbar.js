@@ -134,6 +134,71 @@ export default function Navbar({ onToggleSidebar }) {
     return () => clearTimeout(timer);
   }, []);
 
+  // Fetch pending listings on mount (both regular & auction) so admin sees them even if socket event was missed
+  useEffect(() => {
+    const token = typeof window !== "undefined" ? localStorage.getItem("admin_token") : null;
+    if (!token) return;
+
+    const fetchPendingListings = async () => {
+      try {
+        const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
+        const res = await fetch(`${apiUrl}/listings?all=true`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        if (!res.ok) return;
+        const result = await res.json();
+        const allListings = result.data || [];
+
+        // Only show pending listings
+        const pendingListings = allListings.filter((l) => l.status === "pending");
+        if (pendingListings.length === 0) return;
+
+        // Track which listing IDs we've already notified about (per session)
+        const notifiedKey = "admin_notified_listing_ids";
+        let notifiedIds = [];
+        try {
+          notifiedIds = JSON.parse(sessionStorage.getItem(notifiedKey) || "[]");
+        } catch (_) {}
+
+        const newNotifications = [];
+        const newNotifiedIds = [...notifiedIds];
+
+        for (const listing of pendingListings) {
+          if (notifiedIds.includes(listing.id)) continue;
+          const isAuction = listing.type === "auction";
+          newNotifications.push({
+            id: `listing_${listing.id}`,
+            title: isAuction ? "Pengajuan Lelang Baru" : "Produk Baru Diajukan",
+            message: isAuction
+              ? `Produk lelang "${listing.name || 'Hewan'}" (OB: Rp ${listing.start_bid ? new Intl.NumberFormat("id-ID").format(listing.start_bid) : "-"}) menunggu verifikasi tayang.`
+              : `Produk "${listing.name || 'Hewan'}" diajukan untuk verifikasi tayang di etalase.`,
+            category: "product",
+            link: "/panel-admin/toko/detail-produk",
+            time: new Date(listing.created_at).toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" }),
+            read: false,
+          });
+          newNotifiedIds.push(listing.id);
+        }
+
+        if (newNotifications.length > 0) {
+          sessionStorage.setItem(notifiedKey, JSON.stringify(newNotifiedIds));
+          setNotifications((prev) => {
+            // Merge, avoid duplicates by id
+            const existingIds = new Set(prev.map((n) => n.id));
+            const unique = newNotifications.filter((n) => !existingIds.has(n.id));
+            const updated = [...unique, ...prev].slice(0, 100);
+            sessionStorage.setItem("admin_notifications", JSON.stringify(updated));
+            return updated;
+          });
+        }
+      } catch (err) {
+        console.error("[Navbar] Failed to fetch pending listings:", err);
+      }
+    };
+
+    fetchPendingListings();
+  }, []);
+
   // Connect to Socket.IO and listen for events
   useEffect(() => {
     const token = typeof window !== "undefined" ? localStorage.getItem("admin_token") : null;
@@ -221,13 +286,23 @@ export default function Navbar({ onToggleSidebar }) {
 
       // 3. Pengajuan Produk Events
       socket.on("new_listing_admin", (data) => {
-        const link = data.id ? `/admin/toko-user/detail-produk/detail/${data.id}` : "/panel-admin/toko/detail-produk";
-        addNotification(
-          "Produk Baru Diajukan",
-          `Produk "${data.name || 'Hewan'}" diajukan untuk verifikasi tayang di etalase.`,
-          "product",
-          link
-        );
+        const isAuction = data?.type === "auction";
+        const link = data?.id ? `/panel-admin/toko/detail-produk` : "/panel-admin/toko/detail-produk";
+        if (isAuction) {
+          addNotification(
+            "Pengajuan Lelang Baru",
+            `Produk lelang "${data.name || 'Hewan'}" (OB: Rp ${data.start_bid ? new Intl.NumberFormat("id-ID").format(data.start_bid) : "-"}) diajukan untuk verifikasi tayang.`,
+            "product",
+            link
+          );
+        } else {
+          addNotification(
+            "Produk Baru Diajukan",
+            `Produk "${data.name || 'Hewan'}" diajukan untuk verifikasi tayang di etalase.`,
+            "product",
+            link
+          );
+        }
       });
 
 
@@ -308,6 +383,11 @@ export default function Navbar({ onToggleSidebar }) {
     const updated = notifications.filter(n => n.category !== category);
     setNotifications(updated);
     sessionStorage.setItem("admin_notifications", JSON.stringify(updated));
+    // If clearing product notifications, also reset the notified listing IDs tracker
+    // so pending listings will re-appear on next session
+    if (category === "product") {
+      sessionStorage.removeItem("admin_notified_listing_ids");
+    }
   };
 
   const markAsRead = (id) => {

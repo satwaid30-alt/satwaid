@@ -336,11 +336,11 @@ export default function EditListingPage({ params }) {
             <p className="text-zinc-500 mt-1 font-bold uppercase tracking-widest text-[10px] sm:text-xs">Perbarui informasi dan produk Anda secara akurat</p>
           </div>
           <div className="flex items-center gap-3">
-            <span className={`px-5 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest border ${reptileData.status === "active" ? "bg-emerald-500/10 text-emerald-500 border-emerald-500/20" : "bg-red-500/10 text-red-500 border-red-500/20"}`}>Status: {reptileData.status}</span>
+            <span className={`px-5 py-2.5 rounded-[10px] text-xs font-black uppercase tracking-widest border ${reptileData.status === "active" ? "bg-emerald-500/10 text-emerald-500 border-emerald-500/20" : "bg-red-500/10 text-red-500 border-red-500/20"}`}>Status: {reptileData.status}</span>
           </div>
         </div>
 
-        <div className="bg-transparent sm:bg-zinc-900 border-none sm:border border-zinc-800 rounded-none sm:rounded-3xl shadow-none sm:shadow-2xl overflow-hidden">
+        <div className="bg-transparent sm:bg-zinc-900 border-none sm:border border-zinc-800 rounded-none sm:rounded-[10px] shadow-none sm:shadow-2xl overflow-hidden">
           <form onSubmit={handleUpdateListing} className="px-0 py-6 sm:p-8 md:p-10 space-y-8">
             {/* Basic Info Section */}
             <div className="space-y-6">
@@ -354,7 +354,7 @@ export default function EditListingPage({ params }) {
                     required
                     disabled
                     placeholder="Contoh: Ball Python Piebald High White"
-                    className="w-full bg-zinc-950/30 border border-zinc-800/50 text-zinc-500 rounded-2xl px-5 py-4 focus:outline-none transition-all font-bold placeholder:text-zinc-700 cursor-not-allowed"
+                    className="w-full bg-zinc-950/30 border border-zinc-800/50 text-zinc-500 rounded-[10px] px-5 py-4 focus:outline-none transition-all font-bold placeholder:text-zinc-700 cursor-not-allowed"
                     value={reptileData.name}
                     onChange={(e) => setReptileData((prev) => ({ ...prev, name: e.target.value }))}
                   />
@@ -366,7 +366,7 @@ export default function EditListingPage({ params }) {
                   <select
                     required
                     disabled
-                    className="w-full bg-zinc-950/30 border border-zinc-800/50 text-zinc-500 rounded-2xl px-5 py-4 focus:outline-none transition-all font-bold appearance-none cursor-not-allowed"
+                    className="w-full bg-zinc-950/30 border border-zinc-800/50 text-zinc-500 rounded-[10px] px-5 py-4 focus:outline-none transition-all font-bold appearance-none cursor-not-allowed"
                     value={reptileData.species}
                     onChange={(e) => {
                       const val = e.target.value;
@@ -402,7 +402,7 @@ export default function EditListingPage({ params }) {
                     <label className="text-xs font-black text-zinc-300 uppercase tracking-widest ml-1">
                       Jenis Kelamin <span className="text-red-500">*</span>
                     </label>
-                    <select required className="w-full bg-zinc-950 border border-zinc-800 text-white rounded-2xl px-5 py-4 focus:outline-none focus:border-emerald-500 transition-all font-bold appearance-none cursor-pointer text-sm" value={reptileData.sex} onChange={(e) => setReptileData((prev) => ({ ...prev, sex: e.target.value }))}>
+                    <select required className="w-full bg-zinc-950 border border-zinc-800 text-white rounded-[10px] px-5 py-4 focus:outline-none focus:border-emerald-500 transition-all font-bold appearance-none cursor-pointer text-sm" value={reptileData.sex} onChange={(e) => setReptileData((prev) => ({ ...prev, sex: e.target.value }))}>
                       <option value="" disabled>
                         Pilih
                       </option>
@@ -416,7 +416,7 @@ export default function EditListingPage({ params }) {
                     <label className="text-xs font-black text-zinc-500 uppercase tracking-widest ml-1">
                       Stok <span className="text-red-500">*</span>
                     </label>
-                    <input type="number" required disabled min="1" className="w-full bg-zinc-950/30 border border-zinc-800/50 text-zinc-500 rounded-2xl px-5 py-4 focus:outline-none transition-all font-bold cursor-not-allowed" value={reptileData.stock} onChange={(e) => setReptileData((prev) => ({ ...prev, stock: e.target.value }))} />
+                    <input type="number" required disabled min="1" className="w-full bg-zinc-950/30 border border-zinc-800/50 text-zinc-500 rounded-[10px] px-5 py-4 focus:outline-none transition-all font-bold cursor-not-allowed" value={reptileData.stock} onChange={(e) => setReptileData((prev) => ({ ...prev, stock: e.target.value }))} />
                   </div>
                 </div>
                 <div className="space-y-2">
@@ -425,7 +425,7 @@ export default function EditListingPage({ params }) {
                   </label>
                   <select
                     required
-                    className="w-full bg-zinc-950 border border-zinc-800 text-white rounded-2xl px-5 py-4 focus:outline-none focus:border-emerald-500 transition-all font-bold appearance-none cursor-pointer text-sm"
+                    className="w-full bg-zinc-950 border border-zinc-800 text-white rounded-[10px] px-5 py-4 focus:outline-none focus:border-emerald-500 transition-all font-bold appearance-none cursor-pointer text-sm"
                     value={reptileData.shipping_type}
                     onChange={(e) => setReptileData((prev) => ({ ...prev, shipping_type: e.target.value }))}
                   >
@@ -441,7 +441,7 @@ export default function EditListingPage({ params }) {
 
             {/* Direct Sale Pricing & Options */}
             {listingType === "sell" ? (
-              <div className="sm:p-6 sm:bg-zinc-950/50 sm:border sm:border-zinc-800 sm:rounded-3xl space-y-6">
+              <div className="sm:p-6 sm:bg-zinc-950/50 sm:border sm:border-zinc-800 sm:rounded-[10px] space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
                   <div className="space-y-2">
                     <div className="flex items-center gap-2 flex-wrap ml-1">
@@ -457,7 +457,7 @@ export default function EditListingPage({ params }) {
                         inputMode="numeric"
                         required
                         placeholder="Contoh: 1.500.000"
-                        className="w-full bg-zinc-950 border border-zinc-800 text-white rounded-2xl pl-14 pr-5 py-4 focus:outline-none focus:border-emerald-500 transition-all font-bold placeholder:text-zinc-700"
+                        className="w-full bg-zinc-950 border border-zinc-800 text-white rounded-[10px] pl-14 pr-5 py-4 focus:outline-none focus:border-emerald-500 transition-all font-bold placeholder:text-zinc-700"
                         value={reptileData.price}
                         onChange={(e) => setReptileData((prev) => ({ ...prev, price: formatRupiah(e.target.value) }))}
                       />
@@ -468,10 +468,10 @@ export default function EditListingPage({ params }) {
                   <div className="space-y-3">
                     <p className="text-[10px] font-black text-zinc-500 uppercase tracking-widest ml-1">Opsi Tambahan</p>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-                      <label className="flex items-center gap-4 cursor-pointer group bg-zinc-950/50 p-4 sm:p-5 rounded-2xl border border-zinc-800/50 hover:border-emerald-500/30 transition-all">
+                      <label className="flex items-center gap-4 cursor-pointer group bg-zinc-950/50 p-4 sm:p-5 rounded-[10px] border border-zinc-800/50 hover:border-emerald-500/30 transition-all">
                         <div className="relative flex items-center shrink-0">
                           <input type="checkbox" className="peer sr-only" checked={reptileData.is_free_shipping} onChange={(e) => setReptileData((prev) => ({ ...prev, is_free_shipping: e.target.checked }))} />
-                          <div className="w-7 h-7 bg-zinc-900 border-2 border-zinc-700 rounded-xl peer-checked:bg-emerald-500 peer-checked:border-emerald-500 transition-all flex items-center justify-center">
+                          <div className="w-7 h-7 bg-zinc-900 border-2 border-zinc-700 rounded-[10px] peer-checked:bg-emerald-500 peer-checked:border-emerald-500 transition-all flex items-center justify-center">
                             <CheckCircle2 size={16} className="text-zinc-950 scale-0 peer-checked:scale-100 transition-transform" />
                           </div>
                         </div>
@@ -480,10 +480,10 @@ export default function EditListingPage({ params }) {
                           <span className="text-[10px] text-zinc-600 italic">Bebas biaya pengiriman</span>
                         </div>
                       </label>
-                      <label className="flex items-center gap-4 cursor-pointer group bg-zinc-950/50 p-4 sm:p-5 rounded-2xl border border-zinc-800/50 hover:border-emerald-500/30 transition-all">
+                      <label className="flex items-center gap-4 cursor-pointer group bg-zinc-950/50 p-4 sm:p-5 rounded-[10px] border border-zinc-800/50 hover:border-emerald-500/30 transition-all">
                         <div className="relative flex items-center shrink-0">
                           <input type="checkbox" className="peer sr-only" checked={reptileData.is_free_packing} onChange={(e) => setReptileData((prev) => ({ ...prev, is_free_packing: e.target.checked }))} />
-                          <div className="w-7 h-7 bg-zinc-900 border-2 border-zinc-700 rounded-xl peer-checked:bg-emerald-500 peer-checked:border-emerald-500 transition-all flex items-center justify-center">
+                          <div className="w-7 h-7 bg-zinc-900 border-2 border-zinc-700 rounded-[10px] peer-checked:bg-emerald-500 peer-checked:border-emerald-500 transition-all flex items-center justify-center">
                             <CheckCircle2 size={16} className="text-zinc-950 scale-0 peer-checked:scale-100 transition-transform" />
                           </div>
                         </div>
@@ -497,19 +497,19 @@ export default function EditListingPage({ params }) {
                 </div>
               </div>
             ) : (
-              <div className="sm:p-6 sm:bg-zinc-950/50 sm:border sm:border-zinc-800 sm:rounded-3xl space-y-6">
+              <div className="sm:p-6 sm:bg-zinc-950/50 sm:border sm:border-zinc-800 sm:rounded-[10px] space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                   <div className="space-y-2">
                     <div className="flex items-center gap-2 flex-wrap ml-1">
                       <label className="text-xs font-black text-zinc-300 uppercase tracking-widest">
                         OB / Start Bid (Rp) <span className="text-red-500">*</span>
                       </label>
-                      <span className="text-[9px] font-black text-amber-400 bg-amber-500/10 border border-amber-500/20 px-2 py-0.5 rounded-full uppercase tracking-wider">Harga Satuan</span>
+                      <span className="text-[9px] font-black text-amber-400 bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded-full uppercase tracking-wider">Harga Satuan</span>
                     </div>
                     <input
                       type="text"
                       inputMode="numeric"
-                      className="w-full bg-zinc-950 border border-zinc-800 text-white rounded-2xl px-5 py-4 focus:outline-none focus:border-amber-500 transition-all font-bold"
+                      className="w-full bg-zinc-950 border border-zinc-800 text-white rounded-[10px] px-5 py-4 focus:outline-none focus:border-amber-500 transition-all font-bold"
                       value={reptileData.start_bid}
                       onChange={(e) => setReptileData((prev) => ({ ...prev, start_bid: formatRupiah(e.target.value) }))}
                     />
@@ -521,7 +521,7 @@ export default function EditListingPage({ params }) {
                     <input
                       type="text"
                       inputMode="numeric"
-                      className="w-full bg-zinc-950 border border-zinc-800 text-white rounded-2xl px-5 py-4 focus:outline-none focus:border-amber-500 transition-all font-bold"
+                      className="w-full bg-zinc-950 border border-zinc-800 text-white rounded-[10px] px-5 py-4 focus:outline-none focus:border-amber-500 transition-all font-bold"
                       value={reptileData.multiple}
                       onChange={(e) => setReptileData((prev) => ({ ...prev, multiple: formatRupiah(e.target.value) }))}
                     />
@@ -530,7 +530,7 @@ export default function EditListingPage({ params }) {
                     <label className="text-xs font-black text-zinc-300 uppercase tracking-widest ml-1">
                       Waktu Berakhir <span className="text-red-500">*</span>
                     </label>
-                    <input type="datetime-local" className="w-full bg-zinc-950 border border-zinc-800 text-white rounded-2xl px-5 py-4 focus:outline-none focus:border-amber-500 transition-all font-bold" value={reptileData.end_date} onChange={(e) => setReptileData((prev) => ({ ...prev, end_date: e.target.value }))} />
+                    <input type="datetime-local" className="w-full bg-zinc-950 border border-zinc-800 text-white rounded-[10px] px-5 py-4 focus:outline-none focus:border-amber-500 transition-all font-bold" value={reptileData.end_date} onChange={(e) => setReptileData((prev) => ({ ...prev, end_date: e.target.value }))} />
                   </div>
                 </div>
                 <div className="h-px bg-zinc-800/50"></div>
@@ -541,10 +541,10 @@ export default function EditListingPage({ params }) {
                   <div className="space-y-3">
                     <p className="text-[10px] font-black text-zinc-500 uppercase tracking-widest ml-1">Opsi Tambahan</p>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-                      <label className="flex items-center gap-4 cursor-pointer group bg-zinc-950/50 p-4 sm:p-5 rounded-2xl border border-zinc-800/50 hover:border-emerald-500/30 transition-all">
+                      <label className="flex items-center gap-4 cursor-pointer group bg-zinc-950/50 p-4 sm:p-5 rounded-[10px] border border-zinc-800/50 hover:border-emerald-500/30 transition-all">
                         <div className="relative flex items-center shrink-0">
                           <input type="checkbox" className="peer sr-only" checked={reptileData.is_free_shipping} onChange={(e) => setReptileData((prev) => ({ ...prev, is_free_shipping: e.target.checked }))} />
-                          <div className="w-7 h-7 bg-zinc-900 border-2 border-zinc-700 rounded-xl peer-checked:bg-emerald-500 peer-checked:border-emerald-500 transition-all flex items-center justify-center">
+                          <div className="w-7 h-7 bg-zinc-900 border-2 border-zinc-700 rounded-[10px] peer-checked:bg-emerald-500 peer-checked:border-emerald-500 transition-all flex items-center justify-center">
                             <CheckCircle2 size={16} className="text-zinc-950 scale-0 peer-checked:scale-100 transition-transform" />
                           </div>
                         </div>
@@ -553,10 +553,10 @@ export default function EditListingPage({ params }) {
                           <span className="text-[10px] text-zinc-600 italic">Bebas biaya pengiriman</span>
                         </div>
                       </label>
-                      <label className="flex items-center gap-4 cursor-pointer group bg-zinc-950/50 p-4 sm:p-5 rounded-2xl border border-zinc-800/50 hover:border-emerald-500/30 transition-all">
+                      <label className="flex items-center gap-4 cursor-pointer group bg-zinc-950/50 p-4 sm:p-5 rounded-[10px] border border-zinc-800/50 hover:border-emerald-500/30 transition-all">
                         <div className="relative flex items-center shrink-0">
                           <input type="checkbox" className="peer sr-only" checked={reptileData.is_free_packing} onChange={(e) => setReptileData((prev) => ({ ...prev, is_free_packing: e.target.checked }))} />
-                          <div className="w-7 h-7 bg-zinc-900 border-2 border-zinc-700 rounded-xl peer-checked:bg-emerald-500 peer-checked:border-emerald-500 transition-all flex items-center justify-center">
+                          <div className="w-7 h-7 bg-zinc-900 border-2 border-zinc-700 rounded-[10px] peer-checked:bg-emerald-500 peer-checked:border-emerald-500 transition-all flex items-center justify-center">
                             <CheckCircle2 size={16} className="text-zinc-950 scale-0 peer-checked:scale-100 transition-transform" />
                           </div>
                         </div>
@@ -585,7 +585,7 @@ export default function EditListingPage({ params }) {
                     modules={quillModules}
                     formats={quillFormats}
                     placeholder="Tuliskan kondisi kesehatan, karakter, riwayat makan, dan detail lainnya secara lengkap..."
-                    className="bg-zinc-950 text-white rounded-2xl overflow-hidden border border-zinc-800 focus-within:border-emerald-500 transition-all"
+                    className="bg-zinc-950 text-white rounded-[10px] overflow-hidden border border-zinc-800 focus-within:border-emerald-500 transition-all"
                   />
                 </div>
               </div>
@@ -596,9 +596,9 @@ export default function EditListingPage({ params }) {
                     <Truck size={14} className="text-emerald-500 shrink-0" />
                     <label className="text-xs font-black text-zinc-300 uppercase tracking-widest break-words">Kebijakan Pengiriman & Garansi</label>
                   </div>
-                  <span className="w-fit text-[9px] sm:text-[10px] font-black text-emerald-500 uppercase tracking-widest bg-emerald-500/10 px-2 py-0.5 rounded-md border border-emerald-500/20">Otomatis dari Profil</span>
+                  <span className="w-fit text-[9px] sm:text-[10px] font-black text-emerald-500 uppercase tracking-widest bg-emerald-500/10 px-2 py-0.5 rounded-[10px] border border-emerald-500/20">Otomatis dari Profil</span>
                 </div>
-                <div className="p-4 sm:p-6 bg-zinc-950 border border-zinc-800 rounded-2xl relative overflow-hidden group">
+                <div className="p-4 sm:p-6 bg-zinc-950 border border-zinc-800 rounded-[10px] relative overflow-hidden group">
                   <div className="absolute top-0 right-0 w-24 h-24 bg-emerald-500/5 blur-2xl rounded-full -mr-8 -mt-8"></div>
                   <div className="text-xs sm:text-sm text-zinc-400 leading-relaxed description-content relative z-10 break-words" dangerouslySetInnerHTML={{ __html: reptileData.shipping_description || '<span className="italic opacity-50">Mengambil data kebijakan dari profil toko Anda...</span>' }}></div>
                   <div className="mt-4 pt-4 border-t border-zinc-800/50 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 relative z-10">
@@ -613,7 +613,7 @@ export default function EditListingPage({ params }) {
 
             {/* Tipe Media Selection (Only for Ikan and Burung Categories) */}
             {(reptileData.species === "Ikan" || reptileData.species === "Burung") && (
-              <div className="space-y-3 bg-zinc-900/40 p-5 border border-zinc-800 rounded-2xl">
+              <div className="space-y-3 bg-zinc-900/40 p-5 border border-zinc-800 rounded-[10px]">
                 <label className="text-xs font-black text-zinc-300 uppercase tracking-widest ml-1">
                   Tipe Media Produk <span className="text-red-500">*</span>
                 </label>
@@ -624,7 +624,7 @@ export default function EditListingPage({ params }) {
                       setMediaType("image");
                       setReptileData((prev) => ({ ...prev, images: [] }));
                     }}
-                    className={`py-3.5 rounded-xl font-bold text-xs uppercase tracking-wider transition-all border ${mediaType === "image" ? "bg-emerald-500 border-emerald-500 text-zinc-950 font-black shadow-md shadow-emerald-500/10" : "bg-zinc-950 border-zinc-800 text-zinc-400 hover:text-white"}`}
+                    className={`py-3.5 rounded-[10px] font-bold text-xs uppercase tracking-wider transition-all border ${mediaType === "image" ? "bg-emerald-500 border-emerald-500 text-zinc-950 font-black shadow-md shadow-emerald-500/10" : "bg-zinc-950 border-zinc-800 text-zinc-400 hover:text-white"}`}
                   >
                     Gambar / Foto
                   </button>
@@ -634,7 +634,7 @@ export default function EditListingPage({ params }) {
                       setMediaType("video");
                       setReptileData((prev) => ({ ...prev, images: [] }));
                     }}
-                    className={`py-3.5 rounded-xl font-bold text-xs uppercase tracking-wider transition-all border ${mediaType === "video" ? "bg-emerald-500 border-emerald-500 text-zinc-950 font-black shadow-md shadow-emerald-500/10" : "bg-zinc-950 border-zinc-800 text-zinc-400 hover:text-white"}`}
+                    className={`py-3.5 rounded-[10px] font-bold text-xs uppercase tracking-wider transition-all border ${mediaType === "video" ? "bg-emerald-500 border-emerald-500 text-zinc-950 font-black shadow-md shadow-emerald-500/10" : "bg-zinc-950 border-zinc-800 text-zinc-400 hover:text-white"}`}
                   >
                     Video
                   </button>
@@ -652,7 +652,7 @@ export default function EditListingPage({ params }) {
 
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
                 {reptileData.images.map((img, index) => (
-                  <div key={index} className="relative aspect-square rounded-2xl overflow-hidden group border border-zinc-800 bg-zinc-900 flex items-center justify-center">
+                  <div key={index} className="relative aspect-square rounded-[10px] overflow-hidden group border border-zinc-800 bg-zinc-900 flex items-center justify-center">
                     {isVideoUrl(img) ? <video src={getImageUrl(img)} controls className="w-full h-full object-cover" /> : <img src={getImageUrl(img)} alt="Preview" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />}
                     {/* Delete button - always visible on mobile, hover on desktop */}
                     <div className="absolute top-2 right-2 sm:absolute sm:inset-0 sm:bg-black/60 sm:opacity-0 sm:group-hover:opacity-100 sm:transition-opacity sm:flex sm:items-center sm:justify-center sm:backdrop-blur-sm">
@@ -663,7 +663,7 @@ export default function EditListingPage({ params }) {
                           newImages.splice(index, 1);
                           setReptileData({ ...reptileData, images: newImages });
                         }}
-                        className="bg-red-500/90 text-white p-2 rounded-xl hover:bg-red-500 transition-all active:scale-90 backdrop-blur-sm sm:bg-red-500 sm:p-2.5 sm:rounded-full"
+                        className="bg-red-500/90 text-white p-2 rounded-[10px] hover:bg-red-500 transition-all active:scale-90 backdrop-blur-sm sm:bg-red-500 sm:p-2.5 sm:rounded-[10px]"
                       >
                         <X size={14} />
                       </button>
@@ -675,12 +675,12 @@ export default function EditListingPage({ params }) {
                   ? // Video Upload Input
                     reptileData.images.length < 1 &&
                     (isUploading ? (
-                      <div className="aspect-square bg-zinc-950 border border-zinc-800 rounded-2xl flex flex-col items-center justify-center gap-2 text-emerald-500">
+                      <div className="aspect-square bg-zinc-950 border border-zinc-800 rounded-[10px] flex flex-col items-center justify-center gap-2 text-emerald-500">
                         <Loader2 className="w-8 h-8 animate-spin" />
                         <span className="text-[10px] font-black uppercase tracking-[0.2em] animate-pulse">Mengunggah...</span>
                       </div>
                     ) : (
-                      <label className="aspect-square bg-zinc-950 border-2 border-dashed border-zinc-800 rounded-2xl flex flex-col items-center justify-center gap-2 text-zinc-500 hover:border-emerald-500 hover:text-emerald-500 transition-all cursor-pointer group hover:bg-emerald-500/5">
+                      <label className="aspect-square bg-zinc-950 border-2 border-dashed border-zinc-800 rounded-[10px] flex flex-col items-center justify-center gap-2 text-zinc-500 hover:border-emerald-500 hover:text-emerald-500 transition-all cursor-pointer group hover:bg-emerald-500/5">
                         <input
                           type="file"
                           accept="video/mp4,video/mkv,video/avi,video/quicktime,video/*"
@@ -719,12 +719,12 @@ export default function EditListingPage({ params }) {
                   : // Image Upload Input
                     reptileData.images.length < 3 &&
                     (isUploading ? (
-                      <div className="aspect-square bg-zinc-950 border border-zinc-800 rounded-2xl flex flex-col items-center justify-center gap-2 text-emerald-500">
+                      <div className="aspect-square bg-zinc-950 border border-zinc-800 rounded-[10px] flex flex-col items-center justify-center gap-2 text-emerald-500">
                         <Loader2 className="w-8 h-8 animate-spin" />
                         <span className="text-[10px] font-black uppercase tracking-[0.2em] animate-pulse">Mengunggah...</span>
                       </div>
                     ) : (
-                      <label className="aspect-square bg-zinc-950 border-2 border-dashed border-zinc-800 rounded-2xl flex flex-col items-center justify-center gap-2 text-zinc-500 hover:border-emerald-500 hover:text-emerald-500 transition-all cursor-pointer group hover:bg-emerald-500/5">
+                      <label className="aspect-square bg-zinc-950 border-2 border-dashed border-zinc-800 rounded-[10px] flex flex-col items-center justify-center gap-2 text-zinc-500 hover:border-emerald-500 hover:text-emerald-500 transition-all cursor-pointer group hover:bg-emerald-500/5">
                         <input
                           type="file"
                           accept="image/jpeg,image/jpg,image/png,image/webp,image/gif"
@@ -766,14 +766,14 @@ export default function EditListingPage({ params }) {
 
             <div className="pt-8 border-t border-zinc-800">
               <div className="flex gap-3">
-                <button type="button" onClick={() => router.back()} className="flex items-center justify-center gap-2 px-6 py-5 rounded-2xl bg-zinc-800 hover:bg-zinc-700 text-white font-black transition-all active:scale-[0.98] shrink-0">
+                <button type="button" onClick={() => router.back()} className="flex items-center justify-center gap-2 px-6 py-5 rounded-[10px] bg-zinc-800 hover:bg-zinc-700 text-white font-black transition-all active:scale-[0.98] shrink-0">
                   <ArrowLeft size={20} />
                   Kembali
                 </button>
                 <button
                   type="submit"
                   disabled={isSubmitting || isUploading || reptileData.images.length === 0}
-                  className={`flex-1 py-5 rounded-2xl font-black transition-all flex items-center justify-center gap-3 group active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed disabled:grayscale ${
+                  className={`flex-1 py-5 rounded-[10px] font-black transition-all flex items-center justify-center gap-3 group active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed disabled:grayscale ${
                     listingType === "sell" ? "bg-emerald-500 hover:bg-emerald-400 text-zinc-950" : "bg-amber-500 hover:bg-amber-400 text-zinc-950"
                   }`}
                 >
@@ -799,7 +799,7 @@ export default function EditListingPage({ params }) {
         {showConfirmModal && (
           <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
             <div className="absolute inset-0 bg-zinc-950/80 backdrop-blur-md animate-in fade-in duration-300"></div>
-            <div className="bg-zinc-900 border border-zinc-800 rounded-[2.5rem] w-full max-w-md p-10 text-center relative z-10 animate-in zoom-in-95 duration-300">
+            <div className="bg-zinc-900 border border-zinc-800 rounded-[10px] w-full max-w-md p-10 text-center relative z-10 animate-in zoom-in-95 duration-300">
               <div className="w-20 h-20 bg-amber-500/10 text-amber-500 rounded-full flex items-center justify-center mx-auto mb-6 border border-amber-500/20">
                 <AlertCircle size={40} />
               </div>
@@ -808,10 +808,10 @@ export default function EditListingPage({ params }) {
                 Peringatan: Apabila melakukan perubahan maka produk akan <span className="text-amber-500 font-bold">diverifikasi ulang</span> oleh admin. Apakah Anda yakin ingin melanjutkan?
               </p>
               <div className="flex flex-col gap-3">
-                <button onClick={confirmUpdate} className="w-full bg-emerald-500 hover:bg-emerald-400 text-zinc-950 font-black py-4 rounded-2xl transition-all active:scale-95">
+                <button onClick={confirmUpdate} className="w-full bg-emerald-500 hover:bg-emerald-400 text-zinc-950 font-black py-4 rounded-[10px] transition-all active:scale-95">
                   Ya, Saya Mengerti & Lanjutkan
                 </button>
-                <button onClick={() => setShowConfirmModal(false)} className="w-full bg-zinc-800 hover:bg-zinc-700 text-white font-black py-4 rounded-2xl transition-all active:scale-95">
+                <button onClick={() => setShowConfirmModal(false)} className="w-full bg-zinc-800 hover:bg-zinc-700 text-white font-black py-4 rounded-[10px] transition-all active:scale-95">
                   Batal
                 </button>
               </div>
@@ -823,7 +823,7 @@ export default function EditListingPage({ params }) {
         {showSuccessModal && (
           <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
             <div className="absolute inset-0 bg-zinc-950/80 backdrop-blur-md animate-in fade-in duration-300"></div>
-            <div className="bg-zinc-900 border border-zinc-800 rounded-[2.5rem] w-full max-w-md p-10 text-center relative z-10 animate-in zoom-in-95 duration-300">
+            <div className="bg-zinc-900 border border-zinc-800 rounded-[10px] w-full max-w-md p-10 text-center relative z-10 animate-in zoom-in-95 duration-300">
               <div className="w-24 h-24 bg-emerald-500 text-zinc-950 rounded-full flex items-center justify-center mx-auto mb-8 relative">
                 <div className="absolute inset-0 bg-emerald-500 rounded-full animate-ping opacity-20"></div>
                 <CheckCircle2 size={48} className="relative z-10" />
@@ -832,7 +832,7 @@ export default function EditListingPage({ params }) {
               <p className="text-zinc-400 mb-8 leading-relaxed">
                 Perubahan iklan Anda telah berhasil disimpan dan sedang menunggu <span className="text-emerald-500 font-bold">verifikasi ulang</span> oleh admin.
               </p>
-              <button onClick={() => router.push("/user/toko/daftar-produk")} className="w-full bg-emerald-500 hover:bg-emerald-400 text-zinc-950 font-black py-4 rounded-2xl transition-all">
+              <button onClick={() => router.push("/user/toko/daftar-produk")} className="w-full bg-emerald-500 hover:bg-emerald-400 text-zinc-950 font-black py-4 rounded-[10px] transition-all">
                 Kembali ke Daftar Iklan
               </button>
             </div>
@@ -849,7 +849,7 @@ export default function EditListingPage({ params }) {
                 setErrorModalTitle("File Tidak Valid!");
               }}
             ></div>
-            <div className="bg-zinc-900 border border-zinc-800 rounded-[2.5rem] w-full max-w-md p-12 text-center relative z-10 animate-in zoom-in-95 duration-300">
+            <div className="bg-zinc-900 border border-zinc-800 rounded-[10px] w-full max-w-md p-12 text-center relative z-10 animate-in zoom-in-95 duration-300">
               <div className="w-24 h-24 bg-red-500 text-zinc-950 rounded-full flex items-center justify-center mx-auto mb-8">
                 <AlertCircle size={48} />
               </div>
@@ -860,7 +860,7 @@ export default function EditListingPage({ params }) {
                   setShowErrorModal(false);
                   setErrorModalTitle("File Tidak Valid!");
                 }}
-                className="w-full bg-red-500 hover:bg-red-400 text-zinc-950 font-black py-4 rounded-2xl transition-all"
+                className="w-full bg-red-500 hover:bg-red-400 text-zinc-950 font-black py-4 rounded-[10px] transition-all"
               >
                 Saya Mengerti
               </button>
@@ -872,13 +872,13 @@ export default function EditListingPage({ params }) {
           .quill-dark-editor .ql-toolbar {
             background-color: #09090b !important;
             border-color: #18181b !important;
-            border-top-left-radius: 1rem;
-            border-top-right-radius: 1rem;
+            border-top-left-radius: 10px;
+            border-top-right-radius: 10px;
           }
           .quill-dark-editor .ql-container {
             border-color: #18181b !important;
-            border-bottom-left-radius: 1rem;
-            border-bottom-right-radius: 1rem;
+            border-bottom-left-radius: 10px;
+            border-bottom-right-radius: 10px;
             min-height: 180px;
             font-size: 0.875rem;
           }

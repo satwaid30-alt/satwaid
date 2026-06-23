@@ -103,7 +103,7 @@ export default function DetailPencairanPage({ params }) {
       {/* Header Navigation */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <Link href="/user/toko/pengajuan-keuangan" className="flex items-center gap-3 text-zinc-400 hover:text-white transition-colors group">
-          <div className="w-12 h-12 rounded-2xl bg-zinc-900 border border-zinc-800 flex items-center justify-center group-hover:bg-zinc-800 transition-all">
+          <div className="w-12 h-12 rounded-[10px] bg-zinc-900 border border-zinc-800 flex items-center justify-center group-hover:bg-zinc-800 transition-all">
             <ChevronLeft size={20} />
           </div>
           <div className="flex flex-col">
@@ -113,7 +113,7 @@ export default function DetailPencairanPage({ params }) {
         </Link>
 
         <div className="flex items-center gap-3">
-          <div className="px-5 py-3 bg-zinc-900 border border-zinc-800 rounded-2xl flex flex-col items-end w-full sm:w-auto">
+          <div className="px-5 py-3 bg-zinc-900 border border-zinc-800 rounded-[10px] flex flex-col items-end w-full sm:w-auto">
             <span className="text-[9px] font-black text-zinc-500 uppercase tracking-widest leading-none mb-1">Status Pencairan</span>
             <div className="flex items-center gap-2">
               <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></div>
@@ -126,7 +126,7 @@ export default function DetailPencairanPage({ params }) {
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
         {/* Image / Proof Section - Compact */}
         <div className="lg:col-span-4 space-y-6">
-          <div className="bg-zinc-900 border border-zinc-800 rounded-[2.5rem] overflow-hidden group relative">
+          <div className="bg-zinc-900 border border-zinc-800 rounded-[10px] overflow-hidden group relative">
             <div className="p-5 md:p-8 border-b border-zinc-800 bg-zinc-950/50 flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <h2 className="text-base md:text-lg font-black text-white uppercase tracking-tight italic">Bukti Transfer</h2>
@@ -136,23 +136,23 @@ export default function DetailPencairanPage({ params }) {
             <div className="aspect-[1/1] bg-zinc-950 flex items-center justify-center p-4 relative">
               {order.disbursement_proof?.toLowerCase().endsWith(".pdf") ? (
                 <div className="flex flex-col items-center gap-6 text-zinc-500 py-20">
-                  <div className="w-24 h-24 bg-zinc-900 rounded-[2rem] flex items-center justify-center border border-zinc-800">
+                  <div className="w-24 h-24 bg-zinc-900 rounded-[10px] flex items-center justify-center border border-zinc-800">
                     <FileText size={48} className="text-emerald-500" />
                   </div>
                   <div className="text-center">
                     <p className="text-white font-black uppercase tracking-widest text-sm">Dokumen Digital PDF</p>
                     <p className="text-xs text-zinc-500 font-medium mt-1 italic">Klik tombol dibawah untuk mengunduh</p>
                   </div>
-                  <a href={getImageUrl(order.disbursement_proof)} target="_blank" className="px-8 py-3 bg-emerald-500 text-zinc-950 rounded-2xl font-black uppercase tracking-[0.2em] text-[10px] hover:bg-emerald-400 transition-all">
+                  <a href={getImageUrl(order.disbursement_proof)} target="_blank" className="px-8 py-3 bg-emerald-500 text-zinc-950 rounded-[10px] font-black uppercase tracking-[0.2em] text-[10px] hover:bg-emerald-400 transition-all">
                     Unduh Bukti Transfer
                   </a>
                 </div>
               ) : (
                 <>
                   <div className="cursor-zoom-in group/img relative" onClick={() => setShowZoom(true)}>
-                    <img src={getImageUrl(order.disbursement_proof)} className="max-w-full max-h-full object-contain rounded-2xl transition-transform duration-500 group-hover/img:scale-[1.02]" alt="Bukti Transfer" />
-                    <div className="absolute inset-0 bg-emerald-500/10 opacity-0 group-hover/img:opacity-100 transition-all backdrop-blur-[1px] flex items-center justify-center rounded-2xl">
-                      <div className="bg-zinc-950/80 text-white px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest border border-white/10">Klik untuk Memperbesar</div>
+                    <img src={getImageUrl(order.disbursement_proof)} className="max-w-full max-h-full object-contain rounded-[10px] transition-transform duration-500 group-hover/img:scale-[1.02]" alt="Bukti Transfer" />
+                    <div className="absolute inset-0 bg-emerald-500/10 opacity-0 group-hover/img:opacity-100 transition-all backdrop-blur-[1px] flex items-center justify-center rounded-[10px]">
+                      <div className="bg-zinc-950/80 text-white px-4 py-2 rounded-[10px] text-[10px] font-black uppercase tracking-widest border border-white/10">Klik untuk Memperbesar</div>
                     </div>
                   </div>
                 </>
@@ -162,8 +162,8 @@ export default function DetailPencairanPage({ params }) {
 
           {/* Admin Notes */}
           {order.disbursement_notes && (
-            <div className="bg-zinc-900 border border-zinc-800 rounded-3xl p-5 md:p-8 flex gap-4 md:gap-6 items-start">
-              <div className="w-12 h-12 bg-blue-500/10 text-blue-500 rounded-2xl flex items-center justify-center shrink-0 border border-blue-500/20">
+            <div className="bg-zinc-900 border border-zinc-800 rounded-[10px] p-5 md:p-8 flex gap-4 md:gap-6 items-start">
+              <div className="w-12 h-12 bg-blue-500/10 text-blue-500 rounded-[10px] flex items-center justify-center shrink-0 border border-blue-500/20">
                 <Info size={24} />
               </div>
               <div className="space-y-2">
@@ -177,14 +177,14 @@ export default function DetailPencairanPage({ params }) {
         {/* Info Sidebar - Dominant */}
         <div className="lg:col-span-8 space-y-8">
           {/* Financial Summary */}
-          <div className="bg-zinc-900 border border-zinc-800 rounded-[2.5rem] p-5 md:p-10 relative overflow-hidden group">
+          <div className="bg-zinc-900 border border-zinc-800 rounded-[10px] p-5 md:p-10 relative overflow-hidden group">
             <div className="relative z-10 space-y-8">
               <div className="flex items-center gap-3">
                 <h3 className="text-lg font-black text-white uppercase tracking-tight italic">Ringkasan Dana</h3>
               </div>
 
               <div className="space-y-4">
-                <div className="p-4 md:p-6 bg-zinc-950/50 rounded-3xl border border-zinc-800/50 space-y-4">
+                <div className="p-4 md:p-6 bg-zinc-950/50 rounded-[10px] border border-zinc-800/50 space-y-4">
                   <div className="flex justify-between items-center text-xs">
                     <span className="text-zinc-500 font-bold uppercase tracking-widest">Subtotal Produk</span>
                     <span className="text-white font-black">{formatPrice(getOrderSubtotal(order))}</span>
@@ -215,7 +215,7 @@ export default function DetailPencairanPage({ params }) {
                 <h4 className="text-[10px] font-black text-zinc-500 uppercase tracking-widest flex items-center gap-2">
                   <CreditCard size={14} /> Dikirim Ke Rekening
                 </h4>
-                <div className="bg-zinc-950/30 rounded-3xl p-4 md:p-6 border border-zinc-800/50 space-y-4">
+                <div className="bg-zinc-950/30 rounded-[10px] p-4 md:p-6 border border-zinc-800/50 space-y-4">
                   <div>
                     <p className="text-[9px] font-black text-zinc-600 uppercase tracking-widest leading-none mb-2">Penerima</p>
                     <p className="text-sm font-black text-white">{sellerBank.bankHolder}</p>
@@ -227,13 +227,13 @@ export default function DetailPencairanPage({ params }) {
                         {sellerBank.bankName} - {sellerBank.bankAccount}
                       </p>
                     </div>
-                    <div className="px-2 py-1 bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 rounded-lg text-[8px] font-black uppercase">Verified</div>
+                    <div className="px-2 py-1 bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 rounded-[10px] text-[8px] font-black uppercase">Verified</div>
                   </div>
                 </div>
               </div>
 
               <div className="flex items-center gap-4 text-zinc-500">
-                <div className="w-10 h-10 bg-zinc-950 rounded-xl flex items-center justify-center shrink-0 border border-zinc-800">
+                <div className="w-10 h-10 bg-zinc-950 rounded-[10px] flex items-center justify-center shrink-0 border border-zinc-800">
                   <Calendar size={18} />
                 </div>
                 <div>
@@ -250,13 +250,13 @@ export default function DetailPencairanPage({ params }) {
           </div>
 
           {/* Order Origin */}
-          <div className="bg-zinc-900 border border-zinc-800 rounded-[2.5rem] p-5 md:p-8 space-y-4">
+          <div className="bg-zinc-900 border border-zinc-800 rounded-[10px] p-5 md:p-8 space-y-4">
             <h4 className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Pesanan ({order.items && order.items.length > 0 ? order.items.length : 1} Produk):</h4>
             <div className="flex flex-col gap-4">
               {order.items && order.items.length > 0 ? (
                 order.items.map((item, idx) => (
-                  <div key={item.id || idx} className="flex items-center gap-4 sm:gap-6 group hover:bg-zinc-800/50 p-2 rounded-2xl transition-all border-b border-zinc-800/40 last:border-0 pb-3 last:pb-0">
-                    <div className="w-16 h-16 rounded-2xl overflow-hidden bg-zinc-950 border border-zinc-800 shrink-0">
+                  <div key={item.id || idx} className="flex items-center gap-4 sm:gap-6 group hover:bg-zinc-800/50 p-2 rounded-[10px] transition-all border-b border-zinc-800/40 last:border-0 pb-3 last:pb-0">
+                    <div className="w-16 h-16 rounded-[10px] overflow-hidden bg-zinc-950 border border-zinc-800 shrink-0">
                       <img src={getImageUrl(item.product?.images || item.product_image)} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" alt={item.product?.name || "Produk"} />
                     </div>
                     <div className="min-w-0 flex-1">
@@ -264,16 +264,16 @@ export default function DetailPencairanPage({ params }) {
                       <div className="flex flex-wrap items-center gap-2 mt-1.5">
                         <span className="text-[10px] font-bold text-zinc-500 font-mono shrink-0">{order.order_id}</span>
                         <div className="flex items-center gap-1.5 shrink-0">
-                          <span className="px-1.5 py-0.5 bg-zinc-950 text-[8px] text-zinc-400 rounded font-black uppercase tracking-widest border border-zinc-800">ID: {item.product?.product_id || "-"}</span>
-                          <span className="inline-block px-1.5 py-0.5 bg-zinc-950 text-[8px] text-zinc-500 rounded font-black uppercase tracking-widest border border-zinc-800">Qty: {item.quantity || 1}</span>
+                          <span className="px-1.5 py-0.5 bg-zinc-950 text-[8px] text-zinc-400 rounded-[10px] font-black uppercase tracking-widest border border-zinc-800">ID: {item.product?.product_id || "-"}</span>
+                          <span className="inline-block px-1.5 py-0.5 bg-zinc-950 text-[8px] text-zinc-500 rounded-[10px] font-black uppercase tracking-widest border border-zinc-800">Qty: {item.quantity || 1}</span>
                         </div>
                       </div>
                     </div>
                   </div>
                 ))
               ) : (
-                <div className="flex items-center gap-4 sm:gap-6 group hover:bg-zinc-800/50 p-2 rounded-2xl transition-all">
-                  <div className="w-16 h-16 rounded-2xl overflow-hidden bg-zinc-950 border border-zinc-800 shrink-0">
+                <div className="flex items-center gap-4 sm:gap-6 group hover:bg-zinc-800/50 p-2 rounded-[10px] transition-all">
+                  <div className="w-16 h-16 rounded-[10px] overflow-hidden bg-zinc-950 border border-zinc-800 shrink-0">
                     <img src={getImageUrl(order.product?.images || order.product_image)} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" alt={order.product?.name || "Produk"} />
                   </div>
                   <div className="min-w-0 flex-1">
@@ -281,8 +281,8 @@ export default function DetailPencairanPage({ params }) {
                     <div className="flex flex-wrap items-center gap-2 mt-1.5">
                       <span className="text-[10px] font-bold text-zinc-500 font-mono shrink-0">{order.order_id}</span>
                       <div className="flex items-center gap-1.5 shrink-0">
-                        <span className="px-1.5 py-0.5 bg-zinc-950 text-[8px] text-zinc-400 rounded font-black uppercase tracking-widest border border-zinc-800">ID: {order.product?.product_id || "-"}</span>
-                        <span className="inline-block px-1.5 py-0.5 bg-zinc-950 text-[8px] text-zinc-500 rounded font-black uppercase tracking-widest border border-zinc-800">Qty: {order.quantity || 1}</span>
+                        <span className="px-1.5 py-0.5 bg-zinc-950 text-[8px] text-zinc-400 rounded-[10px] font-black uppercase tracking-widest border border-zinc-800">ID: {order.product?.product_id || "-"}</span>
+                        <span className="inline-block px-1.5 py-0.5 bg-zinc-950 text-[8px] text-zinc-500 rounded-[10px] font-black uppercase tracking-widest border border-zinc-800">Qty: {order.quantity || 1}</span>
                       </div>
                     </div>
                   </div>
@@ -299,15 +299,15 @@ export default function DetailPencairanPage({ params }) {
           <div className="absolute inset-0 bg-zinc-950/95 backdrop-blur-xl"></div>
 
           {/* Close Button */}
-          <button className="absolute top-8 right-8 w-12 h-12 bg-white/10 hover:bg-white/20 text-white rounded-2xl flex items-center justify-center transition-all z-10 border border-white/10" onClick={() => setShowZoom(false)}>
+          <button className="absolute top-8 right-8 w-12 h-12 bg-white/10 hover:bg-white/20 text-white rounded-[10px] flex items-center justify-center transition-all z-10 border border-white/10" onClick={() => setShowZoom(false)}>
             <ChevronLeft className="rotate-45" size={24} />
           </button>
 
           <div className="relative w-full h-full flex items-center justify-center">
-            <img src={getImageUrl(order.disbursement_proof)} className="max-w-full max-h-full object-contain animate-in zoom-in-95 duration-500 rounded-lg" alt="Zoom Bukti Transfer" onClick={(e) => e.stopPropagation()} />
+            <img src={getImageUrl(order.disbursement_proof)} className="max-w-full max-h-full object-contain animate-in zoom-in-95 duration-500 rounded-[10px]" alt="Zoom Bukti Transfer" onClick={(e) => e.stopPropagation()} />
           </div>
 
-          <div className="absolute bottom-8 left-1/2 -translate-x-1/2 px-6 py-3 bg-zinc-900/80 border border-zinc-800 rounded-2xl text-[10px] font-black text-zinc-400 uppercase tracking-widest backdrop-blur-md">Klik di mana saja untuk menutup</div>
+          <div className="absolute bottom-8 left-1/2 -translate-x-1/2 px-6 py-3 bg-zinc-900/80 border border-zinc-800 rounded-[10px] text-[10px] font-black text-zinc-400 uppercase tracking-widest backdrop-blur-md">Klik di mana saja untuk menutup</div>
         </div>
       )}
     </div>

@@ -465,7 +465,7 @@ function DetailContent() {
           </div>
           <h2 className="text-2xl font-black text-zinc-900 mb-2">Produk Tidak Ditemukan</h2>
           <p className="text-zinc-500 mb-8">Maaf, produk yang Anda cari mungkin sudah tidak tersedia atau dihapus.</p>
-          <Link href="/toko" className="bg-emerald-500 text-white font-black px-8 py-3 rounded-2xl hover:bg-emerald-600 transition-all">
+          <Link href="/toko" className="bg-emerald-500 text-white font-black px-8 py-3 rounded-[10px] hover:bg-emerald-600 transition-all">
             Kembali ke Toko
           </Link>
         </div>
@@ -486,8 +486,8 @@ function DetailContent() {
 
         <div className="flex flex-col lg:flex-row gap-6 mb-4 items-start">
           {/* Left Side: Image Gallery Card */}
-          <div className="w-full lg:w-[45%] sticky-image-card bg-white border border-zinc-200 rounded-[2rem] p-4 lg:p-6 shadow-sm flex flex-col gap-4">
-            <div className="bg-zinc-50 rounded-[1.5rem] relative group overflow-hidden border border-zinc-100 flex items-center justify-center aspect-square w-full">
+          <div className="w-full lg:w-[45%] sticky-image-card bg-white border border-zinc-200 rounded-[10px] p-4 lg:p-6 shadow-sm flex flex-col gap-4">
+            <div className="bg-zinc-50 rounded-[10px] relative group overflow-hidden border border-zinc-100 flex items-center justify-center aspect-square w-full">
               {parsedImages.length > 0 && parsedImages[activeImageIndex] ? (
                 isVideoUrl(parsedImages[activeImageIndex]) ? (
                   <DetailVideoPlayer key={parsedImages[activeImageIndex]} src={parsedImages[activeImageIndex]} />
@@ -506,13 +506,13 @@ function DetailContent() {
                 <div className="absolute inset-x-4 top-1/2 -translate-y-1/2 flex justify-between pointer-events-none">
                   <button
                     onClick={() => setActiveImageIndex((prev) => (prev === 0 ? parsedImages.length - 1 : prev - 1))}
-                    className="w-10 h-10 rounded-xl bg-white/90 backdrop-blur-md border border-zinc-200/50 flex items-center justify-center text-zinc-800 hover:bg-emerald-500 hover:text-white transition-all pointer-events-auto active:scale-90"
+                    className="w-10 h-10 rounded-[10px] bg-white/90 backdrop-blur-md border border-zinc-200/50 flex items-center justify-center text-zinc-800 hover:bg-emerald-500 hover:text-white transition-all pointer-events-auto active:scale-90"
                   >
                     <ChevronLeft size={20} />
                   </button>
                   <button
                     onClick={() => setActiveImageIndex((prev) => (prev === parsedImages.length - 1 ? 0 : prev + 1))}
-                    className="w-10 h-10 rounded-xl bg-white/90 backdrop-blur-md border border-zinc-200/50 flex items-center justify-center text-zinc-800 hover:bg-emerald-500 hover:text-white transition-all pointer-events-auto active:scale-90"
+                    className="w-10 h-10 rounded-[10px] bg-white/90 backdrop-blur-md border border-zinc-200/50 flex items-center justify-center text-zinc-800 hover:bg-emerald-500 hover:text-white transition-all pointer-events-auto active:scale-90"
                   >
                     <ChevronRight size={20} />
                   </button>
@@ -524,7 +524,7 @@ function DetailContent() {
             {parsedImages.length > 1 && (
               <div className="flex justify-center gap-2 overflow-x-auto no-scrollbar py-1">
                 {parsedImages.map((img, idx) => (
-                  <button key={idx} onClick={() => setActiveImageIndex(idx)} className={`w-14 h-14 rounded-xl border-2 overflow-hidden transition-all flex-shrink-0 bg-white ${activeImageIndex === idx ? "border-emerald-500 scale-105" : "border-zinc-200 opacity-60 hover:opacity-100"}`}>
+                  <button key={idx} onClick={() => setActiveImageIndex(idx)} className={`w-14 h-14 rounded-[10px] border-2 overflow-hidden transition-all flex-shrink-0 bg-white ${activeImageIndex === idx ? "border-emerald-500 scale-105" : "border-zinc-200 opacity-60 hover:opacity-100"}`}>
                     {isVideoUrl(img) ? <video src={img} className="w-full h-full object-cover" preload="metadata" /> : <img src={img} className="w-full h-full object-cover" alt={`Thumb ${idx}`} />}
                   </button>
                 ))}
@@ -533,13 +533,13 @@ function DetailContent() {
           </div>
 
           {/* Right Side: Product Details Card */}
-          <div className="w-full lg:w-[55%] bg-white border border-zinc-200 rounded-[2rem] p-6 lg:p-10 xl:p-12 shadow-sm">
+          <div className="w-full lg:w-[55%] bg-white border border-zinc-200 rounded-[10px] p-6 lg:p-10 xl:p-12 shadow-sm">
             <div className="space-y-6 lg:space-y-8">
               <div>
                 <div className="flex items-center gap-2 mb-3">
-                  <span className="bg-emerald-100 text-emerald-700 text-[9px] font-black uppercase tracking-widest px-2 py-1 rounded-md border border-emerald-200">{selectedProduct.species || "Reptil"}</span>
-                  <span className={`text-[9px] font-black uppercase tracking-widest px-2 py-1 rounded-md border ${selectedProduct.type === "sell" ? "bg-blue-100 text-blue-700 border-blue-200" : "bg-amber-100 text-amber-700 border-amber-200"}`}>{selectedProduct.type === "sell" ? "Penjualan Langsung" : "Lelang"}</span>
-                  <span className={`text-[9px] font-black uppercase tracking-widest px-2 py-1 rounded-md border ${selectedProduct.type === "sell" ? "bg-blue-100 text-blue-700 border-blue-200" : "bg-amber-100 text-amber-700 border-amber-200"}`}>
+                  <span className="bg-emerald-100 text-emerald-700 text-[9px] font-black uppercase tracking-widest px-2 py-1 rounded-[10px] border border-emerald-200">{selectedProduct.species || "Reptil"}</span>
+                  <span className={`text-[9px] font-black uppercase tracking-widest px-2 py-1 rounded-[10px] border ${selectedProduct.type === "sell" ? "bg-blue-100 text-blue-700 border-blue-200" : "bg-amber-100 text-amber-700 border-amber-200"}`}>{selectedProduct.type === "sell" ? "Penjualan Langsung" : "Lelang"}</span>
+                  <span className={`text-[9px] font-black uppercase tracking-widest px-2 py-1 rounded-[10px] border ${selectedProduct.type === "sell" ? "bg-blue-100 text-blue-700 border-blue-200" : "bg-amber-100 text-amber-700 border-amber-200"}`}>
                     {new Date(selectedProduct.created_at).toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" })}
                   </span>
                 </div>
@@ -547,11 +547,11 @@ function DetailContent() {
               </div>
 
               {/* Price and Action Row */}
-              <div className="bg-zinc-50 rounded-[1.5rem] lg:rounded-[2rem] p-5 lg:p-8 border border-zinc-100 space-y-6">
+              <div className="bg-zinc-50 rounded-[10px] p-5 lg:p-8 border border-zinc-100 space-y-6">
                 {/* Seller Info Row */}
                 <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
                   <div className="flex items-center gap-4 w-full sm:w-auto">
-                    <div className="w-11 h-11 rounded-xl bg-zinc-100 overflow-hidden border border-zinc-200 flex-shrink-0">
+                    <div className="w-11 h-11 rounded-[10px] bg-zinc-100 overflow-hidden border border-zinc-200 flex-shrink-0">
                       {selectedProduct.shop?.logo_url ? (
                         <img src={getLogoUrl(selectedProduct.shop.logo_url)} className="w-full h-full object-cover" alt={selectedProduct.shop.name} />
                       ) : (
@@ -563,7 +563,7 @@ function DetailContent() {
                     <div className="min-w-0">
                       <div className="flex items-center gap-2 mb-0.5">
                         <p className="text-sm font-black text-zinc-900 hover:underline cursor-pointer truncate">{selectedProduct.shop?.name || "Seller"}</p>
-                        <div className="flex items-center gap-1 bg-amber-50 px-1.5 py-0.5 rounded-md border border-amber-100 flex-shrink-0">
+                        <div className="flex items-center gap-1 bg-amber-50 px-1.5 py-0.5 rounded-[10px] border border-amber-100 flex-shrink-0">
                           <Star size={10} className="text-amber-500 fill-amber-500" />
                           <span className="text-[10px] font-black text-zinc-900">{selectedProduct.shop?.avgRating || "5.0"}</span>
                         </div>
@@ -580,14 +580,14 @@ function DetailContent() {
                         href={`https://wa.me/${selectedProduct.shop.whatsapp.replace(/\D/g, "")}?text=Halo ${selectedProduct.shop.name}, saya tertarik dengan produk ${selectedProduct.name} di REPTILEHAVEN.`}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="flex items-center justify-center gap-2 text-[11px] font-black text-white bg-[#25D366] hover:bg-[#4CBB17] transition-all py-2.5 px-4 rounded-xl"
+                        className="flex items-center justify-center gap-2 text-[11px] font-black text-white bg-[#25D366] hover:bg-[#4CBB17] transition-all py-2.5 px-4 rounded-[10px]"
                       >
                         <MessageCircle size={16} />
                         Hubungi
                       </a>
                     )}
 
-                    <button onClick={handleShare} className="flex items-center justify-center gap-2 text-[11px] font-black text-zinc-600 hover:text-emerald-600 transition-colors py-2.5 px-4 rounded-xl bg-white border border-zinc-200 hover:border-zinc-300">
+                    <button onClick={handleShare} className="flex items-center justify-center gap-2 text-[11px] font-black text-zinc-600 hover:text-emerald-600 transition-colors py-2.5 px-4 rounded-[10px] bg-white border border-zinc-200 hover:border-zinc-300">
                       <Share2 size={16} /> Bagikan
                     </button>
                   </div>
@@ -602,7 +602,7 @@ function DetailContent() {
                   {!(currentUser && selectedProduct.user_id === currentUser.id) && selectedProduct.stock > 0 && selectedProduct.status !== "sold" && (
                     <div className="flex flex-col sm:flex-row items-start gap-4 w-full sm:w-auto">
                       <div className="flex flex-col gap-1 w-full sm:w-auto">
-                        <div className="flex items-center bg-white border border-zinc-200 rounded-lg overflow-hidden h-12 w-full">
+                        <div className="flex items-center bg-white border border-zinc-200 rounded-[10px] overflow-hidden h-12 w-full">
                           <button onClick={() => setBuyQuantity((prev) => Math.max(1, prev - 1))} className="px-4 hover:bg-zinc-50 text-zinc-400 font-bold transition-colors">
                             -
                           </button>
@@ -616,10 +616,10 @@ function DetailContent() {
 
                       {/* Action Buttons */}
                       <div className="flex items-center gap-2 h-12 w-full">
-                        <button onClick={handleAddToCart} disabled={isAddingToCart} className="flex-1 bg-white hover:bg-zinc-50 border-2 border-[#4CBB17] text-[#228B22] font-black px-4 rounded-xl text-xs transition-all active:scale-95 disabled:opacity-50 h-full flex items-center justify-center">
+                        <button onClick={handleAddToCart} disabled={isAddingToCart} className="flex-1 bg-white hover:bg-zinc-50 border-2 border-[#4CBB17] text-[#228B22] font-black px-4 rounded-[10px] text-xs transition-all active:scale-95 disabled:opacity-50 h-full flex items-center justify-center">
                           {isAddingToCart ? "..." : `+ Keranjang`}
                         </button>
-                        <button onClick={handleBuyNow} disabled={isBuying} className="flex-1 bg-[#228B22] hover:bg-[#4CBB17] text-white font-black px-6 rounded-xl text-xs transition-all active:scale-95 disabled:opacity-50 h-full flex items-center justify-center">
+                        <button onClick={handleBuyNow} disabled={isBuying} className="flex-1 bg-[#228B22] hover:bg-[#4CBB17] text-white font-black px-6 rounded-[10px] text-xs transition-all active:scale-95 disabled:opacity-50 h-full flex items-center justify-center">
                           {isBuying ? "..." : "Beli Sekarang"}
                         </button>
                       </div>
@@ -631,8 +631,8 @@ function DetailContent() {
                 {(selectedProduct.is_free_shipping || selectedProduct.is_free_packing) && (
                   <div className="flex flex-wrap gap-3 pt-1">
                     {selectedProduct.is_free_shipping && (
-                      <div className="flex-1 min-w-[130px] p-4 bg-emerald-50 text-emerald-700 border border-emerald-100 rounded-2xl flex items-center gap-3">
-                        <div className="w-8 h-8 bg-emerald-500/10 rounded-lg flex items-center justify-center">
+                      <div className="flex-1 min-w-[130px] p-4 bg-emerald-50 text-emerald-700 border border-emerald-100 rounded-[10px] flex items-center gap-3">
+                        <div className="w-8 h-8 bg-emerald-500/10 rounded-[10px] flex items-center justify-center">
                           <Truck size={16} />
                         </div>
                         <div>
@@ -642,8 +642,8 @@ function DetailContent() {
                       </div>
                     )}
                     {selectedProduct.is_free_packing && (
-                      <div className="flex-1 min-w-[130px] p-4 bg-blue-50 text-blue-700 border border-blue-100 rounded-2xl flex items-center gap-3">
-                        <div className="w-8 h-8 bg-blue-500/10 rounded-lg flex items-center justify-center">
+                      <div className="flex-1 min-w-[130px] p-4 bg-blue-50 text-blue-700 border border-blue-100 rounded-[10px] flex items-center gap-3">
+                        <div className="w-8 h-8 bg-blue-500/10 rounded-[10px] flex items-center justify-center">
                           <Info size={16} />
                         </div>
                         <div>
@@ -658,12 +658,12 @@ function DetailContent() {
 
               {/* Specifications Grid - Minimalist Cards */}
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-4">
-                <div className="bg-zinc-50 border border-zinc-100 rounded-2xl p-5 hover:border-emerald-500/30 transition-all group/spec">
+                <div className="bg-zinc-50 border border-zinc-100 rounded-[10px] p-5 hover:border-emerald-500/30 transition-all group/spec">
                   <p className="text-[9px] font-black text-zinc-400 uppercase tracking-widest leading-none mb-3">Jenis Kelamin</p>
                   <p className="text-[12px] font-black text-zinc-900">{selectedProduct.sex || "Unsex"}</p>
                 </div>
 
-                <div className="bg-zinc-50 border border-zinc-100 rounded-2xl p-5 hover:border-emerald-500/30 transition-all group/spec">
+                <div className="bg-zinc-50 border border-zinc-100 rounded-[10px] p-5 hover:border-emerald-500/30 transition-all group/spec">
                   <p className="text-[9px] font-black text-zinc-400 uppercase tracking-widest leading-none mb-3">Jangkauan</p>
                   <p className="text-[12px] font-black text-zinc-900 leading-snug">{selectedProduct.shipping_type || "-"}</p>
                 </div>
@@ -672,13 +672,13 @@ function DetailContent() {
               {/* Description */}
               <div className="space-y-4">
                 <h4 className="text-[10px] font-black text-zinc-900 uppercase tracking-widest flex items-center gap-2">
-                  <div className="w-7 h-7 rounded-lg bg-emerald-500/10 flex items-center justify-center text-emerald-500">
+                  <div className="w-7 h-7 rounded-[10px] bg-emerald-500/10 flex items-center justify-center text-emerald-500">
                     <Info size={16} />
                   </div>
                   Deskripsi Produk
                 </h4>
                 <div
-                  className="text-sm text-zinc-600 leading-relaxed description-content bg-zinc-50 p-6 rounded-2xl border border-zinc-100"
+                  className="text-sm text-zinc-600 leading-relaxed description-content bg-zinc-50 p-6 rounded-[10px] border border-zinc-100"
                   dangerouslySetInnerHTML={{
                     __html: selectedProduct.description || "Tidak ada deskripsi.",
                   }}
@@ -688,13 +688,13 @@ function DetailContent() {
               {/* Shipping */}
               <div className="space-y-4">
                 <h4 className="text-[10px] font-black text-zinc-900 uppercase tracking-widest flex items-center gap-2">
-                  <div className="w-7 h-7 rounded-lg bg-emerald-500/10 flex items-center justify-center text-emerald-500">
+                  <div className="w-7 h-7 rounded-[10px] bg-emerald-500/10 flex items-center justify-center text-emerald-500">
                     <MapPin size={16} />
                   </div>
                   Info Pengiriman & Garansi
                 </h4>
                 <div
-                  className="text-sm text-zinc-600 leading-relaxed description-content bg-zinc-50 p-6 rounded-2xl border border-zinc-100"
+                  className="text-sm text-zinc-600 leading-relaxed description-content bg-zinc-50 p-6 rounded-[10px] border border-zinc-100"
                   dangerouslySetInnerHTML={{
                     __html: selectedProduct.shipping_description || "Tidak ada informasi pengiriman.",
                   }}
@@ -704,11 +704,11 @@ function DetailContent() {
               {/* Final Status Indicator */}
               <div className="pt-10 border-t border-zinc-100">
                 {currentUser && selectedProduct.user_id === currentUser.id ? (
-                  <div className="w-full bg-zinc-100 text-zinc-400 font-black py-6 rounded-[2rem] border border-zinc-200 flex items-center justify-center gap-3 cursor-not-allowed uppercase tracking-widest text-xs">
+                  <div className="w-full bg-zinc-100 text-zinc-400 font-black py-6 rounded-[10px] border border-zinc-200 flex items-center justify-center gap-3 cursor-not-allowed uppercase tracking-widest text-xs">
                     <XCircle size={24} /> Ini Adalah Produk Anda
                   </div>
                 ) : selectedProduct.stock <= 0 || selectedProduct.status === "sold" ? (
-                  <div className="w-full bg-red-50 text-red-500 font-black py-6 rounded-[2rem] border border-red-100 flex items-center justify-center gap-3 cursor-not-allowed uppercase tracking-widest text-xs">
+                  <div className="w-full bg-red-50 text-red-500 font-black py-6 rounded-[10px] border border-red-100 flex items-center justify-center gap-3 cursor-not-allowed uppercase tracking-widest text-xs">
                     <AlertCircle size={24} /> Stok Habis
                   </div>
                 ) : null}
@@ -737,9 +737,9 @@ function DetailContent() {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-md cursor-zoom-out select-none" onClick={() => setIsImageZoomed(false)}>
           <div className="relative max-w-[90vw] max-h-[90vh]">
             {isVideoUrl(parsedImages[activeImageIndex]) ? (
-              <video src={parsedImages[activeImageIndex]} controls className="max-w-full max-h-[90vh] object-contain rounded-xl" onClick={(e) => e.stopPropagation()} />
+              <video src={parsedImages[activeImageIndex]} controls className="max-w-full max-h-[90vh] object-contain rounded-[10px]" onClick={(e) => e.stopPropagation()} />
             ) : (
-              <img src={parsedImages[activeImageIndex]} className="max-w-full max-h-[90vh] object-contain rounded-xl" alt={selectedProduct.name} />
+              <img src={parsedImages[activeImageIndex]} className="max-w-full max-h-[90vh] object-contain rounded-[10px]" alt={selectedProduct.name} />
             )}
             <button className="absolute top-4 right-4 text-white hover:text-zinc-300 transition-colors bg-white/10 hover:bg-white/20 p-2 rounded-full" onClick={() => setIsImageZoomed(false)}>
               <XCircle size={24} />

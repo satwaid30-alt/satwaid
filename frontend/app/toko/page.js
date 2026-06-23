@@ -352,13 +352,13 @@ export default function TokoPage() {
                 placeholder="Cari produk atau nama toko..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full bg-white border border-zinc-200 text-zinc-900 font-bold py-4 pl-14 pr-6 rounded-[1.5rem] focus:outline-none focus:ring-4 focus:ring-emerald-500/10 focus:border-emerald-500 transition-all"
+                className="w-full bg-white border border-zinc-200 text-zinc-900 font-bold py-4 pl-14 pr-6 rounded-[10px] focus:outline-none focus:ring-4 focus:ring-emerald-500/10 focus:border-emerald-500 transition-all"
               />
             </div>
 
             {/* Category Select */}
             <div className="relative w-full md:w-72 group">
-              <select value={activeTab} onChange={(e) => setActiveTab(e.target.value)} className="w-full bg-white border border-zinc-200 text-zinc-900 font-black py-4 px-8 rounded-[1.5rem] appearance-none focus:outline-none focus:ring-4 focus:ring-emerald-500/10 focus:border-emerald-500 transition-all cursor-pointer">
+              <select value={activeTab} onChange={(e) => setActiveTab(e.target.value)} className="w-full bg-white border border-zinc-200 text-zinc-900 font-black py-4 px-8 rounded-[10px] appearance-none focus:outline-none focus:ring-4 focus:ring-emerald-500/10 focus:border-emerald-500 transition-all cursor-pointer">
                 <option value="Semua">Semua Kategori</option>
                 {categories.map((cat) => (
                   <option key={cat.id} value={cat.id}>
@@ -378,7 +378,7 @@ export default function TokoPage() {
         {/* Promo Banner Image Carousel for Mobile (Visible on mobile only, at the top) */}
         {slides.length > 0 && (
           <div className="block md:hidden mb-6 px-1">
-            <div onTouchStart={handleTouchStart} onTouchMove={handleTouchMove} onTouchEnd={handleTouchEnd} className="relative rounded-2xl overflow-hidden text-white aspect-[2.1/1] min-h-[140px] flex items-center group shadow-md border border-zinc-100/10">
+            <div onTouchStart={handleTouchStart} onTouchMove={handleTouchMove} onTouchEnd={handleTouchEnd} className="relative rounded-[10px] overflow-hidden text-white aspect-[2.1/1] min-h-[140px] flex items-center group shadow-md border border-zinc-100/10">
               {slides.map((slide, idx) => {
                 const isActive = idx === activeAdIndex;
                 return (
@@ -386,11 +386,11 @@ export default function TokoPage() {
                     <img src={slide.mobile_image_url || slide.image_url} alt={slide.title} className="absolute inset-0 w-full h-full object-cover" />
 
                     <div className="relative z-20 w-full text-left">
-                      {slide.badge && <span className="inline-flex items-center bg-emerald-500/25 border border-emerald-500/30 text-emerald-300 px-2 py-0.5 rounded-lg text-[8px] font-black tracking-wider mb-1">{slide.badge}</span>}
+                      {slide.badge && <span className="inline-flex items-center bg-emerald-500/25 border border-emerald-500/30 text-emerald-300 px-2 py-0.5 rounded-[10px] text-[8px] font-black tracking-wider mb-1">{slide.badge}</span>}
                       {slide.title && <h2 className="text-xs sm:text-sm font-black mb-0.5 leading-tight text-white">{slide.title}</h2>}
                       {slide.description && <p className="text-zinc-300 text-[8px] sm:text-[10px] max-w-[70%] leading-normal line-clamp-1 mb-1.5">{slide.description}</p>}
                       {slide.buttonText && (
-                        <Link href={slide.link_url} className="inline-flex items-center gap-1 bg-white hover:bg-zinc-100 text-zinc-900 font-bold px-2.5 py-1 rounded-lg text-[8px] transition-all duration-300 shadow-sm">
+                        <Link href={slide.link_url} className="inline-flex items-center gap-1 bg-white hover:bg-zinc-100 text-zinc-900 font-bold px-2.5 py-1 rounded-[10px] text-[8px] transition-all duration-300 shadow-sm">
                           {slide.buttonText}
                           <ArrowUpRight size={10} />
                         </Link>
@@ -427,13 +427,13 @@ export default function TokoPage() {
               placeholder="Cari produk atau nama toko..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full bg-white border border-zinc-200 text-zinc-900 font-bold py-3 pl-11 pr-4 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-emerald-500/10 focus:border-emerald-500 transition-all placeholder:text-zinc-400"
+              className="w-full bg-white border border-zinc-200 text-zinc-900 font-bold py-3 pl-11 pr-4 rounded-[10px] text-xs focus:outline-none focus:ring-2 focus:ring-emerald-500/10 focus:border-emerald-500 transition-all placeholder:text-zinc-400"
             />
           </div>
 
           {/* Category Select */}
           <div className="relative w-full group">
-            <select value={activeTab} onChange={(e) => setActiveTab(e.target.value)} className="w-full bg-white border border-zinc-200 text-zinc-900 font-black py-3 px-5 pr-10 rounded-xl text-xs appearance-none focus:outline-none focus:ring-2 focus:ring-emerald-500/10 focus:border-emerald-500 transition-all cursor-pointer">
+            <select value={activeTab} onChange={(e) => setActiveTab(e.target.value)} className="w-full bg-white border border-zinc-200 text-zinc-900 font-black py-3 px-5 pr-10 rounded-[10px] text-xs appearance-none focus:outline-none focus:ring-2 focus:ring-emerald-500/10 focus:border-emerald-500 transition-all cursor-pointer">
               <option value="Semua">Semua Kategori</option>
               {categories.map((cat) => (
                 <option key={cat.id} value={cat.id}>
@@ -462,10 +462,10 @@ export default function TokoPage() {
               <div className="flex flex-col items-center justify-center py-12 gap-4">
                 {/* Spinner */}
                 <div className="relative">
-                  <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center shadow-lg shadow-emerald-500/30">
+                  <div className="w-14 h-14 rounded-[10px] bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center shadow-lg shadow-emerald-500/30">
                     <ShoppingBag size={24} className="text-white" />
                   </div>
-                  <div className="absolute -inset-1.5 rounded-[18px] border-2 border-emerald-400/40 animate-spin border-t-emerald-500" />
+                  <div className="absolute -inset-1.5 rounded-[10px] border-2 border-emerald-400/40 animate-spin border-t-emerald-500" />
                 </div>
                 <div className="text-center">
                   <p className="text-sm font-black text-zinc-700">Memuat Produk</p>
@@ -482,13 +482,13 @@ export default function TokoPage() {
               {/* Skeleton cards below the spinner */}
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 sm:gap-6">
                 {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((i) => (
-                  <div key={i} className="bg-white rounded-2xl h-[300px] animate-pulse border border-zinc-100" style={{ animationDelay: `${(i - 1) * 60}ms` }}>
-                    <div className="w-full h-1/2 bg-zinc-100 rounded-t-2xl" />
+                  <div key={i} className="bg-white rounded-[10px] h-[300px] animate-pulse border border-zinc-100" style={{ animationDelay: `${(i - 1) * 60}ms` }}>
+                    <div className="w-full h-1/2 bg-zinc-100 rounded-t-[10px]" />
                     <div className="p-4 space-y-3">
                       <div className="h-3 bg-zinc-100 w-1/4 rounded-full" />
                       <div className="h-4 bg-zinc-100 w-3/4 rounded-full" />
                       <div className="h-3 bg-zinc-100 w-1/2 rounded-full" />
-                      <div className="h-8 bg-zinc-100 w-full rounded-xl mt-2" />
+                      <div className="h-8 bg-zinc-100 w-full rounded-[10px] mt-2" />
                     </div>
                   </div>
                 ))}
@@ -524,7 +524,7 @@ export default function TokoPage() {
                 <button
                   onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
                   disabled={currentPage === 1}
-                  className="w-[48%] flex items-center justify-center gap-1.5 rounded-xl border border-zinc-200 bg-white px-4 py-3 text-xs font-black text-zinc-600 hover:bg-zinc-50 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+                  className="w-[48%] flex items-center justify-center gap-1.5 rounded-[10px] border border-zinc-200 bg-white px-4 py-3 text-xs font-black text-zinc-600 hover:bg-zinc-50 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
                 >
                   <ChevronLeft size={16} />
                   Prev
@@ -532,7 +532,7 @@ export default function TokoPage() {
                 <button
                   onClick={() => setCurrentPage((prev) => Math.min(totalPages, prev + 1))}
                   disabled={currentPage === totalPages}
-                  className="w-[48%] flex items-center justify-center gap-1.5 rounded-xl border border-zinc-200 bg-white px-4 py-3 text-xs font-black text-zinc-600 hover:bg-zinc-50 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+                  className="w-[48%] flex items-center justify-center gap-1.5 rounded-[10px] border border-zinc-200 bg-white px-4 py-3 text-xs font-black text-zinc-600 hover:bg-zinc-50 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
                 >
                   Next
                   <ChevronLeft size={16} className="rotate-180" />
@@ -548,8 +548,8 @@ export default function TokoPage() {
 
               {/* Desktop Page Numbers */}
               <div className="hidden sm:block">
-                <nav className="isolate inline-flex gap-1 rounded-xl" aria-label="Pagination">
-                  <button onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))} disabled={currentPage === 1} className="relative inline-flex items-center rounded-xl px-3 py-2 text-zinc-400 hover:bg-emerald-50 hover:text-emerald-600 disabled:opacity-30 transition-all">
+                <nav className="isolate inline-flex gap-1 rounded-[10px]" aria-label="Pagination">
+                  <button onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))} disabled={currentPage === 1} className="relative inline-flex items-center rounded-[10px] px-3 py-2 text-zinc-400 hover:bg-emerald-50 hover:text-emerald-600 disabled:opacity-30 transition-all">
                     <span className="sr-only">Previous</span>
                     <ChevronLeft size={20} />
                   </button>
@@ -558,7 +558,7 @@ export default function TokoPage() {
                     const pageNum = i + 1;
                     if (pageNum === 1 || pageNum === totalPages || (pageNum >= currentPage - 1 && pageNum <= currentPage + 1)) {
                       return (
-                        <button key={pageNum} onClick={() => setCurrentPage(pageNum)} className={`relative inline-flex items-center rounded-xl px-4 py-2 text-sm font-black transition-all ${currentPage === pageNum ? "z-10 bg-emerald-500 text-white scale-110" : "text-zinc-500 hover:bg-zinc-100"}`}>
+                        <button key={pageNum} onClick={() => setCurrentPage(pageNum)} className={`relative inline-flex items-center rounded-[10px] px-4 py-2 text-sm font-black transition-all ${currentPage === pageNum ? "z-10 bg-emerald-500 text-white scale-110" : "text-zinc-500 hover:bg-zinc-100"}`}>
                           {pageNum}
                         </button>
                       );
@@ -572,7 +572,7 @@ export default function TokoPage() {
                     return null;
                   })}
 
-                  <button onClick={() => setCurrentPage((prev) => Math.min(totalPages, prev + 1))} disabled={currentPage === totalPages} className="relative inline-flex items-center rounded-xl px-3 py-2 text-zinc-400 hover:bg-emerald-50 hover:text-emerald-600 disabled:opacity-30 transition-all">
+                  <button onClick={() => setCurrentPage((prev) => Math.min(totalPages, prev + 1))} disabled={currentPage === totalPages} className="relative inline-flex items-center rounded-[10px] px-3 py-2 text-zinc-400 hover:bg-emerald-50 hover:text-emerald-600 disabled:opacity-30 transition-all">
                     <span className="sr-only">Next</span>
                     <ChevronLeft size={20} className="rotate-180" />
                   </button>
@@ -585,7 +585,7 @@ export default function TokoPage() {
         {/* Promo Banner Image Carousel - only render when there are active ads */}
         {slides.length > 0 && (
           <section className="mt-20 hidden md:block">
-            <div onTouchStart={handleTouchStart} onTouchMove={handleTouchMove} onTouchEnd={handleTouchEnd} className="relative rounded-[2rem] overflow-hidden bg-zinc-900 text-white aspect-[1.8/1] sm:aspect-[2/1] md:aspect-[3/1] min-h-[190px] sm:min-h-[220px] md:min-h-0 flex items-center group/carousel shadow-xl border border-zinc-100/10">
+            <div onTouchStart={handleTouchStart} onTouchMove={handleTouchMove} onTouchEnd={handleTouchEnd} className="relative rounded-[10px] overflow-hidden bg-zinc-900 text-white aspect-[1.8/1] sm:aspect-[2/1] md:aspect-[3/1] min-h-[190px] sm:min-h-[220px] md:min-h-0 flex items-center group/carousel shadow-xl border border-zinc-100/10">
               {slides.map((slide, idx) => {
                 const isActive = idx === activeAdIndex;
                 return (
@@ -611,12 +611,12 @@ export default function TokoPage() {
                     <div className="absolute inset-0" />
 
                     <div className="relative z-20 w-full md:w-2/3 flex flex-col items-center md:items-start text-center md:text-left">
-                      {slide.badge && <span className="inline-flex items-center bg-emerald-500/25 border border-emerald-500/30 text-emerald-300 px-2.5 py-1 rounded-xl text-[9px] sm:text-[11px] md:text-xs font-black tracking-widest mb-2 sm:mb-2.5 md:mb-4 backdrop-blur-md">{slide.badge}</span>}
+                      {slide.badge && <span className="inline-flex items-center bg-emerald-500/25 border border-emerald-500/30 text-emerald-300 px-2.5 py-1 rounded-[10px] text-[9px] sm:text-[11px] md:text-xs font-black tracking-widest mb-2 sm:mb-2.5 md:mb-4 backdrop-blur-md">{slide.badge}</span>}
                       {slide.title && <h2 className="text-base sm:text-2xl md:text-5xl lg:text-6xl font-black mb-1.5 sm:mb-2 md:mb-4 leading-tight">{slide.title}</h2>}
                       {slide.description && <p className="text-zinc-300 text-[11px] sm:text-sm md:text-lg max-w-lg opacity-90 leading-relaxed line-clamp-2 sm:line-clamp-3 md:line-clamp-none mb-3 sm:mb-4 md:mb-6">{slide.description}</p>}
 
                       {slide.buttonText && (
-                        <Link href={slide.link_url} className="inline-flex items-center gap-1.5 bg-white hover:bg-zinc-100 hover:scale-105 active:scale-95 text-zinc-900 font-bold px-4 py-2 sm:px-5 sm:py-2.5 rounded-xl text-[11px] sm:text-xs md:text-base transition-all duration-300 shadow-md">
+                        <Link href={slide.link_url} className="inline-flex items-center gap-1.5 bg-white hover:bg-zinc-100 hover:scale-105 active:scale-95 text-zinc-900 font-bold px-4 py-2 sm:px-5 sm:py-2.5 rounded-[10px] text-[11px] sm:text-xs md:text-base transition-all duration-300 shadow-md">
                           {slide.buttonText}
                           <ArrowUpRight size={14} className="md:w-[18px] md:h-[18px]" />
                         </Link>

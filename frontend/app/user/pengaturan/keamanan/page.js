@@ -19,7 +19,7 @@ function PasswordInput({ label, name, value, onChange, showPass, onToggleShow, p
                     onChange={onChange}
                     placeholder={placeholder}
                     autoComplete="new-password"
-                    className={`w-full bg-zinc-950 border rounded-xl pl-12 pr-12 py-3.5 text-white placeholder:text-zinc-600 focus:outline-none focus:ring-2 transition-all ${error
+                    className={`w-full bg-zinc-950 border rounded-[10px] pl-12 pr-12 py-3.5 text-white placeholder:text-zinc-600 focus:outline-none focus:ring-2 transition-all ${error
                         ? "border-red-500/60 focus:ring-red-500/30"
                         : "border-zinc-700 focus:ring-emerald-500 focus:border-transparent"}`}
                 />
@@ -189,7 +189,7 @@ export default function KeamananAkunPage() {
 
             {/* Success Banner */}
             {showSuccess && (
-                <div className="flex items-center gap-3 bg-emerald-500/10 border border-emerald-500/30 rounded-2xl px-5 py-4 mb-6 animate-in slide-in-from-top-2 duration-300">
+                <div className="flex items-center gap-3 bg-emerald-500/10 border border-emerald-500/30 rounded-[10px] px-5 py-4 mb-6 animate-in slide-in-from-top-2 duration-300">
                     <div className="w-8 h-8 bg-emerald-500 rounded-full flex items-center justify-center flex-shrink-0">
                         <Check className="text-zinc-950" size={16} strokeWidth={3} />
                     </div>
@@ -202,7 +202,7 @@ export default function KeamananAkunPage() {
 
             {/* API Error */}
             {apiError && (
-                <div className="flex items-center gap-3 bg-red-500/10 border border-red-500/30 rounded-2xl px-5 py-4 mb-6">
+                <div className="flex items-center gap-3 bg-red-500/10 border border-red-500/30 rounded-[10px] px-5 py-4 mb-6">
                     <AlertTriangle className="text-red-400 flex-shrink-0" size={20} />
                     <p className="text-red-400 font-medium text-sm">{apiError}</p>
                 </div>
@@ -211,7 +211,7 @@ export default function KeamananAkunPage() {
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 {/* Form */}
                 <div className="lg:col-span-2">
-                    <div className="bg-zinc-900 border border-zinc-800 rounded-3xl p-6 md:p-8">
+                    <div className="bg-zinc-900 border border-zinc-800 rounded-[10px] p-6 md:p-8">
                         <h2 className="text-lg font-bold text-white mb-6 flex items-center gap-2">
                             <KeyRound size={20} className="text-emerald-500" />
                             Ubah Password
@@ -291,7 +291,7 @@ export default function KeamananAkunPage() {
                                 <button
                                     type="submit"
                                     disabled={isLoading}
-                                    className={`w-full flex items-center justify-center gap-2 py-3.5 bg-emerald-500 hover:bg-emerald-400 text-zinc-950 font-bold rounded-xl transition-all ${isLoading ? "opacity-70 cursor-not-allowed" : ""}`}
+                                    className={`w-full flex items-center justify-center gap-2 py-3.5 bg-emerald-500 hover:bg-emerald-400 text-zinc-950 font-bold rounded-[10px] transition-all ${isLoading ? "opacity-70 cursor-not-allowed" : ""}`}
                                 >
                                     {isLoading ? (
                                         <svg className="animate-spin h-5 w-5" fill="none" viewBox="0 0 24 24">
@@ -309,7 +309,7 @@ export default function KeamananAkunPage() {
 
                 {/* Tips Panel */}
                 <div className="space-y-4">
-                    <div className="bg-zinc-900 border border-zinc-800 rounded-3xl p-6">
+                    <div className="bg-zinc-900 border border-zinc-800 rounded-[10px] p-6">
                         <h3 className="text-sm font-bold text-white mb-4 flex items-center gap-2">
                             <Shield size={16} className="text-emerald-500" />
                             Tips Keamanan
@@ -330,7 +330,7 @@ export default function KeamananAkunPage() {
                         </ul>
                     </div>
 
-                    <div className="bg-amber-500/5 border border-amber-500/20 rounded-3xl p-6">
+                    <div className="bg-amber-500/5 border border-amber-500/20 rounded-[10px] p-6">
                         <h3 className="text-sm font-bold text-amber-400 mb-2 flex items-center gap-2">
                             <AlertTriangle size={16} />
                             Lupa Password?

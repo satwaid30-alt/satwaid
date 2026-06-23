@@ -324,14 +324,14 @@ export default function JualProdukPage() {
   if (!hasShop) {
     return (
       <div className="max-w-4xl mx-auto py-20 text-center space-y-6">
-        <div className="w-20 h-20 bg-zinc-900 border border-zinc-800 rounded-3xl flex items-center justify-center mx-auto text-zinc-500">
+        <div className="w-20 h-20 bg-zinc-900 border border-zinc-800 rounded-[10px] flex items-center justify-center mx-auto text-zinc-500">
           <AlertCircle size={40} />
         </div>
         <div>
           <h1 className="text-2xl font-black text-white">Toko Belum Terdaftar</h1>
           <p className="text-zinc-500 mt-2">Anda harus membuka toko terlebih dahulu sebelum dapat berjualan.</p>
         </div>
-        <Link href="/user/toko" className="inline-flex items-center gap-2 px-8 py-4 bg-emerald-500 hover:bg-emerald-400 text-zinc-950 font-black rounded-2xl transition-all">
+        <Link href="/user/toko" className="inline-flex items-center gap-2 px-8 py-4 bg-emerald-500 hover:bg-emerald-400 text-zinc-950 font-black rounded-[10px] transition-all">
           Buka Toko Sekarang
           <ChevronRight size={20} />
         </Link>
@@ -342,14 +342,14 @@ export default function JualProdukPage() {
   if (shopStatus?.toLowerCase() === "suspended") {
     return (
       <div className="max-w-4xl mx-auto py-20 text-center space-y-6">
-        <div className="w-20 h-20 bg-red-500/10 border border-red-500/20 rounded-3xl flex items-center justify-center mx-auto text-red-500">
+        <div className="w-20 h-20 bg-red-500/10 border border-red-500/20 rounded-[10px] flex items-center justify-center mx-auto text-red-500">
           <AlertCircle size={40} />
         </div>
         <div>
           <h1 className="text-2xl font-black text-white">Toko Ditangguhkan</h1>
           <p className="text-zinc-500 mt-2">Maaf, toko Anda sedang dalam status penangguhan oleh Admin. Aktivitas berjualan dinonaktifkan sementara.</p>
         </div>
-        <button onClick={() => window.open("https://wa.me/628123456789", "_blank")} className="px-8 py-4 bg-white text-zinc-950 font-black rounded-2xl hover:bg-zinc-200 transition-all active:scale-95">
+        <button onClick={() => window.open("https://wa.me/628123456789", "_blank")} className="px-8 py-4 bg-white text-zinc-950 font-black rounded-[10px] hover:bg-zinc-200 transition-all active:scale-95">
           Hubungi Admin
         </button>
       </div>
@@ -369,7 +369,7 @@ export default function JualProdukPage() {
             <h1 className="text-xl sm:text-3xl font-black text-white tracking-tight flex items-center gap-3">Jual Produk Baru</h1>
             <p className="text-zinc-500 mt-1 font-bold uppercase tracking-widest text-[10px] sm:text-xs">Pasang iklan jualan produk Anda ke marketplace</p>
           </div>
-          <Link href="/user/toko/daftar-produk" className="hidden sm:flex px-5 py-2.5 bg-zinc-900 hover:bg-zinc-800 text-white text-sm font-bold rounded-xl border border-zinc-800 transition-all items-center gap-2">
+          <Link href="/user/toko/daftar-produk" className="hidden sm:flex px-5 py-2.5 bg-zinc-900 hover:bg-zinc-800 text-white text-sm font-bold rounded-[10px] border border-zinc-800 transition-all items-center gap-2">
             Lihat Iklan Saya
           </Link>
         </div>
@@ -381,11 +381,11 @@ export default function JualProdukPage() {
 
         {/* Blocked state if quota is full */}
         {quota && quota.remaining === 0 && (
-          <div className="px-4 sm:px-0 bg-red-500/10 border border-red-500/20 rounded-2xl p-6 text-center space-y-3">
+          <div className="px-4 sm:px-0 bg-red-500/10 border border-red-500/20 rounded-[10px] p-6 text-center space-y-3">
             <AlertCircle size={32} className="text-red-400 mx-auto" />
             <h3 className="text-lg font-black text-white">Kuota Produk Penuh</h3>
             <p className="text-zinc-400 text-sm">Anda telah mencapai batas 500 listing. Hapus beberapa iklan lama untuk dapat menambah produk baru.</p>
-            <Link href="/user/toko/daftar-produk" className="inline-flex items-center gap-2 px-6 py-3 bg-zinc-800 hover:bg-zinc-700 text-white font-black rounded-xl transition-all">
+            <Link href="/user/toko/daftar-produk" className="inline-flex items-center gap-2 px-6 py-3 bg-zinc-800 hover:bg-zinc-700 text-white font-black rounded-[10px] transition-all">
               Kelola Daftar Produk
             </Link>
           </div>
@@ -395,10 +395,10 @@ export default function JualProdukPage() {
         {(!quota || quota.remaining > 0) && (
           <>
             {/* Regulations Section */}
-            <div className="bg-amber-500/10 border border-amber-500/20 rounded-2xl sm:rounded-3xl overflow-hidden">
+            <div className="bg-amber-500/10 border border-amber-500/20 rounded-[10px] sm:rounded-[10px] overflow-hidden">
               <button onClick={() => setShowRules(!showRules)} className="w-full p-4 sm:p-6 flex items-center justify-between text-left hover:bg-amber-500/5 transition-colors">
                 <div className="flex items-center gap-3 sm:gap-4">
-                  <div className="w-10 h-10 sm:w-12 sm:h-12 bg-amber-500 text-zinc-950 rounded-xl sm:rounded-2xl flex items-center justify-center shrink-0">
+                  <div className="w-10 h-10 sm:w-12 sm:h-12 bg-amber-500 text-zinc-950 rounded-[10px] sm:rounded-[10px] flex items-center justify-center shrink-0">
                     <ScrollText size={20} />
                   </div>
                   <div>
@@ -420,7 +420,7 @@ export default function JualProdukPage() {
                     <div className="space-y-8">
                       <div className="space-y-3">
                         <h3 className="font-black text-white flex items-center gap-2 text-base">
-                          <span className="w-7 h-7 bg-amber-500 text-zinc-950 rounded-lg flex items-center justify-center text-xs">1</span>
+                          <span className="w-7 h-7 bg-amber-500 text-zinc-950 rounded-[10px] flex items-center justify-center text-xs">1</span>
                           Keaslian & Kejujuran Produk
                         </h3>
                         <ul className="list-disc list-outside ml-9 text-zinc-400 space-y-2 leading-relaxed">
@@ -431,7 +431,7 @@ export default function JualProdukPage() {
 
                       <div className="space-y-3">
                         <h3 className="font-black text-white flex items-center gap-2 text-base">
-                          <span className="w-7 h-7 bg-amber-500 text-zinc-950 rounded-lg flex items-center justify-center text-xs">2</span>
+                          <span className="w-7 h-7 bg-amber-500 text-zinc-950 rounded-[10px] flex items-center justify-center text-xs">2</span>
                           Kondisi Hewan
                         </h3>
                         <ul className="list-disc list-outside ml-9 text-zinc-400 space-y-2 leading-relaxed">
@@ -442,7 +442,7 @@ export default function JualProdukPage() {
 
                       <div className="space-y-3">
                         <h3 className="font-black text-white flex items-center gap-2 text-base">
-                          <span className="w-7 h-7 bg-amber-500 text-zinc-950 rounded-lg flex items-center justify-center text-xs">3</span>
+                          <span className="w-7 h-7 bg-amber-500 text-zinc-950 rounded-[10px] flex items-center justify-center text-xs">3</span>
                           Foto Produk
                         </h3>
                         <ul className="list-disc list-outside ml-9 text-zinc-400 space-y-2 leading-relaxed">
@@ -454,7 +454,7 @@ export default function JualProdukPage() {
 
                       <div className="space-y-3">
                         <h3 className="font-black text-white flex items-center gap-2 text-base">
-                          <span className="w-7 h-7 bg-amber-500 text-zinc-950 rounded-lg flex items-center justify-center text-xs">4</span>
+                          <span className="w-7 h-7 bg-amber-500 text-zinc-950 rounded-[10px] flex items-center justify-center text-xs">4</span>
                           Penetapan Harga
                         </h3>
                         <ul className="list-disc list-outside ml-9 text-zinc-400 space-y-2 leading-relaxed">
@@ -467,7 +467,7 @@ export default function JualProdukPage() {
 
                     {/* Kolom 2 */}
                     <div className="space-y-8">
-                      <div className="bg-amber-500/5 border border-amber-500/20 p-5 rounded-2xl space-y-3">
+                      <div className="bg-amber-500/5 border border-amber-500/20 p-5 rounded-[10px] space-y-3">
                         <h3 className="font-black text-amber-500 flex items-center gap-2 text-base">
                           <AlertCircle size={20} />
                           5. Metode Transaksi (Wajib Admin)
@@ -490,7 +490,7 @@ export default function JualProdukPage() {
 
                       <div className="space-y-3">
                         <h3 className="font-black text-white flex items-center gap-2 text-base">
-                          <span className="w-7 h-7 bg-amber-500 text-zinc-950 rounded-lg flex items-center justify-center text-xs">6</span>
+                          <span className="w-7 h-7 bg-amber-500 text-zinc-950 rounded-[10px] flex items-center justify-center text-xs">6</span>
                           Pengiriman & Penyerahan
                         </h3>
                         <ul className="list-disc list-outside ml-9 text-zinc-400 space-y-2 leading-relaxed">
@@ -503,7 +503,7 @@ export default function JualProdukPage() {
 
                       <div className="space-y-3">
                         <h3 className="font-black text-white flex items-center gap-2 text-base">
-                          <span className="w-7 h-7 bg-amber-500 text-zinc-950 rounded-lg flex items-center justify-center text-xs">7</span>
+                          <span className="w-7 h-7 bg-amber-500 text-zinc-950 rounded-[10px] flex items-center justify-center text-xs">7</span>
                           Larangan Penjualan
                         </h3>
                         <ul className="list-disc list-outside ml-9 text-zinc-400 space-y-2 leading-relaxed">
@@ -514,7 +514,7 @@ export default function JualProdukPage() {
 
                       <div className="space-y-3">
                         <h3 className="font-black text-white flex items-center gap-2 text-base">
-                          <span className="w-7 h-7 bg-amber-500 text-zinc-950 rounded-lg flex items-center justify-center text-xs">8</span>
+                          <span className="w-7 h-7 bg-amber-500 text-zinc-950 rounded-[10px] flex items-center justify-center text-xs">8</span>
                           Tanggung Jawab Penjual
                         </h3>
                         <ul className="list-disc list-outside ml-9 text-zinc-400 space-y-2 leading-relaxed">
@@ -525,7 +525,7 @@ export default function JualProdukPage() {
 
                       <div className="space-y-3">
                         <h3 className="font-black text-white flex items-center gap-2 text-base">
-                          <span className="w-7 h-7 bg-amber-500 text-zinc-950 rounded-lg flex items-center justify-center text-xs">9</span>
+                          <span className="w-7 h-7 bg-amber-500 text-zinc-950 rounded-[10px] flex items-center justify-center text-xs">9</span>
                           Sanksi
                         </h3>
                         <div className="ml-9 space-y-2">
@@ -547,7 +547,7 @@ export default function JualProdukPage() {
               )}
             </div>
 
-            <div className="bg-transparent sm:bg-zinc-900 border-none sm:border border-zinc-800 rounded-none sm:rounded-3xl shadow-none sm:shadow-2xl overflow-hidden">
+            <div className="bg-transparent sm:bg-zinc-900 border-none sm:border border-zinc-800 rounded-none sm:rounded-[10px] shadow-none sm:shadow-2xl overflow-hidden">
               <form onSubmit={handleAddReptile} className="px-0 py-6 sm:p-8 md:p-10 space-y-8">
                 {/* Basic Info Section */}
                 <div className="space-y-6">
@@ -560,7 +560,7 @@ export default function JualProdukPage() {
                         type="text"
                         required
                         placeholder="Contoh: Ball Python Piebald High White"
-                        className="w-full bg-zinc-950 border border-zinc-800 text-white rounded-2xl px-5 py-4 focus:outline-none focus:border-emerald-500 transition-all font-bold placeholder:text-zinc-700"
+                        className="w-full bg-zinc-950 border border-zinc-800 text-white rounded-[10px] px-5 py-4 focus:outline-none focus:border-emerald-500 transition-all font-bold placeholder:text-zinc-700"
                         value={reptileData.name}
                         onChange={(e) => setReptileData({ ...reptileData, name: e.target.value })}
                         onBlur={async (e) => {
@@ -590,7 +590,7 @@ export default function JualProdukPage() {
                       </label>
                       <select
                         required
-                        className="w-full bg-zinc-950 border border-zinc-800 text-white rounded-2xl px-5 py-4 focus:outline-none focus:border-emerald-500 transition-all font-bold appearance-none cursor-pointer"
+                        className="w-full bg-zinc-950 border border-zinc-800 text-white rounded-[10px] px-5 py-4 focus:outline-none focus:border-emerald-500 transition-all font-bold appearance-none cursor-pointer"
                         value={reptileData.species}
                         onChange={(e) => {
                           const val = e.target.value;
@@ -626,7 +626,7 @@ export default function JualProdukPage() {
                         <label className="text-xs font-black text-zinc-300 uppercase tracking-widest ml-1">
                           Jenis Kelamin <span className="text-red-500">*</span>
                         </label>
-                        <select required className="w-full bg-zinc-950 border border-zinc-800 text-white rounded-2xl px-5 py-4 focus:outline-none focus:border-emerald-500 transition-all font-bold appearance-none cursor-pointer text-sm" value={reptileData.sex} onChange={(e) => setReptileData({ ...reptileData, sex: e.target.value })}>
+                        <select required className="w-full bg-zinc-950 border border-zinc-800 text-white rounded-[10px] px-5 py-4 focus:outline-none focus:border-emerald-500 transition-all font-bold appearance-none cursor-pointer text-sm" value={reptileData.sex} onChange={(e) => setReptileData({ ...reptileData, sex: e.target.value })}>
                           <option value="" disabled>
                             Pilih
                           </option>
@@ -640,7 +640,7 @@ export default function JualProdukPage() {
                         <label className="text-xs font-black text-zinc-300 uppercase tracking-widest ml-1">
                           Stok <span className="text-red-500">*</span>
                         </label>
-                        <input type="number" required min="1" className="w-full bg-zinc-950 border border-zinc-800 text-white rounded-2xl px-5 py-4 focus:outline-none focus:border-emerald-500 transition-all font-bold" value={reptileData.stock} onChange={(e) => setReptileData({ ...reptileData, stock: e.target.value })} />
+                        <input type="number" required min="1" className="w-full bg-zinc-950 border border-zinc-800 text-white rounded-[10px] px-5 py-4 focus:outline-none focus:border-emerald-500 transition-all font-bold" value={reptileData.stock} onChange={(e) => setReptileData({ ...reptileData, stock: e.target.value })} />
                       </div>
                     </div>
                     <div className="space-y-2">
@@ -649,7 +649,7 @@ export default function JualProdukPage() {
                       </label>
                       <select
                         required
-                        className="w-full bg-zinc-950 border border-zinc-800 text-white rounded-2xl px-5 py-4 focus:outline-none focus:border-emerald-500 transition-all font-bold appearance-none cursor-pointer text-sm"
+                        className="w-full bg-zinc-950 border border-zinc-800 text-white rounded-[10px] px-5 py-4 focus:outline-none focus:border-emerald-500 transition-all font-bold appearance-none cursor-pointer text-sm"
                         value={reptileData.shipping_type}
                         onChange={(e) => setReptileData({ ...reptileData, shipping_type: e.target.value })}
                       >
@@ -664,7 +664,7 @@ export default function JualProdukPage() {
                 </div>
 
                 {/* Pricing & Shipping Options */}
-                <div className="sm:p-6 sm:bg-zinc-950/50 sm:border sm:border-zinc-800 sm:rounded-3xl space-y-6">
+                <div className="sm:p-6 sm:bg-zinc-950/50 sm:border sm:border-zinc-800 sm:rounded-[10px] space-y-6">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
                     <div className="space-y-2">
                       <div className="flex items-center gap-2 flex-wrap ml-1">
@@ -680,7 +680,7 @@ export default function JualProdukPage() {
                           inputMode="numeric"
                           required
                           placeholder="Contoh: 1.500.000"
-                          className="w-full bg-zinc-950 border border-zinc-800 text-white rounded-2xl pl-14 pr-5 py-4 focus:outline-none focus:border-emerald-500 transition-all font-bold placeholder:text-zinc-700"
+                          className="w-full bg-zinc-950 border border-zinc-800 text-white rounded-[10px] pl-14 pr-5 py-4 focus:outline-none focus:border-emerald-500 transition-all font-bold placeholder:text-zinc-700"
                           value={reptileData.price}
                           onChange={(e) => setReptileData({ ...reptileData, price: formatRupiah(e.target.value) })}
                         />
@@ -691,10 +691,10 @@ export default function JualProdukPage() {
                     <div className="space-y-3">
                       <p className="text-[10px] font-black text-zinc-500 uppercase tracking-widest ml-1">Opsi Tambahan</p>
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-                        <label className="flex items-center gap-4 cursor-pointer group bg-zinc-950/50 p-4 sm:p-5 rounded-2xl border border-zinc-800/50 hover:border-emerald-500/30 transition-all">
+                        <label className="flex items-center gap-4 cursor-pointer group bg-zinc-950/50 p-4 sm:p-5 rounded-[10px] border border-zinc-800/50 hover:border-emerald-500/30 transition-all">
                           <div className="relative flex items-center shrink-0">
                             <input type="checkbox" className="peer sr-only" checked={reptileData.is_free_shipping} onChange={(e) => setReptileData({ ...reptileData, is_free_shipping: e.target.checked })} />
-                            <div className="w-7 h-7 bg-zinc-900 border-2 border-zinc-700 rounded-xl peer-checked:bg-emerald-500 peer-checked:border-emerald-500 transition-all flex items-center justify-center">
+                            <div className="w-7 h-7 bg-zinc-900 border-2 border-zinc-700 rounded-[10px] peer-checked:bg-emerald-500 peer-checked:border-emerald-500 transition-all flex items-center justify-center">
                               <CheckCircle2 size={16} className="text-zinc-950 scale-0 peer-checked:scale-100 transition-transform" />
                             </div>
                           </div>
@@ -703,10 +703,10 @@ export default function JualProdukPage() {
                             <span className="text-[10px] text-zinc-600 italic">Bebas biaya pengiriman</span>
                           </div>
                         </label>
-                        <label className="flex items-center gap-4 cursor-pointer group bg-zinc-950/50 p-4 sm:p-5 rounded-2xl border border-zinc-800/50 hover:border-emerald-500/30 transition-all">
+                        <label className="flex items-center gap-4 cursor-pointer group bg-zinc-950/50 p-4 sm:p-5 rounded-[10px] border border-zinc-800/50 hover:border-emerald-500/30 transition-all">
                           <div className="relative flex items-center shrink-0">
                             <input type="checkbox" className="peer sr-only" checked={reptileData.is_free_packing} onChange={(e) => setReptileData({ ...reptileData, is_free_packing: e.target.checked })} />
-                            <div className="w-7 h-7 bg-zinc-900 border-2 border-zinc-700 rounded-xl peer-checked:bg-emerald-500 peer-checked:border-emerald-500 transition-all flex items-center justify-center">
+                            <div className="w-7 h-7 bg-zinc-900 border-2 border-zinc-700 rounded-[10px] peer-checked:bg-emerald-500 peer-checked:border-emerald-500 transition-all flex items-center justify-center">
                               <CheckCircle2 size={16} className="text-zinc-950 scale-0 peer-checked:scale-100 transition-transform" />
                             </div>
                           </div>
@@ -734,7 +734,7 @@ export default function JualProdukPage() {
                         modules={quillModules}
                         formats={quillFormats}
                         placeholder="Tuliskan kondisi kesehatan, karakter, riwayat makan, dan detail lainnya secara lengkap..."
-                        className="bg-zinc-950 text-white rounded-2xl overflow-hidden border border-zinc-800 focus-within:border-emerald-500 transition-all"
+                        className="bg-zinc-950 text-white rounded-[10px] overflow-hidden border border-zinc-800 focus-within:border-emerald-500 transition-all"
                       />
                     </div>
                   </div>
@@ -744,9 +744,9 @@ export default function JualProdukPage() {
                       <div className="flex items-center gap-2">
                         <label className="text-xs font-black text-zinc-300 uppercase tracking-widest break-words">Kebijakan Pengiriman & Garansi</label>
                       </div>
-                      <span className="w-fit text-[9px] sm:text-[10px] font-black text-emerald-500 uppercase tracking-widest bg-emerald-500/10 px-2 py-0.5 rounded-md border border-emerald-500/20">Otomatis dari Profil</span>
+                      <span className="w-fit text-[9px] sm:text-[10px] font-black text-emerald-500 uppercase tracking-widest bg-emerald-500/10 px-2 py-0.5 rounded-[10px] border border-emerald-500/20">Otomatis dari Profil</span>
                     </div>
-                    <div className="p-4 sm:p-6 bg-zinc-950 border border-zinc-800 rounded-2xl relative overflow-hidden group">
+                    <div className="p-4 sm:p-6 bg-zinc-950 border border-zinc-800 rounded-[10px] relative overflow-hidden group">
                       <div className="absolute top-0 right-0 w-24 h-24 bg-emerald-500/5 blur-2xl rounded-full -mr-8 -mt-8"></div>
                       <div className="text-xs sm:text-sm text-zinc-400 leading-relaxed description-content relative z-10 break-words" dangerouslySetInnerHTML={{ __html: reptileData.shipping_description || '<span className="italic opacity-50">Mengambil data kebijakan dari profil toko Anda...</span>' }}></div>
                       <div className="mt-4 pt-4 border-t border-zinc-800/50 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 relative z-10">
@@ -761,7 +761,7 @@ export default function JualProdukPage() {
 
                 {/* Tipe Media Selection (Only for Ikan and Burung Categories) */}
                 {(reptileData.species === "Ikan" || reptileData.species === "Burung") && (
-                  <div className="space-y-3 bg-zinc-900/40 p-5 border border-zinc-800 rounded-2xl">
+                  <div className="space-y-3 bg-zinc-900/40 p-5 border border-zinc-800 rounded-[10px]">
                     <label className="text-xs font-black text-zinc-300 uppercase tracking-widest ml-1">
                       Tipe Media Produk <span className="text-red-500">*</span>
                     </label>
@@ -772,7 +772,7 @@ export default function JualProdukPage() {
                           setMediaType("image");
                           setReptileData((prev) => ({ ...prev, images: [] }));
                         }}
-                        className={`py-3.5 rounded-xl font-bold text-xs uppercase tracking-wider transition-all border ${mediaType === "image" ? "bg-emerald-500 border-emerald-500 text-zinc-950 font-black shadow-md shadow-emerald-500/10" : "bg-zinc-950 border-zinc-800 text-zinc-400 hover:text-white"}`}
+                        className={`py-3.5 rounded-[10px] font-bold text-xs uppercase tracking-wider transition-all border ${mediaType === "image" ? "bg-emerald-500 border-emerald-500 text-zinc-950 font-black shadow-md shadow-emerald-500/10" : "bg-zinc-950 border-zinc-800 text-zinc-400 hover:text-white"}`}
                       >
                         Gambar / Foto
                       </button>
@@ -782,7 +782,7 @@ export default function JualProdukPage() {
                           setMediaType("video");
                           setReptileData((prev) => ({ ...prev, images: [] }));
                         }}
-                        className={`py-3.5 rounded-xl font-bold text-xs uppercase tracking-wider transition-all border ${mediaType === "video" ? "bg-emerald-500 border-emerald-500 text-zinc-950 font-black shadow-md shadow-emerald-500/10" : "bg-zinc-950 border-zinc-800 text-zinc-400 hover:text-white"}`}
+                        className={`py-3.5 rounded-[10px] font-bold text-xs uppercase tracking-wider transition-all border ${mediaType === "video" ? "bg-emerald-500 border-emerald-500 text-zinc-950 font-black shadow-md shadow-emerald-500/10" : "bg-zinc-950 border-zinc-800 text-zinc-400 hover:text-white"}`}
                       >
                         Video
                       </button>
@@ -800,7 +800,7 @@ export default function JualProdukPage() {
 
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
                     {reptileData.images.map((img, index) => (
-                      <div key={index} className="relative aspect-square rounded-2xl overflow-hidden group border border-zinc-800 bg-zinc-900 flex items-center justify-center">
+                      <div key={index} className="relative aspect-square rounded-[10px] overflow-hidden group border border-zinc-800 bg-zinc-900 flex items-center justify-center">
                         {isVideoUrl(img) ? (
                           <video src={img.startsWith("http") || img.startsWith("data:") ? img : `${process.env.NEXT_PUBLIC_S3_BASE_URL || ""}${img}`} controls className="w-full h-full object-cover" />
                         ) : (
@@ -815,7 +815,7 @@ export default function JualProdukPage() {
                               newImages.splice(index, 1);
                               setReptileData({ ...reptileData, images: newImages });
                             }}
-                            className="bg-red-500/90 text-white p-2 rounded-xl hover:bg-red-500 transition-all active:scale-90 backdrop-blur-sm sm:bg-red-500 sm:p-2.5 sm:rounded-full"
+                            className="bg-red-500/90 text-white p-2 rounded-[10px] hover:bg-red-500 transition-all active:scale-90 backdrop-blur-sm sm:bg-red-500 sm:p-2.5 sm:rounded-full"
                           >
                             <X size={14} />
                           </button>
@@ -827,12 +827,12 @@ export default function JualProdukPage() {
                       ? // Video Upload Input
                         reptileData.images.length < 1 &&
                         (isUploading ? (
-                          <div className="aspect-square bg-zinc-950 border border-zinc-800 rounded-2xl flex flex-col items-center justify-center gap-2 text-emerald-500">
+                          <div className="aspect-square bg-zinc-950 border border-zinc-800 rounded-[10px] flex flex-col items-center justify-center gap-2 text-emerald-500">
                             <Loader2 className="w-8 h-8 animate-spin" />
                             <span className="text-[10px] font-black uppercase tracking-[0.2em] animate-pulse">Mengunggah...</span>
                           </div>
                         ) : (
-                          <label className="aspect-square bg-zinc-950 border-2 border-dashed border-zinc-800 rounded-2xl flex flex-col items-center justify-center gap-2 text-zinc-500 hover:border-emerald-500 hover:text-emerald-500 transition-all cursor-pointer group hover:bg-emerald-500/5">
+                          <label className="aspect-square bg-zinc-950 border-2 border-dashed border-zinc-800 rounded-[10px] flex flex-col items-center justify-center gap-2 text-zinc-500 hover:border-emerald-500 hover:text-emerald-500 transition-all cursor-pointer group hover:bg-emerald-500/5">
                             <input
                               type="file"
                               accept="video/mp4,video/mkv,video/avi,video/quicktime,video/*"
@@ -871,12 +871,12 @@ export default function JualProdukPage() {
                       : // Image Upload Input
                         reptileData.images.length < 3 &&
                         (isUploading ? (
-                          <div className="aspect-square bg-zinc-950 border border-zinc-800 rounded-2xl flex flex-col items-center justify-center gap-2 text-emerald-500">
+                          <div className="aspect-square bg-zinc-950 border border-zinc-800 rounded-[10px] flex flex-col items-center justify-center gap-2 text-emerald-500">
                             <Loader2 className="w-8 h-8 animate-spin" />
                             <span className="text-[10px] font-black uppercase tracking-[0.2em] animate-pulse">Mengunggah...</span>
                           </div>
                         ) : (
-                          <label className="aspect-square bg-zinc-950 border-2 border-dashed border-zinc-800 rounded-2xl flex flex-col items-center justify-center gap-2 text-zinc-500 hover:border-emerald-500 hover:text-emerald-500 transition-all cursor-pointer group hover:bg-emerald-500/5">
+                          <label className="aspect-square bg-zinc-950 border-2 border-dashed border-zinc-800 rounded-[10px] flex flex-col items-center justify-center gap-2 text-zinc-500 hover:border-emerald-500 hover:text-emerald-500 transition-all cursor-pointer group hover:bg-emerald-500/5">
                             <input
                               type="file"
                               accept="image/jpeg,image/jpg,image/png,image/webp,image/gif"
@@ -920,7 +920,7 @@ export default function JualProdukPage() {
                   <label className="flex items-start gap-4 cursor-pointer group mb-8 px-2">
                     <div className="relative mt-0.5">
                       <input type="checkbox" required className="peer sr-only" checked={isAgreed} onChange={(e) => setIsAgreed(e.target.checked)} />
-                      <div className="w-6 h-6 bg-zinc-950 border-2 border-zinc-700 rounded-lg peer-checked:bg-emerald-500 peer-checked:border-emerald-500 transition-all flex items-center justify-center">
+                      <div className="w-6 h-6 bg-zinc-950 border-2 border-zinc-700 rounded-[10px] peer-checked:bg-emerald-500 peer-checked:border-emerald-500 transition-all flex items-center justify-center">
                         <CheckCircle2 size={14} className="text-zinc-950 scale-0 peer-checked:scale-100 transition-transform" />
                       </div>
                     </div>
@@ -930,7 +930,7 @@ export default function JualProdukPage() {
                   <button
                     type="submit"
                     disabled={isSubmitting || isUploading || reptileData.images.length === 0}
-                    className="w-full py-5 rounded-[1.5rem] bg-emerald-500 hover:bg-emerald-400 text-zinc-950 font-black transition-all flex items-center justify-center gap-3 group active:scale-[0.98] disabled:opacity-50 disabled:grayscale disabled:cursor-not-allowed"
+                    className="w-full py-5 rounded-[10px] bg-emerald-500 hover:bg-emerald-400 text-zinc-950 font-black transition-all flex items-center justify-center gap-3 group active:scale-[0.98] disabled:opacity-50 disabled:grayscale disabled:cursor-not-allowed"
                   >
                     {isSubmitting ? (
                       <div className="w-6 h-6 border-4 border-zinc-950 border-t-transparent rounded-full animate-spin"></div>
@@ -950,7 +950,7 @@ export default function JualProdukPage() {
             {showSuccessModal && (
               <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
                 <div className="absolute inset-0 bg-zinc-950/90 backdrop-blur-md animate-in fade-in duration-300" onClick={() => setShowSuccessModal(false)}></div>
-                <div className="bg-zinc-900 border border-zinc-800 rounded-[2.5rem] w-full max-w-md p-12 text-center relative z-10 animate-in zoom-in-95 duration-300">
+                <div className="bg-zinc-900 border border-zinc-800 rounded-[10px] w-full max-w-md p-12 text-center relative z-10 animate-in zoom-in-95 duration-300">
                   <div className="w-24 h-24 bg-emerald-500 text-zinc-950 rounded-full flex items-center justify-center mx-auto mb-8 relative">
                     <div className="absolute inset-0 bg-emerald-500 rounded-full animate-ping opacity-20"></div>
                     <CheckCircle2 size={48} className="relative z-10" />
@@ -958,7 +958,7 @@ export default function JualProdukPage() {
                   <h3 className="text-3xl font-black text-white mb-4">Iklan Terpasang!</h3>
                   <p className="text-zinc-400 mb-10 leading-relaxed font-medium">Produk Anda telah berhasil ditambahkan dan akan segera tayang setelah verifikasi sistem.</p>
                   <div className="grid grid-cols-1 gap-4">
-                    <Link href="/user/toko/daftar-produk" className="w-full bg-zinc-800 hover:bg-zinc-700 text-white font-black py-4 rounded-2xl transition-all">
+                    <Link href="/user/toko/daftar-produk" className="w-full bg-zinc-800 hover:bg-zinc-700 text-white font-black py-4 rounded-[10px] transition-all">
                       Lihat Daftar Produk
                     </Link>
                     <button
@@ -985,7 +985,7 @@ export default function JualProdukPage() {
                     setErrorModalTitle("File Tidak Valid!");
                   }}
                 ></div>
-                <div className="bg-zinc-900 border border-zinc-800 rounded-[2.5rem] w-full max-w-md p-12 text-center relative z-10 animate-in zoom-in-95 duration-300">
+                <div className="bg-zinc-900 border border-zinc-800 rounded-[10px] w-full max-w-md p-12 text-center relative z-10 animate-in zoom-in-95 duration-300">
                   <div className="w-24 h-24 bg-red-500 text-zinc-950 rounded-full flex items-center justify-center mx-auto mb-8">
                     <AlertCircle size={48} />
                   </div>
@@ -996,7 +996,7 @@ export default function JualProdukPage() {
                       setShowErrorModal(false);
                       setErrorModalTitle("File Tidak Valid!");
                     }}
-                    className="w-full bg-red-500 hover:bg-red-400 text-zinc-950 font-black py-4 rounded-2xl transition-all"
+                    className="w-full bg-red-500 hover:bg-red-400 text-zinc-950 font-black py-4 rounded-[10px] transition-all"
                   >
                     Saya Mengerti
                   </button>
@@ -1008,13 +1008,13 @@ export default function JualProdukPage() {
               .quill-dark-editor .ql-toolbar {
                 background-color: #09090b !important;
                 border-color: #18181b !important;
-                border-top-left-radius: 1rem;
-                border-top-right-radius: 1rem;
+                border-top-left-radius: 10px;
+                border-top-right-radius: 10px;
               }
               .quill-dark-editor .ql-container {
                 border-color: #18181b !important;
-                border-bottom-left-radius: 1rem;
-                border-bottom-right-radius: 1rem;
+                border-bottom-left-radius: 10px;
+                border-bottom-right-radius: 10px;
                 min-height: 180px;
                 font-size: 0.875rem;
               }

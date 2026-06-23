@@ -144,7 +144,7 @@ export default function DetailKomunitasPage() {
                     <h1 className="text-2xl font-black text-white mb-2">Topik Tidak Ditemukan</h1>
                     <p className="text-zinc-500 max-w-md text-sm">Topik diskusi yang Anda cari mungkin telah dihapus atau tidak tersedia.</p>
                 </div>
-                <Link href="/komunitas" className="px-6 py-3 bg-emerald-500 hover:bg-emerald-400 text-zinc-950 font-black rounded-2xl transition-all">
+                <Link href="/komunitas" className="px-6 py-3 bg-emerald-500 hover:bg-emerald-400 text-zinc-950 font-black rounded-[10px] transition-all">
                     Kembali ke Komunitas
                 </Link>
             </div>
@@ -176,7 +176,7 @@ export default function DetailKomunitasPage() {
                     <div className="lg:col-span-8 space-y-6">
 
                         {/* Topic Article */}
-                        <article className="bg-zinc-900 border border-zinc-800 rounded-[2.5rem] overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-500">
+                        <article className="bg-zinc-900 border border-zinc-800 rounded-[10px] overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-500">
 
                             {/* Cover Image */}
                             {imageUrl && (
@@ -195,10 +195,10 @@ export default function DetailKomunitasPage() {
                             <div className="p-8 space-y-6">
                                 {/* Category & Status Badges */}
                                 <div className="flex flex-wrap items-center gap-2">
-                                    <span className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-500/10 text-emerald-400 text-[10px] font-black rounded-xl uppercase tracking-widest border border-emerald-500/20">
+                                    <span className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-500/10 text-emerald-400 text-[10px] font-black rounded-[10px] uppercase tracking-widest border border-emerald-500/20">
                                         <Tag size={10} /> {topic.category}
                                     </span>
-                                    <span className={`px-3 py-1.5 text-[10px] font-black rounded-xl uppercase tracking-widest border ${getStatusStyle(topic.status)}`}>
+                                    <span className={`px-3 py-1.5 text-[10px] font-black rounded-[10px] uppercase tracking-widest border ${getStatusStyle(topic.status)}`}>
                                         {getStatusLabel(topic.status)}
                                     </span>
                                     <span className="flex items-center gap-1.5 text-[10px] font-bold text-zinc-600 ml-auto">
@@ -213,8 +213,8 @@ export default function DetailKomunitasPage() {
                                 </h1>
 
                                 {/* Author */}
-                                <div className="flex items-center gap-4 p-4 bg-zinc-950/50 rounded-2xl border border-zinc-800">
-                                    <div className="w-12 h-12 rounded-2xl bg-zinc-800 border-2 border-zinc-700 flex items-center justify-center font-black text-zinc-400 overflow-hidden shrink-0">
+                                <div className="flex items-center gap-4 p-4 bg-zinc-950/50 rounded-[10px] border border-zinc-800">
+                                    <div className="w-12 h-12 rounded-[10px] bg-zinc-800 border-2 border-zinc-700 flex items-center justify-center font-black text-zinc-400 overflow-hidden shrink-0">
                                         {avatarUrl ? (
                                             <img src={avatarUrl} alt="avatar" className="w-full h-full object-cover" />
                                         ) : (
@@ -225,7 +225,7 @@ export default function DetailKomunitasPage() {
                                         <div className="flex items-center gap-2 flex-wrap">
                                             <span className="font-black text-white">@{topic.author?.username || 'Unknown'}</span>
                                             {(topic.author?.stars > 0) && (
-                                                <div className="flex items-center gap-1 bg-amber-500/10 border border-amber-500/20 px-2 py-0.5 rounded-lg">
+                                                <div className="flex items-center gap-1 bg-amber-500/10 border border-amber-500/20 px-2 py-0.5 rounded-[10px]">
                                                     {Array.from({ length: Math.min(topic.author.stars, 5) }).map((_, i) => (
                                                         <Star key={i} size={10} className="fill-amber-400 text-amber-400" />
                                                     ))}
@@ -238,7 +238,7 @@ export default function DetailKomunitasPage() {
 
                                 {/* Rejected reason */}
                                 {topic.status === 'Ditolak' && topic.rejection_reason && (
-                                    <div className="p-4 rounded-2xl bg-red-500/5 border border-red-500/20 space-y-1">
+                                    <div className="p-4 rounded-[10px] bg-red-500/5 border border-red-500/20 space-y-1">
                                         <p className="text-xs font-black text-red-400 uppercase tracking-wider">Alasan Penolakan</p>
                                         <p className="text-sm text-red-200/80 leading-relaxed">{topic.rejection_reason}</p>
                                     </div>
@@ -256,7 +256,7 @@ export default function DetailKomunitasPage() {
                                     <div className="flex items-center gap-3">
                                         <button
                                             onClick={handleLike}
-                                            className={`flex items-center gap-2 px-5 py-2.5 rounded-2xl font-black text-sm transition-all border active:scale-95 ${isLiked
+                                            className={`flex items-center gap-2 px-5 py-2.5 rounded-[10px] font-black text-sm transition-all border active:scale-95 ${isLiked
                                                 ? 'bg-red-500/10 text-red-400 border-red-500/20 hover:bg-red-500/20'
                                                 : 'bg-zinc-800 text-zinc-400 border-zinc-700 hover:border-red-500/30 hover:text-red-400'
                                                 }`}
@@ -264,7 +264,7 @@ export default function DetailKomunitasPage() {
                                             <Heart size={16} className={isLiked ? 'fill-current' : ''} />
                                             <span>{topic.likes || 0}</span>
                                         </button>
-                                        <div className="flex items-center gap-2 px-4 py-2.5 bg-zinc-800/50 rounded-2xl text-sm text-zinc-500 border border-zinc-800">
+                                        <div className="flex items-center gap-2 px-4 py-2.5 bg-zinc-800/50 rounded-[10px] text-sm text-zinc-500 border border-zinc-800">
                                             <MessageSquare size={16} />
                                             <span className="font-bold">{topic.replies || 0} Balasan</span>
                                         </div>
@@ -289,7 +289,7 @@ export default function DetailKomunitasPage() {
                                                 alert("Link berhasil disalin!");
                                             }
                                         }}
-                                        className="flex items-center gap-2 px-4 py-2.5 bg-zinc-800 hover:bg-zinc-700 text-zinc-400 hover:text-white rounded-2xl text-xs font-black uppercase tracking-wider border border-zinc-700 transition-all"
+                                        className="flex items-center gap-2 px-4 py-2.5 bg-zinc-800 hover:bg-zinc-700 text-zinc-400 hover:text-white rounded-[10px] text-xs font-black uppercase tracking-wider border border-zinc-700 transition-all"
                                     >
                                         <Share2 size={14} /> Bagikan
                                     </button>
@@ -307,12 +307,12 @@ export default function DetailKomunitasPage() {
                     <aside className="lg:col-span-4 space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700 delay-100">
 
                         {/* Author Card */}
-                        <div className="bg-zinc-900 border border-zinc-800 rounded-[2rem] p-6 space-y-4">
+                        <div className="bg-zinc-900 border border-zinc-800 rounded-[10px] p-6 space-y-4">
                             <h3 className="text-[10px] font-black text-zinc-600 uppercase tracking-widest flex items-center gap-2">
                                 <User size={12} /> Penulis
                             </h3>
                             <div className="flex items-center gap-4">
-                                <div className="w-14 h-14 rounded-2xl bg-zinc-800 border-2 border-zinc-700 flex items-center justify-center font-black text-zinc-400 overflow-hidden shrink-0">
+                                <div className="w-14 h-14 rounded-[10px] bg-zinc-800 border-2 border-zinc-700 flex items-center justify-center font-black text-zinc-400 overflow-hidden shrink-0">
                                     {avatarUrl ? (
                                         <img src={avatarUrl} alt="avatar" className="w-full h-full object-cover" />
                                     ) : (
@@ -331,7 +331,7 @@ export default function DetailKomunitasPage() {
                         </div>
 
                         {/* Topic Stats */}
-                        <div className="bg-zinc-900 border border-zinc-800 rounded-[2rem] p-6 space-y-4">
+                        <div className="bg-zinc-900 border border-zinc-800 rounded-[10px] p-6 space-y-4">
                             <h3 className="text-[10px] font-black text-zinc-600 uppercase tracking-widest">Statistik Topik</h3>
                             <div className="space-y-3">
                                 <div className="flex items-center justify-between">
@@ -354,7 +354,7 @@ export default function DetailKomunitasPage() {
                         {/* Back link */}
                         <Link
                             href="/komunitas"
-                            className="flex items-center justify-center gap-2 w-full py-3.5 bg-zinc-900 border border-zinc-800 hover:border-zinc-700 text-zinc-400 hover:text-white rounded-2xl text-xs font-black uppercase tracking-widest transition-all group"
+                            className="flex items-center justify-center gap-2 w-full py-3.5 bg-zinc-900 border border-zinc-800 hover:border-zinc-700 text-zinc-400 hover:text-white rounded-[10px] text-xs font-black uppercase tracking-widest transition-all group"
                         >
                             <ArrowLeft size={14} className="group-hover:-translate-x-1 transition-transform" />
                             Semua Diskusi
@@ -376,7 +376,7 @@ export default function DetailKomunitasPage() {
                         <ArrowLeft size={24} className="rotate-90" />
                     </button>
                     <div
-                        className="relative max-w-7xl max-h-[90vh] overflow-hidden rounded-2xl animate-in zoom-in-95 duration-300"
+                        className="relative max-w-7xl max-h-[90vh] overflow-hidden rounded-[10px] animate-in zoom-in-95 duration-300"
                         onClick={(e) => e.stopPropagation()}
                     >
                         <img
