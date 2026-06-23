@@ -214,8 +214,8 @@ export default function StoreStatisticsPage() {
 
   if (!hasShop) {
     return (
-      <div className="bg-zinc-900 border border-zinc-800 rounded-3xl p-10 text-center max-w-lg mx-auto mt-10">
-        <div className="w-20 h-20 bg-zinc-800 text-zinc-600 rounded-3xl flex items-center justify-center mx-auto mb-6">
+      <div className="bg-zinc-900 border border-zinc-800 rounded-[10px] p-10 text-center max-w-lg mx-auto mt-10">
+        <div className="w-20 h-20 bg-zinc-800 text-zinc-600 rounded-[10px] flex items-center justify-center mx-auto mb-6">
           <LayoutDashboard size={40} />
         </div>
         <h3 className="text-xl font-bold text-white mb-2">Toko Belum Aktif</h3>
@@ -224,7 +224,7 @@ export default function StoreStatisticsPage() {
         </p>
         <Link
           href="/user/toko/dashboard"
-          className="bg-amber-500 hover:bg-amber-400 text-zinc-950 font-black px-8 py-3 rounded-xl transition-all inline-block"
+          className="bg-amber-500 hover:bg-amber-400 text-zinc-950 font-black px-8 py-3 rounded-[10px] transition-all inline-block"
         >
           Ke Dashboard Utama
         </Link>
@@ -246,7 +246,7 @@ export default function StoreStatisticsPage() {
       </div>
 
       {/* Navigation Tabs */}
-      <div className="flex gap-2 p-1 bg-zinc-900 border border-zinc-800 rounded-2xl w-full md:w-fit overflow-x-auto custom-scrollbar">
+      <div className="flex gap-2 p-1 bg-zinc-900 border border-zinc-800 rounded-[10px] w-full md:w-fit overflow-x-auto custom-scrollbar">
         {[
           {
             id: "dashboard",
@@ -264,7 +264,7 @@ export default function StoreStatisticsPage() {
           <Link
             key={tab.id}
             href={tab.href}
-            className={`flex items-center gap-2 px-4 md:px-6 py-2.5 rounded-xl font-bold text-xs md:text-sm transition-all whitespace-nowrap ${
+            className={`flex items-center gap-2 px-4 md:px-6 py-2.5 rounded-[10px] font-bold text-xs md:text-sm transition-all whitespace-nowrap ${
               tab.id === "dashboard"
                 ? "bg-zinc-800 text-white"
                 : "text-zinc-500 hover:text-zinc-300"
@@ -279,7 +279,7 @@ export default function StoreStatisticsPage() {
       {/* Main Stats Summary Cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {/* Card 1: Total Pendapatan */}
-        <div className="bg-zinc-900 border border-zinc-800 p-5 rounded-2xl relative overflow-hidden group">
+        <div className="bg-zinc-900 border border-zinc-800 p-5 rounded-[10px] relative overflow-hidden group">
           <div className="absolute top-0 right-0 p-3 text-emerald-500/5 transition-transform group-hover:scale-110">
             <DollarSign size={80} />
           </div>
@@ -295,7 +295,7 @@ export default function StoreStatisticsPage() {
         </div>
 
         {/* Card 2: Jumlah Produk */}
-        <div className="bg-zinc-900 border border-zinc-800 p-5 rounded-2xl relative overflow-hidden group">
+        <div className="bg-zinc-900 border border-zinc-800 p-5 rounded-[10px] relative overflow-hidden group">
           <div className="absolute top-0 right-0 p-3 text-blue-500/5 transition-transform group-hover:scale-110">
             <Package size={80} />
           </div>
@@ -313,7 +313,7 @@ export default function StoreStatisticsPage() {
         </div>
 
         {/* Card 3: Pesanan Sukses */}
-        <div className="bg-zinc-900 border border-zinc-800 p-5 rounded-2xl relative overflow-hidden group">
+        <div className="bg-zinc-900 border border-zinc-800 p-5 rounded-[10px] relative overflow-hidden group">
           <div className="absolute top-0 right-0 p-3 text-amber-500/5 transition-transform group-hover:scale-110">
             <ShoppingBag size={80} />
           </div>
@@ -331,7 +331,7 @@ export default function StoreStatisticsPage() {
         </div>
 
         {/* Card 4: Rating Toko */}
-        <div className="bg-zinc-900 border border-zinc-800 p-5 rounded-2xl relative overflow-hidden group">
+        <div className="bg-zinc-900 border border-zinc-800 p-5 rounded-[10px] relative overflow-hidden group">
           <div className="absolute top-0 right-0 p-3 text-purple-500/5 transition-transform group-hover:scale-110">
             <Star size={80} />
           </div>
@@ -351,7 +351,7 @@ export default function StoreStatisticsPage() {
       {/* Detail Analytics Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Sales Conversion & Performance */}
-        <div className="bg-zinc-900 border border-zinc-800 rounded-3xl p-6 lg:col-span-2 space-y-6">
+        <div className="bg-zinc-900 border border-zinc-800 rounded-[10px] p-6 lg:col-span-2 space-y-6">
           <div className="flex justify-between items-center">
             <div>
               <h3 className="text-lg font-black text-white uppercase tracking-tight flex items-center gap-2">
@@ -359,13 +359,13 @@ export default function StoreStatisticsPage() {
               </h3>
               <p className="text-xs text-zinc-500 mt-0.5">Analisis rasio pemesanan sukses di toko Anda</p>
             </div>
-            <div className="bg-amber-500/10 border border-amber-500/20 text-amber-400 px-3 py-1.5 rounded-xl text-xs font-black flex items-center gap-1">
+            <div className="bg-amber-500/10 border border-amber-500/20 text-amber-400 px-3 py-1.5 rounded-[10px] text-xs font-black flex items-center gap-1">
               <Percent size={12} /> {stats.successRate.toFixed(1)}% Sukses
             </div>
           </div>
 
           {/* Success rate visual gauge */}
-          <div className="p-5 bg-zinc-950/50 border border-zinc-800 rounded-2xl space-y-4">
+          <div className="p-5 bg-zinc-950/50 border border-zinc-800 rounded-[10px] space-y-4">
             <div className="flex justify-between text-xs font-bold text-zinc-400">
               <span>Rasio Penyelesaian Pesanan</span>
               <span className="text-white">{stats.successRate.toFixed(1)}%</span>
@@ -383,7 +383,7 @@ export default function StoreStatisticsPage() {
 
           {/* Detailed distribution grid */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div className="bg-zinc-950/40 border border-zinc-800 p-4 rounded-2xl flex flex-col justify-between min-h-[90px]">
+            <div className="bg-zinc-950/40 border border-zinc-800 p-4 rounded-[10px] flex flex-col justify-between min-h-[90px]">
               <span className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">
                 Rata-rata Nilai Transaksi
               </span>
@@ -397,7 +397,7 @@ export default function StoreStatisticsPage() {
               </div>
             </div>
 
-            <div className="bg-zinc-950/40 border border-zinc-800 p-4 rounded-2xl flex flex-col justify-between min-h-[90px]">
+            <div className="bg-zinc-950/40 border border-zinc-800 p-4 rounded-[10px] flex flex-col justify-between min-h-[90px]">
               <span className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">
                 Total Transaksi Diproses
               </span>
@@ -414,7 +414,7 @@ export default function StoreStatisticsPage() {
         </div>
 
         {/* Product Portfolio Distribution */}
-        <div className="bg-zinc-900 border border-zinc-800 rounded-3xl p-6 space-y-6">
+        <div className="bg-zinc-900 border border-zinc-800 rounded-[10px] p-6 space-y-6">
           <div>
             <h3 className="text-lg font-black text-white uppercase tracking-tight flex items-center gap-2">
               <Package size={18} className="text-blue-400" /> Distribusi Produk
@@ -460,7 +460,7 @@ export default function StoreStatisticsPage() {
             </div>
 
             {/* List detail */}
-            <div className="bg-zinc-950/50 border border-zinc-800 rounded-2xl p-4 space-y-3.5">
+            <div className="bg-zinc-950/50 border border-zinc-800 rounded-[10px] p-4 space-y-3.5">
               <div className="flex items-center justify-between text-xs">
                 <span className="text-zinc-500 font-bold">Total Iklan Toko</span>
                 <span className="text-white font-black">{stats.totalListings} Produk</span>
@@ -482,7 +482,7 @@ export default function StoreStatisticsPage() {
 
             {/* Warning block if there are rejected products */}
             {stats.rejectedListings > 0 && (
-              <div className="bg-red-500/10 border border-red-500/20 rounded-2xl p-4 flex gap-3 text-red-400">
+              <div className="bg-red-500/10 border border-red-500/20 rounded-[10px] p-4 flex gap-3 text-red-400">
                 <AlertCircle size={16} className="shrink-0 mt-0.5" />
                 <div className="space-y-1">
                   <p className="text-xs font-black uppercase tracking-wide">
@@ -499,7 +499,7 @@ export default function StoreStatisticsPage() {
       </div>
 
       {/* Revenue Trend Chart Section (Under Development) */}
-      <div className="bg-zinc-900 border border-zinc-800 rounded-3xl p-6 lg:p-8 space-y-6 relative overflow-hidden">
+      <div className="bg-zinc-900 border border-zinc-800 rounded-[10px] p-6 lg:p-8 space-y-6 relative overflow-hidden">
         {/* Decorative background visual resembling a blurred chart */}
         <div className="absolute inset-0 opacity-10 flex items-end justify-center pointer-events-none">
           <svg className="w-full h-48 text-amber-500" viewBox="0 0 100 100" preserveAspectRatio="none">
@@ -529,7 +529,7 @@ export default function StoreStatisticsPage() {
         </div>
 
         <div className="py-16 text-center relative z-10 flex flex-col items-center justify-center space-y-4 max-w-md mx-auto">
-          <div className="w-16 h-16 bg-zinc-950 border border-zinc-800 text-amber-500 rounded-2xl flex items-center justify-center shadow-2xl shadow-amber-500/5 animate-pulse">
+          <div className="w-16 h-16 bg-zinc-950 border border-zinc-800 text-amber-500 rounded-[10px] flex items-center justify-center shadow-2xl shadow-amber-500/5 animate-pulse">
             <Clock size={28} />
           </div>
           <div className="space-y-1">

@@ -57,14 +57,14 @@ export default function OrderTimeline({ order, formatPrice, className = "" }) {
     const nextStepIndex = allSteps.findIndex(step => !step.isCompleted);
 
     return (
-        <div className={`bg-zinc-900 border border-zinc-800 rounded-[2rem] lg:rounded-[3rem] p-6 lg:p-10 shadow-2xl space-y-8 ${className}`}>
+        <div className={`bg-zinc-900 border border-zinc-800 rounded-[10px] p-6 lg:p-10 shadow-2xl space-y-8 ${className}`}>
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <h3 className="text-sm font-semibold text-zinc-400 uppercase tracking-[0.1em] flex items-center gap-3 shrink-0">
                     <Clock size={18} className={isCancelled ? "text-red-500" : "text-emerald-500"} /> Perjalanan Transaksi
                 </h3>
                 <div className="flex items-center gap-4 flex-1">
                     <div className="flex-1 h-px bg-zinc-800 hidden md:block"></div>
-                    <div className="flex items-center gap-3 px-4 py-2 bg-zinc-950 border border-zinc-800 rounded-2xl shadow-inner">
+                    <div className="flex items-center gap-3 px-4 py-2 bg-zinc-950 border border-zinc-800 rounded-[10px] shadow-inner">
                         <span className="text-[10px] font-black text-zinc-600 uppercase tracking-widest">Inv</span>
                         <span className="text-[11px] font-black text-emerald-500 tracking-wider">{order.order_id}</span>
                     </div>
@@ -80,7 +80,7 @@ export default function OrderTimeline({ order, formatPrice, className = "" }) {
 
                     return (
                         <div key={i} className={`flex gap-4 items-start relative transition-all duration-500 ${isUpcoming ? "opacity-40 grayscale" : "opacity-100"}`}>
-                            <div className={`w-[24px] h-[24px] rounded-full border-2 flex items-center justify-center z-10 shrink-0 transition-all duration-700 ${
+                            <div className={`w-[24px] h-[24px] rounded-[10px] border-2 flex items-center justify-center z-10 shrink-0 transition-all duration-700 ${
                                 step.isCompleted ? (isComplainedStep ? "bg-red-500 border-red-400/20 text-white shadow-[0_0_15px_rgba(239,68,68,0.3)]" : "bg-emerald-500 border-emerald-400/20 text-zinc-950 shadow-[0_0_15px_rgba(16,185,129,0.3)]") : 
                                 isCancelledStep ? "bg-red-500/10 border-red-500 text-red-500 shadow-[0_0_15px_rgba(239,68,68,0.3)] scale-110" :
                                 "bg-zinc-900 border-zinc-800 text-zinc-700"}`}>
@@ -89,7 +89,7 @@ export default function OrderTimeline({ order, formatPrice, className = "" }) {
                                 ) : isCancelledStep ? (
                                     <XCircle size={12} className="animate-in zoom-in duration-500 text-red-500" />
                                 ) : (
-                                    <div className="w-1.5 h-1.5 bg-current rounded-full"></div>
+                                    <div className="w-1.5 h-1.5 bg-current rounded-[10px]"></div>
                                 )}
                             </div>
                             <div className="space-y-1 pt-0.5 flex-1">
@@ -97,10 +97,10 @@ export default function OrderTimeline({ order, formatPrice, className = "" }) {
                                     <div className="flex items-center gap-2">
                                         <p className={`text-xs font-bold tracking-tight ${step.isCompleted ? "text-white" : isCancelledStep ? "text-red-500" : "text-zinc-500"}`}>{step.label}</p>
                                         {isActive && (
-                                            <span className="px-1.5 py-0.5 bg-emerald-500/10 border border-emerald-500/20 rounded-md text-[7px] font-black text-emerald-500 uppercase">Aktif</span>
+                                            <span className="px-1.5 py-0.5 bg-emerald-500/10 border border-emerald-500/20 rounded-[10px] text-[7px] font-black text-emerald-500 uppercase">Aktif</span>
                                         )}
                                         {isCancelledStep && (
-                                            <span className="px-1.5 py-0.5 bg-red-500/10 border border-red-500/20 rounded-md text-[7px] font-black text-red-500 uppercase">Batal</span>
+                                            <span className="px-1.5 py-0.5 bg-red-500/10 border border-red-500/20 rounded-[10px] text-[7px] font-black text-red-500 uppercase">Batal</span>
                                         )}
                                     </div>
                                     {step.isCompleted && step.date && (
@@ -134,7 +134,7 @@ export default function OrderTimeline({ order, formatPrice, className = "" }) {
                                 </p>
                                 
                                 {step.id === 'pengiriman' && order.tracking_number && step.isCompleted && (
-                                    <div className="mt-2 px-3 py-2 bg-zinc-950 border border-zinc-800 rounded-xl flex items-center justify-between">
+                                    <div className="mt-2 px-3 py-2 bg-zinc-950 border border-zinc-800 rounded-[10px] flex items-center justify-between">
                                         <span className="text-[8px] font-black text-zinc-600 uppercase tracking-widest">Resi</span>
                                         <span className="text-[10px] font-bold text-emerald-500 font-mono tracking-wider">{order.tracking_number}</span>
                                     </div>

@@ -17,7 +17,7 @@ const isVideoUrl = (url) => {
 
 function ShippedNotification() {
   return (
-    <div className="flex items-start gap-3 p-4 bg-amber-500/10 border border-amber-500/20 text-amber-500 rounded-2xl w-full text-left">
+    <div className="flex items-start gap-3 p-4 bg-amber-500/10 border border-amber-500/20 text-amber-500 rounded-[10px] w-full text-left">
       <Info size={18} className="text-amber-400 shrink-0 mt-0.5" />
       <div className="space-y-1">
         <p className="text-[10px] font-black uppercase tracking-widest text-amber-400">Pemberitahuan</p>
@@ -216,7 +216,7 @@ export default function OrderDetailPage({ params }) {
     <div className="max-w-7xl mx-auto pt-2 pb-10 lg:py-10 animate-in fade-in slide-in-from-bottom-4 duration-500 px-4 space-y-8">
       {/* Success Message Notification */}
       {successMessage && (
-        <div className="fixed top-24 right-10 z-[200] bg-emerald-500 text-zinc-950 px-8 py-4 rounded-2xl font-black flex items-center gap-3 animate-in slide-in-from-right-10">
+        <div className="fixed top-24 right-10 z-[200] bg-emerald-500 text-zinc-950 px-8 py-4 rounded-[10px] font-black flex items-center gap-3 animate-in slide-in-from-right-10">
           <CheckCircle2 size={24} />
           {successMessage}
         </div>
@@ -224,7 +224,7 @@ export default function OrderDetailPage({ params }) {
 
       {/* Back Button */}
       <Link href="/user/toko/dashboard" className="inline-flex items-center gap-2 text-zinc-400 hover:text-white transition-colors group">
-        <div className="w-8 h-8 rounded-lg bg-zinc-900 border border-zinc-800 flex items-center justify-center group-hover:bg-zinc-800 transition-all">
+        <div className="w-8 h-8 rounded-[10px] bg-zinc-900 border border-zinc-800 flex items-center justify-center group-hover:bg-zinc-800 transition-all">
           <ChevronLeft size={18} />
         </div>
         <span className="text-sm font-bold">Kembali ke Dashboard</span>
@@ -237,7 +237,7 @@ export default function OrderDetailPage({ params }) {
 
       {/* Rejection Notice */}
       {order.status === "waiting_payment" && order.payment_rejection_reason && (
-        <div className="p-6 bg-red-500/10 border border-red-500/20 rounded-[2rem] flex items-start gap-4 text-left animate-in slide-in-from-top-4 duration-500">
+        <div className="p-6 bg-red-500/10 border border-red-500/20 rounded-[10px] flex items-start gap-4 text-left animate-in slide-in-from-top-4 duration-500">
           <AlertCircle size={20} className="text-red-400 shrink-0 mt-0.5" />
           <div className="space-y-1">
             <p className="text-[10px] font-black uppercase tracking-widest text-red-400">Pembayaran Ditolak Admin</p>
@@ -252,10 +252,10 @@ export default function OrderDetailPage({ params }) {
         {/* LEFT: Product & Buyer Info */}
         <div className="lg:col-span-8 space-y-8">
           {/* Main Order Card (Accordion) */}
-          <div className="bg-zinc-900 border border-zinc-800 rounded-[2.5rem] overflow-hidden">
+          <div className="bg-zinc-900 border border-zinc-800 rounded-[10px] overflow-hidden">
             <button onClick={() => setIsProductCardOpen(!isProductCardOpen)} className="w-full flex items-center justify-between p-4 md:p-8 hover:bg-zinc-800/50 transition-all border-b border-zinc-800/50">
               <div className="flex items-center gap-3 md:gap-4">
-                <div className={`w-10 h-10 md:w-12 md:h-12 rounded-xl md:rounded-2xl flex items-center justify-center transition-all shrink-0 ${isProductCardOpen ? "bg-emerald-500 text-zinc-950" : "bg-zinc-800 text-zinc-500"}`}>
+                <div className={`w-10 h-10 md:w-12 md:h-12 rounded-[10px] md:rounded-[10px] flex items-center justify-center transition-all shrink-0 ${isProductCardOpen ? "bg-emerald-500 text-zinc-950" : "bg-zinc-800 text-zinc-500"}`}>
                   <ShoppingBag size={20} className="md:hidden" />
                   <ShoppingBag size={24} className="hidden md:block" />
                 </div>
@@ -266,9 +266,9 @@ export default function OrderDetailPage({ params }) {
                       {order.order_id} • {order.product?.name}
                     </p>
                     {order.product?.type === "auction" ? (
-                      <span className="px-1.5 py-0.5 bg-purple-500/10 text-[8px] text-purple-400 rounded font-black uppercase tracking-widest border border-purple-500/20 shrink-0">Lelang</span>
+                      <span className="px-1.5 py-0.5 bg-purple-500/10 text-[8px] text-purple-400 rounded-[10px] font-black uppercase tracking-widest border border-purple-500/20 shrink-0">Lelang</span>
                     ) : (
-                      <span className="px-1.5 py-0.5 bg-sky-500/10 text-[8px] text-sky-400 rounded font-black uppercase tracking-widest border border-sky-500/20 shrink-0">Jual</span>
+                      <span className="px-1.5 py-0.5 bg-sky-500/10 text-[8px] text-sky-400 rounded-[10px] font-black uppercase tracking-widest border border-sky-500/20 shrink-0">Jual</span>
                     )}
                   </div>
                 </div>
@@ -281,8 +281,8 @@ export default function OrderDetailPage({ params }) {
                 {order.items && order.items.length > 1 ? (
                   <div className="space-y-4">
                     {order.items.map((item, idx) => (
-                      <div key={item.id || idx} className="bg-zinc-950/40 border border-zinc-800/80 rounded-3xl p-6 flex flex-col md:flex-row items-center gap-6 group hover:border-emerald-500/20 transition-all">
-                        <div className="w-20 h-20 rounded-xl overflow-hidden bg-zinc-900 border border-zinc-800 shrink-0 relative aspect-square">
+                      <div key={item.id || idx} className="bg-zinc-950/40 border border-zinc-800/80 rounded-[10px] p-6 flex flex-col md:flex-row items-center gap-6 group hover:border-emerald-500/20 transition-all">
+                        <div className="w-20 h-20 rounded-[10px] overflow-hidden bg-zinc-900 border border-zinc-800 shrink-0 relative aspect-square">
                           {(() => {
                             const mediaUrl = getImageUrl(item.product?.images);
                             return isVideoUrl(mediaUrl) ? <video src={mediaUrl} className="w-full h-full object-cover" preload="metadata" muted playsInline /> : <img src={mediaUrl || "https://placehold.co/400x400/f4f4f5/71717a?text=No+Image"} className="w-full h-full object-cover" alt={item.product?.name} />;
@@ -291,9 +291,9 @@ export default function OrderDetailPage({ params }) {
                         <div className="flex-1 min-w-0 text-center md:text-left space-y-1.5">
                           <h4 className="text-base font-black text-white">{item.product?.name}</h4>
                           <div className="flex flex-wrap gap-2 justify-center md:justify-start">
-                            <span className="px-2 py-0.5 bg-zinc-900 text-[9px] text-zinc-400 rounded border border-zinc-800 font-bold uppercase tracking-wider">{item.product?.species}</span>
-                            <span className="px-2 py-0.5 bg-zinc-900 text-[9px] text-zinc-400 rounded border border-zinc-800 font-bold uppercase tracking-wider">{item.product?.sex || "Unsex"}</span>
-                            <span className="px-2 py-0.5 bg-zinc-900 text-[9px] text-zinc-400 rounded border border-zinc-800 font-bold uppercase tracking-wider">ID: {item.product?.product_id || "-"}</span>
+                            <span className="px-2 py-0.5 bg-zinc-900 text-[9px] text-zinc-400 rounded-[10px] border border-zinc-800 font-bold uppercase tracking-wider">{item.product?.species}</span>
+                            <span className="px-2 py-0.5 bg-zinc-900 text-[9px] text-zinc-400 rounded-[10px] border border-zinc-800 font-bold uppercase tracking-wider">{item.product?.sex || "Unsex"}</span>
+                            <span className="px-2 py-0.5 bg-zinc-900 text-[9px] text-zinc-400 rounded-[10px] border border-zinc-800 font-bold uppercase tracking-wider">ID: {item.product?.product_id || "-"}</span>
                           </div>
                           <div className="flex flex-wrap items-center justify-center md:justify-start gap-x-4 gap-y-1 text-[11px] text-zinc-500 font-medium">
                             <p>
@@ -313,7 +313,7 @@ export default function OrderDetailPage({ params }) {
                 ) : (
                   <div className="flex flex-col md:flex-row gap-8">
                     {/* Product Image */}
-                    <div className="w-full md:w-64 aspect-square rounded-[2rem] overflow-hidden bg-zinc-950 border border-zinc-800 relative group">
+                    <div className="w-full md:w-64 aspect-square rounded-[10px] overflow-hidden bg-zinc-950 border border-zinc-800 relative group">
                       {order.product?.images?.[activeImageIndex] ? (
                         (() => {
                           const mediaUrl = getImageUrl(order.product.images[activeImageIndex]);
@@ -345,34 +345,34 @@ export default function OrderDetailPage({ params }) {
                       <div>
                         <div className="flex flex-wrap items-center gap-2 mb-2">
                           {order.product?.type === "auction" ? (
-                            <span className="px-2.5 py-1 bg-purple-500/10 text-[9px] text-purple-400 rounded-lg font-black uppercase tracking-widest border border-purple-500/20 flex items-center gap-1.5">
+                            <span className="px-2.5 py-1 bg-purple-500/10 text-[9px] text-purple-400 rounded-[10px] font-black uppercase tracking-widest border border-purple-500/20 flex items-center gap-1.5">
                               <Gavel size={10} /> Produk Lelang
                             </span>
                           ) : (
-                            <span className="px-2.5 py-1 bg-sky-500/10 text-[9px] text-sky-400 rounded-lg font-black uppercase tracking-widest border border-sky-500/20 flex items-center gap-1.5">
+                            <span className="px-2.5 py-1 bg-sky-500/10 text-[9px] text-sky-400 rounded-[10px] font-black uppercase tracking-widest border border-sky-500/20 flex items-center gap-1.5">
                               <Tag size={10} /> Produk Jual
                             </span>
                           )}
-                          <span className="px-2 py-0.5 bg-emerald-500/10 text-[9px] text-emerald-500 rounded font-black uppercase tracking-widest border border-emerald-500/20">{order.product?.species}</span>
-                          <span className="px-2 py-0.5 bg-zinc-800 text-[9px] text-zinc-400 rounded font-black uppercase tracking-widest border border-zinc-700">ID Produk: {order.product?.product_id || "-"}</span>
+                          <span className="px-2 py-0.5 bg-emerald-500/10 text-[9px] text-emerald-500 rounded-[10px] font-black uppercase tracking-widest border border-emerald-500/20">{order.product?.species}</span>
+                          <span className="px-2 py-0.5 bg-zinc-800 text-[9px] text-zinc-400 rounded-[10px] font-black uppercase tracking-widest border border-zinc-700">ID Produk: {order.product?.product_id || "-"}</span>
                         </div>
                         <h1 className="text-xl sm:text-2xl md:text-3xl font-black text-white leading-tight">{order.product?.name}</h1>
                       </div>
 
                       <div className="grid grid-cols-2 gap-4">
-                        <div className="bg-zinc-950/50 p-4 rounded-2xl border border-zinc-800">
+                        <div className="bg-zinc-950/50 p-4 rounded-[10px] border border-zinc-800">
                           <p className="text-[9px] font-black text-zinc-500 uppercase tracking-widest mb-1">Harga</p>
                           <p className="text-lg font-black text-white">{formatPrice(order.price)}</p>
                         </div>
-                        <div className="bg-zinc-950/50 p-4 rounded-2xl border border-zinc-800">
+                        <div className="bg-zinc-950/50 p-4 rounded-[10px] border border-zinc-800">
                           <p className="text-[9px] font-black text-zinc-500 uppercase tracking-widest mb-1">Jumlah</p>
                           <p className="text-lg font-black text-white">{order.quantity} Ekor</p>
                         </div>
                       </div>
 
                       {/* Shipping Type Info */}
-                      <div className="flex items-center gap-3 p-4 bg-blue-500/5 border border-dashed border-blue-500/20 rounded-2xl">
-                        <div className="w-10 h-10 bg-blue-500 rounded-xl flex items-center justify-center text-zinc-950 font-black border border-blue-500/20">
+                      <div className="flex items-center gap-3 p-4 bg-blue-500/5 border border-dashed border-blue-500/20 rounded-[10px]">
+                        <div className="w-10 h-10 bg-blue-500 rounded-[10px] flex items-center justify-center text-zinc-950 font-black border border-blue-500/20">
                           <Truck size={20} />
                         </div>
                         <div>
@@ -392,7 +392,7 @@ export default function OrderDetailPage({ params }) {
 
         {/* RIGHT: Transaction Summary & Action */}
         <div className="lg:col-span-4 space-y-6 sticky top-24">
-          <div className="bg-zinc-900 border border-zinc-800 rounded-3xl md:rounded-[2.5rem] p-4 md:p-8 space-y-6 md:space-y-8">
+          <div className="bg-zinc-900 border border-zinc-800 rounded-[10px] md:rounded-[10px] p-4 md:p-8 space-y-6 md:space-y-8">
             <h3 className="text-xs font-black text-zinc-500 uppercase tracking-widest flex items-center gap-2">
               <CreditCard size={16} className="text-emerald-500" /> Rincian Pembayaran
             </h3>
@@ -423,13 +423,13 @@ export default function OrderDetailPage({ params }) {
 
             <div className="space-y-3 pt-4">
               {order.status === "waiting_shipping_cost" && (
-                <Link href={`/user/toko/pesanan-masuk/biaya-kirim/${order.id}`} className="w-full py-4 bg-emerald-500 hover:bg-emerald-400 text-zinc-950 font-black rounded-2xl transition-all flex items-center justify-center gap-3 active:scale-95">
+                <Link href={`/user/toko/pesanan-masuk/biaya-kirim/${order.id}`} className="w-full py-4 bg-emerald-500 hover:bg-emerald-400 text-zinc-950 font-black rounded-[10px] transition-all flex items-center justify-center gap-3 active:scale-95">
                   Input Ongkir & Packing
                 </Link>
               )}
 
               {["waiting_shipment", "payment_verified"].includes(order.status) && (
-                <Link href={`/user/toko/pesanan-masuk/pengiriman/${order.id}`} className="w-full py-5 bg-blue-500 hover:bg-blue-400 text-zinc-950 rounded-2xl transition-all font-black text-sm flex items-center justify-center gap-3 active:scale-95">
+                <Link href={`/user/toko/pesanan-masuk/pengiriman/${order.id}`} className="w-full py-5 bg-blue-500 hover:bg-blue-400 text-zinc-950 rounded-[10px] transition-all font-black text-sm flex items-center justify-center gap-3 active:scale-95">
                   <Truck size={22} /> Masukkan Resi Pengiriman
                 </Link>
               )}
@@ -443,12 +443,12 @@ export default function OrderDetailPage({ params }) {
                   const orderId = order.order_id || "";
                   const productName = order.items && order.items.length > 0 ? order.items.map((item) => `${item.product?.name || "Produk"} (x${item.quantity})`).join(", ") : order.product?.name || "";
 
-                  const message = `Halo ${receiverName}, terima kasih telah berbelanja! Pesanan Anda dengan ID *${orderId}* (${productName}) sudah dikirim dan dalam perjalanan. Jika paket telah sampai dan diterima dengan baik, mohon kesediaannya untuk mengklik tombol *Pesanan Diterima* di dashboard akun Anda untuk menyelesaikan transaksi. Terima kasih!`;
+                  const message = `Halo ${receiverName}, terima kasih telah berbelanja! Pesanan Anda dengan ID *${orderId}* (${productName}) sudah dikirim and dalam perjalanan. Jika paket telah sampai dan diterima dengan baik, mohon kesediaannya untuk mengklik tombol *Pesanan Diterima* di dashboard akun Anda untuk menyelesaikan transaksi. Terima kasih!`;
                   const encodedText = encodeURIComponent(message);
 
                   window.open(`https://wa.me/${formatted}?text=${encodedText}`, "_blank");
                 }}
-                className="w-full py-4 text-white bg-[#25D366] hover:bg-[#128C7E] rounded-2xl transition-all font-bold text-xs flex items-center justify-center gap-2.5 active:scale-95 border border-[#25D366]/20"
+                className="w-full py-4 text-white bg-[#25D366] hover:bg-[#128C7E] rounded-[10px] transition-all font-bold text-xs flex items-center justify-center gap-2.5 active:scale-95 border border-[#25D366]/20"
               >
                 <MessageCircle size={14} className="flex-shrink-0" />
                 Hubungi Pembeli
@@ -457,13 +457,13 @@ export default function OrderDetailPage({ params }) {
           </div>
 
           {/* Shipping Details Moved Here - Inside the same sidebar column */}
-          <div className="bg-zinc-900 border border-zinc-800 rounded-3xl md:rounded-[2.5rem] p-4 md:p-8 space-y-6">
+          <div className="bg-zinc-900 border border-zinc-800 rounded-[10px] md:rounded-[10px] p-4 md:p-8 space-y-6">
             <h3 className="text-[10px] font-black text-zinc-500 uppercase tracking-widest flex items-center gap-2">
               <MapPin size={14} className="text-pink-500" /> Informasi Pengiriman
             </h3>
             {order.shipping_address ? (
               <div className="space-y-5">
-                <div className="p-5 bg-zinc-950/50 rounded-3xl border border-zinc-800/50 space-y-4">
+                <div className="p-5 bg-zinc-950/50 rounded-[10px] border border-zinc-800/50 space-y-4">
                   <div className="space-y-1">
                     <p className="text-sm text-white font-black uppercase tracking-tight">{order.receiver_name}</p>
                     <p className="text-xs text-zinc-400 leading-relaxed font-medium">{order.shipping_address}</p>
@@ -471,7 +471,7 @@ export default function OrderDetailPage({ params }) {
 
                   <div className="space-y-2 pt-2 border-t border-zinc-800/50">
                     <div className="flex items-center gap-2 text-zinc-500">
-                      <div className="w-6 h-6 rounded-lg bg-zinc-900 flex items-center justify-center border border-zinc-800">
+                      <div className="w-6 h-6 rounded-[10px] bg-zinc-900 flex items-center justify-center border border-zinc-800">
                         <Info size={12} className="text-zinc-400" />
                       </div>
                       <p className="text-[11px] font-bold tracking-tight">{order.phone_number}</p>
@@ -481,10 +481,10 @@ export default function OrderDetailPage({ params }) {
 
                 {/* Tracking Info Section */}
                 {order.tracking_number && (
-                  <div className="p-5 bg-blue-500/5 rounded-3xl border border-blue-500/10 space-y-4">
+                  <div className="p-5 bg-blue-500/5 rounded-[10px] border border-blue-500/10 space-y-4">
                     <div className="flex items-center justify-between">
                       <p className="text-[9px] font-black text-blue-500 uppercase tracking-widest">Resi Pengiriman</p>
-                      <div className="flex items-center gap-1.5 px-2 py-0.5 bg-blue-500/20 text-blue-400 rounded-lg text-[9px] font-black uppercase tracking-widest border border-blue-500/30">
+                      <div className="flex items-center gap-1.5 px-2 py-0.5 bg-blue-500/20 text-blue-400 rounded-[10px] text-[9px] font-black uppercase tracking-widest border border-blue-500/30">
                         <Truck size={10} /> Terkirim
                       </div>
                     </div>
@@ -497,10 +497,10 @@ export default function OrderDetailPage({ params }) {
                       </div>
                     )}
                     {order.shipping_proof && (
-                      <div className="mt-2 rounded-2xl overflow-hidden border border-zinc-800 bg-zinc-950 w-fit">
+                      <div className="mt-2 rounded-[10px] overflow-hidden border border-zinc-800 bg-zinc-950 w-fit">
                         <p className="text-[9px] font-black text-zinc-500 uppercase tracking-widest px-4 pt-3 mb-2">Bukti Pengiriman</p>
                         <div className="px-4 pb-4">
-                          <img src={getImageUrl(order.shipping_proof)} alt="Bukti Pengiriman" className="w-32 h-32 object-cover rounded-xl cursor-pointer hover:scale-105 transition-transform duration-500 border border-zinc-800" onClick={() => window.open(getImageUrl(order.shipping_proof), "_blank")} />
+                          <img src={getImageUrl(order.shipping_proof)} alt="Bukti Pengiriman" className="w-32 h-32 object-cover rounded-[10px] cursor-pointer hover:scale-105 transition-transform duration-500 border border-zinc-800" onClick={() => window.open(getImageUrl(order.shipping_proof), "_blank")} />
                         </div>
                       </div>
                     )}
@@ -508,7 +508,7 @@ export default function OrderDetailPage({ params }) {
                 )}
               </div>
             ) : (
-              <div className="py-8 flex flex-col items-center justify-center text-center space-y-3 bg-zinc-950/30 rounded-2xl border border-dashed border-zinc-800">
+              <div className="py-8 flex flex-col items-center justify-center text-center space-y-3 bg-zinc-950/30 rounded-[10px] border border-dashed border-zinc-800">
                 <MapPin size={24} className="text-zinc-700 animate-pulse" />
                 <p className="text-[10px] font-black text-zinc-600 uppercase tracking-widest">Belum Ada Alamat</p>
               </div>

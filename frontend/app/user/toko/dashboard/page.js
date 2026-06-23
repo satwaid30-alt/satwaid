@@ -333,7 +333,7 @@ export default function SellerDashboardPage() {
     <div className="space-y-8 animate-in fade-in duration-500 pb-20">
       {/* Success Message Toast */}
       {successMessage && (
-        <div className="fixed bottom-8 right-8 z-50 bg-emerald-500 text-zinc-950 px-6 py-4 rounded-2xl font-bold flex items-center gap-3 animate-in slide-in-from-right-4">
+        <div className="fixed bottom-8 right-8 z-50 bg-emerald-500 text-zinc-950 px-6 py-4 rounded-[10px] font-bold flex items-center gap-3 animate-in slide-in-from-right-4">
           <CheckCircle2 size={24} />
           {successMessage}
           <button onClick={() => setSuccessMessage("")} className="ml-2 hover:opacity-70">
@@ -393,8 +393,8 @@ export default function SellerDashboardPage() {
             color: "bg-purple-500",
           },
         ].map((stat, i) => (
-          <div key={i} className="bg-zinc-900 border border-zinc-800 p-3 md:p-5 rounded-xl md:rounded-2xl flex items-center gap-2 md:gap-4 min-w-0">
-            <div className={`w-9 h-9 md:w-12 md:h-12 rounded-lg md:rounded-xl ${stat.color}/10 ${stat.color.replace("bg-", "text-")} flex items-center justify-center shrink-0`}>
+          <div key={i} className="bg-zinc-900 border border-zinc-800 p-3 md:p-5 rounded-[10px] flex items-center gap-2 md:gap-4 min-w-0">
+            <div className={`w-9 h-9 md:w-12 md:h-12 rounded-[10px] ${stat.color}/10 ${stat.color.replace("bg-", "text-")} flex items-center justify-center shrink-0`}>
               <stat.icon size={18} className="md:hidden" />
               <stat.icon size={24} className="hidden md:block" />
             </div>
@@ -415,7 +415,7 @@ export default function SellerDashboardPage() {
       </div>
 
       {/* Tab Navigation */}
-      <div className="flex gap-1.5 md:gap-2 p-1.5 bg-zinc-900 border border-zinc-800 rounded-2xl w-full md:w-fit overflow-x-auto no-scrollbar scroll-smooth snap-x" style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}>
+      <div className="flex gap-1.5 md:gap-2 p-1.5 bg-zinc-900 border border-zinc-800 rounded-[10px] w-full md:w-fit overflow-x-auto no-scrollbar scroll-smooth snap-x" style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}>
         <style
           dangerouslySetInnerHTML={{
             __html: `
@@ -469,7 +469,7 @@ export default function SellerDashboardPage() {
                   setActiveTab(tab.id);
                   setCurrentPage(1);
                 }}
-                className={`flex-1 md:flex-initial flex items-center justify-center gap-1.5 md:gap-2 px-3 md:px-6 py-2.5 rounded-xl font-bold text-[10px] sm:text-xs md:text-sm transition-all whitespace-nowrap snap-center ${activeTab === tab.id ? "bg-zinc-800 text-white" : "text-zinc-500 hover:text-zinc-300"}`}
+                className={`flex-1 md:flex-initial flex items-center justify-center gap-1.5 md:gap-2 px-3 md:px-6 py-2.5 rounded-[10px] font-bold text-[10px] sm:text-xs md:text-sm transition-all whitespace-nowrap snap-center ${activeTab === tab.id ? "bg-zinc-800 text-white" : "text-zinc-500 hover:text-zinc-300"}`}
               >
                 <tab.icon size={16} className="shrink-0" />
                 {tab.label}
@@ -480,7 +480,7 @@ export default function SellerDashboardPage() {
             <Link
               key={tab.id}
               href={tab.href}
-              className={`flex-1 md:flex-initial flex items-center justify-center gap-1.5 md:gap-2 px-3 md:px-6 py-2.5 rounded-xl font-bold text-[10px] sm:text-xs md:text-sm transition-all whitespace-nowrap snap-center ${activeTab === tab.id ? "bg-zinc-800 text-white" : "text-zinc-500 hover:text-zinc-300"}`}
+              className={`flex-1 md:flex-initial flex items-center justify-center gap-1.5 md:gap-2 px-3 md:px-6 py-2.5 rounded-[10px] font-bold text-[10px] sm:text-xs md:text-sm transition-all whitespace-nowrap snap-center ${activeTab === tab.id ? "bg-zinc-800 text-white" : "text-zinc-500 hover:text-zinc-300"}`}
             >
               <tab.icon size={16} className="shrink-0" />
               {tab.label}
@@ -492,13 +492,13 @@ export default function SellerDashboardPage() {
       {/* Tab Content */}
       <div className="min-h-[400px]">
         {activeTab === "inventory" && (
-          <div className="bg-zinc-900 border border-zinc-800 rounded-3xl p-10 text-center animate-in fade-in zoom-in-95 duration-300">
-            <div className="w-20 h-20 bg-zinc-800 text-zinc-600 rounded-3xl flex items-center justify-center mx-auto mb-6">
+          <div className="bg-zinc-900 border border-zinc-800 rounded-[10px] p-10 text-center animate-in fade-in zoom-in-95 duration-300">
+            <div className="w-20 h-20 bg-zinc-800 text-zinc-600 rounded-[10px] flex items-center justify-center mx-auto mb-6">
               <Package size={40} />
             </div>
             <h3 className="text-xl font-bold text-white mb-2">Stok Belum Tersedia</h3>
             <p className="text-zinc-500 max-w-sm mx-auto mb-8">Kamu belum memiliki reptil yang dijual. Ayo mulai tambahkan koleksimu sekarang!</p>
-            <button onClick={() => setActiveTab("add_product")} className="bg-zinc-800 hover:bg-zinc-700 text-white font-bold px-8 py-3 rounded-xl transition-all">
+            <button onClick={() => setActiveTab("add_product")} className="bg-zinc-800 hover:bg-zinc-700 text-white font-bold px-8 py-3 rounded-[10px] transition-all">
               Tambah Produk Pertama
             </button>
           </div>
@@ -527,7 +527,7 @@ export default function SellerDashboardPage() {
                     <h2 className="text-xl font-black text-white">Riwayat Penjualan</h2>
                     <p className="text-xs text-zinc-500 mt-0.5">Transaksi yang telah selesai dari toko Anda</p>
                   </div>
-                  <div className="w-fit px-4 py-2 bg-emerald-500/10 border border-emerald-500/20 rounded-xl">
+                  <div className="w-fit px-4 py-2 bg-emerald-500/10 border border-emerald-500/20 rounded-[10px]">
                     <span className="text-xs font-black text-emerald-400 flex items-center gap-1.5">
                       <CheckCircle2 size={12} /> {filteredOrders.length} Transaksi Ditemukan
                     </span>
@@ -535,12 +535,12 @@ export default function SellerDashboardPage() {
                 </div>
 
                 {/* Filters */}
-                <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-3 flex flex-col md:flex-row gap-4">
+                <div className="bg-zinc-900 border border-zinc-800 rounded-[10px] p-3 flex flex-col md:flex-row gap-4">
                   <div className="relative flex-1">
                     <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500" size={16} />
-                    <input type="text" placeholder="Cari Order ID / Nomor Invoice..." value={orderSearchQuery} onChange={(e) => setOrderSearchQuery(e.target.value)} className="w-full bg-zinc-950 border border-zinc-800 rounded-xl py-2.5 pl-12 pr-4 text-white text-xs font-medium focus:border-emerald-500/50 outline-none transition-all" />
+                    <input type="text" placeholder="Cari Order ID / Nomor Invoice..." value={orderSearchQuery} onChange={(e) => setOrderSearchQuery(e.target.value)} className="w-full bg-zinc-950 border border-zinc-800 rounded-[10px] py-2.5 pl-12 pr-4 text-white text-xs font-medium focus:border-emerald-500/50 outline-none transition-all" />
                   </div>
-                  <div className="flex items-center gap-2 bg-zinc-950 border border-zinc-800 rounded-xl px-4 py-2">
+                  <div className="flex items-center gap-2 bg-zinc-950 border border-zinc-800 rounded-[10px] px-4 py-2">
                     <Filter size={14} className="text-zinc-500" />
                     <select value={orderStatusFilter} onChange={(e) => setOrderStatusFilter(e.target.value)} className="bg-transparent text-white text-xs font-bold outline-none cursor-pointer pr-4">
                       <option value="completed" className="bg-zinc-900">
@@ -557,7 +557,7 @@ export default function SellerDashboardPage() {
                 </div>
 
                 {isLoadingOrders ? (
-                  <div className="py-24 flex flex-col items-center justify-center bg-zinc-900/30 border border-zinc-800 rounded-[3rem] min-h-[350px]">
+                  <div className="py-24 flex flex-col items-center justify-center bg-zinc-900/30 border border-zinc-800 rounded-[10px] min-h-[350px]">
                     <div className="relative w-20 h-20 flex items-center justify-center">
                       {/* Outer track */}
                       <div className="absolute inset-0 rounded-full border-4 border-emerald-500/10"></div>
@@ -571,7 +571,7 @@ export default function SellerDashboardPage() {
                 ) : filteredOrders.length > 0 ? (
                   <>
                     {/* Desktop Table */}
-                    <div className="hidden md:block bg-zinc-900 border border-zinc-800 rounded-[2rem] overflow-hidden">
+                    <div className="hidden md:block bg-zinc-900 border border-zinc-800 rounded-[10px] overflow-hidden">
                       <div className="overflow-x-auto">
                         <table className="w-full">
                           <thead>
@@ -618,7 +618,7 @@ export default function SellerDashboardPage() {
                                         order.items.map((item, idx) => (
                                           <div key={item.id || idx} className="flex items-center gap-3">
                                             {item.product?.images?.[0] && (
-                                              <div className="w-10 h-10 rounded-xl overflow-hidden bg-zinc-800 shrink-0 border border-zinc-700">
+                                              <div className="w-10 h-10 rounded-[10px] overflow-hidden bg-zinc-800 shrink-0 border border-zinc-700">
                                                 {isVideoUrl(item.product.images[0]) ? (
                                                   <video src={getImageUrl(item.product.images[0])} className="w-full h-full object-cover" preload="metadata" muted playsInline />
                                                 ) : (
@@ -629,11 +629,11 @@ export default function SellerDashboardPage() {
                                             <div>
                                               <p className="text-sm font-bold text-zinc-300 truncate max-w-[140px]">{item.product?.name}</p>
                                               <div className="flex items-center flex-wrap gap-1.5 mt-1">
-                                                <span className="inline-block px-1.5 py-0.5 bg-zinc-950 text-[8px] text-zinc-400 rounded font-black uppercase tracking-widest border border-zinc-800">ID: {item.product?.product_id || "-"}</span>
-                                                <span className={`inline-block px-1.5 py-0.5 rounded text-[8px] font-black uppercase tracking-widest border ${item.product?.type === "auction" ? "bg-amber-500/10 text-amber-500 border-amber-500/20" : "bg-blue-500/10 text-blue-400 border-blue-500/20"}`}>
+                                                <span className="inline-block px-1.5 py-0.5 bg-zinc-950 text-[8px] text-zinc-400 rounded-[10px] font-black uppercase tracking-widest border border-zinc-800">ID: {item.product?.product_id || "-"}</span>
+                                                <span className={`inline-block px-1.5 py-0.5 rounded-[10px] text-[8px] font-black uppercase tracking-widest border ${item.product?.type === "auction" ? "bg-amber-500/10 text-amber-500 border-amber-500/20" : "bg-blue-500/10 text-blue-400 border-blue-500/20"}`}>
                                                   {item.product?.type === "auction" ? "Lelang" : "Reguler"}
                                                 </span>
-                                                <span className="inline-block px-1.5 py-0.5 bg-zinc-950 text-[8px] text-zinc-500 rounded font-black uppercase tracking-widest border border-zinc-800">Qty: {item.quantity || 1}</span>
+                                                <span className="inline-block px-1.5 py-0.5 bg-zinc-950 text-[8px] text-zinc-500 rounded-[10px] font-black uppercase tracking-widest border border-zinc-800">Qty: {item.quantity || 1}</span>
                                               </div>
                                             </div>
                                           </div>
@@ -641,7 +641,7 @@ export default function SellerDashboardPage() {
                                       ) : (
                                         <div className="flex items-center gap-3">
                                           {order.product?.images?.[0] && (
-                                            <div className="w-10 h-10 rounded-xl overflow-hidden bg-zinc-800 shrink-0 border border-zinc-700">
+                                            <div className="w-10 h-10 rounded-[10px] overflow-hidden bg-zinc-800 shrink-0 border border-zinc-700">
                                               {isVideoUrl(order.product.images[0]) ? (
                                                 <video src={getImageUrl(order.product.images[0])} className="w-full h-full object-cover" preload="metadata" muted playsInline />
                                               ) : (
@@ -652,8 +652,8 @@ export default function SellerDashboardPage() {
                                           <div>
                                             <p className="text-sm font-bold text-zinc-300 truncate max-w-[140px]">{order.product?.name}</p>
                                             <div className="flex items-center flex-wrap gap-1.5 mt-1">
-                                              <span className="inline-block px-1.5 py-0.5 bg-zinc-950 text-[8px] text-zinc-400 rounded font-black uppercase tracking-widest border border-zinc-800">ID: {order.product?.product_id || "-"}</span>
-                                              <span className={`inline-block px-1.5 py-0.5 rounded text-[8px] font-black uppercase tracking-widest border ${order.product?.type === "auction" ? "bg-amber-500/10 text-amber-500 border-amber-500/20" : "bg-blue-500/10 text-blue-400 border-blue-500/20"}`}>
+                                              <span className="inline-block px-1.5 py-0.5 bg-zinc-950 text-[8px] text-zinc-400 rounded-[10px] font-black uppercase tracking-widest border border-zinc-800">ID: {order.product?.product_id || "-"}</span>
+                                              <span className={`inline-block px-1.5 py-0.5 rounded-[10px] text-[8px] font-black uppercase tracking-widest border ${order.product?.type === "auction" ? "bg-amber-500/10 text-amber-500 border-amber-500/20" : "bg-blue-500/10 text-blue-400 border-blue-500/20"}`}>
                                                 {order.product?.type === "auction" ? "Lelang" : "Reguler"}
                                               </span>
                                             </div>
@@ -678,7 +678,7 @@ export default function SellerDashboardPage() {
                                   </td>
                                   <td className="px-6 py-5 text-center">
                                     <span
-                                      className={`px-2.5 py-1 rounded-lg text-[8px] font-black uppercase tracking-wider border mx-auto w-fit block ${
+                                      className={`px-2.5 py-1 rounded-[10px] text-[8px] font-black uppercase tracking-wider border mx-auto w-fit block ${
                                         order.status === "disbursed" ? "bg-emerald-500/10 text-emerald-500 border-emerald-500/20" : order.status === "disbursement_requested" ? "bg-blue-500/10 text-blue-400 border-blue-500/20" : "bg-zinc-500/10 text-zinc-400 border-zinc-500/20"
                                       }`}
                                     >
@@ -686,7 +686,7 @@ export default function SellerDashboardPage() {
                                     </span>
                                   </td>
                                   <td className="px-6 py-5 text-center">
-                                    <span className={`px-2.5 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest flex items-center justify-center gap-1 mx-auto w-fit border ${getOrderStyle(order)}`}>
+                                    <span className={`px-2.5 py-1 rounded-[10px] text-[9px] font-black uppercase tracking-widest flex items-center justify-center gap-1 mx-auto w-fit border ${getOrderStyle(order)}`}>
                                       {["completed", "disbursement_requested", "disbursed"].includes(order.status) && <CheckCircle2 size={10} />}
                                       {order.status === "processing" && <Clock size={10} />}
                                       {order.status === "waiting_payment" && order.payment_rejection_reason && <AlertCircle size={10} className="shrink-0" />}
@@ -694,7 +694,7 @@ export default function SellerDashboardPage() {
                                     </span>
                                   </td>
                                   <td className="px-6 py-5 text-center">
-                                    <a href={`/user/toko/dashboard/detail/${order.id}`} className="inline-flex items-center gap-1.5 px-4 py-2 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 hover:text-white rounded-xl text-[10px] font-black uppercase tracking-widest transition-all border border-zinc-700 hover:border-zinc-600">
+                                    <a href={`/user/toko/dashboard/detail/${order.id}`} className="inline-flex items-center gap-1.5 px-4 py-2 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 hover:text-white rounded-[10px] text-[10px] font-black uppercase tracking-widest transition-all border border-zinc-700 hover:border-zinc-600">
                                       <ChevronRight size={12} /> Detail
                                     </a>
                                   </td>
@@ -709,13 +709,13 @@ export default function SellerDashboardPage() {
                     {/* Mobile Cards */}
                     <div className="md:hidden space-y-3">
                       {paginatedOrders.map((order, idx) => (
-                        <div key={order.id} className="bg-zinc-900 border border-zinc-800 rounded-[2rem] overflow-hidden">
+                        <div key={order.id} className="bg-zinc-900 border border-zinc-800 rounded-[10px] overflow-hidden">
                           <div className="px-5 py-3 border-b border-zinc-800 bg-emerald-500/5 flex items-center justify-between">
                             <div className="flex items-center gap-3">
-                              <span className="w-6 h-6 bg-zinc-800 rounded-lg flex items-center justify-center text-[9px] font-black text-zinc-500">{(currentPage - 1) * itemsPerPage + idx + 1}</span>
+                              <span className="w-6 h-6 bg-zinc-800 rounded-[10px] flex items-center justify-center text-[9px] font-black text-zinc-500">{(currentPage - 1) * itemsPerPage + idx + 1}</span>
                               <span className="text-[10px] font-black text-white font-mono">{order.order_id}</span>
                             </div>
-                            <span className={`px-2 py-1 rounded-lg text-[9px] font-black flex items-center gap-1 uppercase tracking-widest border ${getOrderStyle(order)}`}>
+                            <span className={`px-2 py-1 rounded-[10px] text-[9px] font-black flex items-center gap-1 uppercase tracking-widest border ${getOrderStyle(order)}`}>
                               {["completed", "disbursement_requested", "disbursed"].includes(order.status) && <CheckCircle2 size={9} />}
                               {order.status === "processing" && <Clock size={9} />}
                               {order.status === "waiting_payment" && order.payment_rejection_reason && <AlertCircle size={9} className="shrink-0" />}
@@ -735,10 +735,10 @@ export default function SellerDashboardPage() {
                               {order.items && order.items.length > 0 ? (
                                 <div className="space-y-2">
                                   {order.items.map((item, idx) => (
-                                    <div key={item.id || idx} className="flex items-center justify-between bg-zinc-950/20 p-2.5 rounded-xl border border-zinc-800/40">
+                                    <div key={item.id || idx} className="flex items-center justify-between bg-zinc-950/20 p-2.5 rounded-[10px] border border-zinc-800/40">
                                       <div className="flex items-center gap-2.5">
                                         {item.product?.images?.[0] && (
-                                          <div className="w-8 h-8 rounded-lg overflow-hidden bg-zinc-800 shrink-0 border border-zinc-700">
+                                          <div className="w-8 h-8 rounded-[10px] overflow-hidden bg-zinc-800 shrink-0 border border-zinc-700">
                                             {isVideoUrl(item.product.images[0]) ? (
                                               <video src={getImageUrl(item.product.images[0])} className="w-full h-full object-cover" preload="metadata" muted playsInline />
                                             ) : (
@@ -759,8 +759,8 @@ export default function SellerDashboardPage() {
                                 <div className="text-right">
                                   <span className="text-xs font-bold text-zinc-300 truncate max-w-[160px] block">{order.product?.name}</span>
                                   <div className="flex items-center justify-end gap-1.5 mt-1">
-                                    <span className="inline-block px-1.5 py-0.5 bg-zinc-950 text-[8px] text-zinc-400 rounded font-black uppercase tracking-widest border border-zinc-800">ID: {order.product?.product_id || "-"}</span>
-                                    <span className={`inline-block px-1.5 py-0.5 rounded text-[8px] font-black uppercase tracking-widest border ${order.product?.type === "auction" ? "bg-amber-500/10 text-amber-500 border-amber-500/20" : "bg-blue-500/10 text-blue-400 border-blue-500/20"}`}>
+                                    <span className="inline-block px-1.5 py-0.5 bg-zinc-950 text-[8px] text-zinc-400 rounded-[10px] font-black uppercase tracking-widest border border-zinc-800">ID: {order.product?.product_id || "-"}</span>
+                                    <span className={`inline-block px-1.5 py-0.5 rounded-[10px] text-[8px] font-black uppercase tracking-widest border ${order.product?.type === "auction" ? "bg-amber-500/10 text-amber-500 border-amber-500/20" : "bg-blue-500/10 text-blue-400 border-blue-500/20"}`}>
                                       {order.product?.type === "auction" ? "Lelang" : "Reguler"}
                                     </span>
                                   </div>
@@ -796,7 +796,7 @@ export default function SellerDashboardPage() {
                             <div className="flex items-center justify-between">
                               <span className="text-[9px] font-black text-zinc-600 uppercase tracking-widest">Status Transfer</span>
                               <span
-                                className={`px-2 py-0.5 rounded text-[8px] font-black uppercase tracking-wider border ${
+                                className={`px-2 py-0.5 rounded-[10px] text-[8px] font-black uppercase tracking-wider border ${
                                   order.status === "disbursed" ? "bg-emerald-500/10 text-emerald-500 border-emerald-500/20" : order.status === "disbursement_requested" ? "bg-blue-500/10 text-blue-400 border-blue-500/20" : "bg-zinc-500/10 text-zinc-400 border-zinc-500/20"
                                 }`}
                               >
@@ -816,7 +816,7 @@ export default function SellerDashboardPage() {
                               </div>
                             )}
 
-                            <a href={`/user/toko/dashboard/detail/${order.id}`} className="w-full flex items-center justify-center gap-2 py-3 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 hover:text-white rounded-xl text-[10px] font-black uppercase tracking-widest transition-all border border-zinc-700 mt-1">
+                            <a href={`/user/toko/dashboard/detail/${order.id}`} className="w-full flex items-center justify-center gap-2 py-3 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 hover:text-white rounded-[10px] text-[10px] font-black uppercase tracking-widest transition-all border border-zinc-700 mt-1">
                               <ChevronRight size={12} /> Lihat Detail Transaksi
                             </a>
                           </div>
@@ -831,7 +831,7 @@ export default function SellerDashboardPage() {
                           Menampilkan {indexOfFirstItem + 1}-{Math.min(indexOfLastItem, filteredOrders.length)} dari {filteredOrders.length} Pesanan
                         </p>
                         <div className="flex items-center order-1 md:order-2">
-                          <div className="inline-flex rounded-xl border border-zinc-800 bg-zinc-950 divide-x divide-zinc-800 overflow-hidden">
+                          <div className="inline-flex rounded-[10px] border border-zinc-800 bg-zinc-950 divide-x divide-zinc-800 overflow-hidden">
                             <button onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))} disabled={currentPage === 1} className="w-10 h-10 flex items-center justify-center text-zinc-400 hover:text-white hover:bg-zinc-900/50 disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-transparent transition-all">
                               <ChevronLeft size={16} />
                             </button>
@@ -860,8 +860,8 @@ export default function SellerDashboardPage() {
                     )}
                   </>
                 ) : (
-                  <div className="py-20 flex flex-col items-center text-center space-y-6 bg-zinc-900/20 border border-zinc-800 rounded-[3rem] border-dashed">
-                    <div className="w-20 h-20 bg-zinc-900 rounded-3xl flex items-center justify-center text-zinc-700">{orderSearchQuery ? <Search size={40} /> : <CheckCircle2 size={40} />}</div>
+                  <div className="py-20 flex flex-col items-center text-center space-y-6 bg-zinc-900/20 border border-zinc-800 rounded-[10px] border-dashed">
+                    <div className="w-20 h-20 bg-zinc-900 rounded-[10px] flex items-center justify-center text-zinc-700">{orderSearchQuery ? <Search size={40} /> : <CheckCircle2 size={40} />}</div>
                     <div className="space-y-2">
                       <h3 className="text-xl font-bold text-white">{orderSearchQuery ? "Data tidak ditemukan" : "Belum Ada Penjualan Selesai"}</h3>
                       <p className="text-zinc-500 max-w-xs mx-auto text-sm">{orderSearchQuery ? "- Silakan cari dengan kata kunci lain -" : "Transaksi yang berhasil diselesaikan akan muncul di sini."}</p>
@@ -892,7 +892,7 @@ export default function SellerDashboardPage() {
                     <h2 className="text-xl font-black text-white">Pesanan Dibatalkan</h2>
                     <p className="text-xs text-zinc-500 mt-0.5">Daftar transaksi yang dibatalkan oleh Anda atau sistem</p>
                   </div>
-                  <div className="w-fit px-4 py-2 bg-red-500/10 border border-red-500/20 rounded-xl">
+                  <div className="w-fit px-4 py-2 bg-red-500/10 border border-red-500/20 rounded-[10px]">
                     <span className="text-xs font-black text-red-400 flex items-center gap-1.5">
                       <XCircle size={12} /> {cancelledOrders.length} Pesanan Dibatalkan
                     </span>
@@ -900,15 +900,15 @@ export default function SellerDashboardPage() {
                 </div>
 
                 {/* Filters */}
-                <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-3 flex flex-col md:flex-row gap-4">
+                <div className="bg-zinc-900 border border-zinc-800 rounded-[10px] p-3 flex flex-col md:flex-row gap-4">
                   <div className="relative flex-1">
                     <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500" size={16} />
-                    <input type="text" placeholder="Cari Order ID / Nomor Invoice..." value={orderSearchQuery} onChange={(e) => setOrderSearchQuery(e.target.value)} className="w-full bg-zinc-950 border border-zinc-800 rounded-xl py-2.5 pl-12 pr-4 text-white text-xs font-medium focus:border-emerald-500/50 outline-none transition-all" />
+                    <input type="text" placeholder="Cari Order ID / Nomor Invoice..." value={orderSearchQuery} onChange={(e) => setOrderSearchQuery(e.target.value)} className="w-full bg-zinc-950 border border-zinc-800 rounded-[10px] py-2.5 pl-12 pr-4 text-white text-xs font-medium focus:border-emerald-500/50 outline-none transition-all" />
                   </div>
                 </div>
 
                 {isLoadingOrders ? (
-                  <div className="py-24 flex flex-col items-center justify-center bg-zinc-900/30 border border-zinc-800 rounded-[3rem] min-h-[350px]">
+                  <div className="py-24 flex flex-col items-center justify-center bg-zinc-900/30 border border-zinc-800 rounded-[10px] min-h-[350px]">
                     <div className="relative w-20 h-20 flex items-center justify-center">
                       {/* Outer track */}
                       <div className="absolute inset-0 rounded-full border-4 border-emerald-500/10"></div>
@@ -922,7 +922,7 @@ export default function SellerDashboardPage() {
                 ) : cancelledOrders.length > 0 ? (
                   <>
                     {/* Desktop Table */}
-                    <div className="hidden md:block bg-zinc-900 border border-zinc-800 rounded-[2rem] overflow-hidden">
+                    <div className="hidden md:block bg-zinc-900 border border-zinc-800 rounded-[10px] overflow-hidden">
                       <div className="overflow-x-auto">
                         <table className="w-full">
                           <thead>
@@ -966,7 +966,7 @@ export default function SellerDashboardPage() {
                                       order.items.map((item, idx) => (
                                         <div key={item.id || idx} className="flex items-center gap-3">
                                           {item.product?.images?.[0] && (
-                                            <div className="w-10 h-10 rounded-xl overflow-hidden bg-zinc-800 shrink-0 border border-zinc-700">
+                                            <div className="w-10 h-10 rounded-[10px] overflow-hidden bg-zinc-800 shrink-0 border border-zinc-700">
                                               {isVideoUrl(item.product.images[0]) ? (
                                                 <video src={getImageUrl(item.product.images[0])} className="w-full h-full object-cover" preload="metadata" muted playsInline />
                                               ) : (
@@ -977,11 +977,11 @@ export default function SellerDashboardPage() {
                                           <div>
                                             <p className="text-sm font-bold text-zinc-300 truncate max-w-[140px]">{item.product?.name}</p>
                                             <div className="flex items-center flex-wrap gap-1.5 mt-1">
-                                              <span className="inline-block px-1.5 py-0.5 bg-zinc-950 text-[8px] text-zinc-400 rounded font-black uppercase tracking-widest border border-zinc-800">ID: {item.product?.product_id || "-"}</span>
-                                              <span className={`inline-block px-1.5 py-0.5 rounded text-[8px] font-black uppercase tracking-widest border ${item.product?.type === "auction" ? "bg-amber-500/10 text-amber-500 border-amber-500/20" : "bg-blue-500/10 text-blue-400 border-blue-500/20"}`}>
+                                              <span className="inline-block px-1.5 py-0.5 bg-zinc-950 text-[8px] text-zinc-400 rounded-[10px] font-black uppercase tracking-widest border border-zinc-800">ID: {item.product?.product_id || "-"}</span>
+                                              <span className={`inline-block px-1.5 py-0.5 rounded-[10px] text-[8px] font-black uppercase tracking-widest border ${item.product?.type === "auction" ? "bg-amber-500/10 text-amber-500 border-amber-500/20" : "bg-blue-500/10 text-blue-400 border-blue-500/20"}`}>
                                                 {item.product?.type === "auction" ? "Lelang" : "Reguler"}
                                               </span>
-                                              <span className="inline-block px-1.5 py-0.5 bg-zinc-950 text-[8px] text-zinc-500 rounded font-black uppercase tracking-widest border border-zinc-800">Qty: {item.quantity || 1}</span>
+                                              <span className="inline-block px-1.5 py-0.5 bg-zinc-950 text-[8px] text-zinc-500 rounded-[10px] font-black uppercase tracking-widest border border-zinc-800">Qty: {item.quantity || 1}</span>
                                             </div>
                                           </div>
                                         </div>
@@ -989,7 +989,7 @@ export default function SellerDashboardPage() {
                                     ) : (
                                       <div className="flex items-center gap-3">
                                         {order.product?.images?.[0] && (
-                                          <div className="w-10 h-10 rounded-xl overflow-hidden bg-zinc-800 shrink-0 border border-zinc-700">
+                                          <div className="w-10 h-10 rounded-[10px] overflow-hidden bg-zinc-800 shrink-0 border border-zinc-700">
                                             {isVideoUrl(order.product.images[0]) ? (
                                               <video src={getImageUrl(order.product.images[0])} className="w-full h-full object-cover" preload="metadata" muted playsInline />
                                             ) : (
@@ -1000,8 +1000,8 @@ export default function SellerDashboardPage() {
                                         <div>
                                           <p className="text-sm font-bold text-zinc-300 truncate max-w-[140px]">{order.product?.name}</p>
                                           <div className="flex items-center flex-wrap gap-1.5 mt-1">
-                                            <span className="inline-block px-1.5 py-0.5 bg-zinc-950 text-[8px] text-zinc-400 rounded font-black uppercase tracking-widest border border-zinc-800">ID: {order.product?.product_id || "-"}</span>
-                                            <span className={`inline-block px-1.5 py-0.5 rounded text-[8px] font-black uppercase tracking-widest border ${order.product?.type === "auction" ? "bg-amber-500/10 text-amber-500 border-amber-500/20" : "bg-blue-500/10 text-blue-400 border-blue-500/20"}`}>
+                                            <span className="inline-block px-1.5 py-0.5 bg-zinc-950 text-[8px] text-zinc-400 rounded-[10px] font-black uppercase tracking-widest border border-zinc-800">ID: {order.product?.product_id || "-"}</span>
+                                            <span className={`inline-block px-1.5 py-0.5 rounded-[10px] text-[8px] font-black uppercase tracking-widest border ${order.product?.type === "auction" ? "bg-amber-500/10 text-amber-500 border-amber-500/20" : "bg-blue-500/10 text-blue-400 border-blue-500/20"}`}>
                                               {order.product?.type === "auction" ? "Lelang" : "Reguler"}
                                             </span>
                                           </div>
@@ -1021,7 +1021,7 @@ export default function SellerDashboardPage() {
                                   {order.rejection_reason || order.cancellation_reason || "-"}
                                 </td>
                                 <td className="px-6 py-5 text-center">
-                                  <a href={`/user/toko/dashboard/detail/${order.id}`} className="inline-flex items-center gap-1.5 px-4 py-2 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 hover:text-white rounded-xl text-[10px] font-black uppercase tracking-widest transition-all border border-zinc-700 hover:border-zinc-600">
+                                  <a href={`/user/toko/dashboard/detail/${order.id}`} className="inline-flex items-center gap-1.5 px-4 py-2 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 hover:text-white rounded-[10px] text-[10px] font-black uppercase tracking-widest transition-all border border-zinc-700 hover:border-zinc-600">
                                     <ChevronRight size={12} /> Detail
                                   </a>
                                 </td>
@@ -1035,13 +1035,13 @@ export default function SellerDashboardPage() {
                     {/* Mobile Cards */}
                     <div className="md:hidden space-y-3">
                       {paginatedOrders.map((order, idx) => (
-                        <div key={order.id} className="bg-zinc-900 border border-zinc-800 rounded-[2rem] overflow-hidden">
+                        <div key={order.id} className="bg-zinc-900 border border-zinc-800 rounded-[10px] overflow-hidden">
                           <div className="px-5 py-3 border-b border-zinc-800 bg-red-500/5 flex items-center justify-between">
                             <div className="flex items-center gap-3">
-                              <span className="w-6 h-6 bg-zinc-800 rounded-lg flex items-center justify-center text-[9px] font-black text-zinc-500">{(currentPage - 1) * itemsPerPage + idx + 1}</span>
+                              <span className="w-6 h-6 bg-zinc-800 rounded-[10px] flex items-center justify-center text-[9px] font-black text-zinc-500">{(currentPage - 1) * itemsPerPage + idx + 1}</span>
                               <span className="text-[10px] font-black text-white font-mono">{order.order_id}</span>
                             </div>
-                            <span className="px-2 py-1 rounded-lg text-[9px] font-black bg-red-500/10 text-red-400 border border-red-500/20 uppercase tracking-widest">Batal</span>
+                            <span className="px-2 py-1 rounded-[10px] text-[9px] font-black bg-red-500/10 text-red-400 border border-red-500/20 uppercase tracking-widest">Batal</span>
                           </div>
                           <div className="p-5 space-y-3">
                             <div className="flex items-center justify-between">
@@ -1053,10 +1053,10 @@ export default function SellerDashboardPage() {
                               {order.items && order.items.length > 0 ? (
                                 <div className="space-y-2">
                                   {order.items.map((item, idx) => (
-                                    <div key={item.id || idx} className="flex items-center justify-between bg-zinc-950/20 p-2.5 rounded-xl border border-zinc-800/40">
+                                    <div key={item.id || idx} className="flex items-center justify-between bg-zinc-950/20 p-2.5 rounded-[10px] border border-zinc-800/40">
                                       <div className="flex items-center gap-2.5">
                                         {item.product?.images?.[0] && (
-                                          <div className="w-8 h-8 rounded-lg overflow-hidden bg-zinc-800 shrink-0 border border-zinc-700">
+                                          <div className="w-8 h-8 rounded-[10px] overflow-hidden bg-zinc-800 shrink-0 border border-zinc-700">
                                             {isVideoUrl(item.product.images[0]) ? (
                                               <video src={getImageUrl(item.product.images[0])} className="w-full h-full object-cover" preload="metadata" muted playsInline />
                                             ) : (
@@ -1077,8 +1077,8 @@ export default function SellerDashboardPage() {
                                 <div className="text-right">
                                   <span className="text-xs font-bold text-zinc-300 truncate max-w-[160px] block">{order.product?.name}</span>
                                   <div className="flex items-center justify-end gap-1.5 mt-1">
-                                    <span className="inline-block px-1.5 py-0.5 bg-zinc-950 text-[8px] text-zinc-400 rounded font-black uppercase tracking-widest border border-zinc-800">ID: {order.product?.product_id || "-"}</span>
-                                    <span className={`inline-block px-1.5 py-0.5 rounded text-[8px] font-black uppercase tracking-widest border ${order.product?.type === "auction" ? "bg-amber-500/10 text-amber-500 border-amber-500/20" : "bg-blue-500/10 text-blue-400 border-blue-500/20"}`}>
+                                    <span className="inline-block px-1.5 py-0.5 bg-zinc-950 text-[8px] text-zinc-400 rounded-[10px] font-black uppercase tracking-widest border border-zinc-800">ID: {order.product?.product_id || "-"}</span>
+                                    <span className={`inline-block px-1.5 py-0.5 rounded-[10px] text-[8px] font-black uppercase tracking-widest border ${order.product?.type === "auction" ? "bg-amber-500/10 text-amber-500 border-amber-500/20" : "bg-blue-500/10 text-blue-400 border-blue-500/20"}`}>
                                       {order.product?.type === "auction" ? "Lelang" : "Reguler"}
                                     </span>
                                   </div>
@@ -1114,7 +1114,7 @@ export default function SellerDashboardPage() {
                                 <span className="text-xs font-semibold text-zinc-400 italic max-w-[200px] text-right">{order.rejection_reason}</span>
                               </div>
                             )}
-                            <a href={`/user/toko/dashboard/detail/${order.id}`} className="w-full flex items-center justify-center gap-2 py-3 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 hover:text-white rounded-xl text-[10px] font-black uppercase tracking-widest transition-all border border-zinc-700 mt-1">
+                            <a href={`/user/toko/dashboard/detail/${order.id}`} className="w-full flex items-center justify-center gap-2 py-3 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 hover:text-white rounded-[10px] text-[10px] font-black uppercase tracking-widest transition-all border border-zinc-700 mt-1">
                               <ChevronRight size={12} /> Detail
                             </a>
                           </div>
@@ -1129,7 +1129,7 @@ export default function SellerDashboardPage() {
                           Menampilkan {indexOfFirstItem + 1}-{Math.min(indexOfLastItem, cancelledOrders.length)} dari {cancelledOrders.length} Pesanan
                         </p>
                         <div className="flex items-center order-1 md:order-2">
-                          <div className="inline-flex rounded-xl border border-zinc-800 bg-zinc-950 divide-x divide-zinc-800 overflow-hidden">
+                          <div className="inline-flex rounded-[10px] border border-zinc-800 bg-zinc-950 divide-x divide-zinc-800 overflow-hidden">
                             <button onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))} disabled={currentPage === 1} className="w-10 h-10 flex items-center justify-center text-zinc-400 hover:text-white hover:bg-zinc-900/50 disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-transparent transition-all">
                               <ChevronLeft size={16} />
                             </button>
@@ -1158,8 +1158,8 @@ export default function SellerDashboardPage() {
                     )}
                   </>
                 ) : (
-                  <div className="py-20 flex flex-col items-center text-center space-y-6 bg-zinc-900/20 border border-zinc-800 rounded-[3rem] border-dashed">
-                    <div className="w-20 h-20 bg-zinc-900 rounded-3xl flex items-center justify-center text-zinc-700">{orderSearchQuery ? <Search size={40} /> : <XCircle size={40} />}</div>
+                  <div className="py-20 flex flex-col items-center text-center space-y-6 bg-zinc-900/20 border border-zinc-800 rounded-[10px] border-dashed">
+                    <div className="w-20 h-20 bg-zinc-900 rounded-[10px] flex items-center justify-center text-zinc-700">{orderSearchQuery ? <Search size={40} /> : <XCircle size={40} />}</div>
                     <div className="space-y-2">
                       <h3 className="text-xl font-bold text-white">{orderSearchQuery ? "Data tidak ditemukan" : "Tidak Ada Pesanan Dibatalkan"}</h3>
                       <p className="text-zinc-500 max-w-xs mx-auto text-sm">{orderSearchQuery ? "- Silakan cari dengan kata kunci lain -" : "Pesanan yang dibatalkan akan muncul di sini."}</p>
@@ -1172,7 +1172,7 @@ export default function SellerDashboardPage() {
 
         {activeTab === "dashboard" && (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 animate-in fade-in duration-500">
-            <div className="bg-zinc-900 border border-zinc-800 rounded-3xl p-8 relative overflow-hidden group">
+            <div className="bg-zinc-900 border border-zinc-800 rounded-[10px] p-8 relative overflow-hidden group">
               <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
                 <MessageCircle size={100} />
               </div>
@@ -1184,7 +1184,7 @@ export default function SellerDashboardPage() {
               </button>
             </div>
 
-            <div className="bg-zinc-900 border border-zinc-800 rounded-3xl p-8 relative overflow-hidden group">
+            <div className="bg-zinc-900 border border-zinc-800 rounded-[10px] p-8 relative overflow-hidden group">
               <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
                 <AlertCircle size={100} />
               </div>
@@ -1204,10 +1204,10 @@ export default function SellerDashboardPage() {
         <div className="fixed inset-0 z-[300] flex items-center justify-center p-4 md:p-10">
           <div className="absolute inset-0 bg-zinc-950/95 backdrop-blur-xl animate-in fade-in duration-300" onClick={() => setZoomImage(null)} />
           <div className="relative z-10 w-full max-w-4xl animate-in zoom-in-95 duration-300">
-            <button onClick={() => setZoomImage(null)} className="absolute -top-12 right-0 w-10 h-10 bg-white/10 hover:bg-white text-white hover:text-zinc-950 rounded-full flex items-center justify-center transition-all border border-white/10">
+            <button onClick={() => setZoomImage(null)} className="absolute -top-12 right-0 w-10 h-10 bg-white/10 hover:bg-white text-white hover:text-zinc-950 rounded-[10px] flex items-center justify-center transition-all border border-white/10">
               <X size={20} />
             </button>
-            <div className="rounded-[2rem] overflow-hidden border border-white/10">
+            <div className="rounded-[10px] overflow-hidden border border-white/10">
               <img src={zoomImage} alt="Bukti Pengiriman" className="w-full h-auto object-contain max-h-[80vh]" />
             </div>
           </div>
@@ -1218,7 +1218,7 @@ export default function SellerDashboardPage() {
       {showCostModal && selectedOrder && (
         <div className="fixed inset-0 z-[120] flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-zinc-950/90 backdrop-blur-xl animate-in fade-in duration-300" onClick={() => setShowCostModal(false)}></div>
-          <div className="bg-zinc-900 border border-zinc-800 w-full max-w-xl rounded-[3rem] relative z-10 overflow-hidden animate-in zoom-in-95 duration-300 border-t-zinc-700">
+          <div className="bg-zinc-900 border border-zinc-800 w-full max-w-xl rounded-[10px] relative z-10 overflow-hidden animate-in zoom-in-95 duration-300 border-t-zinc-700">
             <div className="p-10 space-y-8">
               <div className="flex items-center justify-between">
                 <div className="space-y-1">
@@ -1227,13 +1227,13 @@ export default function SellerDashboardPage() {
                     Tentukan biaya kirim untuk pesanan <span className="text-pink-500 font-bold">{selectedOrder.order_id}</span>
                   </p>
                 </div>
-                <button onClick={() => setShowCostModal(false)} className="w-10 h-10 rounded-full bg-zinc-800 flex items-center justify-center text-zinc-400 hover:text-white transition-colors">
+                <button onClick={() => setShowCostModal(false)} className="w-10 h-10 rounded-[10px] bg-zinc-800 flex items-center justify-center text-zinc-400 hover:text-white transition-colors">
                   <X size={20} />
                 </button>
               </div>
 
               {/* Info Box: Alamat Pembeli */}
-              <div className="bg-zinc-950/50 border border-zinc-800 rounded-2xl p-6 space-y-3">
+              <div className="bg-zinc-950/50 border border-zinc-800 rounded-[10px] p-6 space-y-3">
                 <div className="flex items-center gap-2 text-zinc-500">
                   <MapPin size={14} className="text-pink-500" />
                   <span className="text-[10px] font-black uppercase tracking-widest">Alamat Tujuan</span>
@@ -1261,7 +1261,7 @@ export default function SellerDashboardPage() {
                             shipping_cost: e.target.value,
                           })
                         }
-                        className="w-full bg-zinc-950 border border-zinc-800 rounded-2xl py-4 pl-12 pr-6 text-white focus:outline-none focus:border-pink-500 transition-all font-bold"
+                        className="w-full bg-zinc-950 border border-zinc-800 rounded-[10px] py-4 pl-12 pr-6 text-white focus:outline-none focus:border-pink-500 transition-all font-bold"
                         placeholder="0"
                       />
                     </div>
@@ -1280,7 +1280,7 @@ export default function SellerDashboardPage() {
                             packing_cost: e.target.value,
                           })
                         }
-                        className="w-full bg-zinc-950 border border-zinc-800 rounded-2xl py-4 pl-12 pr-6 text-white focus:outline-none focus:border-pink-500 transition-all font-bold"
+                        className="w-full bg-zinc-950 border border-zinc-800 rounded-[10px] py-4 pl-12 pr-6 text-white focus:outline-none focus:border-pink-500 transition-all font-bold"
                         placeholder="0"
                       />
                     </div>
@@ -1288,7 +1288,7 @@ export default function SellerDashboardPage() {
                 </div>
 
                 {/* Summary Box */}
-                <div className="bg-zinc-800/30 rounded-3xl p-6 space-y-4 border border-zinc-800">
+                <div className="bg-zinc-800/30 rounded-[10px] p-6 space-y-4 border border-zinc-800">
                   <div className="space-y-2">
                     <div className="flex justify-between text-xs font-bold">
                       <span className="text-zinc-500">Harga Produk ({getSelectedOrderQty()}x)</span>
@@ -1311,10 +1311,10 @@ export default function SellerDashboardPage() {
                 </div>
 
                 <div className="flex gap-4 pt-4">
-                  <button type="button" onClick={() => setShowCostModal(false)} className="flex-1 py-4 bg-zinc-800 hover:bg-zinc-700 text-white font-black rounded-2xl transition-all active:scale-95 border border-zinc-700">
+                  <button type="button" onClick={() => setShowCostModal(false)} className="flex-1 py-4 bg-zinc-800 hover:bg-zinc-700 text-white font-black rounded-[10px] transition-all active:scale-95 border border-zinc-700">
                     Batal
                   </button>
-                  <button type="submit" disabled={isUpdatingCost} className="flex-1 py-4 bg-pink-500 hover:bg-pink-400 text-zinc-950 font-black rounded-2xl transition-all active:scale-95 disabled:opacity-50 flex items-center justify-center gap-2">
+                  <button type="submit" disabled={isUpdatingCost} className="flex-1 py-4 bg-pink-500 hover:bg-pink-400 text-zinc-950 font-black rounded-[10px] transition-all active:scale-95 disabled:opacity-50 flex items-center justify-center gap-2">
                     {isUpdatingCost ? (
                       <>
                         <div className="w-4 h-4 border-2 border-zinc-950 border-t-transparent rounded-full animate-spin"></div>

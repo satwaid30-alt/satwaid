@@ -14,8 +14,8 @@ export default function QuotaCard({ quota, loading = false, compact = false }) {
   if (loading) {
     if (compact) {
       return (
-        <div className="bg-zinc-900 border border-zinc-800 p-3 md:p-5 rounded-xl md:rounded-2xl flex items-center gap-2 md:gap-4 min-w-0">
-          <div className="w-9 h-9 md:w-12 md:h-12 rounded-lg md:rounded-xl bg-zinc-800 shrink-0" />
+        <div className="bg-zinc-900 border border-zinc-800 p-3 md:p-5 rounded-[10px] flex items-center gap-2 md:gap-4 min-w-0">
+          <div className="w-9 h-9 md:w-12 md:h-12 rounded-[10px] bg-zinc-800 shrink-0" />
           <div className="flex-1 space-y-2 min-w-0">
             <div className="h-2.5 bg-zinc-800 rounded w-16" />
             <div className="h-4 bg-zinc-800 rounded w-10" />
@@ -25,10 +25,10 @@ export default function QuotaCard({ quota, loading = false, compact = false }) {
       );
     }
     return (
-      <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-4 sm:p-5">
+      <div className="bg-zinc-900 border border-zinc-800 rounded-[10px] p-4 sm:p-5">
         <div className="flex items-center justify-between gap-3 mb-4">
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 bg-zinc-800 rounded-xl shrink-0" />
+            <div className="w-9 h-9 bg-zinc-800 rounded-[10px] shrink-0" />
             <div className="space-y-2">
               <div className="h-2.5 bg-zinc-800 rounded w-28" />
               <div className="h-2 bg-zinc-800 rounded w-20" />
@@ -94,8 +94,8 @@ export default function QuotaCard({ quota, loading = false, compact = false }) {
   // ─── COMPACT MODE (Dashboard stats grid) ─────────────────────────────────
   if (compact) {
     return (
-      <div className="bg-zinc-900 border border-zinc-800 p-3 md:p-5 rounded-xl md:rounded-2xl flex items-center gap-2 md:gap-4 min-w-0">
-        <div className={`w-9 h-9 md:w-12 md:h-12 rounded-lg md:rounded-xl ${color.bg} ${color.text} flex items-center justify-center shrink-0`}>
+      <div className="bg-zinc-900 border border-zinc-800 p-3 md:p-5 rounded-[10px] flex items-center gap-2 md:gap-4 min-w-0">
+        <div className={`w-9 h-9 md:w-12 md:h-12 rounded-[10px] ${color.bg} ${color.text} flex items-center justify-center shrink-0`}>
           <LayoutGrid size={18} className="md:hidden" />
           <LayoutGrid size={24} className="hidden md:block" />
         </div>
@@ -115,11 +115,11 @@ export default function QuotaCard({ quota, loading = false, compact = false }) {
 
   // ─── FULL MODE (jual, lelang, daftar-produk pages) ───────────────────────
   return (
-    <div className={`bg-zinc-900 border ${color.border} rounded-2xl sm:rounded-3xl p-4 sm:p-5`}>
+    <div className={`bg-zinc-900 border ${color.border} rounded-[10px] p-4 sm:p-5`}>
       {/* Header Row */}
       <div className="flex items-start justify-between gap-2 mb-4">
         <div className="flex items-center gap-2.5 min-w-0">
-          <div className={`w-8 h-8 sm:w-9 sm:h-9 rounded-xl ${color.bg} ${color.text} flex items-center justify-center shrink-0`}>
+          <div className={`w-8 h-8 sm:w-9 sm:h-9 rounded-[10px] ${color.bg} ${color.text} flex items-center justify-center shrink-0`}>
             <LayoutGrid size={16} />
           </div>
           <div className="min-w-0">
