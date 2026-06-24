@@ -509,6 +509,20 @@ function DetailContent() {
           message: `Penawaran Anda sebesar Rp ${new Intl.NumberFormat("id-ID").format(numericBidAmount)} telah berhasil dipasang.`,
           onConfirm: null,
         });
+      } else if (response.status === 401 || response.status === 403) {
+        localStorage.removeItem("token");
+        localStorage.removeItem("user");
+        setActionModal({
+          isOpen: true,
+          type: "warning",
+          title: "Sesi Habis",
+          message: "Sesi login Anda telah habis atau tidak valid. Silakan login ulang untuk melanjutkan.",
+          confirmText: "Login Sekarang",
+          cancelText: "Batal",
+          onConfirm: () => {
+            window.location.href = "/login";
+          },
+        });
       } else {
         setActionModal({
           isOpen: true,

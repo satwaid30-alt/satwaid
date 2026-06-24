@@ -20,7 +20,7 @@ export default function ShippingInfo({ order }) {
   return (
     <>
       {/* Detailed Shipping Info */}
-      <div className="p-2 sm:p-5 space-y-4 sm:space-y-4 animate-in slide-in-from-top-4 duration-500 relative overflow-hidden">
+      <div className="p-2 sm:p-5 space-y-4 sm:space-y-4 animate-in slide-in-from-top-4 duration-500 relative overflow-hidden bg-zinc-900 border border-zinc-800 rounded-[10px]">
         {/* Decorative Background */}
         <div className="absolute top-0 right-0 w-64 h-64 bg-blue-500/5 blur-[100px] -z-10 rounded-full"></div>
 

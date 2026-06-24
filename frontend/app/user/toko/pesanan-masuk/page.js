@@ -486,16 +486,7 @@ export default function PesananMasukPage() {
                 </div>
               </div>
 
-              {/* Auto Confirmation Notice Banner */}
-              {order.status === "shipped" && (
-                <div className="mx-4 md:mx-6 mt-4 p-3.5 bg-amber-500/10 border border-amber-500/20 rounded-[10px] flex items-start gap-3 animate-in slide-in-from-top-2 duration-300">
-                  <Info size={16} className="text-amber-500 shrink-0 mt-0.5" />
-                  <div className="space-y-0.5">
-                    <p className="text-[8px] font-black text-amber-500 uppercase tracking-widest leading-none">Informasi Penyelesaian Otomatis</p>
-                    <p className="text-[9px] text-zinc-400 font-bold italic leading-relaxed">Jika tidak ada konfirmasi pembeli dalam 2×24 jam, transaksi akan diproses otomatis. Hubungi admin jika membutuhkan bantuan lebih lanjut.</p>
-                  </div>
-                </div>
-              )}
+
 
               {/* Complaint Notification for Seller */}
               {order.status === "complained" && (

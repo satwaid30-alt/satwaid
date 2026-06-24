@@ -57,6 +57,8 @@ export default function DaftarJualanPage() {
   const [filterType, setFilterType] = useState("all");
   const [filterStatus, setFilterStatus] = useState("all");
   const [currentPage, setCurrentPage] = useState(1);
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
   const itemsPerPage = 10;
   const [shopId, setShopId] = useState(null);
   const { quota, loading: quotaLoading } = useShopQuota(shopId);
@@ -309,9 +311,26 @@ export default function DaftarJualanPage() {
       matchesStatus = effectiveStatus === filterStatus;
     }
 
+    let matchesDate = true;
+    if (item.created_at) {
+      const listingDate = new Date(item.created_at);
+      listingDate.setHours(0, 0, 0, 0);
+
+      if (startDate) {
+        const start = new Date(startDate);
+        start.setHours(0, 0, 0, 0);
+        if (listingDate < start) matchesDate = false;
+      }
+      if (endDate) {
+        const end = new Date(endDate);
+        end.setHours(23, 59, 59, 999);
+        if (listingDate > end) matchesDate = false;
+      }
+    }
+
     const rows = [];
 
-    if (matchesSearch && matchesType && matchesStatus) {
+    if (matchesSearch && matchesType && matchesStatus && matchesDate) {
       rows.push({ ...item, isVirtual: false, displayStatus: effectiveStatus });
     }
 
@@ -497,6 +516,41 @@ export default function DaftarJualanPage() {
           <input type="text" placeholder="Cari nama Produk atau id produk..." className="w-full bg-zinc-950 border border-transparent rounded-[10px] pl-14 pr-6 py-4 text-sm text-white focus:border-emerald-500 transition-all outline-none" value={searchQuery} onChange={(e) => handleSearchChange(e.target.value)} />
         </div>
         <div className="flex flex-col md:flex-row gap-2 w-full md:w-auto">
+          <div className="flex items-center justify-center gap-2 bg-zinc-950 border border-zinc-800 rounded-[10px] px-3 py-2 w-full md:w-auto">
+            <input
+              type="date"
+              value={startDate}
+              onChange={(e) => {
+                setStartDate(e.target.value);
+                setCurrentPage(1);
+              }}
+              style={{ colorScheme: "dark" }}
+              className="bg-transparent text-white text-xs font-bold outline-none cursor-pointer w-full sm:w-auto text-center"
+            />
+            <span className="text-zinc-500 text-xs font-bold">s/d</span>
+            <input
+              type="date"
+              value={endDate}
+              onChange={(e) => {
+                setEndDate(e.target.value);
+                setCurrentPage(1);
+              }}
+              style={{ colorScheme: "dark" }}
+              className="bg-transparent text-white text-xs font-bold outline-none cursor-pointer w-full sm:w-auto text-center"
+            />
+            {(startDate || endDate) && (
+              <button
+                onClick={() => {
+                  setStartDate("");
+                  setEndDate("");
+                  setCurrentPage(1);
+                }}
+                className="text-red-400 hover:text-red-300 text-[10px] font-black uppercase ml-1 shrink-0"
+              >
+                Reset
+              </button>
+            )}
+          </div>
           <div className="hidden md:flex bg-zinc-950 border border-zinc-800 rounded-[10px] p-1.5">
             {[
               { id: "all", label: "Tipe: Semua" },

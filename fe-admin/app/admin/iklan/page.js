@@ -141,7 +141,7 @@ export default function ManageAds() {
 
         // Upload
         try {
-            const token = localStorage.getItem("token") || localStorage.getItem("admin_token");
+            const token = localStorage.getItem("admin_token");
             const { objectKey } = await uploadImageToS3(file, token, "advertisements");
             setFormData(prev => ({ ...prev, image_url: "/" + objectKey }));
             showNotification("success", "Gambar berhasil diunggah");
@@ -172,7 +172,7 @@ export default function ManageAds() {
 
         // Upload
         try {
-            const token = localStorage.getItem("token") || localStorage.getItem("admin_token");
+            const token = localStorage.getItem("admin_token");
             const { objectKey } = await uploadImageToS3(file, token, "advertisements");
             setFormData(prev => ({ ...prev, mobile_image_url: "/" + objectKey }));
             showNotification("success", "Gambar mobile berhasil diunggah");

@@ -23,7 +23,7 @@ exports.checkAuth = (req, res, next) => {
                     }
                     const activeSessionId = global.activeSessions.get(decoded.id);
                     if (activeSessionId && activeSessionId !== decoded.session_id) {
-                        return res.status(401).send({ message: 'Session expired' });
+                        return res.status(401).send({ message: 'Session expired silakan login kembali' });
                     }
                     if (!activeSessionId) {
                         global.activeSessions.set(decoded.id, decoded.session_id);
@@ -79,7 +79,7 @@ exports.checkAuthAdmin = (req, res, next) => {
                             }
                             const activeSessionId = global.activeSessions.get(decoded.id);
                             if (activeSessionId && activeSessionId !== decoded.session_id) {
-                                return res.status(401).send({ message: 'Session expired' });
+                                return res.status(401).send({ message: 'Session expired silakan login kembali' });
                             }
                             if (!activeSessionId) {
                                 global.activeSessions.set(decoded.id, decoded.session_id);

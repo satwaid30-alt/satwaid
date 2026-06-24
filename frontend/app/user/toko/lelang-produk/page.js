@@ -495,8 +495,8 @@ export default function LelangProdukPage() {
                   <ScrollText size={24} />
                 </div>
                 <div>
-                  <h2 className="text-xl font-black text-amber-500 uppercase tracking-tight">Peraturan Jualan</h2>
-                  <p className="text-amber-500/60 text-sm">Wajib dibaca dan dipatuhi oleh semua penjual</p>
+                  <h2 className="text-base sm:text-xl font-black text-amber-500 uppercase tracking-tight leading-tight">Peraturan Jualan</h2>
+                  <p className="text-amber-500/60 text-[10px] sm:text-sm mt-0.5 leading-tight">Wajib dibaca dan dipatuhi oleh semua penjual</p>
                 </div>
               </div>
               <div className="w-10 h-10 rounded-full border border-amber-500/20 flex items-center justify-center text-amber-500">{showRules ? <ChevronUp size={20} /> : <ChevronDown size={20} />}</div>

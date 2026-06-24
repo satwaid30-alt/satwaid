@@ -265,7 +265,7 @@ export default function TransactionProcessPage({ params }) {
             <OrderTimeline order={order} formatPrice={formatPrice} />
           </div>
           {/* Dynamic Action Card based on Status */}
-          <div className="bg-zinc-900 border border-zinc-800 rounded-[3rem] p-10 relative overflow-hidden">
+          <div className="bg-zinc-900 border border-zinc-800 rounded-[10px] p-10 relative overflow-hidden">
             <div className="flex flex-col md:flex-row items-center gap-8">
               <div className="w-24 h-24 bg-emerald-500/10 text-emerald-500 rounded-[2rem] flex items-center justify-center shrink-0 border border-emerald-500/20">
                 {["completed", "disbursement_requested", "disbursed"].includes(order.status) ? <CheckCircle2 size={48} /> : order.status === "complained" ? <ShieldAlert size={48} className="text-red-500" /> : <Info size={48} />}
@@ -335,7 +335,7 @@ export default function TransactionProcessPage({ params }) {
                   </button>
                 )}
                 {order.status === "waiting_payment" && (
-                  <Link href={`/user/pesanan/bayar/${id}`} className="w-full md:w-auto px-10 py-5 bg-[#2563EB] hover:bg-[#1D4ED8] text-[#FFFFFF] font-black rounded-2xl transition-all active:scale-95 flex items-center justify-center gap-3">
+                  <Link href={`/user/pesanan/bayar/${id}`} className="w-full md:w-auto px-10 py-5 bg-[#228B22] hover:bg-[#4CBB17] text-[#FFFFFF] font-black rounded-2xl transition-all active:scale-95 flex items-center justify-center gap-3">
                     Bayar Sekarang <CreditCard size={20} />
                   </Link>
                 )}
@@ -358,11 +358,11 @@ export default function TransactionProcessPage({ params }) {
         {/* Sidebar Summary */}
         <div className="lg:col-span-4 space-y-4 lg:space-y-8 mt-[-8px] lg:mt-0">
           {/* Kontak Penjual */}
-          <div className="bg-zinc-900 border border-zinc-800 rounded-[3rem] p-8 space-y-6">
+          <div className="bg-zinc-900 border border-zinc-800 rounded-[10px] p-8 space-y-6">
             <h3 className="text-[10px] font-black text-zinc-100 uppercase tracking-widest flex items-center gap-2">
               <Store size={14} className="text-blue-500" /> Kontak Penjual
             </h3>
-            <div className="p-4 bg-zinc-950/50 rounded-3xl border border-zinc-800/50 space-y-4">
+            <div className="p-4 bg-zinc-950/50 rounded-[10px] border border-zinc-800/50 space-y-4">
               <div className="flex items-center gap-4">
                 <div className="w-12 h-12 bg-zinc-900 rounded-xl flex items-center justify-center text-emerald-500 shrink-0 border border-zinc-800 overflow-hidden">{order.shop?.logo_url ? <img src={getLogoUrl(order.shop.logo_url)} className="w-full h-full object-cover" alt={order.shop?.name} /> : <Store size={24} />}</div>
                 <div className="flex-1 min-w-0">
@@ -386,7 +386,7 @@ export default function TransactionProcessPage({ params }) {
           </div>
 
           {/* Alamat Pengiriman */}
-          <div className="bg-zinc-900 border border-zinc-800 rounded-[3rem] p-8 space-y-6">
+          <div className="bg-zinc-900 border border-zinc-800 rounded-[10px] p-8 space-y-6">
             <div className="flex items-center justify-between">
               <h3 className="text-[10px] font-black text-zinc-100 uppercase tracking-widest flex items-center gap-2">
                 <MapPin size={14} className="text-pink-500" /> Alamat Pengiriman
@@ -398,7 +398,7 @@ export default function TransactionProcessPage({ params }) {
               )}
             </div>
             {order.shipping_address ? (
-              <div className="p-5 bg-zinc-950/50 rounded-3xl border border-zinc-800/50 space-y-4">
+              <div className="p-5 bg-zinc-950/50 rounded-[10px] border border-zinc-800/50 space-y-4">
                 <div className="space-y-1">
                   <p className="text-sm text-white font-black uppercase tracking-tight">{order.receiver_name || "Nama Belum Diisi"}</p>
                   <p className="text-xs text-zinc-400 leading-relaxed font-medium line-clamp-3">{order.shipping_address || "Alamat belum dilengkapi"}</p>
@@ -439,7 +439,7 @@ export default function TransactionProcessPage({ params }) {
           </div>
 
           {/* Ringkasan Biaya */}
-          <div className="bg-zinc-900 border border-zinc-800 rounded-[3rem] p-8 space-y-8">
+          <div className="bg-zinc-900 border border-zinc-800 rounded-[10px] p-8 space-y-8">
             <h3 className="text-[10px] font-black text-zinc-100 uppercase tracking-widest flex items-center gap-2">
               <CreditCard size={14} className="text-emerald-500" /> Ringkasan Pembayaran
             </h3>

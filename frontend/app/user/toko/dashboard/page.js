@@ -53,6 +53,8 @@ export default function SellerDashboardPage() {
   const [orderSearchQuery, setOrderSearchQuery] = useState("");
   const [orderStatusFilter, setOrderStatusFilter] = useState("completed");
   const [currentPage, setCurrentPage] = useState(1);
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
   const itemsPerPage = 15;
 
   const adminRejectedOrders = orders.filter((order) => {
@@ -181,7 +183,7 @@ export default function SellerDashboardPage() {
   // Reset page when filter or search changes
   useEffect(() => {
     setCurrentPage(1);
-  }, [orderSearchQuery, orderStatusFilter]);
+  }, [orderSearchQuery, orderStatusFilter, startDate, endDate]);
 
   const handleCostSubmit = async (e) => {
     e.preventDefault();
@@ -345,6 +347,22 @@ export default function SellerDashboardPage() {
             label: "Produk Terjual",
             value: orders
               .filter((o) => ["completed", "disbursement_requested", "disbursed"].includes(o.status))
+              .filter((o) => {
+                if (!o.created_at) return true;
+                const orderDate = new Date(o.created_at);
+                orderDate.setHours(0, 0, 0, 0);
+                if (startDate) {
+                  const start = new Date(startDate);
+                  start.setHours(0, 0, 0, 0);
+                  if (orderDate < start) return false;
+                }
+                if (endDate) {
+                  const end = new Date(endDate);
+                  end.setHours(23, 59, 59, 999);
+                  if (orderDate > end) return false;
+                }
+                return true;
+              })
               .reduce((sum, o) => {
                 const qty = o.items && o.items.length > 0 ? o.items.reduce((itemSum, item) => itemSum + (item.quantity || 1), 0) : o.quantity || 1;
                 return sum + qty;
@@ -355,7 +373,25 @@ export default function SellerDashboardPage() {
           },
           {
             label: "Pesanan Batal",
-            value: orders.filter((o) => o.status === "cancelled").length.toString(),
+            value: orders
+              .filter((o) => o.status === "cancelled")
+              .filter((o) => {
+                if (!o.created_at) return true;
+                const orderDate = new Date(o.created_at);
+                orderDate.setHours(0, 0, 0, 0);
+                if (startDate) {
+                  const start = new Date(startDate);
+                  start.setHours(0, 0, 0, 0);
+                  if (orderDate < start) return false;
+                }
+                if (endDate) {
+                  const end = new Date(endDate);
+                  end.setHours(23, 59, 59, 999);
+                  if (orderDate > end) return false;
+                }
+                return true;
+              })
+              .length.toString(),
             icon: XCircle,
             color: "bg-red-500",
           },
@@ -364,6 +400,22 @@ export default function SellerDashboardPage() {
             value: (() => {
               const total = orders
                 .filter((o) => ["completed", "disbursement_requested", "disbursed"].includes(o.status))
+                .filter((o) => {
+                  if (!o.created_at) return true;
+                  const orderDate = new Date(o.created_at);
+                  orderDate.setHours(0, 0, 0, 0);
+                  if (startDate) {
+                    const start = new Date(startDate);
+                    start.setHours(0, 0, 0, 0);
+                    if (orderDate < start) return false;
+                  }
+                  if (endDate) {
+                    const end = new Date(endDate);
+                    end.setHours(23, 59, 59, 999);
+                    if (orderDate > end) return false;
+                  }
+                  return true;
+                })
                 .reduce((sum, order) => {
                   const netPrice = (parseFloat(order.total_price) || 0) - (parseFloat(order.admin_fee) || 0);
                   return sum + netPrice;
@@ -488,7 +540,25 @@ export default function SellerDashboardPage() {
               const matchesStatus = orderStatusFilter === "all" ? o.status !== "cancelled" : orderStatusFilter === "processing" ? inProgressStatuses.includes(o.status) : orderStatusFilter === "completed" ? completedStatuses.includes(o.status) : o.status === orderStatusFilter;
 
               const matchesSearch = matchesProductSearch(o);
-              return matchesStatus && matchesSearch;
+
+              let matchesDate = true;
+              if (o.created_at) {
+                const orderDate = new Date(o.created_at);
+                orderDate.setHours(0, 0, 0, 0);
+
+                if (startDate) {
+                  const start = new Date(startDate);
+                  start.setHours(0, 0, 0, 0);
+                  if (orderDate < start) matchesDate = false;
+                }
+                if (endDate) {
+                  const end = new Date(endDate);
+                  end.setHours(23, 59, 59, 999);
+                  if (orderDate > end) matchesDate = false;
+                }
+              }
+
+              return matchesStatus && matchesSearch && matchesDate;
             });
 
             const indexOfLastItem = currentPage * itemsPerPage;
@@ -511,7 +581,7 @@ export default function SellerDashboardPage() {
                 </div>
 
                 {/* Filters */}
-                <div className="bg-zinc-900 border border-zinc-800 rounded-[10px] p-3 flex flex-col md:flex-row gap-4">
+                <div className="bg-zinc-900 border border-zinc-800 rounded-[10px] p-3 flex flex-col lg:flex-row gap-3">
                   <div className="relative flex-1">
                     <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500" size={16} />
                     <input
@@ -522,19 +592,49 @@ export default function SellerDashboardPage() {
                       className="w-full bg-zinc-950 border border-zinc-800 rounded-[10px] py-2.5 pl-12 pr-4 text-white text-xs font-medium focus:border-emerald-500/50 outline-none transition-all"
                     />
                   </div>
-                  <div className="flex items-center gap-2 bg-zinc-950 border border-zinc-800 rounded-[10px] px-4 py-2">
-                    <Filter size={14} className="text-zinc-500" />
-                    <select value={orderStatusFilter} onChange={(e) => setOrderStatusFilter(e.target.value)} className="bg-transparent text-white text-xs font-bold outline-none cursor-pointer pr-4">
-                      <option value="completed" className="bg-zinc-900">
-                        Selesai
-                      </option>
-                      <option value="processing" className="bg-zinc-900">
-                        Dalam Proses
-                      </option>
-                      <option value="all" className="bg-zinc-900">
-                        Semua Status
-                      </option>
-                    </select>
+                  <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full lg:w-auto">
+                    <div className="flex items-center justify-between sm:justify-start gap-2 bg-zinc-950 border border-zinc-800 rounded-[10px] px-3 py-2.5 w-full sm:w-auto">
+                      <input
+                        type="date"
+                        value={startDate}
+                        onChange={(e) => setStartDate(e.target.value)}
+                        style={{ colorScheme: "dark" }}
+                        className="bg-transparent text-white text-xs font-bold outline-none cursor-pointer flex-grow sm:flex-grow-0 w-full sm:w-[125px] min-w-[90px] text-center"
+                      />
+                      <span className="text-zinc-500 text-xs font-bold shrink-0">s/d</span>
+                      <input
+                        type="date"
+                        value={endDate}
+                        onChange={(e) => setEndDate(e.target.value)}
+                        style={{ colorScheme: "dark" }}
+                        className="bg-transparent text-white text-xs font-bold outline-none cursor-pointer flex-grow sm:flex-grow-0 w-full sm:w-[125px] min-w-[90px] text-center"
+                      />
+                      {(startDate || endDate) && (
+                        <button
+                          onClick={() => {
+                            setStartDate("");
+                            setEndDate("");
+                          }}
+                          className="text-red-400 hover:text-red-300 text-[10px] font-black uppercase ml-1.5 shrink-0"
+                        >
+                          Reset
+                        </button>
+                      )}
+                    </div>
+                    <div className="flex items-center justify-between sm:justify-start gap-2 bg-zinc-950 border border-zinc-800 rounded-[10px] px-4 py-2.5 w-full sm:w-auto">
+                      <Filter size={14} className="text-zinc-500 shrink-0" />
+                      <select value={orderStatusFilter} onChange={(e) => setOrderStatusFilter(e.target.value)} className="bg-transparent text-white text-xs font-bold outline-none cursor-pointer pr-4 w-full sm:w-auto">
+                        <option value="completed" className="bg-zinc-900">
+                          Selesai
+                        </option>
+                        <option value="processing" className="bg-zinc-900">
+                          Dalam Proses
+                        </option>
+                        <option value="all" className="bg-zinc-900">
+                          Semua Status
+                        </option>
+                      </select>
+                    </div>
                   </div>
                 </div>
 
@@ -836,7 +936,25 @@ export default function SellerDashboardPage() {
           (() => {
             const cancelledOrders = orders.filter((o) => {
               const matchesSearch = matchesProductSearch(o);
-              return o.status === "cancelled" && matchesSearch;
+
+              let matchesDate = true;
+              if (o.created_at) {
+                const orderDate = new Date(o.created_at);
+                orderDate.setHours(0, 0, 0, 0);
+
+                if (startDate) {
+                  const start = new Date(startDate);
+                  start.setHours(0, 0, 0, 0);
+                  if (orderDate < start) matchesDate = false;
+                }
+                if (endDate) {
+                  const end = new Date(endDate);
+                  end.setHours(23, 59, 59, 999);
+                  if (orderDate > end) matchesDate = false;
+                }
+              }
+
+              return o.status === "cancelled" && matchesSearch && matchesDate;
             });
 
             const indexOfLastItem = currentPage * itemsPerPage;
@@ -860,7 +978,7 @@ export default function SellerDashboardPage() {
                 </div>
 
                 {/* Filters */}
-                <div className="bg-zinc-900 border border-zinc-800 rounded-[10px] p-3 flex flex-col md:flex-row gap-4">
+                <div className="bg-zinc-900 border border-zinc-800 rounded-[10px] p-3 flex flex-col lg:flex-row gap-3">
                   <div className="relative flex-1">
                     <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500" size={16} />
                     <input
@@ -870,6 +988,34 @@ export default function SellerDashboardPage() {
                       onChange={(e) => setOrderSearchQuery(e.target.value)}
                       className="w-full bg-zinc-950 border border-zinc-800 rounded-[10px] py-2.5 pl-12 pr-4 text-white text-xs font-medium focus:border-emerald-500/50 outline-none transition-all"
                     />
+                  </div>
+                  <div className="flex items-center justify-between sm:justify-start gap-2 bg-zinc-950 border border-zinc-800 rounded-[10px] px-3 py-2.5 w-full sm:w-auto">
+                    <input
+                      type="date"
+                      value={startDate}
+                      onChange={(e) => setStartDate(e.target.value)}
+                      style={{ colorScheme: "dark" }}
+                      className="bg-transparent text-white text-xs font-bold outline-none cursor-pointer flex-grow sm:flex-grow-0 w-full sm:w-[125px] min-w-[90px] text-center"
+                    />
+                    <span className="text-zinc-500 text-xs font-bold shrink-0">s/d</span>
+                    <input
+                      type="date"
+                      value={endDate}
+                      onChange={(e) => setEndDate(e.target.value)}
+                      style={{ colorScheme: "dark" }}
+                      className="bg-transparent text-white text-xs font-bold outline-none cursor-pointer flex-grow sm:flex-grow-0 w-full sm:w-[125px] min-w-[90px] text-center"
+                    />
+                    {(startDate || endDate) && (
+                      <button
+                        onClick={() => {
+                          setStartDate("");
+                          setEndDate("");
+                        }}
+                        className="text-red-400 hover:text-red-300 text-[10px] font-black uppercase ml-1.5 shrink-0"
+                      >
+                        Reset
+                      </button>
+                    )}
                   </div>
                 </div>
 

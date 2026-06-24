@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
-import { Store, ChevronLeft, ChevronRight, ScrollText, ShieldCheck, PencilLine, XCircle, Lock, MapPin, Tag, ChevronDown, ChevronUp, AlertCircle, Star, Image as LayoutGrid, Clock } from "lucide-react";
+import { Store, ChevronLeft, ChevronRight, ScrollText, ShieldCheck, PencilLine, XCircle, Lock, MapPin, Tag, ChevronDown, ChevronUp, AlertCircle, Star, Package, Clock } from "lucide-react";
 import ActionModal from "@/components/ActionModal";
 import { getApiUrl, getLogoUrl, getSocketUrl, getImageUrl } from "@/app/utils/api";
 import { useShopQuota } from "@/hooks/useShopQuota";
@@ -292,9 +292,9 @@ export default function UserTokoDetailPage() {
                 </button>
               </div>
 
-              <div className="w-full sm:w-auto">
+              <div className="w-fit sm:w-auto">
                 <Link href="/user/toko/daftar-produk" className="group/quota flex items-center gap-3 bg-zinc-950/50 border border-zinc-800/80 hover:border-emerald-500/40 px-4 py-2 rounded-[10px] transition-all duration-500 backdrop-blur-md hover:no-underline">
-                  <LayoutGrid size={16} className="text-emerald-500 group-hover/quota:rotate-90 transition-transform duration-500" />
+                  <Package size={16} className="text-emerald-500 group-hover/quota:scale-110 transition-transform duration-500" />
                   <div className="text-left">
                     <p className="text-[8px] font-black text-zinc-500 uppercase tracking-widest leading-none">Kuota Produk</p>
                     <p className="text-xs font-black text-white mt-0.5">{quotaLoading ? "..." : `${quota?.used}/${quota?.limit} Terpakai`}</p>
@@ -302,7 +302,7 @@ export default function UserTokoDetailPage() {
                 </Link>
               </div>
 
-              <div className="w-full sm:w-auto">
+              <div className="w-fit sm:w-auto">
                 <Link href="/user/toko/upgrade-toko" className="group/membership flex items-center gap-3 bg-zinc-950/50 border border-zinc-800/80 hover:border-emerald-500/40 px-4 py-2 rounded-[10px] transition-all duration-500 backdrop-blur-md hover:no-underline">
                   <ShieldCheck size={16} className="text-amber-500 group-hover/membership:scale-110 transition-transform duration-500" />
                   <div className="text-left">
@@ -453,17 +453,18 @@ export default function UserTokoDetailPage() {
 
         {/* Regulations Section */}
         <div className="bg-amber-500/10 border border-amber-500/20 rounded-[10px] overflow-hidden">
-          <button onClick={() => setShowRules(!showRules)} className="w-full p-6 flex items-center justify-between text-left hover:bg-amber-500/5 transition-colors">
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 bg-amber-500 text-zinc-950 rounded-[10px] flex items-center justify-center">
-                <ScrollText size={24} />
+          <button onClick={() => setShowRules(!showRules)} className="w-full p-4 sm:p-6 flex items-center justify-between text-left hover:bg-amber-500/5 transition-colors">
+            <div className="flex items-center gap-3 sm:gap-4">
+              <div className="w-10 h-10 sm:w-12 sm:h-12 bg-amber-500 text-zinc-950 rounded-[10px] flex items-center justify-center shrink-0">
+                <ScrollText size={20} className="sm:hidden" />
+                <ScrollText size={24} className="hidden sm:block" />
               </div>
               <div>
-                <h2 className="text-xl font-black text-amber-500 uppercase tracking-tight">Peraturan Jualan</h2>
-                <p className="text-amber-500/60 text-sm">Wajib dibaca dan dipatuhi oleh semua penjual</p>
+                <h2 className="text-base sm:text-xl font-black text-amber-500 uppercase tracking-tight leading-tight">Peraturan Jualan</h2>
+                <p className="text-amber-500/60 text-[10px] sm:text-sm mt-0.5 leading-tight">Wajib dibaca dan dipatuhi oleh semua penjual</p>
               </div>
             </div>
-            <div className="w-10 h-10 rounded-[10px] border border-amber-500/20 flex items-center justify-center text-amber-500">{showRules ? <ChevronUp size={20} /> : <ChevronDown size={20} />}</div>
+            <div className="w-10 h-10 rounded-[10px] border border-amber-500/20 flex items-center justify-center text-amber-500 shrink-0">{showRules ? <ChevronUp size={20} /> : <ChevronDown size={20} />}</div>
           </button>
 
           {showRules && (
@@ -607,7 +608,7 @@ export default function UserTokoDetailPage() {
         <div className="bg-zinc-900 border border-zinc-800 rounded-[10px] p-6 sm:p-10 space-y-6 sm:space-y-8">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-zinc-800 pb-6">
             <div className="space-y-1">
-              <h2 className="text-xl sm:text-2xl font-black text-white uppercase tracking-tight flex items-center gap-2">Ulasan & Komentar Pembeli</h2>
+              <h2 className="text-xl sm:text-2xl font-black text-white uppercase tracking-tight flex items-center gap-2">Ulasan & Komentar</h2>
               <p className="text-xs sm:text-sm text-zinc-500 font-medium">Ulasan dari hasil penjualan sukses toko Anda.</p>
             </div>
             <div className="flex items-center gap-4 bg-zinc-950/50 px-4 py-3 rounded-[10px] shrink-0">

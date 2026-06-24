@@ -180,11 +180,11 @@ export default function PengajuanPencairanPage({ params }) {
             <div className="relative z-10 space-y-8">
               <div className="flex items-center gap-4">
                 <div>
-                  <h2 className="text-2xl font-black text-white uppercase tracking-tight italic">Pengajuan Pencairan</h2>
+                  <h2 className="text-xl md:text-1xl font-black text-white uppercase tracking-tight italic">Pengajuan Pencairan</h2>
                   <p className="text-zinc-500 text-sm font-medium">Ajukan penarikan dana ke rekening Anda</p>
                 </div>
               </div>
- 
+
               <div className="space-y-6">
                 <div className="p-6 bg-zinc-950/50 rounded-[10px] border border-zinc-800 space-y-4">
                   <div className="flex items-center justify-between">
@@ -248,13 +248,13 @@ export default function PengajuanPencairanPage({ params }) {
                     <div className="h-px bg-zinc-800"></div>
                     <div className="flex justify-between items-center pt-2">
                       <span className="text-sm font-black text-white uppercase tracking-widest italic">Estimasi Diterima</span>
-                      <span className="text-2xl font-black text-emerald-500 tracking-tighter">{formatPrice(totalDana)}</span>
+                      <span className="text-1xl md:text-1xl font-black text-emerald-500 tracking-tighter">{formatPrice(totalDana)}</span>
                     </div>
                   </div>
                   <p className="text-[9px] text-zinc-500 font-medium italic ml-1">* Estimasi belum termasuk biaya transfer antar bank (jika ada).</p>
                 </div>
               </div>
- 
+
               <button onClick={handleSubmit} disabled={isSubmitting} className="w-full py-5 bg-[#2563EB] hover:bg-[#1D4ED8] text-[#FFFFFF] font-black rounded-[10px] transition-all disabled:opacity-50 flex items-center justify-center gap-3 active:scale-[0.98] group">
                 {isSubmitting ? (
                   <>
@@ -289,7 +289,7 @@ export default function PengajuanPencairanPage({ params }) {
                   </div>
                   <div>
                     <p className="text-[9px] font-black text-zinc-600 uppercase tracking-widest leading-none mb-2">Nomor Rekening</p>
-                    <p className="text-lg font-black text-white tracking-widest">{sellerBank.bankAccount}</p>
+                    <p className="text-sm font-black text-white tracking-widest">{sellerBank.bankAccount}</p>
                   </div>
                   <div>
                     <p className="text-[9px] font-black text-zinc-600 uppercase tracking-widest leading-none mb-2">Atas Nama</p>
@@ -305,7 +305,7 @@ export default function PengajuanPencairanPage({ params }) {
                 </div>
               </div>
             </div>
- 
+
             <div className="bg-amber-500/5 border border-amber-500/20 rounded-[10px] p-6 flex gap-4 items-start">
               <AlertCircle className="text-amber-500 shrink-0" size={20} />
               <div className="space-y-1">

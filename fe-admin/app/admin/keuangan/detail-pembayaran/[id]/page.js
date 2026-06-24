@@ -186,7 +186,7 @@ export default function DetailPembayaranPage({ params: paramsPromise }) {
       const token = localStorage.getItem("admin_token");
 
       // 1. Upload the file first to S3
-      const s3Token = typeof window !== "undefined" ? localStorage.getItem("token") || localStorage.getItem("admin_token") : null;
+      const s3Token = typeof window !== "undefined" ? localStorage.getItem("admin_token") : null;
       const { objectKey } = await uploadImageToS3(selectedFile, s3Token, "disbursements");
       const fileUrl = "/" + objectKey;
 

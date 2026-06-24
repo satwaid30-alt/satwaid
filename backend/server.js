@@ -564,10 +564,10 @@ sequelize.sync({ alter: true })
         }
 
         // Run auto check for shipped orders and auctions on startup
-        autoCheckShippedOrders();
+        // autoCheckShippedOrders();
         autoCloseExpiredAuctions();
         // Set interval to run every 60 seconds for shipped orders
-        setInterval(autoCheckShippedOrders, 60 * 1000);
+        // setInterval(autoCheckShippedOrders, 60 * 1000);
         // Set interval to run every 5 seconds for expired auctions
         setInterval(autoCloseExpiredAuctions, 5 * 1000);
     })

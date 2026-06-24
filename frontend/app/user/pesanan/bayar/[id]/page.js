@@ -594,22 +594,32 @@ export default function PaymentPage({ params }) {
                       <div className="relative aspect-video rounded-xl overflow-hidden bg-zinc-950 border border-zinc-800 group/uploaded">
                         <img src={uploadPreview || getImageUrl(paymentProof) || "/placeholder.png"} alt="Bukti Bayar" className="w-full h-full object-contain" />
 
+                        {/* Uploading Overlay */}
+                        {uploading && (
+                          <div className="absolute inset-0 bg-black/75 backdrop-blur-[2px] flex flex-col items-center justify-center gap-2 z-20">
+                            <div className="w-8 h-8 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin"></div>
+                            <p className="text-[10px] font-black text-emerald-400 uppercase tracking-widest animate-pulse">Mengunggah ke server...</p>
+                          </div>
+                        )}
+
                         {/* Floating Action Bar */}
-                        <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex items-center gap-2 bg-zinc-950/90 backdrop-blur-md px-3 py-1.5 rounded-full border border-white/10">
-                          <button type="button" onClick={() => setPreviewImage(uploadPreview || getImageUrl(paymentProof) || "/placeholder.png")} className="px-3 py-1.5 bg-emerald-500 hover:bg-emerald-400 text-zinc-950 rounded-lg text-[9px] font-black uppercase tracking-wider flex items-center gap-1.5 active:scale-95 transition-all">
-                            <Eye size={12} /> Lihat
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setPaymentProof("");
-                              setUploadPreview(null);
-                            }}
-                            className="px-3 py-1.5 bg-red-500 hover:bg-red-400 text-white rounded-lg text-[9px] font-black uppercase tracking-wider flex items-center gap-1.5 active:scale-95 transition-all"
-                          >
-                            <X size={12} /> Hapus
-                          </button>
-                        </div>
+                        {!uploading && (
+                          <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex items-center gap-2 bg-zinc-950/90 backdrop-blur-md px-3 py-1.5 rounded-full border border-white/10">
+                            <button type="button" onClick={() => setPreviewImage(uploadPreview || getImageUrl(paymentProof) || "/placeholder.png")} className="px-3 py-1.5 bg-emerald-500 hover:bg-emerald-400 text-zinc-950 rounded-lg text-[9px] font-black uppercase tracking-wider flex items-center gap-1.5 active:scale-95 transition-all">
+                              <Eye size={12} /> Lihat
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setPaymentProof("");
+                                setUploadPreview(null);
+                              }}
+                              className="px-3 py-1.5 bg-red-500 hover:bg-red-400 text-white rounded-lg text-[9px] font-black uppercase tracking-wider flex items-center gap-1.5 active:scale-95 transition-all"
+                            >
+                              <X size={12} /> Hapus
+                            </button>
+                          </div>
+                        )}
                       </div>
                     ) : (
                       <div className="py-4 space-y-3 cursor-pointer">
@@ -632,9 +642,14 @@ export default function PaymentPage({ params }) {
                       confirming || showSuccess || uploading || !paymentProof ? "bg-zinc-800/50 text-zinc-600 border border-zinc-800/40 cursor-not-allowed" : "bg-[#228B22] hover:bg-[#4CBB17] text-white"
                     }`}
                   >
-                    {confirming ? (
+                    {uploading ? (
                       <>
-                        <div className="w-4 h-4 border-2 border-zinc-950 border-t-transparent rounded-full animate-spin"></div>
+                        <div className="w-4 h-4 border-2 border-emerald-450 border-t-transparent rounded-full animate-spin shrink-0"></div>
+                        Mengunggah Gambar...
+                      </>
+                    ) : confirming ? (
+                      <>
+                        <div className="w-4 h-4 border-2 border-zinc-950 border-t-transparent rounded-full animate-spin shrink-0"></div>
                         Mengirimkan...
                       </>
                     ) : (

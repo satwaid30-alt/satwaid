@@ -30,7 +30,7 @@ const FAQ_ITEMS = [
     category: "transaksi",
     question: "Bagaimana sistem pembayaran aman (Escrow/Rekber) bekerja?",
     answer:
-      "Setiap transaksi di SatwaiD wajib menggunakan rekening bersama (escrow) resmi kami. Setelah pembeli memenangkan lelang atau membeli produk, mereka mengirim dana ke rekening SatwaiD. Kami akan menahan dana tersebut dengan aman dan memberi tahu penjual untuk segera mengirim hewan. Dana baru akan diteruskan ke saldo dompet penjual setelah pembeli mengonfirmasi bahwa hewan telah diterima dalam kondisi baik, atau setelah batas waktu otomatis 2x24 jam berakhir tanpa adanya komplain.",
+      "Setiap transaksi di SatwaiD wajib menggunakan rekening bersama (escrow) resmi kami. Setelah pembeli memenangkan lelang atau membeli produk, mereka mengirim dana ke rekening SatwaiD. Kami akan menahan dana tersebut dengan aman dan memberi tahu penjual untuk segera mengirim hewan. Dana baru akan diteruskan ke saldo dompet penjual setelah pembeli mengonfirmasi bahwa hewan telah diterima dalam kondisi baik.",
   },
   {
     category: "transaksi",

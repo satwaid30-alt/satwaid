@@ -458,7 +458,7 @@ export default function OrderDetailPage({ params }) {
 
           {/* Shipping Details Moved Here - Inside the same sidebar column */}
           <div className="bg-zinc-900 border border-zinc-800 rounded-[10px] md:rounded-[10px] p-4 md:p-8 space-y-6">
-            <h3 className="text-[10px] font-black text-zinc-500 uppercase tracking-widest flex items-center gap-2">
+            <h3 className="text-xs font-black text-zinc-500 uppercase tracking-widest flex items-center gap-2">
               <MapPin size={14} className="text-pink-500" /> Informasi Pengiriman
             </h3>
             {order.shipping_address ? (
