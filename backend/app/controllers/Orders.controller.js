@@ -2179,6 +2179,179 @@ const OrdersController = {
       return res.status(500).json({ message: err.message });
     }
   },
+
+  // PUT /orders/:order_id/send-reminder - Admin: Kirim pesan pengingat ke buyer
+  sendBuyerReminder: async (req, res) => {
+    try {
+      const { order_id } = req.params;
+      const { message } = req.body;
+
+      if (!message || !message.trim()) {
+        return res.status(400).json({ message: "Pesan pengingat tidak boleh kosong" });
+      }
+
+      let order = await models.orders.findByPk(order_id).catch(() => null);
+      if (!order) {
+        order = await models.orders.findOne({ where: { order_id } });
+      }
+      if (!order) return res.status(404).json({ message: "Pesanan tidak ditemukan" });
+
+      if (order.status !== "shipped") {
+        return res.status(400).json({ message: "Pesanan tidak dalam status dikirim" });
+      }
+
+      await order.update({
+        admin_reminder: message.trim(),
+        updated_at: new Date(),
+      });
+
+      // Send real-time notification
+      try {
+        const title = "Peringatan Penyelesaian Pesanan";
+        const newNotif = await models.notifications.create({
+          user_id: order.user_id,
+          type: "buyer_reminder",
+          title,
+          message: message.trim(),
+          link: `/user/pesanan`,
+          created_at: new Date(),
+        });
+
+        const io = req.app.get("socketio");
+        if (io) {
+          io.to(`user_${order.user_id}`).emit("new_notification", {
+            id: newNotif.id,
+            type: "buyer_reminder",
+            title,
+            message: message.trim(),
+            link: newNotif.link,
+            time: newNotif.created_at,
+          });
+          io.to(`user_${order.user_id}`).emit("order_updated", { id: order.id, status: order.status });
+        }
+      } catch (socketErr) {
+        console.error("sendBuyerReminder socket/notif error:", socketErr);
+      }
+
+      return res.status(200).json({
+        message: "Pengingat berhasil dikirim ke pembeli",
+        data: order,
+      });
+    } catch (err) {
+      console.error("sendBuyerReminder error:", err);
+      return res.status(500).json({ message: err.message });
+    }
+  },
+
+  // PUT /orders/:order_id/dismiss-reminder - Buyer/Admin: Hapus pesan pengingat
+  dismissBuyerReminder: async (req, res) => {
+    try {
+      const { order_id } = req.params;
+
+      let order = await models.orders.findByPk(order_id).catch(() => null);
+      if (!order) {
+        order = await models.orders.findOne({ where: { order_id } });
+      }
+      if (!order) return res.status(404).json({ message: "Pesanan tidak ditemukan" });
+
+      await order.update({
+        admin_reminder: null,
+        updated_at: new Date(),
+      });
+
+      try {
+        const io = req.app.get("socketio");
+        if (io) {
+          io.to(`user_${order.user_id}`).emit("order_updated", { id: order.id, status: order.status });
+        }
+      } catch (socketErr) {
+        console.error("dismissBuyerReminder socket error:", socketErr);
+      }
+
+      return res.status(200).json({
+        message: "Pengingat berhasil dihapus/diselesaikan",
+        data: order,
+      });
+    } catch (err) {
+      console.error("dismissBuyerReminder error:", err);
+      return res.status(500).json({ message: err.message });
+    }
+  },
+
+  // PUT /orders/:order_id/send-resi-reminder - Admin: Kirim pesan pengingat ke seller untuk segera input resi
+  sendSellerResiReminder: async (req, res) => {
+    try {
+      const { order_id } = req.params;
+      const { message } = req.body;
+
+      if (!message || !message.trim()) {
+        return res.status(400).json({ message: "Pesan pengingat tidak boleh kosong" });
+      }
+
+      let order = await models.orders.findOne({
+        where: { id: order_id },
+        include: [{ model: models.shops, as: "shop" }],
+      });
+      if (!order) {
+        order = await models.orders.findOne({
+          where: { order_id },
+          include: [{ model: models.shops, as: "shop" }],
+        });
+      }
+      if (!order) return res.status(404).json({ message: "Pesanan tidak ditemukan" });
+
+      if (!["payment_verified", "waiting_shipment"].includes(order.status)) {
+        return res.status(400).json({ message: "Pesanan tidak dalam status siap dikirim" });
+      }
+
+      if (!order.shop || !order.shop.user_id) {
+        return res.status(400).json({ message: "Toko atau penjual tidak ditemukan untuk pesanan ini" });
+      }
+
+      await order.update({
+        admin_reminder: message.trim(),
+        updated_at: new Date(),
+      });
+
+      // Send real-time notification
+      try {
+        const title = "Peringatan Pengiriman Pesanan";
+        const newNotif = await models.notifications.create({
+          user_id: order.shop.user_id,
+          type: "seller_reminder",
+          title,
+          message: message.trim(),
+          link: `/user/toko/pesanan-masuk`,
+          created_at: new Date(),
+        });
+
+        const io = req.app.get("socketio");
+        if (io) {
+          io.to(`user_${order.shop.user_id}`).emit("new_notification", {
+            id: newNotif.id,
+            type: "seller_reminder",
+            title,
+            message: message.trim(),
+            link: newNotif.link,
+            time: newNotif.created_at,
+          });
+          io.to(`user_${order.shop.user_id}`).emit("order_updated", { id: order.id, status: order.status });
+          io.to("admin_room").emit("order_updated_admin", { id: order.id, status: order.status });
+        }
+      } catch (socketErr) {
+        console.error("sendSellerResiReminder socket/notif error:", socketErr);
+      }
+
+      return res.status(200).json({
+        message: "Pengingat pengiriman resi berhasil dikirim ke penjual",
+        data: order,
+      });
+    } catch (err) {
+      console.error("sendSellerResiReminder error:", err);
+      return res.status(500).json({ message: err.message });
+    }
+  },
 };
 
 module.exports = OrdersController;
+

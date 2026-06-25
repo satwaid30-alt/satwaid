@@ -23,16 +23,14 @@ export default function PengaduanUserPage() {
           </div>
           <div>
             <h2 className="text-xl md:text-2xl font-black text-white uppercase tracking-tight">Hubungi Admin via WhatsApp</h2>
-            <p className="text-zinc-400 text-xs md:text-sm mt-1 max-w-xl leading-relaxed">
-              Punya kendala mendesak terkait transaksi, akun, atau sistem? Chat langsung dengan tim support kami melalui WhatsApp untuk penanganan dan respon yang lebih cepat.
-            </p>
+            <p className="text-zinc-400 text-xs md:text-sm mt-1 max-w-xl leading-relaxed">Punya kendala mendesak terkait transaksi, akun, atau sistem? Chat langsung dengan tim support kami melalui WhatsApp untuk penanganan dan respon yang lebih cepat.</p>
           </div>
         </div>
-        <a 
-          href="https://wa.me/6282240330951?text=Halo%20Admin%20SatwaiD,%20saya%20membutuhkan%20bantuan%20terkait..." 
-          target="_blank" 
-          rel="noopener noreferrer" 
-          className="w-full md:w-auto px-8 py-4 bg-emerald-500 hover:bg-emerald-400 text-zinc-950 font-black rounded-[10px] flex items-center justify-center gap-3 transition-all duration-300 active:scale-95 shadow-lg shadow-emerald-500/10 hover:shadow-emerald-500/20 shrink-0 uppercase tracking-wider text-xs"
+        <a
+          href="https://wa.me/6282240330951?text=Halo%20Admin%20SatwaiD,%20saya%20membutuhkan%20bantuan%20terkait..."
+          target="_blank"
+          rel="noopener noreferrer"
+          className="w-full md:w-auto px-8 py-4 bg-[#228B22] hover:bg-[#4CBB17] text-white font-black rounded-[10px] flex items-center justify-center gap-3 transition-all duration-300 active:scale-95 shadow-lg shadow-emerald-500/10 hover:shadow-emerald-500/20 shrink-0 uppercase tracking-wider text-xs"
         >
           <Send size={16} /> Chat Admin Sekarang
         </a>

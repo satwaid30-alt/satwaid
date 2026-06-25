@@ -441,21 +441,59 @@ export default function TransactionProcessPage({ params }) {
           {/* Ringkasan Biaya */}
           <div className="bg-zinc-900 border border-zinc-800 rounded-[10px] p-8 space-y-8">
             <h3 className="text-[10px] font-black text-zinc-100 uppercase tracking-widest flex items-center gap-2">
-              <CreditCard size={14} className="text-emerald-500" /> Ringkasan Pembayaran
+              <CreditCard size={14} className="text-emerald-500" /> Ringkasan Biaya
             </h3>
             <div className="space-y-4">
               <div className="flex justify-between text-xs font-bold">
                 <span className="text-zinc-100 uppercase tracking-tighter">Harga Produk</span>
                 <span className="text-white">{formatPrice(order.items && order.items.length > 0 ? order.items.reduce((sum, item) => sum + Number(item.price) * (item.quantity || 1), 0) : order.price * order.quantity)}</span>
               </div>
-              <div className="flex justify-between text-xs font-bold">
-                <span className="text-zinc-100 uppercase tracking-tighter">Biaya Pengiriman</span>
-                <span className="text-white font-bold">{order.shipping_cost > 0 ? formatPrice(order.shipping_cost) : order.product?.is_free_shipping ? <span className="text-emerald-500">Gratis</span> : formatPrice(0)}</span>
-              </div>
-              <div className="flex justify-between text-xs font-bold">
-                <span className="text-zinc-100 uppercase tracking-tighter">Biaya Packing</span>
-                <span className="text-white font-bold">{order.packing_cost > 0 ? formatPrice(order.packing_cost) : order.product?.is_free_packing ? <span className="text-emerald-500">Gratis</span> : formatPrice(0)}</span>
-              </div>
+                    {(() => {
+                      const freeShippingCount = order.items && order.items.length > 0 ? order.items.filter((item) => item.product?.is_free_shipping).length : order.product?.is_free_shipping ? 1 : 0;
+                      const freePackingCount = order.items && order.items.length > 0 ? order.items.filter((item) => item.product?.is_free_packing).length : order.product?.is_free_packing ? 1 : 0;
+                      return (
+                        <>
+                          <div className="flex justify-between items-start text-xs font-bold">
+                            <div className="flex flex-col text-left">
+                              <span className="text-zinc-100 uppercase tracking-tighter">Biaya Pengiriman</span>
+                              {freeShippingCount > 0 && (
+                                <span className="text-[10px] text-emerald-500 font-bold mt-0.5">({freeShippingCount} Produk Gratis Ongkir)</span>
+                              )}
+                            </div>
+                            <span className="text-white font-bold">
+                              {order.shipping_cost > 0 ? (
+                                formatPrice(order.shipping_cost)
+                              ) : (order.items && order.items.length > 0 ? order.items.every((item) => item.product?.is_free_shipping) : !!order.product?.is_free_shipping) || (order.shipping_cost !== null && parseFloat(order.shipping_cost) === 0 && !["pending_shipping_info", "waiting_shipping_cost"].includes(order.status)) ? (
+                                <span className="text-emerald-500">Gratis</span>
+                              ) : ["pending_shipping_info", "waiting_shipping_cost"].includes(order.status) ? (
+                                <span className="text-zinc-500 uppercase text-[10px]">Belum Ditentukan</span>
+                              ) : (
+                                formatPrice(0)
+                              )}
+                            </span>
+                          </div>
+                          <div className="flex justify-between items-start text-xs font-bold">
+                            <div className="flex flex-col text-left">
+                              <span className="text-zinc-100 uppercase tracking-tighter">Biaya Packing</span>
+                              {freePackingCount > 0 && (
+                                <span className="text-[10px] text-emerald-500 font-bold mt-0.5">({freePackingCount} Produk Gratis Packing)</span>
+                              )}
+                            </div>
+                            <span className="text-white font-bold">
+                              {order.packing_cost > 0 ? (
+                                formatPrice(order.packing_cost)
+                              ) : (order.items && order.items.length > 0 ? order.items.every((item) => item.product?.is_free_packing) : !!order.product?.is_free_packing) || (order.packing_cost !== null && parseFloat(order.packing_cost) === 0 && !["pending_shipping_info", "waiting_shipping_cost"].includes(order.status)) ? (
+                                <span className="text-emerald-500">Gratis</span>
+                              ) : ["pending_shipping_info", "waiting_shipping_cost"].includes(order.status) ? (
+                                <span className="text-zinc-500 uppercase text-[10px]">Belum Ditentukan</span>
+                              ) : (
+                                formatPrice(0)
+                              )}
+                            </span>
+                          </div>
+                        </>
+                      );
+                    })()}
               <div className="flex justify-between text-xs font-bold">
                 <span className="text-zinc-100 uppercase tracking-tighter">Biaya Admin</span>
                 <span className="text-white font-bold">{formatPrice(order.admin_fee || 0)}</span>

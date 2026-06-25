@@ -438,6 +438,20 @@ export default function PesananMasukPage() {
                   </div>
                 </div>
                 <div className="flex flex-wrap items-center gap-2 self-start sm:self-auto">
+                  {/* {((order.items && order.items.length > 0)
+                    ? order.items.some(item => item.product?.is_free_shipping)
+                    : !!order.product?.is_free_shipping) && (
+                    <span className="px-2 py-1 bg-emerald-500/10 text-emerald-400 text-[8px] font-black uppercase tracking-widest rounded border border-emerald-500/20">
+                      Gratis Ongkir
+                    </span>
+                  )}
+                  {((order.items && order.items.length > 0)
+                    ? order.items.some(item => item.product?.is_free_packing)
+                    : !!order.product?.is_free_packing) && (
+                    <span className="px-2 py-1 bg-blue-500/10 text-blue-400 text-[8px] font-black uppercase tracking-widest rounded border border-blue-500/20">
+                      Gratis Packing
+                    </span>
+                  )} */}
                   <div className={`px-4 py-1.5 rounded-[10px] border text-[9px] font-black uppercase tracking-widest ${getStatusStyle(order.status)}`}>{getStatusLabel(order.status)}</div>
                   {order.status === "waiting_payment" && order.payment_rejection_reason && (
                     <div className="px-4 py-1.5 rounded-[10px] border text-[9px] font-black uppercase tracking-widest bg-red-500/10 text-red-400 border-red-500/20 flex items-center gap-1">
@@ -486,8 +500,6 @@ export default function PesananMasukPage() {
                 </div>
               </div>
 
-
-
               {/* Complaint Notification for Seller */}
               {order.status === "complained" && (
                 <div className="mx-4 md:mx-6 mt-4 p-4.5 bg-red-500/10 border border-red-500/20 rounded-[10px] flex items-start gap-3.5 animate-in slide-in-from-top-2 duration-300">
@@ -528,6 +540,13 @@ export default function PesananMasukPage() {
                             <span className="text-[8px] font-black text-zinc-500 uppercase tracking-widest">Qty: {item.quantity}</span>
                           </div>
                           <h3 className="text-xs md:text-sm font-black text-white tracking-tight leading-snug truncate hover:whitespace-normal transition-all duration-300">{item.product?.name}</h3>
+
+                          {/* Badges for Free Shipping / Free Packing */}
+                          <div className="flex flex-wrap items-center gap-1.5 my-1">
+                            {item.product?.is_free_shipping && <span className="px-1.5 py-0.5 bg-emerald-500/10 text-emerald-400 text-[7px] font-black uppercase tracking-widest rounded border border-emerald-500/20">Gratis Ongkir</span>}
+                            {item.product?.is_free_packing && <span className="px-1.5 py-0.5 bg-blue-500/10 text-blue-400 text-[7px] font-black uppercase tracking-widest rounded border border-blue-500/20">Gratis Packing</span>}
+                          </div>
+
                           <div className="flex items-center gap-2 text-[10px] font-bold text-zinc-400">
                             <span className="text-[8px] font-black text-zinc-500 uppercase tracking-widest">Harga:</span>
                             <span className="text-emerald-500 font-black">{formatPrice(item.price)}</span>
@@ -564,6 +583,13 @@ export default function PesananMasukPage() {
                         <span className="text-[8px] font-black text-zinc-500 uppercase tracking-widest">Qty: {order.quantity}</span>
                       </div>
                       <h3 className="text-xs md:text-sm font-black text-white tracking-tight leading-snug truncate hover:whitespace-normal transition-all duration-300">{order.product?.name}</h3>
+
+                      {/* Badges for Free Shipping / Free Packing */}
+                      <div className="flex flex-wrap items-center gap-1.5 my-1">
+                        {order.product?.is_free_shipping && <span className="px-1.5 py-0.5 bg-emerald-500/10 text-emerald-400 text-[7px] font-black uppercase tracking-widest rounded border border-emerald-500/20">Gratis Ongkir</span>}
+                        {order.product?.is_free_packing && <span className="px-1.5 py-0.5 bg-blue-500/10 text-blue-400 text-[7px] font-black uppercase tracking-widest rounded border border-blue-500/20">Gratis Packing</span>}
+                      </div>
+
                       <div className="flex items-center gap-1">
                         <span className="text-[8px] font-black text-zinc-500 uppercase tracking-widest">Pembeli:</span>
                         <span className="text-[8px] font-black text-emerald-500 uppercase tracking-widest">{order.user?.username}</span>
@@ -589,14 +615,44 @@ export default function PesananMasukPage() {
                       <span className="text-[10px] md:text-xs font-bold text-zinc-500 uppercase tracking-tight">Biaya Admin</span>
                       <span className="text-[11px] md:text-xs font-black text-zinc-300 group-hover/cost:text-white transition-colors">+{formatPrice(order.admin_fee !== undefined && order.admin_fee !== null ? order.admin_fee : activeAdminFee)}</span>
                     </div>
-                    <div className="flex justify-between items-center group/cost">
-                      <span className="text-[10px] md:text-xs font-bold text-zinc-500 uppercase tracking-tight">Ongkos Kirim</span>
-                      <span className="text-[11px] md:text-xs font-black text-zinc-300 group-hover/cost:text-white transition-colors">{order.product?.is_free_shipping ? <span className="text-emerald-500 uppercase text-[10px] md:text-xs font-black">Gratis</span> : `+${formatPrice(order.shipping_cost || 0)}`}</span>
-                    </div>
-                    <div className="flex justify-between items-center group/cost">
-                      <span className="text-[10px] md:text-xs font-bold text-zinc-500 uppercase tracking-tight">Biaya Packing</span>
-                      <span className="text-[11px] md:text-xs font-black text-zinc-300 group-hover/cost:text-white transition-colors">{order.product?.is_free_packing ? <span className="text-emerald-500 uppercase text-[10px] md:text-xs font-black">Gratis</span> : `+${formatPrice(order.packing_cost || 0)}`}</span>
-                    </div>
+                    {(() => {
+                      const freeShippingCount = order.items && order.items.length > 0 ? order.items.filter((item) => item.product?.is_free_shipping).length : order.product?.is_free_shipping ? 1 : 0;
+                      const freePackingCount = order.items && order.items.length > 0 ? order.items.filter((item) => item.product?.is_free_packing).length : order.product?.is_free_packing ? 1 : 0;
+                      return (
+                        <>
+                          <div className="flex justify-between items-start group/cost">
+                            <div className="flex flex-col text-left">
+                              <span className="text-[10px] md:text-xs font-bold text-zinc-500 uppercase tracking-tight">Ongkos Kirim</span>
+                              {freeShippingCount > 0 && <span className="text-[9px] text-emerald-500 font-bold mt-0.5">({freeShippingCount} Produk Gratis Ongkir)</span>}
+                            </div>
+                            <span className="text-[11px] md:text-xs font-black text-zinc-300 group-hover/cost:text-white transition-colors">
+                              {(order.items && order.items.length > 0 ? order.items.every((item) => item.product?.is_free_shipping) : !!order.product?.is_free_shipping) || (order.shipping_cost !== null && parseFloat(order.shipping_cost) === 0 && !["pending_shipping_info", "waiting_shipping_cost"].includes(order.status)) ? (
+                                <span className="text-emerald-500 uppercase text-[10px] md:text-xs font-black">Gratis</span>
+                              ) : ["pending_shipping_info", "waiting_shipping_cost"].includes(order.status) ? (
+                                <span className="text-zinc-550 uppercase text-[10px] md:text-xs font-bold">Belum Ditentukan</span>
+                              ) : (
+                                `+${formatPrice(order.shipping_cost || 0)}`
+                              )}
+                            </span>
+                          </div>
+                          <div className="flex justify-between items-start group/cost">
+                            <div className="flex flex-col text-left">
+                              <span className="text-[10px] md:text-xs font-bold text-zinc-500 uppercase tracking-tight">Biaya Packing</span>
+                              {freePackingCount > 0 && <span className="text-[9px] text-emerald-500 font-bold mt-0.5">({freePackingCount} Produk Gratis Packing)</span>}
+                            </div>
+                            <span className="text-[11px] md:text-xs font-black text-zinc-300 group-hover/cost:text-white transition-colors">
+                              {(order.items && order.items.length > 0 ? order.items.every((item) => item.product?.is_free_packing) : !!order.product?.is_free_packing) || (order.packing_cost !== null && parseFloat(order.packing_cost) === 0 && !["pending_shipping_info", "waiting_shipping_cost"].includes(order.status)) ? (
+                                <span className="text-emerald-500 uppercase text-[10px] md:text-xs font-black">Gratis</span>
+                              ) : ["pending_shipping_info", "waiting_shipping_cost"].includes(order.status) ? (
+                                <span className="text-zinc-550 uppercase text-[10px] md:text-xs font-bold">Belum Ditentukan</span>
+                              ) : (
+                                `+${formatPrice(order.packing_cost || 0)}`
+                              )}
+                            </span>
+                          </div>
+                        </>
+                      );
+                    })()}
                     <div className="h-px bg-gradient-to-r from-transparent via-zinc-800 to-transparent my-1.5"></div>
                     <div className="flex justify-between items-center pt-0.5">
                       <span className="text-[10px] md:text-xs font-black text-emerald-500 uppercase tracking-[0.2em]">Total Tagihan</span>
@@ -609,7 +665,7 @@ export default function PesananMasukPage() {
                     <div className={`grid gap-2 ${["waiting_shipping_cost", "waiting_shipment", "payment_verified"].includes(order.status) ? "grid-cols-2" : "grid-cols-1"}`}>
                       {order.status === "waiting_shipping_cost" ? (
                         <Link href={`/user/toko/pesanan-masuk/biaya-kirim/${order.id}`} className="py-2 bg-[#228B22] hover:bg-[#4CBB17] text-white rounded-[10px] transition-all font-black text-[8px] uppercase tracking-widest text-center border border-[#228B22] hover:border-[#4CBB17] flex items-center justify-center gap-1">
-                          <Truck size={10} /> Input Resi
+                          <Truck size={10} /> Input Ongkir & Packing
                         </Link>
                       ) : ["waiting_shipment", "payment_verified"].includes(order.status) ? (
                         <Link href={`/user/toko/pesanan-masuk/pengiriman/${order.id}`} className="py-2 bg-[#228B22] hover:bg-[#4CBB17] text-white rounded-[10px] transition-all font-black text-[8px] uppercase tracking-widest text-center border border-[#228B22] hover:border-[#4CBB17] flex items-center justify-center gap-1">

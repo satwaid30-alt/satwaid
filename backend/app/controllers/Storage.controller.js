@@ -19,7 +19,7 @@ module.exports.getPresignedUrlPutObject = async (req, res, next) => {
     const _fileName = _tempName || "attachment-";
     const _folder = req.query.folder || "/uploads/";
 
-    const bucket = process.env.S3_BUCKET || "web-plt-gtk";
+    const bucket = process.env.S3_BUCKET || "satwaid-bucket";
 
     const expiry = req.query.expiry ? parseInt(req.query.expiry) : req.query.expiry || 60 * 500;
 
@@ -72,7 +72,7 @@ module.exports.getPresignedUrlPutObject = async (req, res, next) => {
 module.exports.getPresignedUrlGetObject = async (req, res, next) => {
   try {
     const _idFile = req.params.idFile;
-    const bucket = process.env.S3_BUCKET || "web-plt-gtk";
+    const bucket = process.env.S3_BUCKET || "satwaid-bucket";
     const expirySeconds = 60 * 5;
 
     const _file = await models.master_file.findOne({

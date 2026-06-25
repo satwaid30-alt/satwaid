@@ -394,6 +394,12 @@ export default function OrderDetailPage({ params }) {
                                 <span className="px-2 py-0.5 bg-zinc-900 text-[9px] text-zinc-400 rounded-[10px] border border-zinc-800 font-bold uppercase tracking-wider">{item.product?.species}</span>
                                 <span className="px-2 py-0.5 bg-zinc-900 text-[9px] text-zinc-400 rounded-[10px] border border-zinc-800 font-bold uppercase tracking-wider">{item.product?.sex || "Unsex"}</span>
                                 <span className="px-2 py-0.5 bg-zinc-900 text-[9px] text-zinc-400 rounded-[10px] border border-zinc-800 font-bold uppercase tracking-wider">ID: {item.product?.product_id || "-"}</span>
+                                {item.product?.is_free_shipping && (
+                                  <span className="px-2 py-0.5 bg-emerald-500/10 text-emerald-400 text-[9px] font-bold uppercase tracking-wider rounded-[10px] border border-emerald-500/20">Gratis Ongkir</span>
+                                )}
+                                {item.product?.is_free_packing && (
+                                  <span className="px-2 py-0.5 bg-blue-500/10 text-blue-400 text-[9px] font-bold uppercase tracking-wider rounded-[10px] border border-blue-500/20">Gratis Packing</span>
+                                )}
                               </div>
                             </div>
                             <div className="flex flex-wrap items-center justify-center md:justify-start gap-x-4 gap-y-1 text-xs text-zinc-500 font-medium">
@@ -464,6 +470,12 @@ export default function OrderDetailPage({ params }) {
                               </span>
                               <span className="px-3 py-1 bg-emerald-500/10 text-emerald-400 rounded-[10px] border border-emerald-500/20 text-[10px] font-bold uppercase tracking-wider">{order.product?.type === "sell" ? "Jual Langsung" : "Lelang"}</span>
                               <span className="px-3 py-1 bg-zinc-800 text-[10px] text-zinc-400 rounded-[10px] border border-zinc-700 font-bold uppercase tracking-wider">ID Produk: {order.product?.product_id || "-"}</span>
+                              {order.product?.is_free_shipping && (
+                                <span className="px-3 py-1 bg-emerald-500/10 text-emerald-400 rounded-[10px] border border-emerald-500/20 text-[10px] font-bold uppercase tracking-wider">Gratis Ongkir</span>
+                              )}
+                              {order.product?.is_free_packing && (
+                                <span className="px-3 py-1 bg-blue-500/10 text-blue-400 rounded-[10px] border border-blue-500/20 text-[10px] font-bold uppercase tracking-wider">Gratis Packing</span>
+                              )}
                             </div>
                           </div>
                         </div>
@@ -592,14 +604,52 @@ export default function OrderDetailPage({ params }) {
                 <span className="text-zinc-400 font-medium">Subtotal Produk</span>
                 <span className="text-white font-bold">{formatPrice(order.items && order.items.length > 0 ? order.items.reduce((sum, item) => sum + Number(item.price) * (item.quantity || 1), 0) : order.price * order.quantity)}</span>
               </div>
-              <div className="flex justify-between text-sm">
-                <span className="text-zinc-400 font-medium">Biaya Kirim</span>
-                <span className="text-white font-black">{order.shipping_cost > 0 ? formatPrice(order.shipping_cost) : order.product?.is_free_shipping ? <span className="text-emerald-500">Gratis</span> : formatPrice(0)}</span>
-              </div>
-              <div className="flex justify-between text-sm">
-                <span className="text-zinc-400 font-medium">Biaya Packing</span>
-                <span className="text-white font-black">{order.packing_cost > 0 ? formatPrice(order.packing_cost) : order.product?.is_free_packing ? <span className="text-emerald-500">Gratis</span> : formatPrice(0)}</span>
-              </div>
+                    {(() => {
+                      const freeShippingCount = order.items && order.items.length > 0 ? order.items.filter(item => item.product?.is_free_shipping).length : (order.product?.is_free_shipping ? 1 : 0);
+                      const freePackingCount = order.items && order.items.length > 0 ? order.items.filter(item => item.product?.is_free_packing).length : (order.product?.is_free_packing ? 1 : 0);
+                      return (
+                        <>
+                          <div className="flex justify-between items-start text-sm">
+                            <div className="flex flex-col text-left">
+                              <span className="text-zinc-400 font-medium">Biaya Kirim</span>
+                              {freeShippingCount > 0 && (
+                                <span className="text-[10px] text-emerald-500 font-bold mt-0.5">({freeShippingCount} Produk Gratis Ongkir)</span>
+                              )}
+                            </div>
+                            <span className="text-white font-black">
+                              {order.shipping_cost > 0 ? (
+                                formatPrice(order.shipping_cost)
+                              ) : ((order.items && order.items.length > 0 ? order.items.every(item => item.product?.is_free_shipping) : !!order.product?.is_free_shipping) || (order.shipping_cost !== null && parseFloat(order.shipping_cost) === 0 && !["pending_shipping_info", "waiting_shipping_cost"].includes(order.status))) ? (
+                                <span className="text-emerald-500">Gratis</span>
+                              ) : ["pending_shipping_info", "waiting_shipping_cost"].includes(order.status) ? (
+                                <span className="text-zinc-500 uppercase text-[10px]">Belum Ditentukan</span>
+                              ) : (
+                                formatPrice(0)
+                              )}
+                            </span>
+                          </div>
+                          <div className="flex justify-between items-start text-sm">
+                            <div className="flex flex-col text-left">
+                              <span className="text-zinc-400 font-medium">Biaya Packing</span>
+                              {freePackingCount > 0 && (
+                                <span className="text-[10px] text-emerald-500 font-bold mt-0.5">({freePackingCount} Produk Gratis Packing)</span>
+                              )}
+                            </div>
+                            <span className="text-white font-black">
+                              {order.packing_cost > 0 ? (
+                                formatPrice(order.packing_cost)
+                              ) : ((order.items && order.items.length > 0 ? order.items.every(item => item.product?.is_free_packing) : !!order.product?.is_free_packing) || (order.packing_cost !== null && parseFloat(order.packing_cost) === 0 && !["pending_shipping_info", "waiting_shipping_cost"].includes(order.status))) ? (
+                                <span className="text-emerald-500">Gratis</span>
+                              ) : ["pending_shipping_info", "waiting_shipping_cost"].includes(order.status) ? (
+                                <span className="text-zinc-500 uppercase text-[10px]">Belum Ditentukan</span>
+                              ) : (
+                                formatPrice(0)
+                              )}
+                            </span>
+                          </div>
+                        </>
+                      );
+                    })()}
               <div className="flex justify-between text-sm">
                 <span className="text-zinc-400 font-medium">Biaya Admin</span>
                 <span className="text-white font-black">{formatPrice(displayAdminFee)}</span>

@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { Receipt, Search, Filter, Eye, CheckCircle2, XCircle, Clock, ExternalLink, Image as ImageIcon, AlertCircle, ChevronRight, User, Store, Truck, CreditCard, ShieldAlert, MapPin } from "lucide-react";
+import { Receipt, Search, Filter, Eye, CheckCircle2, XCircle, Clock, ExternalLink, Image as ImageIcon, AlertCircle, ChevronRight, User, Store, Truck, CreditCard, ShieldAlert, MapPin, Megaphone } from "lucide-react";
 import { io } from "socket.io-client";
 import { getImageUrl } from "@/app/utils/api";
 
@@ -134,15 +134,15 @@ export default function AdminTransactionPage() {
       case "pending_shipping_info":
         return "Menunggu Alamat";
       case "waiting_shipping_cost":
-        return "Menunggu Ongkir";
+        return "Belum Input Ongkir & Packing";
       case "waiting_payment":
         return "Menunggu Pembayaran";
       case "processing":
         return "Verifikasi Pembayaran";
       case "payment_verified":
-        return "Siap Dikirim";
+        return "Belum Input Resi";
       case "waiting_shipment":
-        return "Siap Dikirim";
+        return "Belum Input Resi";
       case "shipped":
         return "Dalam Pengiriman";
       case "completed":
@@ -326,7 +326,7 @@ export default function AdminTransactionPage() {
           <select value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)} className="w-full bg-zinc-900/50 border border-zinc-800 text-white pl-12 pr-4 py-4 rounded-2xl focus:outline-none focus:border-emerald-500/50 transition-all text-sm font-black uppercase tracking-widest appearance-none cursor-pointer">
             <option value="all">Semua Status ({counts.all})</option>
             <option value="waiting_payment">Menunggu Pembayaran ({counts.waiting_payment})</option>
-            <option value="processing">Verifikasi / Siap Kirim ({counts.processing})</option>
+            <option value="processing">Verifikasi / Belum Input Resi ({counts.processing})</option>
             <option value="shipped">Dalam Pengiriman ({counts.shipped})</option>
             <option value="completed">Selesai ({counts.completed})</option>
             <option value="cancelled">Dibatalkan ({counts.cancelled})</option>
@@ -348,6 +348,7 @@ export default function AdminTransactionPage() {
                 <th className="px-6 py-5 text-[10px] font-black text-zinc-500 uppercase tracking-widest text-center">Jumlah Produk</th>
                 <th className="px-6 py-5 text-[10px] font-black text-zinc-500 uppercase tracking-widest text-right">Total Tagihan</th>
                 <th className="px-6 py-5 text-[10px] font-black text-zinc-500 uppercase tracking-widest text-center">Status Transaksi</th>
+                <th className="px-6 py-5 text-[10px] font-black text-zinc-500 uppercase tracking-widest text-center">Tanggal Pengiriman</th>
                 <th className="px-6 py-5 text-[10px] font-black text-zinc-500 uppercase tracking-widest text-center">Bukti Bayar</th>
                 <th className="px-6 py-5 text-[10px] font-black text-zinc-500 uppercase tracking-widest text-center">Aksi</th>
               </tr>
@@ -430,6 +431,19 @@ export default function AdminTransactionPage() {
                         )}
                       </div>
                     </td>
+                    <td className="px-6 py-6 text-center">
+                      <span className="text-xs font-bold text-zinc-400">
+                        {order.shipped_at ? (
+                          new Date(order.shipped_at).toLocaleDateString('id-ID', {
+                            day: 'numeric',
+                            month: 'short',
+                            year: 'numeric'
+                          })
+                        ) : (
+                          <span className="text-zinc-600 italic font-normal">-</span>
+                        )}
+                      </span>
+                    </td>
                     <td className="px-6 py-6">
                       <div className="flex justify-center">
                         {order.payment_proof ? (
@@ -450,6 +464,11 @@ export default function AdminTransactionPage() {
                         <Link href={`/admin/transaksi-user/detail/${order.id}`} className="p-2.5 bg-zinc-800 hover:bg-emerald-500 text-zinc-400 hover:text-zinc-950 rounded-xl transition-all active:scale-90 flex items-center gap-1.5 group/link" title="Lihat Detail">
                           <Eye size={16} />
                         </Link>
+                        {(order.status === "shipped" || ["payment_verified", "waiting_shipment"].includes(order.status)) && (
+                          <Link href={`/admin/transaksi-user/tambah?orderId=${order.id}`} className="p-2.5 bg-zinc-800 hover:bg-amber-500 text-zinc-400 hover:text-zinc-950 rounded-xl transition-all active:scale-90 flex items-center gap-1.5" title={["payment_verified", "waiting_shipment"].includes(order.status) ? "Kirim Pengingat Seller (Input Resi)" : "Kirim Pengingat Buyer"}>
+                            <Megaphone size={16} />
+                          </Link>
+                        )}
                         {order.status === "waiting_payment" && order.payment_rejection_reason && (
                           <button onClick={() => handleOpenCancelModal(order)} className="p-2.5 bg-zinc-800 hover:bg-red-500 text-zinc-450 hover:text-white rounded-xl transition-all active:scale-90 flex items-center gap-1.5" title="Batalkan Transaksi">
                             <XCircle size={16} />
@@ -461,7 +480,7 @@ export default function AdminTransactionPage() {
                 ))
               ) : (
                 <tr>
-                  <td colSpan="9" className="px-6 py-20 text-center">
+                  <td colSpan="10" className="px-6 py-20 text-center">
                     <div className="space-y-3">
                       <div className="w-16 h-16 bg-zinc-900 rounded-full flex items-center justify-center mx-auto text-zinc-700">
                         <AlertCircle size={32} />

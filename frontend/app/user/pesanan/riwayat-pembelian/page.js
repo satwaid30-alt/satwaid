@@ -471,7 +471,7 @@ export default function RiwayatPembelianPage() {
               <p className="text-zinc-500 max-w-xs mx-auto text-sm">{activeTab === "completed" ? "Transaksi pembelian Anda yang sudah selesai akan muncul di sini secara otomatis." : "Transaksi pembelian Anda yang dibatalkan akan muncul di sini secara otomatis."}</p>
             </div>
             {activeTab === "completed" && (
-              <Link href="/toko" className="bg-emerald-500 hover:bg-emerald-400 text-zinc-950 font-black px-8 py-3 rounded-[10px] transition-all active:scale-95">
+              <Link href="/toko" className="bg-[#228B22] hover:bg-[#4CBB17] text-white font-black px-8 py-3 rounded-[10px] transition-all active:scale-95">
                 Mulai Belanja
               </Link>
             )}

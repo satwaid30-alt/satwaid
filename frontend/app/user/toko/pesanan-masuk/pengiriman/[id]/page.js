@@ -515,11 +515,27 @@ export default function ShippingConfirmationPage({ params }) {
               </div>
               <div className="flex justify-between items-center text-sm">
                 <span className="text-zinc-500 font-bold">Ongkos Kirim</span>
-                <span className="text-white font-black">{order.product?.is_free_shipping ? <span className="text-emerald-500">Gratis</span> : order.shipping_cost !== null ? formatPrice(order.shipping_cost) : formatPrice(0)}</span>
+                <span className="text-white font-black">
+                  {((order.items && order.items.length > 0 ? order.items.every(item => item.product?.is_free_shipping) : !!order.product?.is_free_shipping) || (order.shipping_cost !== null && parseFloat(order.shipping_cost) === 0 && !["pending_shipping_info", "waiting_shipping_cost"].includes(order.status))) ? (
+                    <span className="text-emerald-500">Gratis</span>
+                  ) : ["pending_shipping_info", "waiting_shipping_cost"].includes(order.status) ? (
+                    <span className="text-zinc-500 font-bold uppercase text-[10px]">Belum Ditentukan</span>
+                  ) : (
+                    formatPrice(order.shipping_cost || 0)
+                  )}
+                </span>
               </div>
               <div className="flex justify-between items-center text-sm">
                 <span className="text-zinc-500 font-bold">Biaya Packing</span>
-                <span className="text-white font-black">{order.product?.is_free_packing ? <span className="text-emerald-500">Gratis</span> : order.packing_cost !== null ? formatPrice(order.packing_cost) : formatPrice(0)}</span>
+                <span className="text-white font-black">
+                  {((order.items && order.items.length > 0 ? order.items.every(item => item.product?.is_free_packing) : !!order.product?.is_free_packing) || (order.packing_cost !== null && parseFloat(order.packing_cost) === 0 && !["pending_shipping_info", "waiting_shipping_cost"].includes(order.status))) ? (
+                    <span className="text-emerald-500">Gratis</span>
+                  ) : ["pending_shipping_info", "waiting_shipping_cost"].includes(order.status) ? (
+                    <span className="text-zinc-500 font-bold uppercase text-[10px]">Belum Ditentukan</span>
+                  ) : (
+                    formatPrice(order.packing_cost || 0)
+                  )}
+                </span>
               </div>
               <div className="flex justify-between items-center text-sm">
                 <span className="text-zinc-500 font-bold">Biaya Admin</span>

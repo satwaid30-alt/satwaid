@@ -239,11 +239,19 @@ export default function PengajuanPencairanPage({ params }) {
                     </div>
                     <div className="flex justify-between items-center text-xs">
                       <span className="text-zinc-500 font-bold uppercase tracking-widest">Ongkos Kirim</span>
-                      {order.product?.is_free_shipping ? <span className="text-emerald-500 font-black italic">GRATIS</span> : <span className="text-white font-black">{formatPrice(order.shipping_cost)}</span>}
+                      {((order.items && order.items.length > 0 ? order.items.every(item => item.product?.is_free_shipping) : !!order.product?.is_free_shipping) || (order.shipping_cost !== null && parseFloat(order.shipping_cost) === 0)) ? (
+                        <span className="text-emerald-500 font-black italic">GRATIS</span>
+                      ) : (
+                        <span className="text-white font-black">{formatPrice(order.shipping_cost || 0)}</span>
+                      )}
                     </div>
                     <div className="flex justify-between items-center text-xs">
                       <span className="text-zinc-500 font-bold uppercase tracking-widest">Biaya Packing</span>
-                      {order.product?.is_free_packing ? <span className="text-emerald-500 font-black italic">GRATIS</span> : <span className="text-white font-black">{formatPrice(order.packing_cost)}</span>}
+                      {((order.items && order.items.length > 0 ? order.items.every(item => item.product?.is_free_packing) : !!order.product?.is_free_packing) || (order.packing_cost !== null && parseFloat(order.packing_cost) === 0)) ? (
+                        <span className="text-emerald-500 font-black italic">GRATIS</span>
+                      ) : (
+                        <span className="text-white font-black">{formatPrice(order.packing_cost || 0)}</span>
+                      )}
                     </div>
                     <div className="h-px bg-zinc-800"></div>
                     <div className="flex justify-between items-center pt-2">

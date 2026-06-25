@@ -712,6 +712,12 @@ export default function SellerDashboardPage() {
                                                   {item.product?.type === "auction" ? "Lelang" : "Reguler"}
                                                 </span>
                                                 <span className="inline-block px-1.5 py-0.5 bg-zinc-950 text-[8px] text-zinc-500 rounded-[10px] font-black uppercase tracking-widest border border-zinc-800">Qty: {item.quantity || 1}</span>
+                                                {item.product?.is_free_shipping && (
+                                                  <span className="inline-block px-1.5 py-0.5 bg-emerald-500/10 text-emerald-400 text-[8px] font-black uppercase tracking-widest rounded border border-emerald-500/20">Gratis Ongkir</span>
+                                                )}
+                                                {item.product?.is_free_packing && (
+                                                  <span className="inline-block px-1.5 py-0.5 bg-blue-500/10 text-blue-400 text-[8px] font-black uppercase tracking-widest rounded border border-blue-500/20">Gratis Packing</span>
+                                                )}
                                               </div>
                                             </div>
                                           </div>
@@ -730,6 +736,12 @@ export default function SellerDashboardPage() {
                                               <span className={`inline-block px-1.5 py-0.5 rounded-[10px] text-[8px] font-black uppercase tracking-widest border ${order.product?.type === "auction" ? "bg-amber-500/10 text-amber-500 border-amber-500/20" : "bg-blue-500/10 text-blue-400 border-blue-500/20"}`}>
                                                 {order.product?.type === "auction" ? "Lelang" : "Reguler"}
                                               </span>
+                                              {order.product?.is_free_shipping && (
+                                                <span className="inline-block px-1.5 py-0.5 bg-emerald-500/10 text-emerald-400 text-[8px] font-black uppercase tracking-widest rounded border border-emerald-500/20">Gratis Ongkir</span>
+                                              )}
+                                              {order.product?.is_free_packing && (
+                                                <span className="inline-block px-1.5 py-0.5 bg-blue-500/10 text-blue-400 text-[8px] font-black uppercase tracking-widest rounded border border-blue-500/20">Gratis Packing</span>
+                                              )}
                                             </div>
                                           </div>
                                         </div>
@@ -814,6 +826,14 @@ export default function SellerDashboardPage() {
                                         <div className="text-left">
                                           <span className="text-xs font-bold text-zinc-300 truncate max-w-[120px] block">{item.product?.name}</span>
                                           <span className="inline-block bg-zinc-950 text-[7px] text-zinc-500 font-bold uppercase tracking-wider mt-0.5">ID: {item.product?.product_id || "-"}</span>
+                                          <div className="flex flex-wrap gap-1 mt-1">
+                                            {item.product?.is_free_shipping && (
+                                              <span className="inline-block px-1.5 py-0.5 bg-emerald-500/10 text-emerald-400 text-[7px] font-black uppercase tracking-widest rounded border border-emerald-500/20">Gratis Ongkir</span>
+                                            )}
+                                            {item.product?.is_free_packing && (
+                                              <span className="inline-block px-1.5 py-0.5 bg-blue-500/10 text-blue-400 text-[7px] font-black uppercase tracking-widest rounded border border-blue-500/20">Gratis Packing</span>
+                                            )}
+                                          </div>
                                         </div>
                                       </div>
                                       <span className="text-xs font-black text-white">x{item.quantity || 1}</span>
@@ -823,11 +843,17 @@ export default function SellerDashboardPage() {
                               ) : (
                                 <div className="text-right">
                                   <span className="text-xs font-bold text-zinc-300 truncate max-w-[160px] block">{order.product?.name}</span>
-                                  <div className="flex items-center justify-end gap-1.5 mt-1">
+                                  <div className="flex items-center justify-end flex-wrap gap-1.5 mt-1">
                                     <span className="inline-block px-1.5 py-0.5 bg-zinc-950 text-[8px] text-zinc-400 rounded-[10px] font-black uppercase tracking-widest border border-zinc-800">ID: {order.product?.product_id || "-"}</span>
                                     <span className={`inline-block px-1.5 py-0.5 rounded-[10px] text-[8px] font-black uppercase tracking-widest border ${order.product?.type === "auction" ? "bg-amber-500/10 text-amber-500 border-amber-500/20" : "bg-blue-500/10 text-blue-400 border-blue-500/20"}`}>
                                       {order.product?.type === "auction" ? "Lelang" : "Reguler"}
                                     </span>
+                                    {order.product?.is_free_shipping && (
+                                      <span className="inline-block px-1.5 py-0.5 bg-emerald-500/10 text-emerald-400 text-[7px] font-black uppercase tracking-widest rounded border border-emerald-500/20">Gratis Ongkir</span>
+                                    )}
+                                    {order.product?.is_free_packing && (
+                                      <span className="inline-block px-1.5 py-0.5 bg-blue-500/10 text-blue-400 text-[7px] font-black uppercase tracking-widest rounded border border-blue-500/20">Gratis Packing</span>
+                                    )}
                                   </div>
                                 </div>
                               )}
@@ -1090,6 +1116,12 @@ export default function SellerDashboardPage() {
                                                 {item.product?.type === "auction" ? "Lelang" : "Reguler"}
                                               </span>
                                               <span className="inline-block px-1.5 py-0.5 bg-zinc-950 text-[8px] text-zinc-500 rounded-[10px] font-black uppercase tracking-widest border border-zinc-800">Qty: {item.quantity || 1}</span>
+                                              {item.product?.is_free_shipping && (
+                                                <span className="inline-block px-1.5 py-0.5 bg-emerald-500/10 text-emerald-400 text-[8px] font-black uppercase tracking-widest rounded border border-emerald-500/20">Gratis Ongkir</span>
+                                              )}
+                                              {item.product?.is_free_packing && (
+                                                <span className="inline-block px-1.5 py-0.5 bg-blue-500/10 text-blue-400 text-[8px] font-black uppercase tracking-widest rounded border border-blue-500/20">Gratis Packing</span>
+                                              )}
                                             </div>
                                           </div>
                                         </div>
@@ -1108,6 +1140,12 @@ export default function SellerDashboardPage() {
                                             <span className={`inline-block px-1.5 py-0.5 rounded-[10px] text-[8px] font-black uppercase tracking-widest border ${order.product?.type === "auction" ? "bg-amber-500/10 text-amber-500 border-amber-500/20" : "bg-blue-500/10 text-blue-400 border-blue-500/20"}`}>
                                               {order.product?.type === "auction" ? "Lelang" : "Reguler"}
                                             </span>
+                                            {order.product?.is_free_shipping && (
+                                              <span className="inline-block px-1.5 py-0.5 bg-emerald-500/10 text-emerald-400 text-[8px] font-black uppercase tracking-widest rounded border border-emerald-500/20">Gratis Ongkir</span>
+                                            )}
+                                            {order.product?.is_free_packing && (
+                                              <span className="inline-block px-1.5 py-0.5 bg-blue-500/10 text-blue-400 text-[8px] font-black uppercase tracking-widest rounded border border-blue-500/20">Gratis Packing</span>
+                                            )}
                                           </div>
                                         </div>
                                       </div>
@@ -1162,6 +1200,14 @@ export default function SellerDashboardPage() {
                                         <div className="text-left">
                                           <span className="text-xs font-bold text-zinc-300 truncate max-w-[120px] block">{item.product?.name}</span>
                                           <span className="inline-block bg-zinc-950 text-[7px] text-zinc-500 font-bold uppercase tracking-wider mt-0.5">ID: {item.product?.product_id || "-"}</span>
+                                          <div className="flex flex-wrap gap-1 mt-1">
+                                            {item.product?.is_free_shipping && (
+                                              <span className="inline-block px-1.5 py-0.5 bg-emerald-500/10 text-emerald-400 text-[7px] font-black uppercase tracking-widest rounded border border-emerald-500/20">Gratis Ongkir</span>
+                                            )}
+                                            {item.product?.is_free_packing && (
+                                              <span className="inline-block px-1.5 py-0.5 bg-blue-500/10 text-blue-400 text-[7px] font-black uppercase tracking-widest rounded border border-blue-500/20">Gratis Packing</span>
+                                            )}
+                                          </div>
                                         </div>
                                       </div>
                                       <span className="text-xs font-black text-white">x{item.quantity || 1}</span>
@@ -1171,11 +1217,17 @@ export default function SellerDashboardPage() {
                               ) : (
                                 <div className="text-right">
                                   <span className="text-xs font-bold text-zinc-300 truncate max-w-[160px] block">{order.product?.name}</span>
-                                  <div className="flex items-center justify-end gap-1.5 mt-1">
+                                  <div className="flex items-center justify-end flex-wrap gap-1.5 mt-1">
                                     <span className="inline-block px-1.5 py-0.5 bg-zinc-950 text-[8px] text-zinc-400 rounded-[10px] font-black uppercase tracking-widest border border-zinc-800">ID: {order.product?.product_id || "-"}</span>
                                     <span className={`inline-block px-1.5 py-0.5 rounded-[10px] text-[8px] font-black uppercase tracking-widest border ${order.product?.type === "auction" ? "bg-amber-500/10 text-amber-500 border-amber-500/20" : "bg-blue-500/10 text-blue-400 border-blue-500/20"}`}>
                                       {order.product?.type === "auction" ? "Lelang" : "Reguler"}
                                     </span>
+                                    {order.product?.is_free_shipping && (
+                                      <span className="inline-block px-1.5 py-0.5 bg-emerald-500/10 text-emerald-400 text-[7px] font-black uppercase tracking-widest rounded border border-emerald-500/20">Gratis Ongkir</span>
+                                    )}
+                                    {order.product?.is_free_packing && (
+                                      <span className="inline-block px-1.5 py-0.5 bg-blue-500/10 text-blue-400 text-[7px] font-black uppercase tracking-widest rounded border border-blue-500/20">Gratis Packing</span>
+                                    )}
                                   </div>
                                 </div>
                               )}

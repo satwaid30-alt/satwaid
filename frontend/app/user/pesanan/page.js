@@ -867,7 +867,7 @@ export default function PesananPage() {
                         <button
                           onClick={() => handleCheckoutCartGroup(group, groupSelectedItems)}
                           disabled={isProcessingCart || groupSelectedItems.length === 0}
-                          className="px-6 py-2.5 bg-emerald-500 hover:bg-emerald-400 disabled:bg-zinc-800 disabled:text-zinc-600 disabled:cursor-not-allowed text-zinc-950 font-black text-xs uppercase tracking-wider rounded-[10px] transition-all flex items-center justify-center gap-2"
+                          className="px-6 py-2.5 bg-[#228B22] hover:bg-[#4CBB17] text-white disabled:bg-zinc-800 disabled:text-zinc-600 disabled:cursor-not-allowed text-white font-black text-xs uppercase tracking-wider rounded-[10px] transition-all flex items-center justify-center gap-2"
                         >
                           <ShoppingBag size={14} /> Checkout Terpilih ({groupSelectedItems.length})
                         </button>
@@ -895,6 +895,8 @@ export default function PesananPage() {
                             </div>
                             <div className="flex-1 min-w-0 text-center md:text-left">
                               <h3 className="text-sm md:text-base font-black text-white mb-1 line-clamp-2">{item.product?.name}</h3>
+                              {/* Badges for Free Shipping / Free Packing */}
+
                               <div className="flex items-center justify-center md:justify-start gap-4">
                                 <p className="text-sm font-black text-emerald-500">{formatPrice(item.product?.price || 0)}</p>
                                 <div className="px-2.5 py-0.5 bg-zinc-900 border border-zinc-800 rounded-[10px] text-[10px] font-bold text-zinc-400">
@@ -947,7 +949,11 @@ export default function PesananPage() {
                             <div className="h-1 w-1 bg-zinc-700 rounded-full shrink-0"></div>
                             <span className="text-[9px] md:text-[10px] font-bold text-zinc-500 whitespace-nowrap">{new Date(order.created_at).toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" })}</span>
                           </div>
-                          <div className={`px-3 md:px-4 py-1 rounded-full border text-[8px] md:text-[10px] font-black uppercase tracking-widest ${getStatusStyle(order.status)}`}>{getStatusLabel(order.status)}</div>
+                          {/* <div className="flex items-center gap-2">
+                            {(order.items && order.items.length > 0 ? order.items.some((item) => item.product?.is_free_shipping) : !!order.product?.is_free_shipping) && <span className="px-2 py-0.5 bg-emerald-500/10 text-emerald-400 text-[8px] font-black uppercase tracking-widest rounded border border-emerald-500/20">Gratis Ongkir</span>}
+                            {(order.items && order.items.length > 0 ? order.items.some((item) => item.product?.is_free_packing) : !!order.product?.is_free_packing) && <span className="px-2 py-0.5 bg-blue-500/10 text-blue-400 text-[8px] font-black uppercase tracking-widest rounded border border-blue-500/20">Gratis Packing</span>}
+                            <div className={`px-3 md:px-4 py-1 rounded-full border text-[8px] md:text-[10px] font-black uppercase tracking-widest ${getStatusStyle(order.status)}`}>{getStatusLabel(order.status)}</div>
+                          </div> */}
                         </div>
 
                         {/* Mini Progress Bar for Buyer */}
@@ -1031,6 +1037,11 @@ export default function PesananPage() {
                                         <span className="text-[8px] font-black text-zinc-500 uppercase tracking-widest">Qty: {item.quantity}</span>
                                       </div>
                                       <h3 className="text-xs md:text-sm font-black text-white tracking-tight leading-snug truncate">{item.product?.name}</h3>
+                                      {/* Badges for Free Shipping / Free Packing */}
+                                      <div className="flex flex-wrap items-center gap-1.5 my-1">
+                                        {item.product?.is_free_shipping && <span className="px-1.5 py-0.5 bg-emerald-500/10 text-emerald-400 text-[7px] font-black uppercase tracking-widest rounded border border-emerald-500/20">Gratis Ongkir</span>}
+                                        {item.product?.is_free_packing && <span className="px-1.5 py-0.5 bg-blue-500/10 text-blue-400 text-[7px] font-black uppercase tracking-widest rounded border border-blue-500/20">Gratis Packing</span>}
+                                      </div>
                                       <div className="flex items-center gap-2 text-[10px] font-bold text-zinc-400">
                                         <span className="text-[8px] font-black text-zinc-500 uppercase tracking-widest">Harga:</span>
                                         <span className="text-emerald-500 font-black">{formatPrice(item.price)}</span>
@@ -1058,6 +1069,11 @@ export default function PesananPage() {
                                       <span className="text-[8px] font-black text-zinc-500 uppercase tracking-widest">Qty: {order.quantity}</span>
                                     </div>
                                     <h3 className="text-xs md:text-sm font-black text-white tracking-tight leading-snug truncate">{order.product?.name}</h3>
+                                    {/* Badges for Free Shipping / Free Packing */}
+                                    <div className="flex flex-wrap items-center gap-1.5 my-1">
+                                      {order.product?.is_free_shipping && <span className="px-1.5 py-0.5 bg-emerald-500/10 text-emerald-400 text-[7px] font-black uppercase tracking-widest rounded border border-emerald-500/20">Gratis Ongkir</span>}
+                                      {order.product?.is_free_packing && <span className="px-1.5 py-0.5 bg-blue-500/10 text-blue-400 text-[7px] font-black uppercase tracking-widest rounded border border-blue-500/20">Gratis Packing</span>}
+                                    </div>
                                     <div className="flex items-center gap-2 text-[10px] font-bold text-zinc-400">
                                       <span className="text-[8px] font-black text-zinc-500 uppercase tracking-widest">Harga:</span>
                                       <span className="text-emerald-500 font-black">{formatPrice(order.price)}</span>
@@ -1155,7 +1171,7 @@ export default function PesananPage() {
                   <h3 className="text-xl font-bold text-white">Belum Ada Aktivitas</h3>
                   <p className="text-zinc-500 max-w-xs mx-auto text-sm">Anda belum memiliki keranjang atau riwayat pesanan apapun.</p>
                 </div>
-                <Link href="/toko" className="bg-emerald-500 hover:bg-emerald-400 text-zinc-950 font-black px-8 py-3 rounded-[10px] transition-all active:scale-95">
+                <Link href="/toko" className="bg-[#228B22] hover:bg-[#4CBB17] text-white font-black px-8 py-3 rounded-[10px] transition-all active:scale-95">
                   Mulai Belanja
                 </Link>
               </div>

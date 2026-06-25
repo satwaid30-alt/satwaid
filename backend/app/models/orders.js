@@ -223,6 +223,11 @@ module.exports = function (sequelize, DataTypes) {
       allowNull: true,
       defaultValue: null,
       comment: 'Status refund: pending, refunded, rejected'
+    },
+    admin_reminder: {
+      type: DataTypes.TEXT,
+      allowNull: true,
+      comment: 'Pesan pengingat dari admin untuk menyelesaikan transaksi'
     }
   }, {
     sequelize,

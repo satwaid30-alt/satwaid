@@ -117,12 +117,12 @@ export default function InputShippingCostPage({ params }) {
         }
         setOrder(orderData);
 
-        const isFreeShip = orderData.items && orderData.items.length > 0 ? orderData.items.every((item) => item.product?.is_free_shipping) : !!orderData.product?.is_free_shipping;
-        const isFreePack = orderData.items && orderData.items.length > 0 ? orderData.items.every((item) => item.product?.is_free_packing) : !!orderData.product?.is_free_packing;
+        const isAllFreeShip = orderData.items && orderData.items.length > 0 ? orderData.items.every((item) => item.product?.is_free_shipping) : !!orderData.product?.is_free_shipping;
+        const isAllFreePack = orderData.items && orderData.items.length > 0 ? orderData.items.every((item) => item.product?.is_free_packing) : !!orderData.product?.is_free_packing;
 
         setCostForm({
-          shipping_cost: isFreeShip ? "0" : formatRupiah(orderData.shipping_cost) || "",
-          packing_cost: isFreePack ? "0" : formatRupiah(orderData.packing_cost) || "",
+          shipping_cost: isAllFreeShip ? "0" : formatRupiah(orderData.shipping_cost) || "",
+          packing_cost: isAllFreePack ? "0" : formatRupiah(orderData.packing_cost) || "",
         });
       } else {
         setModalConfig({
@@ -149,16 +149,18 @@ export default function InputShippingCostPage({ params }) {
   const handleCostSubmit = (e) => {
     e.preventDefault();
 
-    const isFreeShipping = order.items && order.items.length > 0 ? order.items.every((item) => item.product?.is_free_shipping) : !!order.product?.is_free_shipping;
+    const isAllFreeShipping = order.items && order.items.length > 0 ? order.items.every((item) => item.product?.is_free_shipping) : !!order.product?.is_free_shipping;
+    const isSomeFreeShipping = order.items && order.items.length > 0 ? order.items.some((item) => item.product?.is_free_shipping) : !!order.product?.is_free_shipping;
 
-    const isFreePacking = order.items && order.items.length > 0 ? order.items.every((item) => item.product?.is_free_packing) : !!order.product?.is_free_packing;
+    const isAllFreePacking = order.items && order.items.length > 0 ? order.items.every((item) => item.product?.is_free_packing) : !!order.product?.is_free_packing;
+    const isSomeFreePacking = order.items && order.items.length > 0 ? order.items.some((item) => item.product?.is_free_packing) : !!order.product?.is_free_packing;
 
-    const rawShippingCost = isFreeShipping ? 0 : parseInt(costForm.shipping_cost.toString().replace(/\D/g, "")) || 0;
-
-    const rawPackingCost = isFreePacking ? 0 : parseInt(costForm.packing_cost.toString().replace(/\D/g, "")) || 0;
+    const rawShippingCost = isAllFreeShipping ? 0 : parseInt(costForm.shipping_cost.toString().replace(/\D/g, "")) || 0;
+    const rawPackingCost = isAllFreePacking ? 0 : parseInt(costForm.packing_cost.toString().replace(/\D/g, "")) || 0;
 
     // Validation
-    if (!isFreeShipping && rawShippingCost <= 0) {
+    const needsShippingValidation = !isAllFreeShipping && !isSomeFreeShipping;
+    if (needsShippingValidation && rawShippingCost <= 0) {
       setModalConfig({
         isOpen: true,
         type: "warning",
@@ -168,7 +170,8 @@ export default function InputShippingCostPage({ params }) {
       return;
     }
 
-    if (!isFreePacking && rawPackingCost <= 0) {
+    const needsPackingValidation = !isAllFreePacking && !isSomeFreePacking;
+    if (needsPackingValidation && rawPackingCost <= 0) {
       setModalConfig({
         isOpen: true,
         type: "warning",
@@ -258,9 +261,11 @@ export default function InputShippingCostPage({ params }) {
 
   if (!order) return null;
 
-  const isFreeShipping = order.items && order.items.length > 0 ? order.items.every((item) => item.product?.is_free_shipping) : !!order.product?.is_free_shipping;
+  const isAllFreeShipping = order.items && order.items.length > 0 ? order.items.every((item) => item.product?.is_free_shipping) : !!order.product?.is_free_shipping;
+  const isSomeFreeShipping = order.items && order.items.length > 0 ? order.items.some((item) => item.product?.is_free_shipping) : !!order.product?.is_free_shipping;
 
-  const isFreePacking = order.items && order.items.length > 0 ? order.items.every((item) => item.product?.is_free_packing) : !!order.product?.is_free_packing;
+  const isAllFreePacking = order.items && order.items.length > 0 ? order.items.every((item) => item.product?.is_free_packing) : !!order.product?.is_free_packing;
+  const isSomeFreePacking = order.items && order.items.length > 0 ? order.items.some((item) => item.product?.is_free_packing) : !!order.product?.is_free_packing;
 
   return (
     <div className="max-w-7xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700 pb-20 px-4">
@@ -299,7 +304,7 @@ export default function InputShippingCostPage({ params }) {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-3">
                     <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest ml-1 flex items-center gap-2">
-                      <Truck size={12} className="text-emerald-500" /> Biaya Ongkos Kirim {!isFreeShipping && <span className="text-red-500">*</span>}
+                      <Truck size={12} className="text-emerald-500" /> Biaya Ongkos Kirim {!isSomeFreeShipping && <span className="text-red-500">*</span>}
                     </label>
                     <div className="relative group">
                       <div className="absolute left-6 top-1/2 -translate-y-1/2 text-zinc-500 font-black text-sm group-focus-within:text-emerald-500 transition-colors">Rp</div>
@@ -307,8 +312,8 @@ export default function InputShippingCostPage({ params }) {
                         required
                         type="text"
                         inputMode="numeric"
-                        disabled={isFreeShipping}
-                        value={isFreeShipping ? "0" : costForm.shipping_cost}
+                        disabled={isAllFreeShipping}
+                        value={isAllFreeShipping ? "0" : costForm.shipping_cost}
                         onChange={(e) =>
                           setCostForm({
                             ...costForm,
@@ -318,13 +323,20 @@ export default function InputShippingCostPage({ params }) {
                         className="w-full bg-zinc-950 border border-zinc-800 rounded-[10px] py-5 pl-14 pr-8 text-white focus:outline-none focus:border-emerald-500 transition-all font-black text-lg disabled:opacity-50"
                         placeholder="0"
                       />
-                      {isFreeShipping && <span className="absolute right-6 top-1/2 -translate-y-1/2 text-[10px] font-black text-emerald-500 uppercase tracking-widest">Gratis Ongkir</span>}
+                      {isAllFreeShipping ? (
+                        <span className="absolute right-6 top-1/2 -translate-y-1/2 text-[10px] font-black text-emerald-500 uppercase tracking-widest">Gratis Ongkir</span>
+                      ) : isSomeFreeShipping ? (
+                        <span className="absolute right-6 top-1/2 -translate-y-1/2 text-[9px] font-black text-emerald-500/80 uppercase tracking-wider">Sebagian Gratis</span>
+                      ) : null}
                     </div>
+                    {isSomeFreeShipping && !isAllFreeShipping && (
+                      <p className="text-[10px] text-emerald-500/85 font-semibold mt-1.5 ml-1">✓ Sebagian produk gratis ongkir (boleh diisi 0 jika ingin digratiskan)</p>
+                    )}
                   </div>
 
                   <div className="space-y-3">
                     <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest ml-1 flex items-center gap-2">
-                      <Package size={12} className="text-emerald-500" /> Biaya Packing {!isFreePacking && <span className="text-red-500">*</span>}
+                      <Package size={12} className="text-emerald-500" /> Biaya Packing {!isSomeFreePacking && <span className="text-red-500">*</span>}
                     </label>
                     <div className="relative group">
                       <div className="absolute left-6 top-1/2 -translate-y-1/2 text-zinc-500 font-black text-sm group-focus-within:text-emerald-500 transition-colors">Rp</div>
@@ -332,8 +344,8 @@ export default function InputShippingCostPage({ params }) {
                         required
                         type="text"
                         inputMode="numeric"
-                        disabled={isFreePacking}
-                        value={isFreePacking ? "0" : costForm.packing_cost}
+                        disabled={isAllFreePacking}
+                        value={isAllFreePacking ? "0" : costForm.packing_cost}
                         onChange={(e) =>
                           setCostForm({
                             ...costForm,
@@ -343,8 +355,15 @@ export default function InputShippingCostPage({ params }) {
                         className="w-full bg-zinc-950 border border-zinc-800 rounded-[10px] py-5 pl-14 pr-8 text-white focus:outline-none focus:border-blue-400 transition-all font-black text-lg disabled:opacity-50"
                         placeholder="0"
                       />
-                      {isFreePacking && <span className="absolute right-6 top-1/2 -translate-y-1/2 text-[10px] font-black text-blue-400 uppercase tracking-widest">Gratis Packing</span>}
+                      {isAllFreePacking ? (
+                        <span className="absolute right-6 top-1/2 -translate-y-1/2 text-[10px] font-black text-blue-400 uppercase tracking-widest">Gratis Packing</span>
+                      ) : isSomeFreePacking ? (
+                        <span className="absolute right-6 top-1/2 -translate-y-1/2 text-[9px] font-black text-blue-400/80 uppercase tracking-wider">Sebagian Gratis</span>
+                      ) : null}
                     </div>
+                    {isSomeFreePacking && !isAllFreePacking && (
+                      <p className="text-[10px] text-blue-400/85 font-semibold mt-1.5 ml-1">✓ Sebagian produk gratis packing (boleh diisi 0 jika ingin digratiskan)</p>
+                    )}
                   </div>
                 </div>
 
@@ -355,11 +374,11 @@ export default function InputShippingCostPage({ params }) {
                   </div>
                   <div className="flex justify-between items-center text-sm border-b border-zinc-800/20 pb-3">
                     <span className="text-zinc-500 font-bold">Biaya Pengiriman</span>
-                    <span className="text-white font-black">{isFreeShipping ? <span className="text-emerald-500 uppercase text-[10px] font-black">Gratis</span> : formatPrice(parseInt(costForm.shipping_cost.toString().replace(/\D/g, "")) || 0)}</span>
+                    <span className="text-white font-black">{isAllFreeShipping ? <span className="text-emerald-500 uppercase text-[10px] font-black">Gratis</span> : formatPrice(parseInt(costForm.shipping_cost.toString().replace(/\D/g, "")) || 0)}</span>
                   </div>
                   <div className="flex justify-between items-center text-sm border-b border-zinc-800/20 pb-3">
                     <span className="text-zinc-500 font-bold">Biaya Packing</span>
-                    <span className="text-white font-black">{isFreePacking ? <span className="text-emerald-500 uppercase text-[10px] font-black">Gratis</span> : formatPrice(parseInt(costForm.packing_cost.toString().replace(/\D/g, "")) || 0)}</span>
+                    <span className="text-white font-black">{isAllFreePacking ? <span className="text-emerald-500 uppercase text-[10px] font-black">Gratis</span> : formatPrice(parseInt(costForm.packing_cost.toString().replace(/\D/g, "")) || 0)}</span>
                   </div>
                   <div className="flex justify-between items-center text-sm border-b border-zinc-800/50 pb-4">
                     <span className="text-zinc-500 font-bold">Biaya Admin</span>

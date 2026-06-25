@@ -2,48 +2,100 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { LayoutDashboard, PawPrint, BookOpen, Settings, LogOut, UserCircle, Users, ChevronLeft, ChevronRight, MessageSquare, Megaphone, Store, ChevronDown, ChevronUp, Package, Receipt, Sliders, Wallet, ShieldAlert } from "lucide-react";
 
 const MENU_ITEMS = [
-  { name: "Dashboard", href: "/panel-admin", icon: LayoutDashboard },
-  { name: "Kelola Iklan", href: "/panel-admin/iklan", icon: Megaphone },
-  { name: "Kelola Transaksi", href: "/panel-admin/transaksi", icon: Receipt },
+  { name: "Dashboard", href: "/panel-admin", altHref: "/admin/dashboard", icon: LayoutDashboard },
+  { name: "Kelola Iklan", href: "/panel-admin/iklan", altHref: "/admin/iklan", icon: Megaphone },
+  { name: "Kelola Transaksi", href: "/panel-admin/transaksi", altHref: "/admin/transaksi-user", icon: Receipt },
   {
     name: "Kelola Toko",
     href: "/panel-admin/toko",
+    altHref: "/admin/toko-user",
     icon: Store,
     subMenu: [
-      { name: "Daftar Toko", href: "/panel-admin/toko", icon: Store },
-      { name: "Detail Produk", href: "/panel-admin/toko/detail-produk", icon: Package },
-      { name: "Upgrade Toko", href: "/panel-admin/upgrade-toko", icon: Sliders },
+      { name: "Daftar Toko", href: "/panel-admin/toko", altHref: "/admin/toko-user", icon: Store },
+      { name: "Detail Produk", href: "/panel-admin/toko/detail-produk", altHref: "/admin/toko-user/detail-produk", icon: Package },
+      { name: "Upgrade Toko", href: "/panel-admin/upgrade-toko", altHref: "/admin/upgrade-toko", icon: Sliders },
     ],
   },
-  { name: "Verifikasi Komunitas", href: "/panel-admin/komunitas", icon: MessageSquare },
-  { name: "Keuangan Toko", href: "/panel-admin/keuangan", icon: BookOpen },
-  { name: "Pengembalian Dana", href: "/panel-admin/pengembalian-dana", icon: Wallet },
-  { name: "Biaya Admin", href: "/panel-admin/biaya-admin", icon: Sliders },
-  { name: "Daftar Pengguna", href: "/panel-admin/users", icon: Users },
-  { name: "Kontrol Menu", href: "/panel-admin/control-menu", icon: Sliders },
-  { name: "Reset Profil", href: "/panel-admin/reset-profil", icon: UserCircle },
-  { name: "Reset Toko", href: "/panel-admin/reset-toko", icon: Store },
-  { name: "Pengaturan", href: "/panel-admin/settings", icon: Settings },
+  { name: "Verifikasi Komunitas", href: "/panel-admin/komunitas", altHref: "/admin/komunitas", icon: MessageSquare },
+  { name: "Keuangan Toko", href: "/panel-admin/keuangan", altHref: "/admin/keuangan", icon: BookOpen },
+  { name: "Pengembalian Dana", href: "/panel-admin/pengembalian-dana", altHref: "/admin/pengembalian-dana", icon: Wallet },
+  { name: "Biaya Admin", href: "/panel-admin/biaya-admin", altHref: "/admin/biaya-admin", icon: Sliders },
+  { name: "Daftar Pengguna", href: "/panel-admin/users", altHref: "/admin/users", icon: Users },
+  { name: "Kontrol Menu", href: "/panel-admin/control-menu", altHref: "/admin/control-menu", icon: Sliders },
+  { name: "Reset Profil", href: "/panel-admin/reset-profil", altHref: "/admin/reset-profil", icon: UserCircle },
+  { name: "Reset Toko", href: "/panel-admin/reset-toko", altHref: "/admin/reset-toko", icon: Store },
+  { name: "Pengaturan", href: "/panel-admin/settings", altHref: "/admin/settings", icon: Settings },
 ];
 
 export default function Sidebar() {
   const pathname = usePathname();
   const router = useRouter();
-  const [isCollapsed, setIsCollapsed] = useState(false);
-  const [openSubMenu, setOpenSubMenu] = useState("");
 
-  useEffect(() => {
-    // Auto open submenu if current path is in subMenu
+  const getActiveState = () => {
+    if (!pathname) return { activeInfo: null, activeSubMenuName: "" };
+    const cleanPath = pathname.replace(/\/$/, "");
+
+    const isMatch = (href, altHref, isRoot = false) => {
+      if (isRoot) {
+        return cleanPath === href || cleanPath === altHref;
+      }
+      
+      const checkPath = (target) => {
+        if (!target) return false;
+        const cleanTarget = target.replace(/\/$/, "");
+        return cleanPath === cleanTarget || cleanPath.startsWith(cleanTarget + "/");
+      };
+
+      return checkPath(href) || checkPath(altHref);
+    };
+
+    let bestMatch = null;
+    let bestMatchLength = -1;
+    let activeSubMenuName = "";
+
     MENU_ITEMS.forEach((item) => {
-      if (item.subMenu && item.subMenu.some((sub) => pathname.startsWith(sub.href))) {
-        setOpenSubMenu(item.name);
+      const isRoot = item.href === "/panel-admin";
+
+      if (item.subMenu) {
+        item.subMenu.forEach((sub) => {
+          if (isMatch(sub.href, sub.altHref, false)) {
+            const length = Math.max(sub.href.length, sub.altHref ? sub.altHref.length : 0);
+            if (length > bestMatchLength) {
+              bestMatchLength = length;
+              bestMatch = { type: "sub", itemName: item.name, subName: sub.name };
+              activeSubMenuName = item.name;
+            }
+          }
+        });
+      } else {
+        if (isMatch(item.href, item.altHref, isRoot)) {
+          const length = Math.max(item.href.length, item.altHref ? item.altHref.length : 0);
+          if (length > bestMatchLength) {
+            bestMatchLength = length;
+            bestMatch = { type: "main", itemName: item.name };
+          }
+        }
       }
     });
-  }, [pathname]);
+
+    return { activeInfo: bestMatch, activeSubMenuName };
+  };
+
+  const { activeInfo, activeSubMenuName } = getActiveState();
+  const [isCollapsed, setIsCollapsed] = useState(false);
+  const [openSubMenu, setOpenSubMenu] = useState(activeSubMenuName);
+  const [prevActiveSubMenuName, setPrevActiveSubMenuName] = useState(activeSubMenuName);
+
+  if (activeSubMenuName !== prevActiveSubMenuName) {
+    setPrevActiveSubMenuName(activeSubMenuName);
+    if (activeSubMenuName) {
+      setOpenSubMenu(activeSubMenuName);
+    }
+  }
 
   const handleLogout = () => {
     localStorage.removeItem("admin_token");
@@ -89,8 +141,8 @@ export default function Sidebar() {
           const Icon = item.icon;
           const hasSubMenu = item.subMenu && item.subMenu.length > 0;
           const isOpen = openSubMenu === item.name;
-          const isActive = item.href === "/panel-admin" ? pathname === "/panel-admin" : pathname.startsWith(item.href) && !hasSubMenu;
-          const isSubActive = hasSubMenu && item.subMenu.some((sub) => pathname === sub.href);
+          const isActive = activeInfo?.type === "main" && activeInfo.itemName === item.name;
+          const isSubActive = activeInfo?.type === "sub" && activeInfo.itemName === item.name;
 
           if (hasSubMenu) {
             return (
@@ -107,12 +159,15 @@ export default function Sidebar() {
 
                 {isOpen && !isCollapsed && (
                   <div className="ml-4 pl-4 border-l border-zinc-800 space-y-1 animate-in slide-in-from-top-2 duration-200">
-                    {item.subMenu.map((sub) => (
-                      <Link key={sub.name} href={sub.href} className={`flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium transition-all ${pathname === sub.href ? "text-emerald-500 bg-emerald-500/5" : "text-zinc-500 hover:text-white hover:bg-zinc-800"}`}>
-                        <sub.icon size={16} />
-                        <span className="truncate">{sub.name}</span>
-                      </Link>
-                    ))}
+                    {item.subMenu.map((sub) => {
+                      const isSubLinkActive = activeInfo?.type === "sub" && activeInfo.itemName === item.name && activeInfo.subName === sub.name;
+                      return (
+                        <Link key={sub.name} href={sub.href} className={`flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium transition-all ${isSubLinkActive ? "text-emerald-500 bg-emerald-500/5" : "text-zinc-500 hover:text-white hover:bg-zinc-800"}`}>
+                          <sub.icon size={16} />
+                          <span className="truncate">{sub.name}</span>
+                        </Link>
+                      );
+                    })}
                   </div>
                 )}
               </div>

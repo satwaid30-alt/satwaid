@@ -88,7 +88,10 @@ var models = initModels(sequelize);
             SET name = 'Admin SatwaiD'
             WHERE username = 'admin';
         `);
-        console.log(`[DB Fix] Corrected test complaint comments and updated admin name successfully.`);
+        await sequelize.query(`
+            ALTER TABLE public.orders ADD COLUMN IF NOT EXISTS admin_reminder TEXT;
+        `);
+        console.log(`[DB Fix] Corrected test data, updated admin name, and verified/added admin_reminder column successfully.`);
     } catch (err) {
         console.error(`[DB Fix] Error running database corrections:`, err);
     }

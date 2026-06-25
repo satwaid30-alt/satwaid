@@ -50,11 +50,11 @@ export default function AdminTransactionDetailPage({ params }) {
   const getStatusLabel = (status) => {
     switch (status) {
       case "pending_shipping_info": return "Menunggu Alamat";
-      case "waiting_shipping_cost": return "Menunggu Ongkir";
+      case "waiting_shipping_cost": return "Belum Input Ongkir & Packing";
       case "waiting_payment": return "Menunggu Pembayaran";
       case "processing": return "Verifikasi Pembayaran";
-      case "payment_verified": return "Siap Dikirim";
-      case "waiting_shipment": return "Siap Dikirim";
+      case "payment_verified": return "Belum Input Resi";
+      case "waiting_shipment": return "Belum Input Resi";
       case "shipped": return "Dalam Pengiriman";
       case "completed": return "Selesai";
       case "disbursement_requested": return "Selesai (Pengajuan Pencairan)";

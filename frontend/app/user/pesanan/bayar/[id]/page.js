@@ -245,7 +245,7 @@ export default function PaymentPage({ params }) {
 
   const renderPaymentCard = (isMobile = false) => {
     return (
-      <div className={`relative overflow-hidden rounded-[2rem] border transition-all duration-300 ${isMobile ? "w-full border-zinc-800/60 bg-zinc-950/20 p-4 sm:p-6" : "bg-zinc-900/60 backdrop-blur-xl border border-zinc-800/80 p-6 lg:p-8 shadow-2xl group"}`}>
+      <div className={`relative overflow-hidden rounded-[10px] border transition-all duration-300 ${isMobile ? "w-full border-zinc-800/60 bg-zinc-950/20 p-4 sm:p-6" : "bg-zinc-900/60 backdrop-blur-xl border border-zinc-800/80 p-6 lg:p-8 shadow-2xl group"}`}>
         {/* Ambient glow effect for desktop */}
         {!isMobile && <div className="absolute -top-10 -right-10 w-40 h-40 bg-emerald-500/5 rounded-full blur-3xl group-hover:bg-emerald-500/10 transition-all duration-700 pointer-events-none"></div>}
 
@@ -259,18 +259,18 @@ export default function PaymentPage({ params }) {
               </h3>
               <p className="text-[10px] text-zinc-400 font-medium leading-relaxed">Silakan pilih salah satu metode pembayaran di bawah ini.</p>
             </div>
-            <div className="self-start sm:self-center px-2.5 py-1 bg-emerald-500/10 border border-emerald-500/20 rounded-full shrink-0 flex items-center gap-1.5">
+            <div className="self-start sm:self-center px-2.5 py-1 bg-emerald-500/10 border border-emerald-500/20 rounded-[10px] shrink-0 flex items-center gap-1.5">
               <span className="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-ping"></span>
               <span className="text-[8px] font-black text-emerald-400 uppercase tracking-widest">Verifikasi Instan</span>
             </div>
           </div>
 
           {/* Payment Method Selector */}
-          <div className="grid grid-cols-2 gap-3 p-1 bg-zinc-950 border border-zinc-850 rounded-2xl">
+          <div className="grid grid-cols-2 gap-3 p-1 bg-zinc-950 border border-zinc-800 rounded-[10px]">
             <button
               type="button"
               onClick={() => setPaymentMethod("qris")}
-              className={`py-3 px-4 rounded-xl text-xs font-black uppercase tracking-wider transition-all flex items-center justify-center gap-2 active:scale-95 ${paymentMethod === "qris" ? "bg-emerald-500 text-zinc-950 shadow-lg shadow-emerald-500/10" : "bg-transparent text-zinc-500 hover:text-white"}`}
+              className={`py-3 px-4 rounded-[10px] text-xs font-black uppercase tracking-wider transition-all flex items-center justify-center gap-2 active:scale-95 ${paymentMethod === "qris" ? "bg-emerald-500 text-zinc-950 shadow-lg shadow-emerald-500/10" : "bg-transparent text-zinc-500 hover:text-white"}`}
             >
               <QrCode size={14} />
               QRIS
@@ -278,7 +278,7 @@ export default function PaymentPage({ params }) {
             <button
               type="button"
               onClick={() => setPaymentMethod("bca")}
-              className={`py-3 px-4 rounded-xl text-xs font-black uppercase tracking-wider transition-all flex items-center justify-center gap-2 active:scale-95 ${paymentMethod === "bca" ? "bg-emerald-500 text-zinc-950 shadow-lg shadow-emerald-500/10" : "bg-transparent text-zinc-500 hover:text-white"}`}
+              className={`py-3 px-4 rounded-[10px] text-xs font-black uppercase tracking-wider transition-all flex items-center justify-center gap-2 active:scale-95 ${paymentMethod === "bca" ? "bg-emerald-500 text-zinc-950 shadow-lg shadow-emerald-500/10" : "bg-transparent text-zinc-500 hover:text-white"}`}
             >
               <CreditCard size={14} />
               Transfer BCA
@@ -290,19 +290,19 @@ export default function PaymentPage({ params }) {
             <div className="flex flex-col md:grid md:grid-cols-12 gap-6 items-center animate-in fade-in duration-300">
               {/* Left/Middle: QR Container */}
               <div className="md:col-span-5 w-full flex flex-col items-center gap-3">
-                <div className="relative w-full max-w-[200px] aspect-square overflow-hidden rounded-2xl bg-black border-2 border-zinc-800 p-2.5 group/qr shadow-lg shadow-black/40">
+                <div className="relative w-full max-w-[200px] aspect-square overflow-hidden rounded-[10px] bg-black border-2 border-zinc-800 p-2.5 group/qr shadow-lg shadow-black/40">
                   {/* Scanner Target corners */}
                   <div className="absolute top-2 left-2 w-3 h-3 border-t-2 border-l-2 border-emerald-500 rounded-tl-sm"></div>
                   <div className="absolute top-2 right-2 w-3 h-3 border-t-2 border-r-2 border-emerald-500 rounded-tr-sm"></div>
                   <div className="absolute bottom-2 left-2 w-3 h-3 border-b-2 border-l-2 border-emerald-500 rounded-bl-sm"></div>
                   <div className="absolute bottom-2 right-2 w-3 h-3 border-b-2 border-r-2 border-emerald-500 rounded-br-sm"></div>
 
-                  <img src="/images/Pembayaran.jpeg" alt="QRIS Payment Details" className="w-full h-full object-contain rounded-lg transition-transform duration-500 group-hover/qr:scale-105" />
+                  <img src="/images/Pembayaran.jpeg" alt="QRIS Payment Details" className="w-full h-full object-contain rounded-[10px] transition-transform duration-500 group-hover/qr:scale-105" />
                 </div>
 
                 {/* Action Buttons */}
                 <div className="w-full max-w-[200px]">
-                  <button type="button" onClick={() => setPreviewImage("/images/Pembayaran.jpeg")} className="w-full py-1.5 px-2 bg-emerald-500 hover:bg-emerald-400 text-zinc-950 rounded-lg text-[9px] font-black uppercase tracking-wider flex items-center justify-center gap-1 active:scale-95 transition-all">
+                  <button type="button" onClick={() => setPreviewImage("/images/Pembayaran.jpeg")} className="w-full py-1.5 px-2 bg-emerald-500 hover:bg-emerald-400 text-zinc-950 rounded-[10px] text-[9px] font-black uppercase tracking-wider flex items-center justify-center gap-1 active:scale-95 transition-all">
                     <Eye size={10} /> Perbesar Kode QR
                   </button>
                 </div>
@@ -336,8 +336,8 @@ export default function PaymentPage({ params }) {
             <div className="flex flex-col md:grid md:grid-cols-12 gap-6 items-center animate-in fade-in duration-300">
               {/* Left/Middle: BCA Details Container */}
               <div className="md:col-span-5 w-full flex flex-col items-center gap-3">
-                <div className="w-full max-w-[200px] bg-zinc-950 border-2 border-zinc-800 rounded-2xl p-6 text-center space-y-4 shadow-lg shadow-black/40 relative">
-                  <div className="inline-flex items-center justify-center px-4 py-1.5 bg-blue-500/10 border border-blue-500/20 rounded-xl text-blue-400 text-xs font-black tracking-wider uppercase">BCA</div>
+                <div className="w-full max-w-[200px] bg-zinc-950 border-2 border-zinc-800 rounded-[10px] p-6 text-center space-y-4 shadow-lg shadow-black/40 relative">
+                  <div className="inline-flex items-center justify-center px-4 py-1.5 bg-blue-500/10 border border-blue-500/20 rounded-[10px] text-blue-400 text-xs font-black tracking-wider uppercase">BCA</div>
                   <div className="space-y-1">
                     <p className="text-[9px] font-black text-zinc-500 uppercase tracking-widest">Nomor Rekening</p>
                     <p className="text-sm font-black text-white tracking-widest font-mono">8480483953</p>
@@ -345,11 +345,11 @@ export default function PaymentPage({ params }) {
                   <button
                     type="button"
                     onClick={() => handleCopy("8480483953", "bca_account")}
-                    className="relative w-full py-2.5 bg-zinc-900 text-zinc-300 hover:text-white hover:bg-zinc-800 border border-zinc-800 rounded-xl text-[10px] font-black uppercase tracking-wider flex items-center justify-center gap-2 transition-all active:scale-95"
+                    className="relative w-full py-2.5 bg-zinc-900 text-zinc-300 hover:text-white hover:bg-zinc-800 border border-zinc-800 rounded-[10px] text-[10px] font-black uppercase tracking-wider flex items-center justify-center gap-2 transition-all active:scale-95"
                   >
                     <Copy size={13} />
                     <span>Salin Rekening</span>
-                    {copySuccess === "bca_account" && <span className="absolute -top-10 left-1/2 -translate-x-1/2 bg-emerald-500 text-zinc-950 text-[9px] font-black px-2.5 py-1.5 rounded-lg border border-emerald-400 animate-in fade-in slide-in-from-bottom-2 whitespace-nowrap">No. Rekening Disalin!</span>}
+                    {copySuccess === "bca_account" && <span className="absolute -top-10 left-1/2 -translate-x-1/2 bg-emerald-500 text-zinc-950 text-[9px] font-black px-2.5 py-1.5 rounded-[10px] border border-emerald-400 animate-in fade-in slide-in-from-bottom-2 whitespace-nowrap">No. Rekening Disalin!</span>}
                   </button>
                 </div>
               </div>
@@ -391,7 +391,7 @@ export default function PaymentPage({ params }) {
           )}
 
           {/* Warning / Note */}
-          <div className="p-3 bg-amber-500/5 border border-amber-500/10 rounded-xl flex items-start gap-2">
+          <div className="p-3 bg-amber-500/5 border border-amber-500/10 rounded-[10px] flex items-start gap-2">
             <Info size={12} className="text-amber-500 shrink-0 mt-0.5" />
             <p className="text-[9px] text-amber-500/80 font-medium leading-relaxed italic">PENTING: Pastikan nominal transfer sesuai dengan total tagihan invoice agar proses verifikasi berjalan lancar.</p>
           </div>
@@ -416,12 +416,12 @@ export default function PaymentPage({ params }) {
       {/* Header */}
       <div className="flex items-center justify-between">
         <Link href={`/user/pesanan/transaksi/${id}`} className="flex items-center gap-2 text-zinc-400 hover:text-white transition-colors group">
-          <div className="w-8 h-8 rounded-lg bg-zinc-900 border border-zinc-800 flex items-center justify-center group-hover:bg-zinc-800 transition-all">
+          <div className="w-8 h-8 rounded-[10px] bg-zinc-900 border border-zinc-800 flex items-center justify-center group-hover:bg-zinc-800 transition-all">
             <ChevronLeft size={18} />
           </div>
           <span className="text-sm font-bold">Kembali</span>
         </Link>
-        <div className="flex items-center gap-2 bg-amber-500/10 text-amber-500 px-4 py-2 rounded-full border border-amber-500/20">
+        <div className="flex items-center gap-2 bg-amber-500/10 text-amber-500 px-4 py-2 rounded-[10px] border border-amber-500/20">
           <Clock size={16} className="animate-pulse" />
           <span className="text-[10px] font-black uppercase tracking-widest">Menunggu Pembayaran</span>
         </div>
@@ -433,8 +433,8 @@ export default function PaymentPage({ params }) {
       {/* Success Overlay */}
       {showSuccess && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-md animate-in fade-in duration-500">
-          <div className="bg-zinc-900 border border-emerald-500/50 p-12 rounded-[3rem] text-center space-y-6">
-            <div className="w-24 h-24 bg-emerald-500 rounded-[2rem] flex items-center justify-center mx-auto">
+          <div className="bg-zinc-900 border border-emerald-500/50 p-12 rounded-[10px] text-center space-y-6">
+            <div className="w-24 h-24 bg-emerald-500 rounded-[10px] flex items-center justify-center mx-auto">
               <CheckCircle2 size={48} className="text-zinc-950" />
             </div>
             <div className="space-y-2">
@@ -460,7 +460,7 @@ export default function PaymentPage({ params }) {
         {/* Right Column: Invoice & Payment Upload (Desktop Right, Mobile Top) */}
         <div className="lg:col-span-5 flex flex-col gap-6 lg:sticky lg:top-10 order-1 lg:order-2 w-full">
           {/* Invoice Card */}
-          <div className="bg-zinc-900/60 backdrop-blur-xl border border-zinc-800/80 rounded-[2rem] p-6 sm:p-8 relative overflow-hidden">
+          <div className="bg-zinc-900/60 backdrop-blur-xl border border-zinc-800/80 rounded-[10px] p-6 sm:p-8 relative overflow-hidden">
             <div className="absolute top-0 right-0 p-8 opacity-[0.03] pointer-events-none text-white">
               <Receipt size={120} />
             </div>
@@ -468,7 +468,7 @@ export default function PaymentPage({ params }) {
             <div className="relative z-10 space-y-6">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-zinc-800/60 pb-6">
                 <div className="space-y-1">
-                  <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-zinc-950 border border-zinc-850 text-[9px] font-black text-zinc-400 uppercase tracking-widest rounded-md">
+                  <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-zinc-950 border border-zinc-800 text-[9px] font-black text-zinc-400 uppercase tracking-widest rounded-[10px]">
                     <Receipt size={12} className="text-emerald-500" /> Rincian Invoice
                   </span>
                   <h4 className="text-base font-black text-white tracking-wider font-mono pt-1">{order.order_id}</h4>
@@ -483,8 +483,8 @@ export default function PaymentPage({ params }) {
               {order.items && order.items.length > 1 ? (
                 <div className="space-y-3 max-h-60 overflow-y-auto pr-1">
                   {order.items.map((item, idx) => (
-                    <div key={item.id || idx} className="flex gap-3 items-center bg-zinc-950/40 p-3 rounded-xl border border-zinc-850">
-                      <div className="w-12 h-12 rounded-lg overflow-hidden bg-zinc-900 border border-zinc-850 shrink-0 relative">
+                    <div key={item.id || idx} className="flex gap-3 items-center bg-zinc-950/40 p-3 rounded-[10px] border border-zinc-800">
+                      <div className="w-12 h-12 rounded-[10px] overflow-hidden bg-zinc-900 border border-zinc-800 shrink-0 relative">
                         {(() => {
                           const mediaUrl = getImageUrl(item.product?.images);
                           return isVideoUrl(mediaUrl) ? <video src={mediaUrl} className="w-full h-full object-cover" muted playsInline preload="metadata" /> : <img src={mediaUrl || "/placeholder.png"} className="w-full h-full object-cover" alt={item.product?.name} />;
@@ -495,13 +495,23 @@ export default function PaymentPage({ params }) {
                         <p className="text-[9px] font-bold text-zinc-500">
                           {item.quantity} x <span className="text-emerald-400 font-black">{formatPrice(item.price)}</span>
                         </p>
+                        {(item.product?.is_free_shipping || item.product?.is_free_packing) && (
+                          <div className="flex flex-wrap gap-1 pt-1">
+                            {item.product?.is_free_shipping && (
+                              <span className="px-1.5 py-0.5 bg-emerald-500/10 text-emerald-400 text-[7px] font-black uppercase tracking-widest rounded-[10px] border border-emerald-500/20">Gratis Ongkir</span>
+                            )}
+                            {item.product?.is_free_packing && (
+                              <span className="px-1.5 py-0.5 bg-blue-500/10 text-blue-400 text-[7px] font-black uppercase tracking-widest rounded-[10px] border border-blue-500/20">Gratis Packing</span>
+                            )}
+                          </div>
+                        )}
                       </div>
                     </div>
                   ))}
                 </div>
               ) : (
-                <div className="flex gap-4 items-center bg-zinc-950/40 p-4 rounded-2xl border border-zinc-800/60 group/prod">
-                  <div className="w-16 h-16 rounded-xl overflow-hidden bg-zinc-900 border border-zinc-800 shrink-0 relative">
+                <div className="flex gap-4 items-center bg-zinc-950/40 p-4 rounded-[10px] border border-zinc-800/60 group/prod">
+                  <div className="w-16 h-16 rounded-[10px] overflow-hidden bg-zinc-900 border border-zinc-800 shrink-0 relative">
                     {order.product?.images && isVideoUrl(order.product.images) ? (
                       <video src={getImageUrl(order.product.images)} className="w-full h-full object-cover group-hover/prod:scale-105 transition-transform duration-500" muted playsInline preload="metadata" />
                     ) : (
@@ -509,9 +519,15 @@ export default function PaymentPage({ params }) {
                     )}
                   </div>
                   <div className="space-y-1 flex-1 min-w-0">
-                    <div className="flex items-center gap-2">
-                      <span className="text-[9px] font-black text-emerald-500 bg-emerald-500/5 px-2 py-0.5 rounded border border-emerald-500/10 uppercase tracking-widest">{order.product?.species}</span>
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="text-[9px] font-black text-emerald-500 bg-emerald-500/5 px-2 py-0.5 rounded-[10px] border border-emerald-500/10 uppercase tracking-widest">{order.product?.species}</span>
                       <span className="text-[8px] font-black text-zinc-500 font-mono">ID: {order.product?.product_id || "-"}</span>
+                      {order.product?.is_free_shipping && (
+                        <span className="px-1.5 py-0.5 bg-emerald-500/10 text-emerald-400 text-[8px] font-black uppercase tracking-widest rounded-[10px] border border-emerald-500/20">Gratis Ongkir</span>
+                      )}
+                      {order.product?.is_free_packing && (
+                        <span className="px-1.5 py-0.5 bg-blue-500/10 text-blue-400 text-[8px] font-black uppercase tracking-widest rounded-[10px] border border-blue-500/20">Gratis Packing</span>
+                      )}
                     </div>
                     <h5 className="text-xs font-black text-white truncate">{order.product?.name}</h5>
                     <p className="text-[10px] font-bold text-zinc-400">
@@ -533,28 +549,28 @@ export default function PaymentPage({ params }) {
                 </div>
                 <div className="flex justify-between items-center text-xs">
                   <span className="text-zinc-500 font-bold uppercase tracking-wider text-[10px]">Ongkos Kirim</span>
-                  <span className="text-zinc-300 font-bold font-mono">{order.product?.is_free_shipping ? <span className="text-emerald-500 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20 text-[9px] uppercase tracking-wider font-black">Gratis</span> : formatPrice(order.shipping_cost)}</span>
+                  <span className="text-zinc-300 font-bold font-mono">{((order.items && order.items.length > 0 ? order.items.every(item => item.product?.is_free_shipping) : !!order.product?.is_free_shipping) || (order.shipping_cost !== null && parseFloat(order.shipping_cost) === 0)) ? <span className="text-emerald-500 bg-emerald-500/10 px-2 py-0.5 rounded-[10px] border border-emerald-500/20 text-[9px] uppercase tracking-wider font-black">Gratis</span> : formatPrice(order.shipping_cost)}</span>
                 </div>
                 <div className="flex justify-between items-center text-xs">
                   <span className="text-zinc-500 font-bold uppercase tracking-wider text-[10px]">Biaya Packing</span>
-                  <span className="text-zinc-300 font-bold font-mono">{order.product?.is_free_packing ? <span className="text-emerald-500 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20 text-[9px] uppercase tracking-wider font-black">Gratis</span> : formatPrice(order.packing_cost)}</span>
+                  <span className="text-zinc-300 font-bold font-mono">{((order.items && order.items.length > 0 ? order.items.every(item => item.product?.is_free_packing) : !!order.product?.is_free_packing) || (order.packing_cost !== null && parseFloat(order.packing_cost) === 0)) ? <span className="text-emerald-500 bg-emerald-500/10 px-2 py-0.5 rounded-[10px] border border-emerald-500/20 text-[9px] uppercase tracking-wider font-black">Gratis</span> : formatPrice(order.packing_cost)}</span>
                 </div>
 
                 <div className="h-[1px] bg-zinc-800/80 border-dashed border-zinc-700 my-4"></div>
 
                 {/* Total Price Section */}
-                <div className="w-full bg-zinc-950/80 border border-emerald-500/25 p-5 rounded-2xl flex items-center justify-between gap-4 group/total">
+                <div className="w-full bg-zinc-950/80 border border-emerald-500/25 p-5 rounded-[10px] flex items-center justify-between gap-4 group/total">
                   <div className="space-y-1">
                     <p className="text-[10px] font-black text-emerald-500 uppercase tracking-[0.2em]">Total Tagihan</p>
                     <p className="text-2xl font-black text-white tracking-tight">{formatPrice(order.total_price)}</p>
                   </div>
                   <button
                     onClick={() => handleCopy(order.total_price.toString(), "amount")}
-                    className="relative shrink-0 flex items-center gap-2 px-4 py-2.5 bg-emerald-500/10 border border-emerald-500/20 hover:border-emerald-500 hover:bg-emerald-500 text-emerald-400 hover:text-zinc-950 rounded-xl transition-all duration-300 active:scale-95 text-xs font-black uppercase tracking-widest"
+                    className="relative shrink-0 flex items-center gap-2 px-4 py-2.5 bg-emerald-500/10 border border-emerald-500/20 hover:border-emerald-500 hover:bg-emerald-500 text-emerald-400 hover:text-zinc-950 rounded-[10px] transition-all duration-300 active:scale-95 text-xs font-black uppercase tracking-widest"
                   >
                     <Copy size={14} className="group-hover/total:rotate-6 transition-transform" />
                     <span>Salin</span>
-                    {copySuccess === "amount" && <span className="absolute -top-10 left-1/2 -translate-x-1/2 bg-emerald-500 text-zinc-950 text-[9px] font-black px-2.5 py-1.5 rounded-lg border border-emerald-400 animate-in fade-in slide-in-from-bottom-2 whitespace-nowrap">Nominal Disalin!</span>}
+                    {copySuccess === "amount" && <span className="absolute -top-10 left-1/2 -translate-x-1/2 bg-emerald-500 text-zinc-950 text-[9px] font-black px-2.5 py-1.5 rounded-[10px] border border-emerald-400 animate-in fade-in slide-in-from-bottom-2 whitespace-nowrap">Nominal Disalin!</span>}
                   </button>
                 </div>
               </div>
@@ -565,10 +581,10 @@ export default function PaymentPage({ params }) {
           </div>
 
           {/* Payment Upload Card */}
-          <div className="bg-zinc-900/60 backdrop-blur-xl border border-zinc-800/80 rounded-[2rem] p-6 sm:p-8 relative overflow-hidden">
+          <div className="bg-zinc-900/60 backdrop-blur-xl border border-zinc-800/80 rounded-[10px] p-6 sm:p-8 relative overflow-hidden">
             <div className="space-y-6">
               <div className="flex items-center gap-3 border-b border-zinc-800/60 pb-4">
-                <div className="w-8 h-8 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-500 shrink-0">
+                <div className="w-8 h-8 rounded-[10px] bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-500 shrink-0">
                   <CreditCard size={16} />
                 </div>
                 <div>
@@ -580,7 +596,7 @@ export default function PaymentPage({ params }) {
               {order.status === "waiting_payment" ? (
                 <div className="space-y-6">
                   {order.payment_rejection_reason && (
-                    <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-2xl flex items-start gap-3">
+                    <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-[10px] flex items-start gap-3">
                       <AlertCircle size={16} className="text-red-400 shrink-0 mt-0.5" />
                       <div className="space-y-1">
                         <p className="text-xs font-bold text-red-400 uppercase tracking-widest">Bukti Pembayaran Ditolak</p>
@@ -589,9 +605,9 @@ export default function PaymentPage({ params }) {
                     </div>
                   )}
                   {/* Image Upload Area */}
-                  <div className="bg-zinc-950/40 border-2 border-dashed border-zinc-800 hover:border-emerald-500/40 rounded-2xl p-6 text-center space-y-4 relative group transition-all duration-300">
+                  <div className="bg-zinc-950/40 border-2 border-dashed border-zinc-800 hover:border-emerald-500/40 rounded-[10px] p-6 text-center space-y-4 relative group transition-all duration-300">
                     {paymentProof || uploadPreview ? (
-                      <div className="relative aspect-video rounded-xl overflow-hidden bg-zinc-950 border border-zinc-800 group/uploaded">
+                      <div className="relative aspect-video rounded-[10px] overflow-hidden bg-zinc-950 border border-zinc-800 group/uploaded">
                         <img src={uploadPreview || getImageUrl(paymentProof) || "/placeholder.png"} alt="Bukti Bayar" className="w-full h-full object-contain" />
 
                         {/* Uploading Overlay */}
@@ -604,8 +620,8 @@ export default function PaymentPage({ params }) {
 
                         {/* Floating Action Bar */}
                         {!uploading && (
-                          <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex items-center gap-2 bg-zinc-950/90 backdrop-blur-md px-3 py-1.5 rounded-full border border-white/10">
-                            <button type="button" onClick={() => setPreviewImage(uploadPreview || getImageUrl(paymentProof) || "/placeholder.png")} className="px-3 py-1.5 bg-emerald-500 hover:bg-emerald-400 text-zinc-950 rounded-lg text-[9px] font-black uppercase tracking-wider flex items-center gap-1.5 active:scale-95 transition-all">
+                          <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex items-center gap-2 bg-zinc-950/90 backdrop-blur-md px-3 py-1.5 rounded-[10px] border border-zinc-800">
+                            <button type="button" onClick={() => setPreviewImage(uploadPreview || getImageUrl(paymentProof) || "/placeholder.png")} className="px-3 py-1.5 bg-emerald-500 hover:bg-emerald-400 text-zinc-950 rounded-[10px] text-[9px] font-black uppercase tracking-wider flex items-center gap-1.5 active:scale-95 transition-all">
                               <Eye size={12} /> Lihat
                             </button>
                             <button
@@ -614,7 +630,7 @@ export default function PaymentPage({ params }) {
                                 setPaymentProof("");
                                 setUploadPreview(null);
                               }}
-                              className="px-3 py-1.5 bg-red-500 hover:bg-red-400 text-white rounded-lg text-[9px] font-black uppercase tracking-wider flex items-center gap-1.5 active:scale-95 transition-all"
+                              className="px-3 py-1.5 bg-red-500 hover:bg-red-400 text-white rounded-[10px] text-[9px] font-black uppercase tracking-wider flex items-center gap-1.5 active:scale-95 transition-all"
                             >
                               <X size={12} /> Hapus
                             </button>
@@ -623,7 +639,7 @@ export default function PaymentPage({ params }) {
                       </div>
                     ) : (
                       <div className="py-4 space-y-3 cursor-pointer">
-                        <div className="w-12 h-12 bg-zinc-900 border border-zinc-800 rounded-xl flex items-center justify-center mx-auto text-zinc-500 group-hover:text-emerald-500 group-hover:border-emerald-500/20 transition-all duration-300">
+                        <div className="w-12 h-12 bg-zinc-900 border border-zinc-800 rounded-[10px] flex items-center justify-center mx-auto text-zinc-500 group-hover:text-emerald-500 group-hover:border-emerald-500/20 transition-all duration-300">
                           {uploading ? <div className="w-5 h-5 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin"></div> : <Receipt size={20} />}
                         </div>
                         <div className="space-y-1">
@@ -638,8 +654,8 @@ export default function PaymentPage({ params }) {
                   <button
                     onClick={handleConfirmPayment}
                     disabled={confirming || showSuccess || uploading || !paymentProof}
-                    className={`w-full py-4 rounded-xl font-black text-xs uppercase tracking-[0.2em] transition-all flex items-center justify-center gap-3 active:scale-[0.98] ${
-                      confirming || showSuccess || uploading || !paymentProof ? "bg-zinc-800/50 text-zinc-600 border border-zinc-800/40 cursor-not-allowed" : "bg-[#228B22] hover:bg-[#4CBB17] text-white"
+                    className={`w-full py-4 rounded-[10px] font-black text-xs uppercase tracking-[0.2em] transition-all flex items-center justify-center gap-3 active:scale-[0.98] ${
+                      confirming || showSuccess || uploading || !paymentProof ? "bg-zinc-800/50 text-zinc-650 border border-zinc-800/40 cursor-not-allowed" : "bg-[#228B22] hover:bg-[#4CBB17] text-white"
                     }`}
                   >
                     {uploading ? (
@@ -662,8 +678,8 @@ export default function PaymentPage({ params }) {
                 </div>
               ) : order.status === "processing" ? (
                 <div className="space-y-6">
-                  <div className="p-4 bg-emerald-500/5 border border-emerald-500/20 rounded-2xl flex items-center gap-4">
-                    <div className="w-10 h-10 bg-emerald-500/10 border border-emerald-500/20 rounded-xl flex items-center justify-center text-emerald-400 shrink-0">
+                  <div className="p-4 bg-emerald-500/5 border border-emerald-500/20 rounded-[10px] flex items-center gap-4">
+                    <div className="w-10 h-10 bg-emerald-500/10 border border-emerald-500/20 rounded-[10px] flex items-center justify-center text-emerald-400 shrink-0">
                       <Clock size={18} className="animate-pulse" />
                     </div>
                     <div className="space-y-0.5">
@@ -672,12 +688,12 @@ export default function PaymentPage({ params }) {
                     </div>
                   </div>
 
-                  <button onClick={handleResetPayment} disabled={resetting} className="w-full py-3.5 border border-red-500/25 bg-red-500/5 hover:bg-red-500 hover:text-white text-red-400 rounded-xl font-black text-[10px] uppercase tracking-[0.15em] transition-all flex items-center justify-center gap-2.5 active:scale-95">
+                  <button onClick={handleResetPayment} disabled={resetting} className="w-full py-3.5 border border-red-500/25 bg-red-500/5 hover:bg-red-500 hover:text-white text-red-400 rounded-[10px] font-black text-[10px] uppercase tracking-[0.15em] transition-all flex items-center justify-center gap-2.5 active:scale-95">
                     {resetting ? <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin"></div> : "Batal Konfirmasi & Upload Ulang"}
                   </button>
                 </div>
               ) : (
-                <div className="p-6 bg-zinc-950/40 border border-zinc-800/60 rounded-2xl text-center">
+                <div className="p-6 bg-zinc-950/40 border border-zinc-800/60 rounded-[10px] text-center">
                   <p className="text-[10px] font-black text-zinc-500 uppercase tracking-[0.15em]">Status Pembayaran: {order.status}</p>
                 </div>
               )}
@@ -694,7 +710,7 @@ export default function PaymentPage({ params }) {
           </button>
 
           <div className="relative max-w-4xl max-h-[85vh] w-full h-full flex items-center justify-center animate-in zoom-in duration-300">
-            <img src={previewImage} alt="Review Image" className="max-w-full max-h-full object-contain rounded-2xl border border-zinc-800 shadow-2xl" />
+            <img src={previewImage} alt="Review Image" className="max-w-full max-h-full object-contain rounded-[10px] border border-zinc-800 shadow-2xl" />
           </div>
         </div>
       )}

@@ -142,6 +142,9 @@ router.put("/orders/:order_id/complain", checkAuth, ordersController.complainOrd
 router.put("/orders/:order_id/resolve-complaint", checkAuth, ordersController.resolveComplaint);
 router.put("/orders/:order_id/reset-payment", checkAuthAdmin, ordersController.resetPayment);
 router.put("/orders/:order_id/admin-cancel", checkAuthAdmin, ordersController.adminCancelOrder);
+router.put("/orders/:order_id/send-reminder", checkAuthAdmin, ordersController.sendBuyerReminder);
+router.put("/orders/:order_id/send-resi-reminder", checkAuthAdmin, ordersController.sendSellerResiReminder);
+router.put("/orders/:order_id/dismiss-reminder", checkAuth, ordersController.dismissBuyerReminder);
 router.put("/orders/:order_id/cancel", checkAuth, ordersController.cancelOrder);
 router.put("/orders/:order_id/request-disbursement", checkAuth, ordersController.requestDisbursement);
 router.post("/orders/bulk-request-disbursement", checkAuth, ordersController.bulkRequestDisbursement);
